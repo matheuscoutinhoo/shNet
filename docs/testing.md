@@ -24,7 +24,7 @@
 - Canvas: grupos, movimento sem alterar conectividade, anotações, snap/grade, viewport e reabertura. E2E inclui contas, políticas, labs e edição visual em desktop/mobile.
 - Os testes validam apenas o escopo implementado. Recursos ausentes da matriz de cobertura não são considerados aprovados.
 
-- Railway: configuração PORT/host/origem, proibição de banco/e-mail local em produção, Resend HTTPS, cookies Secure, allowlist de proxies, rate limit e declaração IaC sem secrets. CI adiciona construção e smoke test da imagem; Docker/Railway real não foram executados nesta máquina.
+- Railway: configuração PORT/host/origem, proibição de banco/e-mail local em produção, inicialização/cadastro/login/projetos sem provedor de e-mail, ausência de tokens nesse modo, SMTP opcional com TLS, cookies Secure, allowlist de proxies, rate limit e declaração IaC sem secrets. E2E verifica o fluxo de conta conforme a disponibilidade de e-mail e a ausência de ações indisponíveis. CI adiciona construção e smoke test da imagem sem variáveis de e-mail; Docker/Railway real não foram executados nesta máquina.
 - STP/RSTP: bloqueio de dados, learning MAC, eleição por prioridade/custo, PortFast, fallback para STP/half-duplex, falha/recuperação, timers e persistência. API rejeita snapshots de portas bloqueadas adulteradas.
 - E2E RSTP: template redundante, bloqueio visual, shutdown/no shutdown pela CLI, ping com caminho alternativo, isolamento/timeout, BPDU inspector e reabertura mobile. Operações normais têm orçamento de 64 passos; o timeout de isolamento permite até 256 passos para processar também os Hellos periódicos.
 

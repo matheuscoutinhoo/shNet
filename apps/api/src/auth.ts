@@ -24,14 +24,16 @@ const hash = (s: string) =>
   argon2.hash(s, { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 });
 interface AuthOptions {
   db: Database;
-  mailer: Mailer;
+  mailer?: Mailer;
   origin: string;
   production: boolean;
 }
 export async function registerAuth(app: FastifyInstance, { db, mailer, origin, production }: AuthOptions) {
   const dummy = await hash(token());
   const sensitive = { config: { rateLimit: { max: 8, timeWindow: '1 minute' } } };
+  app.get('/api/auth/capabilities', async () => ({ emailEnabled: Boolean(mailer) }));
   const send = async (user: User, purpose: 'verify' | 'reset') => {
+    if (!mailer) throw error(503, 'Envio de e-mail desativado nesta instalação.');
     const value = token();
     await db.query('DELETE FROM auth_tokens WHERE user_id=$1 AND purpose=$2', [user.id, purpose]);
     await db.query(
@@ -62,10 +64,12 @@ export async function registerAuth(app: FastifyInstance, { db, mailer, origin, p
       'INSERT INTO users(id,email,name,password_hash) VALUES($1,$2,$3,$4) ON CONFLICT(email) DO NOTHING RETURNING id,email,name,verified',
       [randomUUID(), body.email, body.name, passwordHash]
     );
-    if (users[0]) await send(users[0], 'verify');
-    return reply
-      .code(202)
-      .send({ message: 'Se o endereço puder ser cadastrado, enviaremos um e-mail de verificação.' });
+    if (mailer && users[0]) await send(users[0], 'verify');
+    return reply.code(202).send({
+      message: mailer
+        ? 'Se o endereço puder ser cadastrado, enviaremos um e-mail de verificação.'
+        : 'Se o endereço estiver disponível, sua conta foi criada. Entre com seu e-mail e senha.',
+    });
   });
   app.post('/api/auth/login', sensitive, async (req, reply) => {
     const body = z
@@ -88,7 +92,7 @@ export async function registerAuth(app: FastifyInstance, { db, mailer, origin, p
       req.log.info({ event: 'auth.login_failed' }, 'Login recusado');
       throw error(401, 'E-mail ou senha inválidos. Aguarde se excedeu as tentativas.');
     }
-    if (!user.verified) throw error(403, 'Verifique seu e-mail antes de entrar.');
+    if (mailer && !user.verified) throw error(403, 'Verifique seu e-mail antes de entrar.');
     const value = token();
     await db.transaction(async (tx) => {
       const latest = (
@@ -196,6 +200,7 @@ export async function registerAuth(app: FastifyInstance, { db, mailer, origin, p
     return { ok: true };
   });
   app.post('/api/auth/forgot-password', sensitive, async (req) => {
+    if (!mailer) throw error(503, 'Envio de e-mail desativado nesta instalação.');
     const body = z.object({ email }).strict().parse(req.body);
     const user = (
       await db.query<User>('SELECT id,email,name,verified FROM users WHERE email=$1', [body.email])
@@ -203,7 +208,8 @@ export async function registerAuth(app: FastifyInstance, { db, mailer, origin, p
     if (user) await send(user, 'reset');
     return { message: 'Se o endereço estiver cadastrado, enviaremos as instruções.' };
   });
-  app.post('/api/auth/resend-verification', sensitive, async (req) => {
+  app.post('/api/auth/request-verification', sensitive, async (req) => {
+    if (!mailer) throw error(503, 'Envio de e-mail desativado nesta instalação.');
     const body = z.object({ email }).strict().parse(req.body);
     const user = (
       await db.query<User>('SELECT id,email,name,verified FROM users WHERE email=$1', [body.email])

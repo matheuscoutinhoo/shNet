@@ -13,9 +13,9 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json ./
 COPY apps/api/src/db.ts ./apps/api/src/db.ts
 COPY scripts/backup.ts scripts/backup-schedule.ts scripts/backup-status.ts ./scripts/
-RUN groupadd --gid 1000 backup && useradd --uid 1000 --gid 1000 --create-home backup \
-    && mkdir -p /backups /backup-status && chown backup:backup /backups /backup-status \
+RUN groupadd --gid 1000 shlab_backup && useradd --uid 1000 --gid 1000 --create-home shlab_backup \
+    && mkdir -p /backups /backup-status && chown shlab_backup:shlab_backup /backups /backup-status \
     && chmod 700 /backups && chmod 755 /backup-status
-USER backup
+USER shlab_backup
 ENTRYPOINT ["node", "--import", "tsx"]
 CMD ["scripts/backup-schedule.ts"]

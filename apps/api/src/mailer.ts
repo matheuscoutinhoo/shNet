@@ -9,32 +9,14 @@ export interface Mail {
   text: string;
 }
 export type Mailer = (mail: Mail) => Promise<void>;
-export function createMailer(env: NodeJS.ProcessEnv = process.env, request: typeof fetch = fetch): Mailer {
+export function createMailer(env: NodeJS.ProcessEnv = process.env): Mailer | undefined {
   const production = env.NODE_ENV === 'production';
-  const provider = env.MAIL_PROVIDER ?? (env.SMTP_HOST ? 'smtp' : 'local');
-  if (!['smtp', 'resend', 'local'].includes(provider)) throw new Error('MAIL_PROVIDER inválido.');
-  if (production && !env.MAIL_FROM) throw new Error('MAIL_FROM obrigatório em produção.');
-  if (provider === 'resend') {
-    if (!env.RESEND_API_KEY || !env.MAIL_FROM) throw new Error('Resend exige RESEND_API_KEY e MAIL_FROM.');
-    return async (mail) => {
-      const response = await request('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + env.RESEND_API_KEY,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': randomUUID(),
-        },
-        body: JSON.stringify({ from: env.MAIL_FROM, to: [mail.to], subject: mail.subject, text: mail.text }),
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!response.ok) throw new Error('Falha no provedor de e-mail (HTTP ' + response.status + ').');
-      const result: unknown = await response.json();
-      if (!result || typeof result !== 'object' || !('id' in result) || typeof result.id !== 'string')
-        throw new Error('Resposta inválida do provedor de e-mail.');
-    };
-  }
+  const provider = env.MAIL_PROVIDER ?? (env.SMTP_HOST ? 'smtp' : production ? 'none' : 'local');
+  if (!['smtp', 'local', 'none'].includes(provider)) throw new Error('MAIL_PROVIDER inválido.');
+  if (provider === 'none') return undefined;
   if (provider === 'smtp') {
     if (!env.SMTP_HOST) throw new Error('SMTP_HOST obrigatório para SMTP.');
+    if (production && !env.MAIL_FROM) throw new Error('MAIL_FROM obrigatório para SMTP em produção.');
     const secure = env.SMTP_SECURE === 'true';
     const port = Number(env.SMTP_PORT ?? (secure ? 465 : production ? 587 : 1025));
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('SMTP_PORT inválida.');
@@ -53,7 +35,7 @@ export function createMailer(env: NodeJS.ProcessEnv = process.env, request: type
       await smtp.sendMail({ from: env.MAIL_FROM ?? 'shLab <noreply@shlab.local>', ...mail });
     };
   }
-  if (production) throw new Error('Produção exige um provedor de e-mail SMTP ou Resend.');
+  if (production) throw new Error('E-mail local não é permitido em produção.');
   return async (mail) => {
     const dir = env.LOCAL_MAIL_DIR
       ? resolve(env.LOCAL_MAIL_DIR)

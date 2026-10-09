@@ -34,7 +34,7 @@ Revise os arquivos antes de criar o commit e fazer push. `.env`, `.data`, tokens
 
 1. Use um projeto Railway dedicado e vincule o GitHub `matheuscoutinhoo`, permitindo acesso ao repositório `shNet`.
 2. Instale/atualize a CLI oficial, autentique e vincule a pasta ao projeto e ambiente corretos com `railway login` e `railway link`.
-3. No ambiente Railway, crie as variáveis compartilhadas `MAIL_FROM` e `RESEND_API_KEY`. Use remetente de domínio verificado no Resend e trate a chave como segredo/variável selada.
+3. Não é necessário contratar/configurar serviço de e-mail. A IaC usa `MAIL_PROVIDER=none`; cadastro e login funcionam diretamente. Remova configurações de provedores antigos se estiver atualizando um serviço existente.
 4. Execute `railway config plan`. Revise a criação de `shlab` e `postgres`, a origem GitHub e todas as mudanças. Só então execute `railway config apply`. Isso provisiona recursos faturáveis; não faça apply em um projeto diferente nem aprove exclusões inesperadas.
 5. Em `shlab`, gere um domínio público em Settings > Networking. `RAILWAY_PUBLIC_DOMAIN` permite calcular a origem HTTPS. Se usar domínio próprio, declare `APP_ORIGIN` exata na configuração do serviço/IaC. Gere o domínio e ajuste as variáveis antes de considerar o primeiro deploy pronto; faça redeploy se necessário.
 6. Mantenha a raiz do serviço em `/`, o Dockerfile na raiz, uma réplica e o PostgreSQL privado. Não importe separadamente API e frontend como dois serviços independentes.
@@ -52,16 +52,18 @@ A documentação atual recomenda `.railway/railway.ts` (Infrastructure as Code).
 | `HOST`                | `::`                                                                     |
 | `PORT`                | `8080` na imagem/IaC; a aplicação respeita o valor recebido              |
 | `APP_ORIGIN`          | Origem HTTPS, sem caminho; opcional quando há `RAILWAY_PUBLIC_DOMAIN`    |
-| `MAIL_PROVIDER`       | `resend`, compatível com todos os planos                                 |
-| `MAIL_FROM`           | Remetente verificado, via variável compartilhada                         |
-| `RESEND_API_KEY`      | Segredo via variável compartilhada/selada                                |
+| `MAIL_PROVIDER`       | `none` na IaC; também é o padrão de produção sem `SMTP_HOST`             |
 | `TRUSTED_PROXY_CIDRS` | Opcional: lista explícita dos IPs/CIDRs dos proxies realmente confiáveis |
 
 Não copie a `.env` de desenvolvimento para produção. Não use senhas do Compose, PGlite ou armazenamento local como persistência de produção. Nunca desative a validação TLS para contornar erros de certificado.
 
 ## E-mail e proxy
 
-Railway Free, Trial e Hobby bloqueiam SMTP de saída. O adaptador Resend usa HTTPS, timeout e idempotency key. SMTP permanece disponível como alternativa nos planos que o permitem: configure `MAIL_PROVIDER=smtp`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` e `MAIL_FROM`. SMTP em produção exige TLS.
+A aplicação inicia sem provedor, remetente ou chave de e-mail. Cadastro e login ficam disponíveis imediatamente. Nesse modo, o endereço é um identificador de login; não há confirmação de propriedade e `verified` permanece falso. A interface oculta recuperação de senha e solicitação de verificação, e a API recusa novos envios sem gerar tokens. A senha ainda pode ser alterada nas configurações da conta usando a senha atual.
+
+Se quiser confirmação de e-mail e recuperação de senha no futuro, configure um servidor SMTP acessível: `MAIL_PROVIDER=smtp`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` e `MAIL_FROM`. SMTP em produção exige TLS. Consulte as restrições de rede de saída do seu plano antes de habilitá-lo. Ao habilitar e-mail, contas ainda não verificadas precisarão solicitar o link na tela de login e confirmar o endereço.
+
+`APP_ORIGIN` precisa incluir o protocolo: por exemplo, `https://shnet.up.railway.app`, sem caminho. Usar apenas `shnet.up.railway.app` impede a inicialização. Se usar o domínio gerado pelo Railway, também pode remover `APP_ORIGIN` e deixar a aplicação usar `RAILWAY_PUBLIC_DOMAIN`.
 
 Cookies são Secure, HttpOnly e SameSite=Strict. A origem é uma configuração confiável, não derivada de cabeçalhos recebidos. A confiança em proxy fica desabilitada por padrão: configure `TRUSTED_PROXY_CIDRS` somente depois de confirmar os peers de entrada da sua implantação. A versão atual do Fastify rejeita confiança apenas por número de saltos. Não use `true`, redes `/0` ou faixas amplas por tentativa. Sem configuração do proxy, limites por IP agregam clientes que chegam pelo mesmo proxy; valide isso antes de abrir o serviço a vários usuários.
 
@@ -69,7 +71,7 @@ Cookies são Secure, HttpOnly e SameSite=Strict. A origem é uma configuração 
 
 - A CI usa PostgreSQL 18, executa testes/build/E2E, constrói a imagem, roda migrations e verifica `/api/health` e a SPA no container.
 - `/api/health` verifica conexão com o banco. O healthcheck de deploy não substitui monitoramento contínuo nem teste de entrega de e-mail.
-- Valide cadastro, verificação, login, recuperação de senha, salvamento e WebSocket pelo domínio HTTPS real.
+- Valide cadastro, login, salvamento e WebSocket pelo domínio HTTPS real. Se habilitar SMTP, valide também confirmação e recuperação de senha.
 - Configure backups/PITR do PostgreSQL e teste restauração antes de armazenar dados importantes.
 - A migration 007 compartilha rate limits em PostgreSQL; notificações privadas usam LISTEN/NOTIFY. Duas instâncias foram verificadas localmente. Valide proxy, readiness, reconexão dos clientes e capacidade do banco no ambiente antes de aumentar réplicas. A definição IaC conserva uma réplica inicial.
 - O banco embarcado local não é migrado automaticamente para o Railway. Exporte/importe os laboratórios ou planeje uma migração de dados separada.
@@ -85,4 +87,3 @@ Nesta máquina foram validados o SDK/IaC, build e testes locais. Docker e Railwa
 - [PostgreSQL](https://docs.railway.com/guides/postgresql)
 - [Pre-deploy](https://docs.railway.com/deployments/pre-deploy-command)
 - [Rede de saída e e-mail](https://docs.railway.com/networking/outbound-networking)
-- [API de envio do Resend](https://resend.com/docs/api-reference/emails/send-email)

@@ -15,7 +15,7 @@ Autenticação simples, sem RBAC/organizações. Segue recomendações aplicáve
 - Logs estruturados com request ID e redaction de cookies/credenciais. Sem logs de body/senha/token de e-mail.
 - NetOS nunca chama exec, eval, shell ou sistema operacional. Parser usa registry finito de comandos.
 - Avaliações de labs exigem ownership/CSRF, usam somente o snapshot salvo, rejeitam resultados fornecidos pelo cliente e executam tráfego novo em cópia isolada com limite de tamanho/eventos. Não são um sistema de certificação inviolável para topologias arbitrárias.
-- E-mails locais contêm segredos temporários em .data/mail, ignorado pelo Git; modo exclusivamente local. Produção exige SMTP com TLS ou Resend HTTPS, com secrets por variáveis e sem log do corpo da resposta do provedor.
+- E-mails locais contêm segredos temporários em .data/mail, ignorado pelo Git; modo exclusivamente local. Produção inicia sem envio de e-mail: cadastro/login não exigem confirmação, mas `verified` continua falso e nenhum token de recuperação/verificação é gerado. Não há comprovação de propriedade do endereço nesse modo; não use o campo como identidade comprovada. Solicitações de envio retornam 503 tanto para endereços existentes quanto ausentes. SMTP é opcional, exige TLS em produção e secrets por variáveis; quando habilitado, o login exige confirmação do endereço. Alteração de senha autenticada continua disponível sem e-mail.
 
 ## Operação
 

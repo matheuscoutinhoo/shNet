@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowLeft, ShieldCheck, Network, Layers, TerminalSquare } from 'lucide-react';
 import { api, type User } from './api';
 import { Brand } from './components/Brand';
@@ -14,7 +14,21 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
     [error, setError] = useState(''),
     [message, setMessage] = useState(''),
     [busy, setBusy] = useState(false),
-    [email, setEmail] = useState('');
+    [email, setEmail] = useState(''),
+    [emailEnabled, setEmailEnabled] = useState<boolean | null>(null);
+  useEffect(() => {
+    let active = true;
+    api<{ emailEnabled: boolean }>('/auth/capabilities')
+      .then((capabilities) => {
+        if (active) setEmailEnabled(capabilities.emailEnabled);
+      })
+      .catch(() => {
+        if (active) setEmailEnabled(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const change = (next: Mode) => {
     setMode(next);
     setError('');
@@ -39,6 +53,7 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
           body: { name: form.get('name'), email, password: form.get('password') },
         });
         setMessage(r.message);
+        if (emailEnabled === false) setMode('login');
       } else if (mode === 'forgot') {
         const r = await api<{ message: string }>('/auth/forgot-password', {
           method: 'POST',
@@ -179,7 +194,7 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
                 />
               </label>
             )}
-            {mode === 'login' && (
+            {mode === 'login' && emailEnabled && (
               <button type="button" className="text-button forgot" onClick={() => change('forgot')}>
                 Esqueceu sua senha?
               </button>
@@ -194,7 +209,7 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
                 {message}
               </div>
             )}
-            <button className="button primary auth-submit" disabled={busy}>
+            <button className="button primary auth-submit" disabled={busy || emailEnabled === null}>
               {busy
                 ? 'Aguarde…'
                 : {
@@ -215,26 +230,28 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
                   Comece aqui
                 </button>
               </p>
-              <button
-                className="text-button resend"
-                disabled={!email || busy}
-                onClick={async () => {
-                  setBusy(true);
-                  try {
-                    const r = await api<{ message: string }>('/auth/resend-verification', {
-                      method: 'POST',
-                      body: { email },
-                    });
-                    setMessage(r.message);
-                  } catch (e) {
-                    setError((e as Error).message);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                Reenviar verificação de e-mail
-              </button>
+              {emailEnabled && (
+                <button
+                  className="text-button verification-retry"
+                  disabled={!email || busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      const r = await api<{ message: string }>('/auth/request-verification', {
+                        method: 'POST',
+                        body: { email },
+                      });
+                      setMessage(r.message);
+                    } catch (e) {
+                      setError((e as Error).message);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  Reenviar verificação de e-mail
+                </button>
+              )}
             </>
           ) : (
             <button className="text-button auth-back" onClick={() => change('login')}>

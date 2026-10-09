@@ -18,7 +18,7 @@ import { openapi } from './openapi';
 import { registerObservability } from './observability';
 interface Options {
   db: Database;
-  mailer: Mailer;
+  mailer?: Mailer;
   origin: string;
   production?: boolean;
   logger?: boolean;

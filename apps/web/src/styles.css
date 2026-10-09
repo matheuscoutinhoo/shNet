@@ -968,7 +968,7 @@ body .workspace-header {
   font-size: 12px;
 }
 
-.resend {
+.verification-retry {
   display: block;
   margin: 0 auto;
   color: #6d879b;

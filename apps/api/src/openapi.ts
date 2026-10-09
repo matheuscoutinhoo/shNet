@@ -8,6 +8,7 @@ const response = {
   404: { description: 'Recurso não encontrado ou pertence a outro usuário' },
   409: { description: 'Conflito de revisão' },
   429: { description: 'Limite de requisições' },
+  503: { description: 'Funcionalidade ou serviço indisponível nesta instalação' },
 };
 const json = (properties: Record<string, unknown>, required = Object.keys(properties)) => ({
   required: true,
@@ -67,7 +68,7 @@ export const openapi = {
     },
     '/api/auth/register': {
       post: op(
-        'Register and send verification',
+        'Register; send verification only when email is enabled',
         json({
           name: str,
           email: { type: 'string', format: 'email' },
@@ -76,6 +77,7 @@ export const openapi = {
       ),
     },
     '/api/auth/login': { post: op('Login and rotate session', json({ email: str, password: str })) },
+    '/api/auth/capabilities': { get: op('Public email availability for authentication') },
     '/api/auth/me': { get: op('Current user and CSRF token', undefined, true) },
     '/api/auth/logout': { post: op('Revoke session', undefined, true) },
     '/api/auth/profile': {
@@ -95,7 +97,7 @@ export const openapi = {
       ),
     },
     '/api/auth/verify-email': { post: op('Consume verification token', json({ token: str })) },
-    '/api/auth/resend-verification': { post: op('Resend verification', json({ email: str })) },
+    '/api/auth/request-verification': { post: op('Request verification email', json({ email: str })) },
     '/api/auth/forgot-password': { post: op('Request reset', json({ email: str })) },
     '/api/auth/reset-password': {
       post: op('Consume reset token and revoke sessions', json({ token: str, password: str })),

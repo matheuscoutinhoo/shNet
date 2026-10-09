@@ -21,10 +21,17 @@ async function registerAndLogin(page: Page, address: string) {
   await page.getByLabel('E-mail', { exact: true }).fill(address);
   await page.getByLabel('Senha', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Criar conta', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('verificação');
-  await page.goto(await verificationLink(address));
-  await page.getByRole('button', { name: 'Verificar e-mail', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('E-mail verificado');
+  const capabilities = await (await page.request.get('/api/auth/capabilities')).json();
+  if (capabilities.emailEnabled) {
+    await expect(page.getByRole('status')).toContainText('verificação');
+    await page.goto(await verificationLink(address));
+    await page.getByRole('button', { name: 'Verificar e-mail', exact: true }).click();
+    await expect(page.getByRole('status')).toContainText('E-mail verificado');
+  } else {
+    await expect(page.getByRole('status')).toContainText('Entre com seu e-mail e senha');
+    await expect(page.getByRole('button', { name: 'Esqueceu sua senha?' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Reenviar verificação de e-mail' })).toHaveCount(0);
+  }
   await page.getByLabel('E-mail', { exact: true }).fill(address);
   await page.getByLabel('Senha', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Entrar no shLab' }).click();

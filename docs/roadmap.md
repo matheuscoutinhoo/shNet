@@ -10,7 +10,7 @@ DHCP ampliado com relay de um salto, pools remotos selecionados por giaddr, rese
 
 DNS também foi entregue: registros A/AAAA/CNAME, consultas UDP/53, nslookup, ping por nome, cache TTL, timeout, servidor alternativo, CLI, painel e persistência. O template "Nomes na rede" utiliza opções DNS recebidas por DHCP.
 
-STP/RSTP entregue como árvore comum: BPDUs, prioridade/custo, estados de porta, negociação rápida, fallback temporizado, template de redundância, CLI, painel, inspeção de BPDUs e save/reload. A preparação Railway inclui Dockerfile, IaC oficial, Resend HTTPS e testes de configuração; publicação remota e operação real seguem sujeitas à revisão.
+STP/RSTP entregue como árvore comum: BPDUs, prioridade/custo, estados de porta, negociação rápida, fallback temporizado, template de redundância, CLI, painel, inspeção de BPDUs e save/reload. A preparação Railway inclui Dockerfile, IaC oficial, inicialização sem provedor de e-mail, SMTP opcional e testes de configuração; operação real segue sujeita à validação no ambiente.
 
 ## Próximas fases
 

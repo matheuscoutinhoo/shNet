@@ -24,9 +24,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       APP_ORIGIN: https://${SHLAB_DOMAIN:?Public domain with DNS pointed at this host}
-      MAIL_PROVIDER: resend
-      MAIL_FROM: ${MAIL_FROM:?Verified sender}
-      RESEND_API_KEY: ${RESEND_API_KEY:?Sealed email key}
+      MAIL_PROVIDER: none
       METRICS_TOKEN: ${METRICS_TOKEN:?Random token of at least 32 characters}
       BACKUP_STATUS_FILE: /backup-status/status.json
     volumes: [backup_status:/backup-status:ro]

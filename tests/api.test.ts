@@ -8,6 +8,7 @@ import { createRailwayContext, project as railwayProject } from 'railway/iac';
 import { makeTemplate, SimulationEngine, templates } from '@shlab/engine';
 import type { Mail } from '../apps/api/src/mailer';
 import { createMailer } from '../apps/api/src/mailer';
+import nodemailer from 'nodemailer';
 import { api as browserApi, ApiError } from '../apps/web/src/api';
 const origin = 'http://127.0.0.1:5173',
   password = 'Network-Lab-Test-123!';
@@ -47,7 +48,7 @@ describe('configuração de implantação', () => {
       },
       variables: {
         DATABASE_URL: { type: 'reference', resource: 'database.postgres' },
-        RESEND_API_KEY: { type: 'sharedReference', name: 'RESEND_API_KEY' },
+        MAIL_PROVIDER: { type: 'literal', value: 'none' },
       },
     });
     expect(resources.find((resource) => resource.type === 'database')).toMatchObject({
@@ -89,43 +90,120 @@ describe('configuração de implantação', () => {
       'TRUSTED_PROXY_CIDRS'
     );
   });
-  it('envia e-mail por HTTPS sem depender de SMTP no Railway Hobby', async () => {
-    const send = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ id: 'test-message' }));
-    const mail = { to: 'test@example.test', subject: 'Verify', text: 'A test verification message' };
-    await createMailer(
-      {
-        NODE_ENV: 'production',
-        MAIL_PROVIDER: 'resend',
-        RESEND_API_KEY: 'test-only-key',
-        MAIL_FROM: 'shLab <test@example.test>',
-      },
-      send
-    )(mail);
-    expect(send).toHaveBeenCalledOnce();
-    const [url, options] = send.mock.calls[0];
-    expect(url).toBe('https://api.resend.com/emails');
-    expect(JSON.parse(String(options?.body))).toEqual({
-      from: 'shLab <test@example.test>',
-      to: [mail.to],
-      subject: mail.subject,
-      text: mail.text,
-    });
-    expect(options?.signal).toBeInstanceOf(AbortSignal);
+  it('inicia produção sem provedor, remetente ou credenciais de e-mail', () => {
+    expect(createMailer({ NODE_ENV: 'production' })).toBeUndefined();
+    expect(createMailer({ MAIL_PROVIDER: 'none', SMTP_HOST: 'unused.example.test' })).toBeUndefined();
   });
-  it('recusa fallback local em produção e não expõe erros do provedor', async () => {
-    expect(() =>
-      createMailer({ NODE_ENV: 'production', MAIL_PROVIDER: 'local', MAIL_FROM: 'test@example.test' })
-    ).toThrow('provedor');
-    expect(() => createMailer({ MAIL_PROVIDER: 'resend' })).toThrow('RESEND_API_KEY');
-    const send = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(Response.json({ message: 'sensitive-provider-detail' }, { status: 401 }));
-    await expect(
-      createMailer(
-        { MAIL_PROVIDER: 'resend', RESEND_API_KEY: 'test-only-key', MAIL_FROM: 'test@example.test' },
-        send
-      )({ to: 'test@example.test', subject: 'Test', text: 'Test' })
-    ).rejects.toThrow('Falha no provedor de e-mail (HTTP 401).');
+  it('recusa e-mail local em produção e valida configurações SMTP opcionais', () => {
+    expect(() => createMailer({ NODE_ENV: 'production', MAIL_PROVIDER: 'local' })).toThrow('local');
+    expect(() => createMailer({ MAIL_PROVIDER: 'invalid' })).toThrow('MAIL_PROVIDER');
+    expect(() => createMailer({ MAIL_PROVIDER: 'smtp' })).toThrow('SMTP_HOST');
+    expect(() => createMailer({ NODE_ENV: 'production', SMTP_HOST: 'smtp.example.test' })).toThrow(
+      'MAIL_FROM'
+    );
+    expect(() => createMailer({ SMTP_HOST: 'smtp.example.test', SMTP_PORT: 'invalid' })).toThrow('SMTP_PORT');
+    expect(() => createMailer({ SMTP_HOST: 'smtp.example.test', SMTP_USER: 'test' })).toThrow(
+      'SMTP_PASSWORD'
+    );
+  });
+  it('mantém SMTP opcional com TLS obrigatório em produção', async () => {
+    const sendMail = vi.fn().mockResolvedValue({ messageId: 'test-message' });
+    const transport = vi.spyOn(nodemailer, 'createTransport').mockReturnValue({
+      sendMail,
+    } as unknown as ReturnType<typeof nodemailer.createTransport>);
+    try {
+      const mailer = createMailer({
+        NODE_ENV: 'production',
+        SMTP_HOST: 'smtp.example.test',
+        MAIL_FROM: 'shLab <test@example.test>',
+      });
+      await mailer!({ to: 'user@example.test', subject: 'Verify', text: 'Test' });
+      expect(transport).toHaveBeenCalledWith(
+        expect.objectContaining({ host: 'smtp.example.test', port: 587, secure: false, requireTLS: true })
+      );
+      expect(sendMail).toHaveBeenCalledWith({
+        from: 'shLab <test@example.test>',
+        to: 'user@example.test',
+        subject: 'Verify',
+        text: 'Test',
+      });
+    } finally {
+      transport.mockRestore();
+    }
+  });
+  it('permite cadastro, login e projetos sem e-mail e preserva a ausência de verificação', async () => {
+    const appOrigin = 'https://no-email.example.test';
+    const noEmailApp = await buildApp({ db, origin: appOrigin, production: true });
+    const address = 'no-email-' + Date.now() + '@example.test';
+    const headers = { origin: appOrigin };
+    try {
+      expect((await noEmailApp.inject('/api/health')).statusCode).toBe(200);
+      expect((await noEmailApp.inject('/api/auth/capabilities')).json()).toEqual({ emailEnabled: false });
+      const registration = await noEmailApp.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        headers,
+        payload: { name: 'No Email User', email: address, password },
+      });
+      expect(registration.statusCode).toBe(202);
+      expect(registration.json().message).toContain('Entre com seu e-mail e senha');
+      const duplicate = await noEmailApp.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        headers,
+        payload: { name: 'Duplicate', email: address, password: 'Different-Password-123!' },
+      });
+      expect(duplicate.statusCode).toBe(registration.statusCode);
+      expect(duplicate.json()).toEqual(registration.json());
+      const login = await noEmailApp.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        headers,
+        payload: { email: address, password },
+      });
+      expect(login.statusCode).toBe(200);
+      expect(login.json().user.verified).toBe(false);
+      expect(login.headers['set-cookie']).toContain('Secure');
+      const cookie = login.cookies[0].name + '=' + login.cookies[0].value;
+      const project = await noEmailApp.inject({
+        method: 'POST',
+        url: '/api/projects',
+        headers: { ...headers, cookie, 'x-csrf-token': login.json().csrfToken },
+        payload: { name: 'No email lab', template: 'lan' },
+      });
+      expect(project.statusCode).toBe(201);
+      expect(
+        (await noEmailApp.inject({ url: '/api/auth/me', headers: { cookie } })).json().user.verified
+      ).toBe(false);
+      for (const url of ['/api/auth/forgot-password', '/api/auth/request-verification']) {
+        for (const email of [address, 'absent-' + address]) {
+          expect(
+            (await noEmailApp.inject({ method: 'POST', url, headers, payload: { email } })).statusCode
+          ).toBe(503);
+        }
+      }
+      expect(
+        await db.query('SELECT token_hash FROM auth_tokens WHERE user_id=$1', [login.json().user.id])
+      ).toEqual([]);
+      expect((await request('/auth/capabilities')).json()).toEqual({ emailEnabled: true });
+      expect(
+        (await request('/auth/login', 'POST', { email: address, password }, undefined, {}, '203.0.113.242'))
+          .statusCode
+      ).toBe(403);
+      expect(
+        (
+          await noEmailApp.inject({
+            method: 'POST',
+            url: '/api/auth/login',
+            headers,
+            remoteAddress: '203.0.113.243',
+            payload: { email: address, password: 'Incorrect-password' },
+          })
+        ).statusCode
+      ).toBe(401);
+    } finally {
+      await noEmailApp.close();
+    }
   });
   it('preserva cookies Secure e rate limit por cliente atrás do proxy configurado', async () => {
     const productionApp = await buildApp({
@@ -1020,6 +1098,11 @@ describe('autenticação e API privada', () => {
     const email = 'unverified-' + Date.now() + '@example.test';
     await request('/auth/register', 'POST', { name: 'User', email, password });
     expect((await request('/auth/login', 'POST', { email, password })).statusCode).toBe(403);
+    const previousToken = mailToken(email);
+    expect((await request('/auth/request-verification', 'POST', { email })).statusCode).toBe(200);
+    expect(mailToken(email)).not.toBe(previousToken);
+    expect((await request('/auth/verify-email', 'POST', { token: previousToken })).statusCode).toBe(400);
+    expect((await request('/auth/verify-email', 'POST', { token: mailToken(email) })).statusCode).toBe(200);
     const login = await request('/auth/login', 'POST', { email: a.email, password });
     const cookie = login.headers['set-cookie'] as string;
     expect(cookie).toContain('HttpOnly');

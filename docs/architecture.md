@@ -15,7 +15,7 @@ A primeira fatia do MVP 2 adiciona UDP/DHCPv4, com cliente, servidor e relay sep
 - Simulação interativa local por usuário. API persiste snapshots validados e versionados com concorrência otimista. A avaliação de labs usa uma cópia isolada e limitada do motor no backend, conforme ADR-008. WebSocket notifica alterações de projeto autenticadas; não transmite frames efêmeros.
 - A execução contínua usa Worker com gerações e deltas. Editar configuração ou gerar novo tráfego pausa a execução e invalida respostas antigas; Executar simulação retoma a partir do estado atualizado. Pan/zoom não pausam a simulação.
 - PostgreSQL JSONB armazena o agregado atômico de topologia, interfaces, links, configuração e simulação. Usuários, sessões, tokens e projetos são relacionais.
-- Autenticação e-mail/senha: Argon2id, tokens opacos hashados, cookies HttpOnly/SameSite, expiração/revogação, CSRF/origem, verificação e reset por SMTP ou Resend HTTPS. Sem administração de usuários, organizações ou SSO.
+- Autenticação e-mail/senha: Argon2id, tokens opacos hashados, cookies HttpOnly/SameSite, expiração/revogação e CSRF/origem. Produção permite cadastro/login sem serviço de e-mail; verificação e reset são opcionais via SMTP. Sem administração de usuários, organizações ou SSO.
 
 ```mermaid
 graph LR

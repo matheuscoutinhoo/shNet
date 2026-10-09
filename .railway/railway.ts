@@ -1,6 +1,6 @@
 import { defineRailway, github, postgres, project, service } from 'railway/iac';
 
-export default defineRailway((context) => {
+export default defineRailway(() => {
   const database = postgres('postgres');
   const web = service('shlab', {
     source: github('matheuscoutinhoo/shNet', { branch: 'main', rootDirectory: '/' }),
@@ -17,9 +17,7 @@ export default defineRailway((context) => {
       DATABASE_URL: database.env.DATABASE_URL,
       HOST: '::',
       PORT: '8080',
-      MAIL_PROVIDER: 'resend',
-      MAIL_FROM: context.shared.MAIL_FROM,
-      RESEND_API_KEY: context.shared.RESEND_API_KEY,
+      MAIL_PROVIDER: 'none',
     },
   });
   return project('shLab', { resources: [web, database] });

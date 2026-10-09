@@ -69,9 +69,6 @@ jobs:
             -e DATABASE_URL="$TEST_DATABASE_URL" \
             -e APP_ORIGIN=https://shlab.example.test \
             -e PORT=3002 \
-            -e MAIL_PROVIDER=resend \
-            -e MAIL_FROM=ci@example.test \
-            -e RESEND_API_KEY=unused-ci-placeholder \
             -e METRICS_TOKEN=ci-monitoring-token-with-40-characters-long \
             -e BACKUP_STATUS_FILE=/backup-status/status.json \
             -v shlab-report-ci:/backup-status:ro \
