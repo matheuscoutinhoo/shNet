@@ -1,0 +1,94 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "shLab: E2E MVP 1",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "test:e2e", "--", "--grep", "cadastro"],
+      "isBackground": false,
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "shLab: Tests",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test"],
+      "isBackground": false,
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "shLab: Build",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build"],
+      "isBackground": false,
+      "problemMatcher": [
+        {
+          "base": "$tsc",
+          "applyTo": "allDocuments"
+        }
+      ],
+      "group": "build"
+    },
+    {
+      "label": "shLab: Lint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "shLab: Audit",
+      "type": "shell",
+      "command": "npm",
+      "args": ["audit", "--audit-level=moderate"],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "shLab: Development",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "shLab: Format Check",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "format:check"],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "shLab: Format Verified Files",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "exec",
+        "--",
+        "prettier",
+        "--write",
+        ".vscode/tasks.json",
+        "apps/api/src/app.ts",
+        "tests/e2e/lab.spec.ts"
+      ],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "shLab: Engine Tests",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test", "--", "tests/engine.test.ts"],
+      "isBackground": false,
+      "problemMatcher": [],
+      "group": "test"
+    }
+  ]
+}

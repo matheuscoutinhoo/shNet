@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+.git
+.vscode
+.data
+.env
+.env.*
+.npmrc
+**/*.pem
+**/*.key
+**/*.log
+test-results
+playwright-report
+coverage
+.railway/*plan*.json

@@ -1,0 +1,6 @@
+{$SHLAB_DOMAIN} {
+  encode zstd gzip
+  @private path /api/metrics /api/live /api/ready
+  respond @private 404
+  reverse_proxy app:8080
+}

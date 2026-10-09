@@ -1,0 +1,116 @@
+name: Quality
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: shlab
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: shlab_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U shlab"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://shlab:test_only_password@localhost:5432/shlab_test
+      DATABASE_MODE: embedded
+      APP_ORIGIN: http://127.0.0.1:5173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Use PostgreSQL 18 backup tools from the test service
+        run: chmod +x scripts/ci-pg-dump.sh scripts/ci-pg-restore.sh
+      - run: npm test
+        env:
+          POSTGRES_SERVICE_CONTAINER: ${{ job.services.postgres.id }}
+          PG_DUMP_PATH: ${{ github.workspace }}/scripts/ci-pg-dump.sh
+          PG_RESTORE_PATH: ${{ github.workspace }}/scripts/ci-pg-restore.sh
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.14' }
+      - name: Independently validate binary captures
+        run: |
+          python -m pip install scapy==2.8.0
+          python scripts/verify-captures.py
+      - run: npm run build
+      - run: npm audit --audit-level=high
+      - run: npm run benchmark
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Build production image
+        run: docker build -t shlab:ci .
+      - name: Validate production and monitoring configuration
+        run: |
+          docker build -f Dockerfile.backup -t shlab-backup:ci .
+          mkdir -p .data/monitoring
+          printf '%s' 'unused-monitoring-test-token' > .data/monitoring/metrics_token
+          printf '%s' 'https://alerts.example.test/no-send' > .data/monitoring/alert_webhook
+          docker run --rm --entrypoint promtool -v "$PWD/deploy:/config:ro" prom/prometheus check rules /config/alerts.yml
+          docker run --rm --entrypoint promtool -v "$PWD/deploy:/etc/prometheus:ro" -v "$PWD/.data/monitoring:/run/secrets:ro" prom/prometheus check config /etc/prometheus/prometheus.yml
+          docker run --rm --entrypoint amtool -v "$PWD/deploy:/config:ro" -v "$PWD/.data/monitoring:/run/secrets:ro" prom/alertmanager check-config /config/alertmanager.yml
+      - name: Verify production image
+        shell: bash
+        run: |
+          docker run --rm --network host \
+            -e DATABASE_URL="$TEST_DATABASE_URL" \
+            shlab:ci node --import tsx apps/api/src/migrate.ts
+          docker run -d --name shlab-smoke --network host \
+            -e DATABASE_URL="$TEST_DATABASE_URL" \
+            -e APP_ORIGIN=https://shlab.example.test \
+            -e PORT=3002 \
+            -e MAIL_PROVIDER=resend \
+            -e MAIL_FROM=ci@example.test \
+            -e RESEND_API_KEY=unused-ci-placeholder \
+            -e METRICS_TOKEN=ci-monitoring-token-with-40-characters-long \
+            -e BACKUP_STATUS_FILE=/backup-status/status.json \
+            -v shlab-report-ci:/backup-status:ro \
+            shlab:ci
+          trap 'docker logs shlab-smoke; docker logs shlab-backup-smoke; docker rm -f shlab-smoke shlab-tls shlab-backup-smoke; docker volume rm shlab-report-ci shlab-backups-ci' EXIT
+          docker run -d --name shlab-backup-smoke --network host \
+            -e DATABASE_URL="$TEST_DATABASE_URL" \
+            -e BACKUP_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e BACKUP_STATUS_FILE=/backup-status/status.json \
+            -v shlab-report-ci:/backup-status \
+            -v shlab-backups-ci:/backups \
+            shlab-backup:ci
+          curl --fail --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:3002/api/health
+          curl --fail --output /dev/null http://127.0.0.1:3002/
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail -H 'Authorization: Bearer ci-monitoring-token-with-40-characters-long' \
+              http://127.0.0.1:3002/api/metrics | grep -Eq '^shlab_backup_last_success_timestamp_seconds [1-9]'; then break; fi
+            sleep 1
+          done
+          curl --fail -H 'Authorization: Bearer ci-monitoring-token-with-40-characters-long' \
+            http://127.0.0.1:3002/api/metrics | grep -Eq '^shlab_backup_last_success_timestamp_seconds [1-9]'
+          docker run -d --name shlab-tls --network host \
+            -v "$PWD/deploy/Caddyfile.smoke:/etc/caddy/Caddyfile:ro" caddy:2
+          for attempt in $(seq 1 20); do
+            if docker cp shlab-tls:/data/caddy/pki/authorities/local/root.crt .data/monitoring/root.crt 2>/dev/null; then break; fi
+            sleep 1
+          done
+          curl --cacert .data/monitoring/root.crt --fail --retry 10 --retry-connrefused --retry-delay 1 \
+            --dump-header .data/monitoring/https-headers.txt https://localhost:3443/api/health
+          grep -qi 'strict-transport-security' .data/monitoring/https-headers.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scale-benchmarks
+          path: benchmarks/scale.json
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: |
+            test-results
+            playwright-report

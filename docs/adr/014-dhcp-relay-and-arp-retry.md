@@ -1,0 +1,15 @@
+# ADR-014 - DHCP relay, reservas e retransmissão ARP
+
+Status: accepted.
+
+DHCP local pressupunha que servidor e cliente estivessem na mesma subnet e enviava renovação diretamente por ARP ao servidor. Isso impedia serviços centralizados. Agora unicast segue resolveRoute/sendIp e os broadcasts podem ser retransmitidos por um relay configurado, usando giaddr/hops e UDP 67 entre relay/servidor. Pools remotos são explícitos: relayAddress corresponde a um host da rede atendida; port define a identidade estática do servidor. A seleção por giaddr é restrita ao endereço configurado; T1/release usam ciaddr e destino do servidor. O relay verifica origem configurada, giaddr, subnet e hops na resposta. Não utiliza uma lista global de clientes para atribuir endereços.
+
+O modelo cobre um salto de relay, até oito servidores por interface, pools locais/remotos e 128 reservas por MAC/pool. Não cobre Option 82, autenticação, relays encadeados, DHCPv6, detecção de conflito/DECLINE ou codec BOOTP interoperável. Os campos giaddr/hops seguem a finalidade descrita na [RFC 2131, seção 4.1](https://datatracker.ietf.org/doc/html/rfc2131#section-4.1) e [RFC 1542, seção 4](https://www.rfc-editor.org/info/rfc1542/). Reservas dentro do intervalo são uma escolha de configuração do produto; os leases continuam finitos. Endereços reservados não voltam à alocação dinâmica quando devolvidos ou expirados.
+
+ARP conserva uma resolução por interface/próximo salto com fonte original, token, tentativas, início e próximo timer. Transmite em 0/1/2 s e descarta em 3 s, uma política educacional limitada. Vários pacotes compartilham a resolução. Respostas cancelam timers, alimentam o cache de 60 s e liberam a fila. Resposta tardia sem solicitação pendente é ignorada. Não há gratuitous ARP, DHCP conflict detection ou autenticação ARP.
+
+Uma regressão em RELEASE revelou que o cliente remove IPv4 e cancelava a fila ARP antes da entrega. Conservamos apenas o datagrama RELEASE já iniciado quando removemos a configuração e permitimos concluir a resolução correlacionada ao sourceIp anterior. Isso também funciona ao passar para IP estático pela CLI/interface. Não mantemos o antigo IPv4 ativo, nem permitimos que outros pacotes pendentes sejam revividos. Fechamento/reset TCP cancela as resoluções que perderem seus pacotes; um RST novo pode iniciar resolução própria.
+
+Campos novos são opcionais no snapshot v1, sem migration SQL. Timers/token/resoluções e reservas têm validação estrutural/referencial. Snapshots anteriores com timeout ARP sem token seguem a ação legada; novas resoluções usam os três envios. Mudanças no escopo/reserva eliminam bindings incompatíveis e seus timers. Duplicar um equipamento remove o relay junto com IPv4; não copia resolução ou concessão ativa.
+
+Validação: motor com dois roteadores, perda/retry, T1/T2, reservas, isolamento, release e restore; API com ownership e rejeição de snapshots adulterados; UI com criação de pool remoto, configuração de relay, packet inspector, ping, save/reload e layouts desktop/mobile. O template Um servidor, duas redes valida DNS/HTTP com as opções realmente recebidas.

@@ -1,0 +1,23 @@
+groups:
+  - name: shlab
+    rules:
+      - alert: ShLabUnavailable
+        expr: up{job="shlab"} == 0 or shlab_ready == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: 'shLab ou PostgreSQL indisponível' }
+      - alert: ShLabErrors
+        expr: sum(rate(shlab_http_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(shlab_http_requests_total[5m])), 0.01) > 0.05
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: 'Mais de 5% de erros HTTP durante cinco minutos' }
+      - alert: ShLabLatency
+        expr: histogram_quantile(0.95, sum by (le) (rate(shlab_http_duration_seconds_bucket[5m]))) > 2
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: 'Latência p95 acima de dois segundos' }
+      - alert: ShLabBackupOverdue
+        expr: time() - shlab_backup_last_success_timestamp_seconds > 93600 or absent(shlab_backup_last_success_timestamp_seconds)
+        for: 30m
+        labels: { severity: critical }
+        annotations: { summary: 'Nenhum backup bem-sucedido nas últimas 26 horas' }

@@ -1,0 +1,90 @@
+services:
+  postgres:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shlab
+      POSTGRES_DB: shlab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a strong database password}
+    volumes: [postgres:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U shlab -d shlab]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build: { context: .., dockerfile: Dockerfile }
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?URL for postgres service, with encoded password}
+    command: [node, --import, tsx, apps/api/src/migrate.ts]
+    depends_on: { postgres: { condition: service_healthy } }
+  app:
+    build: { context: .., dockerfile: Dockerfile }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      APP_ORIGIN: https://${SHLAB_DOMAIN:?Public domain with DNS pointed at this host}
+      MAIL_PROVIDER: resend
+      MAIL_FROM: ${MAIL_FROM:?Verified sender}
+      RESEND_API_KEY: ${RESEND_API_KEY:?Sealed email key}
+      METRICS_TOKEN: ${METRICS_TOKEN:?Random token of at least 32 characters}
+      BACKUP_STATUS_FILE: /backup-status/status.json
+    volumes: [backup_status:/backup-status:ro]
+    depends_on: { migrate: { condition: service_completed_successfully } }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:8080/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 4s
+      retries: 3
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment: { SHLAB_DOMAIN: '${SHLAB_DOMAIN}' }
+    ports: ['80:80', '443:443', '443:443/udp']
+    volumes: ['./Caddyfile:/etc/caddy/Caddyfile:ro', 'caddy_data:/data', 'caddy_config:/config']
+    depends_on: { app: { condition: service_healthy } }
+  backup:
+    build: { context: .., dockerfile: Dockerfile.backup }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      BACKUP_KEY: ${BACKUP_KEY:?32 random bytes encoded as base64, stored separately from archives}
+      BACKUP_DIRECTORY: /backups
+      BACKUP_STATUS_FILE: /backup-status/status.json
+      BACKUP_INTERVAL_HOURS: '24'
+      BACKUP_RETENTION_DAYS: '30'
+    volumes: [backups:/backups, backup_status:/backup-status]
+    depends_on: { migrate: { condition: service_completed_successfully } }
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.retention.time=15d]
+    volumes:
+      [
+        './prometheus.yml:/etc/prometheus/prometheus.yml:ro',
+        './alerts.yml:/etc/prometheus/alerts.yml:ro',
+        'prometheus:/prometheus',
+      ]
+    secrets: [metrics_token]
+    depends_on: [app]
+  alertmanager:
+    image: prom/alertmanager
+    restart: unless-stopped
+    volumes: ['./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro']
+    secrets: [alert_webhook]
+volumes:
+  postgres:
+  backups:
+  backup_status:
+  caddy_data:
+  caddy_config:
+  prometheus:
+secrets:
+  metrics_token: { file: '${METRICS_TOKEN_FILE:?File containing the same METRICS_TOKEN}' }
+  alert_webhook: { file: '${ALERT_WEBHOOK_FILE:?File containing the authorized monitoring webhook URL}' }
