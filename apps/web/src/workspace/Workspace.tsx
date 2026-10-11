@@ -927,7 +927,7 @@ export function Workspace({
       </div>
       <footer className="workspace-status">
         <span>
-          <MousePointer2 size={12} /> Clique para ações <span>·</span> Clique duplo para inspecionar{' '}
+          <MousePointer2 size={12} /> Clique para inspecionar <span>·</span> Botão direito para ações{' '}
           <span>·</span> Arraste para mover <span>·</span> Shift para selecionar <span>·</span> Ctrl+S para
           salvar
         </span>

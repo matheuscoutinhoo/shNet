@@ -38,7 +38,7 @@ async function registerAndLogin(page: Page, address: string) {
   await page.getByRole('button', { name: 'Entrar no shLab' }).click();
   await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
-test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratório', async ({ page }) => {
+test('Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório', async ({ page }) => {
   test.setTimeout(120000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -86,6 +86,9 @@ test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratór
   const node = (name: string) =>
     page.locator('.network-device').filter({ has: page.getByText(name, { exact: true }) });
   await node(initialName).click();
+  await expect(page.locator('.inspector-device h2')).toHaveText(initialName);
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await node(initialName).click({ button: 'right' });
   await expect(page.getByRole('menu', { name: 'Ações de ' + initialName })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Conectar', exact: true })).toBeDisabled();
   await page.keyboard.press('ArrowDown');
@@ -101,7 +104,7 @@ test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratór
   await rename.getByLabel('Nome do equipamento').fill('HOST-TESTE');
   await rename.getByRole('button', { name: 'Salvar nome' }).click();
   await expect(rename).toHaveCount(0);
-  await node('HOST-TESTE').click();
+  await node('HOST-TESTE').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Desligar', exact: true }).click();
   await expect(node('HOST-TESTE')).toHaveClass(/powered-off/);
   const wrapper = node('HOST-TESTE').locator('..');
@@ -109,14 +112,14 @@ test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratór
   await page.keyboard.press('Enter');
   await page.getByRole('menuitem', { name: 'Ligar', exact: true }).click();
   await expect(node('HOST-TESTE')).not.toHaveClass(/powered-off/);
-  await node('HOST-TESTE').click();
+  await node('HOST-TESTE').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Duplicar', exact: true }).click();
   await expect(node('HOST-TESTE-copy')).toBeVisible();
   await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
-  await node('HOST-TESTE').click();
+  await node('HOST-TESTE').click({ button: 'right' });
   await page.keyboard.press('Escape');
   await page.keyboard.press('Control+c');
-  await node('HOST-TESTE-copy').click();
+  await node('HOST-TESTE-copy').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Duplicar', exact: true }).click();
   await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy-copy');
   await page.keyboard.press('Control+v');
@@ -124,10 +127,10 @@ test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratór
   await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
   await page.getByRole('button', { name: 'Excluir seleção', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(3);
-  await node('HOST-TESTE-copy-copy').click();
+  await node('HOST-TESTE-copy-copy').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Excluir', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(2);
-  await node('HOST-TESTE').click();
+  await node('HOST-TESTE').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Conectar', exact: true }).click();
   const connection = page.getByRole('dialog', { name: 'Conectar interfaces' });
   await expect(connection.getByLabel('Equipamento A')).toContainText('HOST-TESTE');
@@ -139,23 +142,23 @@ test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratór
   await connection.getByRole('button', { name: /Conectar/ }).click();
   await expect(connection).toHaveCount(0);
   await expect(page.locator('.react-flow__edge')).toHaveCount(1);
-  await node('HOST-TESTE-copy').click();
+  await node('HOST-TESTE-copy').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Excluir', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(1);
   await expect(page.locator('.react-flow__edge')).toHaveCount(0);
   await page.getByRole('button', { name: 'Desfazer', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(2);
   await expect(page.locator('.react-flow__edge')).toHaveCount(1);
-  await node('HOST-TESTE').click();
+  await node('HOST-TESTE').click({ button: 'right' });
   await expect(page.getByRole('menu')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toHaveCount(0);
   await expect(wrapper).toBeFocused();
-  await node('HOST-TESTE').dblclick();
-  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE');
-  await node('HOST-TESTE-copy').dblclick();
-  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
   await node('HOST-TESTE').click();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE');
+  await node('HOST-TESTE-copy').click();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
+  await node('HOST-TESTE').click({ button: 'right' });
   await expect(page.getByRole('menu', { name: 'Ações de HOST-TESTE', exact: true })).toBeVisible();
   await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
   await page.getByRole('menuitem', { name: 'Inspecionar', exact: true }).click();
@@ -174,7 +177,7 @@ test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratór
   await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Fit View', exact: true }).click();
-  await node('HOST-TESTE').click();
+  await node('HOST-TESTE').click({ button: 'right' });
   await expect(page.getByRole('menu')).toBeVisible();
   const menuBounds = await page.locator('.device-actions-popover').boundingBox();
   expect(menuBounds!.x).toBeGreaterThanOrEqual(0);

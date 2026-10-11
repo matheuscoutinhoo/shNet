@@ -580,6 +580,13 @@ function Canvas({
             (event.target as Element).closest('.react-flow__handle')
           )
             return;
+          closeActions();
+          onDeviceAction('inspect', node.id);
+        }}
+        onNodeContextMenu={(event, node) => {
+          if (node.type !== 'device') return;
+          event.preventDefault();
+          event.stopPropagation();
           onSelect([node.id]);
           setActions({
             id: node.id,
