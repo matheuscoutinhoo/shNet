@@ -22,7 +22,8 @@ export function useLab(project: Project, onExpired: () => void) {
     revision = useRef(project.revision),
     nameRef = useRef(name),
     saving = useRef<Promise<void> | null>(null),
-    conflict = useRef(false);
+    conflict = useRef(false),
+    saveError = useRef<string | null>(null);
   const workerGeneration = useRef(0);
   const refresh = useCallback(() => {
     editVersion.current++;
@@ -98,9 +99,13 @@ export function useLab(project: Project, onExpired: () => void) {
         revision.current = p.revision;
         savedVersion.current = version;
         setSaveStatus(version === editVersion.current ? 'Salvo' : 'Alterações pendentes');
+        const previousError = saveError.current;
+        if (previousError) setError((message) => (message === previousError ? '' : message));
+        saveError.current = null;
       })
       .catch((e) => {
         setSaveStatus('Falha ao salvar');
+        saveError.current = e.message;
         setError(e.message);
         if (e instanceof ApiError && e.status === 409) conflict.current = true;
         if (e instanceof ApiError && e.status === 401) onExpired();

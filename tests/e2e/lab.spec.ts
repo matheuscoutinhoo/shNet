@@ -2,10 +2,30 @@ import AxeBuilder from '@axe-core/playwright';
 import { test, expect, type Page } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { decodePcap } from '../../packages/simulation-engine/src';
+import { decodePcap, deviceProfiles } from '../../packages/simulation-engine/src';
 import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
+async function waitForLoginRetry(value: string | undefined) {
+  const seconds = Number(value);
+  expect(Number.isFinite(seconds) && seconds > 0 && seconds <= 60).toBe(true);
+  await new Promise((done) => setTimeout(done, seconds * 1000 + 250));
+}
+async function submitLogin(page: Page) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const pending = page.waitForResponse(
+      (response) => response.url().endsWith('/api/auth/login') && response.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Entrar no shLab', exact: true }).click();
+    const response = await pending;
+    if (response.status() !== 429) {
+      expect(response.status()).toBe(200);
+      return;
+    }
+    await waitForLoginRetry(response.headers()['retry-after']);
+  }
+  throw new Error('Login continua limitado após o intervalo informado pelo servidor');
+}
 async function verificationLink(address = email) {
   const dir = resolve('.data/mail');
   const files = await readdir(dir);
@@ -35,9 +55,263 @@ async function registerAndLogin(page: Page, address: string) {
   }
   await page.getByLabel('E-mail', { exact: true }).fill(address);
   await page.getByLabel('Senha', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Entrar no shLab' }).click();
+  await submitLogin(page);
   await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
+test('Aparência: sistema, escolha explícita, persistência e sincronização entre abas', async ({ page }) => {
+  const root = page.locator('html');
+  const control = page.getByRole('combobox', { name: 'Aparência da plataforma' });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  await expect(root).toHaveAttribute('data-theme', 'light');
+  await expect(control).toHaveValue('system');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  await control.selectOption('light');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(root).toHaveAttribute('data-theme', 'light');
+  await page.reload();
+  await expect(root).toHaveAttribute('data-theme', 'light');
+  await expect(control).toHaveValue('light');
+  const other = await page.context().newPage();
+  await other.goto('/');
+  await control.selectOption('dark');
+  await expect(other.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(other.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveValue('dark');
+  await other.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('light');
+  await expect(root).toHaveAttribute('data-theme', 'light');
+  await other.evaluate(() => localStorage.clear());
+  await expect(control).toHaveValue('system');
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  await other.close();
+  await page.evaluate(() => localStorage.setItem('shlab.appearance', 'invalid'));
+  await page.reload();
+  await expect(control).toHaveValue('system');
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+});
+
+test('Aparência: armazenamento indisponível mantém o seletor funcionando', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    const get = Storage.prototype.getItem;
+    const set = Storage.prototype.setItem;
+    Storage.prototype.getItem = function (key) {
+      if (key === 'shlab.appearance') throw new DOMException('Storage unavailable', 'SecurityError');
+      return get.call(this, key);
+    };
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'shlab.appearance') throw new DOMException('Storage unavailable', 'QuotaExceededError');
+      set.call(this, key, value);
+    };
+  });
+  await page.goto('/');
+  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(errors).toEqual([]);
+});
+
+test('Aparência: plataforma e canvas independentes, conta, modais e mobile', async ({ page }, testInfo) => {
+  test.setTimeout(180000);
+  page.setDefaultTimeout(15000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-theme',
+    testInfo.project.name === 'escuro' ? 'dark' : 'light'
+  );
+  const audit = async () => {
+    const result = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(
+      result.violations.map((v) => ({
+        id: v.id,
+        nodes: v.nodes.map((n) => ({ target: n.target, summary: n.failureSummary })),
+      }))
+    ).toEqual([]);
+  };
+  await audit();
+  await page.screenshot({ path: testInfo.outputPath('auth.png'), fullPage: true });
+  await registerAndLogin(page, 'appearance-' + testInfo.project.name + '-' + Date.now() + '@example.test');
+  await audit();
+  await page.screenshot({ path: testInfo.outputPath('dashboard.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Conta e segurança' }).click();
+  for (const name of ['Perfil', 'Sessões', 'Senha', 'Excluir conta']) {
+    await page.getByRole('tab', { name, exact: true }).click();
+    await audit();
+  }
+  await page.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Aparência independente');
+  await audit();
+  await page.screenshot({ path: testInfo.outputPath('modal.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.getByRole('searchbox', { name: 'Buscar equipamento' }).fill('Mesh AP');
+  await page
+    .locator('.equipment-card')
+    .filter({ has: page.getByText('Mesh AP', { exact: true }) })
+    .click();
+  const palette = { light: 'rgb(251, 253, 255)', gray: 'rgb(231, 237, 241)', dark: 'rgb(19, 41, 58)' };
+  const canvas = page.locator('.canvas-container');
+  for (const [background, color] of Object.entries(palette)) {
+    await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+    await page.getByLabel('Fundo do canvas', { exact: true }).selectOption(background);
+    await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+    let cardColor = '';
+    for (const appearance of ['light', 'dark', 'system']) {
+      await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption(appearance);
+      await expect(canvas).toHaveCSS('background-color', color);
+      await expect(canvas.locator('.react-flow')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      const card = canvas.locator('.network-device').first();
+      if (!cardColor) cardColor = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+      await expect(card).toHaveCSS('background-color', cardColor);
+      await expect(canvas).toHaveClass(new RegExp('theme-' + background));
+      await audit();
+    }
+  }
+  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('dark');
+  await page.screenshot({ path: testInfo.outputPath('workspace-dark.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('light');
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await expect(canvas).toHaveCSS('background-color', palette.dark);
+  await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
+  await page.reload();
+  await expect(page.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveValue('light');
+  await page.locator('.lab-card').filter({ hasText: 'Aparência independente' }).locator('.lab-open').click();
+  await expect(canvas).toHaveCSS('background-color', palette.dark);
+  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('dark');
+  for (const width of [390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await audit();
+  }
+  await page.screenshot({ path: testInfo.outputPath('workspace.png'), fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas', async ({ page }) => {
+  test.setTimeout(360000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'catalog-all-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const inspector = page.getByRole('complementary', { name: 'Inspeção de equipamento' });
+  const audited = new Set<string>();
+  for (const profile of deviceProfiles) {
+    await page.getByRole('searchbox', { name: 'Buscar equipamento' }).fill(profile.name);
+    await page
+      .locator('.equipment-card')
+      .filter({ has: page.getByText(profile.name, { exact: true }) })
+      .click();
+    await expect(inspector.locator('h2')).toBeVisible();
+    const tabs = inspector.locator('.inspector-tabs button');
+    const names = await tabs.allTextContents();
+    for (const name of names) {
+      await inspector.locator('.inspector-tabs').getByRole('button', { name, exact: true }).click();
+      if (name === 'Terminal') await expect(inspector.locator('.xterm')).toBeVisible();
+      expect(
+        await inspector.evaluate((el) => el.scrollWidth <= el.clientWidth),
+        profile.id + ': ' + name
+      ).toBe(true);
+      if (!audited.has(name) && name !== 'Terminal') {
+        audited.add(name);
+        const result = await new AxeBuilder({ page }).include('.inspector').analyze();
+        expect(
+          result.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.target) })),
+          profile.id + ': ' + name
+        ).toEqual([]);
+      }
+    }
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Resiliência: falha ao salvar, recuperação, importação inválida e tema durante simulação', async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  page.setDefaultTimeout(15000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'resilience-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
+  await page.getByLabel('Nome do laboratório').fill('Resiliência de laboratório');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const projects = await (await page.request.get('/api/projects')).json();
+  const project = projects.find((p: { name: string }) => p.name === 'Resiliência de laboratório');
+  const route = '**/api/projects/' + project.id;
+  await page.route(route, (request) =>
+    request.request().method() === 'PUT'
+      ? request.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Serviço temporariamente indisponível' }),
+        })
+      : request.continue()
+  );
+  await page.getByLabel('Nome do laboratório').fill('Resiliência após falha');
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Falha ao salvar');
+  await expect(page.getByRole('alert')).toContainText('Serviço temporariamente indisponível');
+  await expect(page.locator('.network-device')).toHaveCount(3);
+  await page.unroute(route);
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  const saved = await (await page.request.get('/api/projects/' + project.id)).json();
+  expect(saved.name).toBe('Resiliência após falha');
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'invalid.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"version":999,"devices":[]}'),
+  });
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.locator('.network-device')).toHaveCount(3);
+  await expect(page.locator('.react-flow__edge')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Fechar erro' }).click();
+  const peer = saved.topology.devices.filter((d: { type: string }) => d.type === 'pc').at(-1);
+  await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
+  await page.getByLabel('Destino IPv4 ou hostname').fill(peer.interfaces[0].ip);
+  await page.getByRole('button', { name: 'Enfileirar ping' }).click();
+  await page.getByLabel('Velocidade', { exact: true }).selectOption('5');
+  await page.getByRole('button', { name: 'Executar simulação' }).click();
+  for (const preference of ['dark', 'light', 'system']) {
+    await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption(preference);
+    await expect(page.getByRole('button', { name: 'Pausar simulação' })).toBeVisible();
+  }
+  await expect(page.locator('.probe-toast')).toContainText('Resposta em');
+  await page.getByRole('button', { name: 'Pausar simulação' }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  expect(errors).toEqual([]);
+});
+
+test('Resiliência: sair informa falha de rede e permite encerrar a sessão ao tentar novamente', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await registerAndLogin(page, 'logout-retry-' + Date.now() + '@example.test');
+  await page.route('**/api/auth/logout', (route) => route.abort('connectionfailed'));
+  await page.getByRole('button', { name: 'Sair', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Não foi possível encerrar a sessão');
+  await page.unroute('**/api/auth/logout');
+  await page.getByRole('button', { name: 'Sair', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
+});
+
 test('Equipamentos: detalhes responsivos, expansão pela esquerda e opções específicas', async ({ page }) => {
   test.setTimeout(120000);
   const errors: string[] = [];
@@ -3151,4 +3425,80 @@ test('Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alteraçõe
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.screenshot({ path: 'test-results/scale-2000.png' });
   expect(errors).toEqual([]);
+});
+
+test('Sessões: expiração remota, reentrada, revogação atual e troca de senha', async ({ page, browser }) => {
+  test.setTimeout(180000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const address = 'session-recovery-' + Date.now() + '@example.test';
+  const nextPassword = 'My-Network-Lab-456!';
+  await page.goto('/');
+  await registerAndLogin(page, address);
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Sessão e integridade');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const origin = new URL(page.url()).origin;
+  const other = await browser.newContext({ extraHTTPHeaders: { Origin: origin } });
+  try {
+    let login = await other.request.post(origin + '/api/auth/login', {
+      data: { email: address, password },
+    });
+    if (login.status() === 429) {
+      await waitForLoginRetry(login.headers()['retry-after']);
+      login = await other.request.post(origin + '/api/auth/login', { data: { email: address, password } });
+    }
+    expect(login.status()).toBe(200);
+    const { csrfToken } = await login.json();
+    const sessions: { id: string; is_current: boolean }[] = await (
+      await other.request.get(origin + '/api/auth/sessions')
+    ).json();
+    const primarySession = sessions.find((session) => !session.is_current);
+    expect(primarySession).toBeDefined();
+    const revoke = await other.request.delete(origin + '/api/auth/sessions/' + primarySession!.id, {
+      headers: { 'X-CSRF-Token': csrfToken },
+    });
+    expect(revoke.status()).toBe(200);
+    await page.getByLabel('Nome do laboratório').fill('Alteração sem sessão');
+    await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText('Sua sessão expirou. Entre novamente.');
+    const projects = await (await other.request.get(origin + '/api/projects')).json();
+    expect(projects.map((project: { name: string }) => project.name)).toEqual(['Sessão e integridade']);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const audit = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(audit.violations.map((violation) => violation.id)).toEqual([]);
+    const enter = async (secret: string) => {
+      await page.getByLabel('E-mail', { exact: true }).fill(address);
+      await page.getByLabel('Senha', { exact: true }).fill(secret);
+      await submitLogin(page);
+      await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
+      await expect(page.getByRole('alert')).toHaveCount(0);
+    };
+    await enter(password);
+    await page.getByRole('button', { name: 'Conta e segurança', exact: true }).click();
+    await page.getByRole('tab', { name: 'Sessões', exact: true }).click();
+    await page.getByRole('button', { name: 'Encerrar esta sessão', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await enter(password);
+    await page.getByRole('button', { name: 'Conta e segurança', exact: true }).click();
+    await page.getByRole('tab', { name: 'Senha', exact: true }).click();
+    await page.getByLabel('Senha atual', { exact: true }).fill(password);
+    await page.getByLabel('Nova senha', { exact: true }).fill(nextPassword);
+    await page.getByRole('button', { name: 'Alterar senha', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    expect((await other.request.get(origin + '/api/auth/me')).status()).toBe(401);
+    await enter(nextPassword);
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    expect(errors).toEqual([]);
+  } finally {
+    await other.close();
+  }
 });

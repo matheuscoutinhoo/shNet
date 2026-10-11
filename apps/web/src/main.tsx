@@ -1,11 +1,14 @@
 import { StrictMode, Suspense, lazy, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { api, type User, type Project } from './api';
+import { api, ApiError, type User, type Project } from './api';
+import { X } from 'lucide-react';
 import { Auth } from './Auth';
 import { Dashboard } from './Dashboard';
 const Workspace = lazy(() => import('./workspace/Workspace').then((m) => ({ default: m.Workspace })));
 import './styles.css';
 import '@fontsource-variable/space-grotesk';
+import { initializeTheme } from './theme';
+initializeTheme();
 function App() {
   const [user, setUser] = useState<User | null>(null),
     [project, setProject] = useState<Project | null>(null),
@@ -21,12 +24,18 @@ function App() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
-  const logout = async () => {
-    try {
-      await api('/auth/logout', { method: 'POST' });
-    } catch {
-      /* Already expired or revoked by password change. */
+  const logout = async (sessionEnded = false) => {
+    if (!sessionEnded) {
+      try {
+        await api('/auth/logout', { method: 'POST' });
+      } catch (cause) {
+        if (!(cause instanceof ApiError && cause.status === 401)) {
+          setError('Não foi possível encerrar a sessão. Verifique a conexão e tente novamente.');
+          return;
+        }
+      }
     }
+    setError('');
     setUser(null);
     setProject(null);
   };
@@ -39,7 +48,9 @@ function App() {
   if (!user)
     return (
       <Auth
+        initialNotice={error}
         onLogin={(u) => {
+          setError('');
           setUser(u);
           history.replaceState(null, '', '/');
         }}
@@ -53,8 +64,8 @@ function App() {
           user={user}
           onClose={() => setProject(null)}
           onExpired={() => {
+            void logout(true);
             setError('Sua sessão expirou. Entre novamente.');
-            void logout();
           }}
         />
       </Suspense>
@@ -62,11 +73,19 @@ function App() {
   return (
     <>
       {error && (
-        <div className="global-notice" onClick={() => setError('')}>
-          {error}
+        <div className="global-notice" role="alert">
+          <span>{error}</span>
+          <button className="icon-button" aria-label="Fechar aviso" onClick={() => setError('')}>
+            <X size={16} />
+          </button>
         </div>
       )}
-      <Dashboard user={user} onOpen={setProject} onLogout={() => void logout()} onUserUpdate={setUser} />
+      <Dashboard
+        user={user}
+        onOpen={setProject}
+        onLogout={(ended = false) => void logout(ended)}
+        onUserUpdate={setUser}
+      />
     </>
   );
 }

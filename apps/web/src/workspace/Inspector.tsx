@@ -175,6 +175,7 @@ export function Inspector({
           ))}
       </div>
       <div className={'inspector-body ' + (activeTab === 'cli' ? 'terminal-body' : '')}>
+        <h3 className="sr-only">Configuração e estado de {device.hostname}</h3>
         {activeTab === 'overview' && (
           <>
             {issues.length > 0 && (

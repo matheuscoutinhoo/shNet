@@ -8,6 +8,10 @@ export default defineConfig({
   expect: { timeout: 10000 },
   fullyParallel: false,
   workers: 1,
+  projects: [
+    { name: 'claro', use: { colorScheme: 'light' } },
+    { name: 'escuro', use: { colorScheme: 'dark' } },
+  ],
   use: {
     baseURL: origin,
     viewport: { width: 1440, height: 960 },

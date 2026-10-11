@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowLeft, ShieldCheck, Network, Layers, TerminalSquare } from 'lucide-react';
 import { api, type User } from './api';
 import { Brand } from './components/Brand';
+import { ThemeControl } from './components/ThemeControl';
 type Mode = 'login' | 'register' | 'forgot' | 'verify' | 'reset';
 const initialMode = (): Mode => {
   const action = new URLSearchParams(location.search).get('action');
@@ -9,10 +10,17 @@ const initialMode = (): Mode => {
 };
 const initialToken = new URLSearchParams(location.hash.slice(1)).get('token') ?? '';
 if (initialToken) history.replaceState(null, '', location.pathname + location.search);
-export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
+export function Auth({
+  onLogin,
+  initialNotice = '',
+}: {
+  onLogin: (user: User) => void;
+  initialNotice?: string;
+}) {
   const [mode, setMode] = useState<Mode>(initialMode),
     [error, setError] = useState(''),
     [message, setMessage] = useState(''),
+    [notice, setNotice] = useState(initialNotice),
     [busy, setBusy] = useState(false),
     [email, setEmail] = useState(''),
     [emailEnabled, setEmailEnabled] = useState<boolean | null>(null);
@@ -33,12 +41,14 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
     setMode(next);
     setError('');
     setMessage('');
+    setNotice('');
   };
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setError('');
     setMessage('');
+    setNotice('');
     setBusy(true);
     try {
       if (mode === 'login') {
@@ -124,6 +134,9 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
         <footer>shLab · Simulação de redes</footer>
       </section>
       <section className="auth-form-side">
+        <div className="auth-appearance">
+          <ThemeControl />
+        </div>
         <div className="auth-mobile-brand">
           <Brand />
         </div>
@@ -198,6 +211,11 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
               <button type="button" className="text-button forgot" onClick={() => change('forgot')}>
                 Esqueceu sua senha?
               </button>
+            )}
+            {notice && (
+              <div className="alert warning" role="alert">
+                {notice}
+              </div>
             )}
             {error && (
               <div className="alert error" role="alert">

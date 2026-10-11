@@ -22,7 +22,7 @@
   grid-template-columns: 18px minmax(0, 1fr);
   gap: 4px 8px;
   border: 1px solid var(--control-border);
-  background: #fff;
+  background: var(--surface);
   border-radius: 10px;
   padding: 14px;
   min-height: 82px;
@@ -41,7 +41,7 @@
   padding: 16px;
   border: 1px solid var(--control-border);
   border-radius: 10px;
-  background: #edf4f6;
+  background: var(--surface-hover);
 }
 
 .dashboard .filter-bar > label {
@@ -68,8 +68,8 @@
 
 .dashboard .filter-toggle.is-active {
   border-color: var(--control-focus);
-  background: #dff3f0;
-  color: #076467;
+  background: var(--accent-bg);
+  color: var(--accent-text);
 }
 
 .dashboard .clear-filters {
@@ -98,7 +98,7 @@
   min-width: 0;
   border: 1px solid var(--control-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   transition:
     border-color 150ms,
     box-shadow 150ms;
@@ -108,7 +108,7 @@
 .dashboard .new-lab-card:hover,
 .dashboard .catalog-card:hover {
   border-color: var(--control-focus);
-  box-shadow: 0 4px 16px #102b4010;
+  box-shadow: 0 4px 16px var(--shadow);
 }
 
 .dashboard .lab-open {
@@ -136,7 +136,7 @@
 }
 
 .dashboard .lab-card-content .eyebrow {
-  color: #37657e;
+  color: var(--text-strong);
   font-size: 10px;
 }
 
@@ -163,13 +163,13 @@
 }
 
 .dashboard .lab-card .favorite {
-  background: #fff;
-  color: #536777;
+  background: var(--surface);
+  color: var(--muted);
 }
 
 .dashboard .lab-card .starred {
-  color: #8b6812;
-  background: #fff7df;
+  color: var(--warning-text);
+  background: var(--warning-bg);
 }
 
 .dashboard .delete-lab {
@@ -181,7 +181,7 @@
 
 .dashboard .new-lab-card {
   border-style: dashed;
-  background: #f7fafc;
+  background: var(--surface-soft);
 }
 
 .dashboard .new-lab-card > strong {
@@ -210,8 +210,8 @@
   height: 42px;
   flex-shrink: 0;
   border-radius: 8px;
-  color: #076b68;
-  background: #e0f5ef;
+  color: var(--accent-text);
+  background: var(--accent-bg);
 }
 
 .dashboard .catalog-meta {
@@ -282,7 +282,7 @@
   padding: 0 16px;
   border: 1px solid var(--control-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .dashboard .activity-history li {

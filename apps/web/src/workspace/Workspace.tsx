@@ -55,6 +55,7 @@ import {
 } from '@shlab/engine';
 import { api, download, type Project, type User } from '../api';
 import { Brand } from '../components/Brand';
+import { ThemeControl } from '../components/ThemeControl';
 import { Modal } from '../components/Modal';
 import { useLab, type LabController } from './useLab';
 import { TopologyCanvas } from './TopologyCanvas';
@@ -449,6 +450,7 @@ export function Workspace({
           </span>
         </div>
         <div className="workspace-header-actions">
+          <ThemeControl />
           <button
             aria-label="Salvar"
             className="button header-save"
@@ -671,8 +673,9 @@ export function Workspace({
                   <FolderClock size={16} /> Snapshots
                 </button>
                 <label>
-                  Fundo
+                  Fundo do canvas
                   <select
+                    aria-label="Fundo do canvas"
                     value={lab.engine.state.background}
                     onChange={(e) =>
                       lab.change((sim) => {

@@ -17,6 +17,7 @@ import {
 import { templates, labs, type LabId, type TemplateId, type LearningScore } from '@shlab/engine';
 import { api, type User, type Project, type ProjectSummary } from './api';
 import { Brand } from './components/Brand';
+import { ThemeControl } from './components/ThemeControl';
 import { Modal } from './components/Modal';
 import { SearchField } from './components/SearchField';
 import { CatalogCard } from './components/CatalogCard';
@@ -36,7 +37,7 @@ export function Dashboard({
 }: {
   user: User;
   onOpen: (project: Project) => void;
-  onLogout: () => void;
+  onLogout: (sessionEnded?: boolean) => void;
   onUserUpdate: (user: User) => void;
 }) {
   const [projects, setProjects] = useState<ProjectSummary[]>([]),
@@ -215,7 +216,7 @@ export function Dashboard({
           <button onClick={() => setSettings(true)} title="Conta e segurança">
             <Settings2 size={18} /> Conta e segurança
           </button>
-          <button onClick={onLogout} title="Sair">
+          <button onClick={() => onLogout()} title="Sair">
             <LogOut size={18} /> Sair
           </button>
           <div className="user-card">
@@ -233,9 +234,12 @@ export function Dashboard({
             Área pessoal <ChevronRight size={14} />
             <strong>{section === 'labs' ? 'Laboratórios' : 'Templates e trilhas'}</strong>
           </span>
-          <span className="private-label">
-            <span className="status-dot" /> Privado
-          </span>
+          <div className="topbar-preferences">
+            <span className="private-label">
+              <span className="status-dot" /> Privado
+            </span>
+            <ThemeControl />
+          </div>
         </header>
         <main className="dashboard-content">
           <div className="page-heading">
@@ -600,7 +604,7 @@ export function Dashboard({
               </label>
             )}
             <label>
-              Fundo do laboratório
+              Fundo do canvas
               <select name="background">
                 <option value="light">Claro</option>
                 <option value="gray">Cinza</option>
@@ -648,7 +652,12 @@ export function Dashboard({
         </Modal>
       )}
       {settings && (
-        <Account user={user} onUpdate={onUserUpdate} onLogout={onLogout} onClose={() => setSettings(false)} />
+        <Account
+          user={user}
+          onUpdate={onUserUpdate}
+          onLogout={() => onLogout(true)}
+          onClose={() => setSettings(false)}
+        />
       )}
     </div>
   );
