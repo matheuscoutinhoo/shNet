@@ -3,6 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { decodePcap } from '../../packages/simulation-engine/src';
+import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 async function verificationLink(address = email) {
@@ -37,6 +38,186 @@ async function registerAndLogin(page: Page, address: string) {
   await page.getByRole('button', { name: 'Entrar no shLab' }).click();
   await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
+test('Canvas: categorias recolhíveis, ações por clique e dicas por laboratório', async ({ page }) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'canvas-ui-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Canvas ações');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const catalog = page.locator('.equipment-panel');
+  const wireless = catalog.getByRole('region', { name: 'Wireless', exact: true });
+  await expect(wireless).toHaveCount(1);
+  const disclosure = wireless.getByRole('button', { name: /^Wireless \d+$/ });
+  expect(
+    await disclosure.evaluate((button) => parseFloat(getComputedStyle(button).fontSize))
+  ).toBeGreaterThanOrEqual(12);
+  const icons = await wireless
+    .locator('.equipment-card .device-icon')
+    .evaluateAll((elements) => elements.map((element) => element.innerHTML));
+  expect(new Set(icons).size).toBe(3);
+  await disclosure.click();
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(wireless.locator('.equipment-card').first()).toBeHidden();
+  await disclosure.press('Space');
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+  const search = page.getByRole('searchbox', { name: 'Buscar equipamento' });
+  await disclosure.click();
+  await search.fill('access point');
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+  await expect(catalog.locator('.equipment-category')).toHaveCount(1);
+  await expect(wireless.locator('.equipment-card')).toHaveCount(1);
+  await search.fill('seguranca');
+  await expect(catalog.locator('.equipment-category')).toHaveCount(1);
+  await expect(catalog.getByRole('region', { name: 'Segurança' })).toBeVisible();
+  await search.fill('xyz equipamento inexistente');
+  await expect(catalog.getByRole('status')).toContainText('Nenhum equipamento');
+  await search.clear();
+  await expect(catalog.locator('.equipment-category')).toHaveCount(8);
+  await catalog
+    .locator('.equipment-card')
+    .filter({ has: page.getByText('Computador', { exact: true }) })
+    .click();
+  await expect(page.locator('.inspector-device h2')).toBeVisible();
+  const initialName = (await page.locator('.inspector-device h2').textContent())!;
+  await page.getByRole('button', { name: 'Fechar inspector' }).click();
+  const node = (name: string) =>
+    page.locator('.network-device').filter({ has: page.getByText(name, { exact: true }) });
+  await node(initialName).click();
+  await expect(page.getByRole('menu', { name: 'Ações de ' + initialName })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Conectar', exact: true })).toBeDisabled();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('menuitem', { name: 'Renomear', exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
+  const rename = page.getByRole('dialog', { name: 'Renomear equipamento' });
+  await rename.getByLabel('Nome do equipamento').fill('Nome inválido');
+  expect(
+    await rename
+      .getByLabel('Nome do equipamento')
+      .evaluate((input: HTMLInputElement) => input.checkValidity())
+  ).toBe(false);
+  await rename.getByLabel('Nome do equipamento').fill('HOST-TESTE');
+  await rename.getByRole('button', { name: 'Salvar nome' }).click();
+  await expect(rename).toHaveCount(0);
+  await node('HOST-TESTE').click();
+  await page.getByRole('menuitem', { name: 'Desligar', exact: true }).click();
+  await expect(node('HOST-TESTE')).toHaveClass(/powered-off/);
+  const wrapper = node('HOST-TESTE').locator('..');
+  await wrapper.focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('menuitem', { name: 'Ligar', exact: true }).click();
+  await expect(node('HOST-TESTE')).not.toHaveClass(/powered-off/);
+  await node('HOST-TESTE').click();
+  await page.getByRole('menuitem', { name: 'Duplicar', exact: true }).click();
+  await expect(node('HOST-TESTE-copy')).toBeVisible();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
+  await node('HOST-TESTE').click();
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Control+c');
+  await node('HOST-TESTE-copy').click();
+  await page.getByRole('menuitem', { name: 'Duplicar', exact: true }).click();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy-copy');
+  await page.keyboard.press('Control+v');
+  await expect(page.locator('.network-device')).toHaveCount(4);
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
+  await page.getByRole('button', { name: 'Excluir seleção', exact: true }).click();
+  await expect(page.locator('.network-device')).toHaveCount(3);
+  await node('HOST-TESTE-copy-copy').click();
+  await page.getByRole('menuitem', { name: 'Excluir', exact: true }).click();
+  await expect(page.locator('.network-device')).toHaveCount(2);
+  await node('HOST-TESTE').click();
+  await page.getByRole('menuitem', { name: 'Conectar', exact: true }).click();
+  const connection = page.getByRole('dialog', { name: 'Conectar interfaces' });
+  await expect(connection.getByLabel('Equipamento A')).toContainText('HOST-TESTE');
+  expect(
+    await connection
+      .getByLabel('Equipamento A')
+      .evaluate((select: HTMLSelectElement) => select.selectedOptions[0].textContent)
+  ).toBe('HOST-TESTE');
+  await connection.getByRole('button', { name: /Conectar/ }).click();
+  await expect(connection).toHaveCount(0);
+  await expect(page.locator('.react-flow__edge')).toHaveCount(1);
+  await node('HOST-TESTE-copy').click();
+  await page.getByRole('menuitem', { name: 'Excluir', exact: true }).click();
+  await expect(page.locator('.network-device')).toHaveCount(1);
+  await expect(page.locator('.react-flow__edge')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Desfazer', exact: true }).click();
+  await expect(page.locator('.network-device')).toHaveCount(2);
+  await expect(page.locator('.react-flow__edge')).toHaveCount(1);
+  await node('HOST-TESTE').click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(wrapper).toBeFocused();
+  await node('HOST-TESTE').dblclick();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE');
+  await node('HOST-TESTE-copy').dblclick();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
+  await node('HOST-TESTE').click();
+  await expect(page.getByRole('menu', { name: 'Ações de HOST-TESTE', exact: true })).toBeVisible();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
+  await page.getByRole('menuitem', { name: 'Inspecionar', exact: true }).click();
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE');
+  await page.getByRole('button', { name: 'Fechar inspector' }).click();
+  await page.screenshot({ path: 'test-results/canvas-catalog-actions.png', fullPage: true });
+  await page.getByRole('button', { name: 'Ajuda', exact: true }).click();
+  const tips = page.getByRole('dialog', { name: 'Dicas do laboratório' });
+  const concepts = tips.getByRole('combobox', { name: 'Conceito de rede', exact: true });
+  await expect(concepts.locator('option')).toHaveCount(networkConcepts.length);
+  await concepts.selectOption('arp');
+  await expect(tips.locator('.concept-content')).toContainText('MAC do gateway');
+  await expect(tips.locator('.concept-content ol li')).toHaveCount(2);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: 'test-results/concepts-free.png', fullPage: true });
+  await page.keyboard.press('Escape');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Fit View', exact: true }).click();
+  await node('HOST-TESTE').click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  const menuBounds = await page.locator('.device-actions-popover').boundingBox();
+  expect(menuBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(menuBounds!.x + menuBounds!.width).toBeLessThanOrEqual(390);
+  expect(menuBounds!.y + menuBounds!.height).toBeLessThanOrEqual(844);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: 'test-results/device-actions-mobile.png', fullPage: true });
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /^LABORATÓRIO LIVRE Canvas ações/ }).click();
+  await expect(node('HOST-TESTE')).toBeVisible();
+  await expect(page.locator('.react-flow__edge')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.locator('.lesson-card').filter({ hasText: 'Primeira LAN' }).click();
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.getByRole('button', { name: 'Ajuda', exact: true }).click();
+  const scoped = page.getByRole('dialog').getByRole('combobox', { name: 'Conceito de rede', exact: true });
+  expect(
+    await scoped
+      .locator('option')
+      .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
+  ).toEqual(['physical', 'ethernet', 'ipv4', 'arp', 'icmp']);
+  await expect(page.locator('.help-code')).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/concepts-guided.png', fullPage: true });
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.locator('.lesson-card').filter({ hasText: 'A credencial abre o rádio' }).click();
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.getByRole('button', { name: 'Ajuda', exact: true }).click();
+  expect(
+    await page
+      .getByRole('combobox', { name: 'Conceito de rede', exact: true })
+      .locator('option')
+      .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
+  ).toEqual(['physical', 'ethernet', 'ipv4', 'arp', 'tcp', 'wireless']);
+  expect(errors).toEqual([]);
+});
+
 test('Dashboard: navegação, filtros, favoritos, histórico e controles em desktop e mobile', async ({
   page,
 }) => {
@@ -181,7 +362,7 @@ test('VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistênc
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('WAN-A', 'VPN / SD-WAN');
@@ -250,7 +431,7 @@ test('VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistênc
   expect(errors).toEqual([]);
 });
 async function inspectDhcp(page: Page, hostname: string) {
-  await page.locator('.network-device').filter({ hasText: hostname }).click();
+  await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'DHCP', exact: true }).click();
 }
 for (const scenario of [
@@ -281,7 +462,7 @@ for (const scenario of [
         await page
           .locator('.network-device')
           .filter({ has: page.getByText(name, { exact: true }) })
-          .click();
+          .dblclick();
         await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
       };
       await inspect(scenario.router, 'QoS / MPLS');
@@ -350,7 +531,7 @@ for (const scenario of [
   );
 }
 async function inspectTcp(page: Page, hostname: string) {
-  await page.locator('.network-device').filter({ hasText: hostname }).click();
+  await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'TCP / HTTP', exact: true }).click();
 }
 test('AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile', async ({ page }) => {
@@ -369,7 +550,7 @@ test('AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile', async ({
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('SW-AUTH', '802.1X / AAA');
@@ -437,7 +618,7 @@ test('Inspeção de aplicação: Host HTTP bloqueado e permitido, regras e persi
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('R-EDGE-01', 'Políticas');
@@ -493,7 +674,7 @@ test('VXLAN/EVPN: VNI, BGP MAC/IP, HTTP, encapsulamento e persistência mobile',
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('VTEP-A', 'VXLAN / EVPN');
@@ -648,7 +829,7 @@ test('RIP: configuração, vetores, expiração exibida e persistência mobile',
   await page
     .locator('.network-device')
     .filter({ has: page.getByText('R-01', { exact: true }) })
-    .click();
+    .dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'RIP', exact: true }).click();
   await page.getByRole('button', { name: 'Aplicar RIP', exact: true }).click();
   const route = page.locator('.rip-panel tr').filter({ hasText: '192.168.20.0/24' });
@@ -684,7 +865,7 @@ test('RIP: configuração, vetores, expiração exibida e persistência mobile',
   await page
     .locator('.network-device')
     .filter({ has: page.getByText('R-01', { exact: true }) })
-    .click();
+    .dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'RIP', exact: true }).click();
   await expect(route).toHaveAttribute('data-metric', '3');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -707,7 +888,7 @@ test('OSPF: convergência, falha, inspector e persistência', async ({ page }) =
   await page
     .locator('.network-device')
     .filter({ has: page.getByText('R-01', { exact: true }) })
-    .click();
+    .dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'OSPF', exact: true }).click();
   const route = page.locator('.ospf-panel tr').filter({ hasText: '192.168.20.0/24' });
   await advanceSimulation(
@@ -741,7 +922,7 @@ test('OSPF: convergência, falha, inspector e persistência', async ({ page }) =
   await page
     .locator('.network-device')
     .filter({ has: page.getByText('R-01', { exact: true }) })
-    .click();
+    .dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'OSPF', exact: true }).click();
   await expect(route).toContainText('31');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -764,7 +945,7 @@ test('gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobil
   const inspect = async (hostname: string) => {
     const close = page.getByRole('button', { name: 'Fechar inspector' });
     if (await close.count()) await close.click();
-    await page.locator('.network-device').filter({ hasText: hostname }).click();
+    await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: 'Gerenciamento', exact: true }).click();
   };
   const query = async (expected: string) => {
@@ -841,7 +1022,7 @@ test('zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistênci
   const inspect = async () => {
     const close = page.getByRole('button', { name: 'Fechar inspector' });
     if (await close.count()) await close.click();
-    await page.locator('.network-device').filter({ hasText: 'FW-EDGE' }).click();
+    await page.locator('.network-device').filter({ hasText: 'FW-EDGE' }).dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   };
   await inspect();
@@ -927,7 +1108,7 @@ test('firewall: UDP, ICMP, bloqueio de entrada e sessões persistidas desktop/mo
   await page.getByLabel('Nome do laboratório').fill('Firewall E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   const inspectFirewall = async () => {
-    await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+    await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   };
   await inspectFirewall();
@@ -1043,7 +1224,7 @@ test('TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile',
     128
   );
   await expect(page.locator('.tcp-result')).toContainText('Mensagem TCP com acentuação');
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   await expect(page.locator('.firewall-panel')).toContainText('CLOSING');
   await expect(page.locator('.firewall-panel')).toContainText('Descartes: 0');
@@ -1080,7 +1261,7 @@ test('TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile',
   expect(errors).toEqual([]);
 });
 async function inspectDns(page: Page, hostname: string) {
-  await page.locator('.network-device').filter({ hasText: hostname }).click();
+  await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'DNS', exact: true }).click();
 }
 async function queryDns(page: Page, name: string, type = 'A') {
@@ -1107,7 +1288,7 @@ async function switchTerminal(page: Page, hostname: string, commands: string[]) 
   await page
     .locator('.network-device')
     .filter({ has: page.getByText(hostname, { exact: true }) })
-    .click();
+    .dblclick();
   await page.getByRole('button', { name: 'Terminal', exact: true }).click();
   await page.locator('.xterm-helper-textarea').focus();
   for (const command of commands) {
@@ -1127,7 +1308,7 @@ async function rstpPing(page: Page, result: string, destination = '192.168.10.20
   await expect(page.locator('.probe-toast')).toContainText(result);
 }
 async function configureIp(page: Page, hostname: string, ip: string) {
-  await page.locator('.network-device').filter({ hasText: hostname }).click();
+  await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
   await page.getByRole('button', { name: 'Portas', exact: true }).click();
   await page.locator('.interface-item').first().click();
   await page.getByLabel('Endereço IPv4').fill(ip);
@@ -1150,7 +1331,7 @@ test('canvas: grupos, notas, grade e reabertura', async ({ page }) => {
   await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Canvas E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
-  await page.locator('.network-device').filter({ hasText: 'PC-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'PC-01' }).dblclick();
   await page
     .locator('.network-device')
     .filter({ hasText: 'PC-02' })
@@ -1248,7 +1429,7 @@ test('políticas: PAT, ACL, bloqueio, recuperação e persistência', async ({ p
   await page.getByRole('button', { name: /Além da rede privada/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Políticas E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   await page.getByRole('button', { name: 'Nova tradução', exact: true }).click();
   await page.getByRole('button', { name: 'Salvar tradução', exact: true }).click();
@@ -1275,7 +1456,7 @@ test('políticas: PAT, ACL, bloqueio, recuperação e persistência', async ({ p
     .locator('.modal-head')
     .getByRole('button', { name: 'Fechar', exact: true })
     .click();
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   await expect(page.locator('.nat-translations')).toContainText('192.168.20.100');
   await page.getByRole('button', { name: 'Nova regra', exact: true }).click();
@@ -1287,7 +1468,7 @@ test('políticas: PAT, ACL, bloqueio, recuperação e persistência', async ({ p
   await rstpPing(page, 'timeout', '192.168.20.10');
   await page.locator('.event-filters').getByRole('button', { name: 'ACL / NAT', exact: true }).click();
   await expect(page.locator('.event-table')).toContainText('ACL_DENY');
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   await page.getByRole('button', { name: 'Editar regra 10 de FILTER', exact: true }).click();
   await page.getByRole('combobox', { name: 'Ação', exact: true }).selectOption('permit');
@@ -1299,7 +1480,7 @@ test('políticas: PAT, ACL, bloqueio, recuperação e persistência', async ({ p
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.reload();
   await page.getByRole('button', { name: /^LABORATÓRIO LIVRE Políticas E2E/ }).click();
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Políticas', exact: true }).click();
   await expect(page.getByLabel('ACL in Gi0/1')).toHaveValue('FILTER');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1357,7 +1538,7 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   await page.getByLabel('Nome do laboratório').fill('RSTP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   await expect(page.locator('.network-device')).toHaveCount(5);
-  await page.locator('.network-device').filter({ hasText: 'SW-03' }).click();
+  await page.locator('.network-device').filter({ hasText: 'SW-03' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'STP', exact: true }).click();
   await expect(page.locator('.stp-ports tr[data-port="p2"]')).toHaveAttribute('data-role', 'alternate');
   await expect(page.locator('.stp-blocked')).toHaveCount(1);
@@ -1400,7 +1581,7 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.reload();
   await page.getByRole('button', { name: /^LABORATÓRIO LIVRE RSTP E2E/ }).click();
-  await page.locator('.network-device').filter({ hasText: 'SW-03' }).click();
+  await page.locator('.network-device').filter({ hasText: 'SW-03' }).dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'STP', exact: true }).click();
   await expect(page.locator('.stp-ports tr[data-port="p2"]')).toHaveAttribute('data-role', 'root');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1408,7 +1589,7 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   await page.screenshot({ path: 'test-results/rstp-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
   await page.setViewportSize({ width: 1440, height: 960 });
-  await page.locator('.network-device').filter({ hasText: 'SW-03' }).click();
+  await page.locator('.network-device').filter({ hasText: 'SW-03' }).dblclick();
   await page.getByRole('button', { name: 'Duplicar', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(6);
   await page.locator('.inspector-tabs').getByRole('button', { name: 'STP', exact: true }).click();
@@ -1556,7 +1737,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await expect(page.locator('.network-device')).toHaveCount(3);
   const [clientA, clientB, switchName] = await page.locator('.network-device strong').allTextContents();
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
-  await page.locator('.network-device').filter({ hasText: clientA }).click();
+  await page.locator('.network-device').filter({ hasText: clientA }).dblclick();
   await page
     .locator('.network-device')
     .filter({ hasText: clientB })
@@ -1592,7 +1773,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await page.getByLabel('Velocidade', { exact: true }).selectOption('5');
   await page.getByRole('button', { name: 'Executar simulação' }).click();
   await expect(page.locator('.probe-toast')).toContainText('Resposta em');
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.getByRole('button', { name: 'Terminal', exact: true }).click();
 
   // Use keyboard input so xterm receives actual terminal data.
@@ -1610,7 +1791,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await page.getByRole('button', { name: 'Enfileirar ping' }).click();
   await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
   await expect(page.locator('.probe-toast')).toContainText('unreachable');
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.getByRole('button', { name: 'Terminal', exact: true }).click();
   for (const cmd of ['enable', 'configure terminal', 'interface Gi0/2', 'no shutdown']) {
     await page.keyboard.type(cmd);
@@ -1632,7 +1813,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await expect(page.locator('.network-device')).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/workspace-mobile.png', fullPage: true });
-  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).click();
+  await page.locator('.network-device').filter({ hasText: 'R-EDGE-01' }).dblclick();
   await page.getByRole('button', { name: 'Portas', exact: true }).click();
   await page.locator('.interface-item').first().click();
   await expect(page.getByLabel('Endereço IPv4')).toHaveValue('192.168.10.1');
@@ -1670,7 +1851,7 @@ test('DHCP: pool, dois clientes, pacotes, ping, lease e persistência mobile', a
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
   for (const hostname of ['PC-01', 'PC-02']) {
-    await page.locator('.network-device').filter({ hasText: hostname }).click();
+    await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
     await page.getByRole('button', { name: 'Portas', exact: true }).click();
     await page.locator('.interface-item').first().click();
     await page.getByLabel('Automático (DHCP)', { exact: true }).check();
@@ -1756,7 +1937,7 @@ test('VRRP: edição, eleição, failover, HTTP, anúncios e persistência deskt
   const inspect = async (hostname: string, tab: string) => {
     const close = page.getByRole('button', { name: 'Fechar inspector' });
     if (await close.count()) await close.click();
-    await page.locator('.network-device').filter({ hasText: hostname }).click();
+    await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   const panel = page.locator('.vrrp-panel');
@@ -1840,7 +2021,7 @@ test('BGP: sessões TCP, AS_PATH, política, falha, inspector e persistência mo
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(hostname, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('R-01', 'BGP');
@@ -1938,7 +2119,7 @@ for (const [template, hostname] of [
       await page
         .locator('.network-device')
         .filter({ has: page.getByText(name, { exact: true }) })
-        .click();
+        .dblclick();
       await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
     };
     await inspect(hostname, 'VLAN / VRF');
@@ -1987,7 +2168,7 @@ test('L3: VRF mantém HTTP e IPs sobrepostos isolados no painel e no save/reload
   await page
     .locator('.network-device')
     .filter({ has: page.getByText('R-VRF', { exact: true }) })
-    .click();
+    .dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'TCP / HTTP', exact: true }).click();
   await page.getByLabel('Destino TCP IPv4').fill('10.0.0.2');
   for (const vrf of ['BLUE', 'RED']) {
@@ -2009,7 +2190,7 @@ test('L3: VRF mantém HTTP e IPs sobrepostos isolados no painel e no save/reload
   await page
     .locator('.network-device')
     .filter({ has: page.getByText('R-VRF', { exact: true }) })
-    .click();
+    .dblclick();
   await page.locator('.inspector-tabs').getByRole('button', { name: 'VLAN / VRF', exact: true }).click();
   await expect(page.getByLabel('VRF de Gi0/2')).toHaveValue('RED');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -2035,7 +2216,7 @@ test('Tracking: uplink reduz prioridade VRRP no painel e mantém HTTP', async ({
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('R-PRIMARY', 'VRRP');
@@ -2088,7 +2269,7 @@ test('LACP: negocia, conserva HTTP com membro restante e persiste no mobile', as
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('SW-A', 'LACP');
@@ -2162,7 +2343,7 @@ test('IPv6 serviços: DHCPv6, UDP, TCP com janela e persistência mobile', async
     await page
       .locator('.network-device')
       .filter({ has: page.getByText('PC-DHCP6', { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('IPv6');
@@ -2228,7 +2409,7 @@ test('IPv6: SLAAC, ping roteado, Hop Limit, pacote e persistência mobile', asyn
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: 'IPv6', exact: true }).click();
   };
   await inspect('PC-V6-B');
@@ -2301,7 +2482,7 @@ test('Wireless: autenticação, HTTP pelo rádio, pacotes e persistência mobile
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
   };
   await inspect('NOTEBOOK', 'Wireless');
@@ -2368,7 +2549,7 @@ test('Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile', a
     await page
       .locator('.network-device')
       .filter({ has: page.getByText(name, { exact: true }) })
-      .click();
+      .dblclick();
     await page.locator('.inspector-tabs').getByRole('button', { name: 'Gerenciamento', exact: true }).click();
   };
   await inspect('PC-01');
@@ -2446,7 +2627,7 @@ test('Catálogo: perfil QSFP, transceiver, duplicação, análise e persistênci
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   await page.getByLabel('Buscar equipamento', { exact: true }).fill('core');
   await page.locator('.equipment-card').filter({ hasText: 'Switch de core' }).click();
-  await page.locator('.network-device').last().click();
+  await page.locator('.network-device').last().dblclick();
   await expect(page.locator('.inspector')).toContainText('NL Switch de core');
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Portas', exact: true }).click();
   await expect(page.locator('.interface-item')).toHaveCount(8);
@@ -2454,7 +2635,7 @@ test('Catálogo: perfil QSFP, transceiver, duplicação, análise e persistênci
   await page.getByLabel('Módulo transceiver').selectOption('dac');
   await page.getByRole('button', { name: 'Aplicar à simulação', exact: true }).click();
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
-  await page.locator('.network-device').last().click();
+  await page.locator('.network-device').last().dblclick();
   await page.getByRole('button', { name: 'Duplicar', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(2);
   await page.getByRole('button', { name: 'Inspetor da rede', exact: true }).click();
@@ -2593,7 +2774,7 @@ for (const method of ['tls', 'peap'] as const) {
       await page
         .locator('.network-device')
         .filter({ has: page.getByText('RADIUS-CAMPUS', { exact: true }) })
-        .click();
+        .dblclick();
       await page
         .locator('.inspector-tabs')
         .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })
@@ -2610,7 +2791,7 @@ for (const method of ['tls', 'peap'] as const) {
     await page
       .locator('.network-device')
       .filter({ has: page.getByText('CLIENT-CAMPUS', { exact: true }) })
-      .click();
+      .dblclick();
     await page
       .locator('.inspector-tabs')
       .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })
@@ -2649,7 +2830,7 @@ for (const method of ['tls', 'peap'] as const) {
     await page
       .locator('.network-device')
       .filter({ has: page.getByText('CLIENT-CAMPUS', { exact: true }) })
-      .click();
+      .dblclick();
     await page
       .locator('.inspector-tabs')
       .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })

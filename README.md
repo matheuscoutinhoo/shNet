@@ -45,6 +45,8 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 - Meus laboratórios com busca, filtros por modo/progresso/favoritos e ordenação. Templates e trilhas em um catálogo separado, com filtros por tema, conteúdo e nível.
 - Laboratórios privados, autosave com revisão otimista, snapshots e import/export JSON. Histórico de atividades na página Meus laboratórios.
 - Canvas com zoom/pan, seleção múltipla, arrastar/adicionar dispositivos, grade/snap, minimapa, temas, busca, notas, desenhos, comentários ancorados, duplicação e undo/redo.
+- Catálogo organizado em categorias recolhíveis, com ícones por perfil. Clique em um dispositivo para inspecionar, renomear, duplicar, conectar, ligar/desligar ou excluir; clique duplo abre o inspetor diretamente. As ações também aceitam teclado.
+- Dicas com explicações, exemplos e observações por conceito. Labs guiados e desafios exibem os conceitos envolvidos no exercício; o modo livre oferece todos os tópicos.
 - Catálogo extensível com 47 perfis, incluindo rack, patch panel, UPS, banco de dados, WLC, mesh e IDS/IPS. RJ45/SFP/QSFP, cobre/fibra/DAC, módulos configuráveis, validação de alcance/velocidade, power e shutdown. CPU, memória e temperatura derivam do trabalho e da configuração do motor.
 - Ethernet, flooding por VLAN, aprendizado/aging MAC, ARP request/reply/cache e retransmissão limitada, IPv4/CIDR, ICMP echo/time-exceeded, gateway e rotas estáticas por longest prefix match.
 - VLAN access/trunk/native/allowed. Latência, jitter, perda com seed, MTU e TTL.

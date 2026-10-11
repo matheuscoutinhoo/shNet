@@ -35,6 +35,8 @@ import {
   deviceProfile,
 } from '@shlab/engine';
 import { DeviceIcon } from '../components/DeviceIcon';
+import { DeviceActions, type DeviceAction } from './DeviceActions';
+import { availablePorts } from './deviceCatalog';
 import type { LabController } from './useLab';
 import '@xyflow/react/dist/style.css';
 type DeviceNode = Node<
@@ -149,17 +151,18 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
         <DeviceIcon profile={d.profile} type={d.type} />
         <div>
           <span className="node-type">
-            {d.wireless?.role === 'ap'
-              ? 'ACCESS POINT'
-              : d.type === 'switch'
-                ? d.ipRouting
-                  ? 'SWITCH L3'
-                  : 'SWITCH L2'
-                : d.type === 'router'
-                  ? 'ROTEADOR'
-                  : d.type === 'server'
-                    ? 'SERVIDOR'
-                    : 'COMPUTADOR'}
+            {deviceProfile(d)?.name.toLocaleUpperCase('pt-BR') ??
+              (d.wireless?.role === 'ap'
+                ? 'ACCESS POINT'
+                : d.type === 'switch'
+                  ? d.ipRouting
+                    ? 'SWITCH L3'
+                    : 'SWITCH L2'
+                  : d.type === 'router'
+                    ? 'ROTEADOR'
+                    : d.type === 'server'
+                      ? 'SERVIDOR'
+                      : 'COMPUTADOR')}
           </span>
           <strong>{d.hostname}</strong>
           <small>
@@ -296,6 +299,7 @@ interface Props {
   onSelect: (ids: string[]) => void;
   onConnect: (c: Connection) => void;
   onEdge: (id: string) => void;
+  onDeviceAction: (action: DeviceAction, id: string) => void;
   detailed: boolean;
   highlight: number | undefined;
   query: string;
@@ -308,6 +312,7 @@ function Canvas({
   onSelect,
   onConnect,
   onEdge,
+  onDeviceAction,
   detailed,
   highlight,
   query,
@@ -319,6 +324,21 @@ function Canvas({
   const zoom = useStore((state) => state.transform[2]);
   const overview = engine.state.devices.length > 200 && zoom < 0.45;
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
+  const container = useRef<HTMLDivElement>(null);
+  const [actions, setActions] = useState<{ id: string; x: number; y: number; trigger: HTMLElement } | null>(
+    null
+  );
+  const closeActions = useCallback(
+    (restoreFocus = false) => {
+      if (restoreFocus && actions?.trigger.isConnected) actions.trigger.focus();
+      setActions(null);
+    },
+    [actions]
+  );
+  const actionDevice = engine.state.devices.find((device) => device.id === actions?.id);
+  useEffect(() => {
+    if (actions && !selected.includes(actions.id)) setActions(null);
+  }, [actions, selected]);
   const nodesInitialized = useNodesInitialized();
   const fittedDeviceCount = useRef(engine.state.devices.length);
   useEffect(() => {
@@ -474,7 +494,25 @@ function Canvas({
   );
   return (
     <div
+      ref={container}
       className={'canvas-container theme-' + engine.state.background}
+      onKeyDownCapture={(event) => {
+        if (
+          !['Enter', ' '].includes(event.key) ||
+          event.shiftKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          (event.target as Element).closest('input,textarea,select,button,a')
+        )
+          return;
+        const node = (event.target as Element).closest<HTMLElement>('.react-flow__node-device');
+        if (!node?.dataset.id) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const bounds = node.getBoundingClientRect();
+        onSelect([node.dataset.id]);
+        setActions({ id: node.dataset.id, x: bounds.right, y: bounds.top, trigger: node });
+      }}
       onDragOver={(e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
@@ -533,6 +571,35 @@ function Canvas({
             );
         }}
         onSelectionChange={onSelectionChange}
+        onNodeClick={(event, node) => {
+          if (
+            node.type !== 'device' ||
+            event.shiftKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            (event.target as Element).closest('.react-flow__handle')
+          )
+            return;
+          onSelect([node.id]);
+          setActions({
+            id: node.id,
+            x: event.clientX,
+            y: event.clientY,
+            trigger: event.currentTarget as HTMLElement,
+          });
+        }}
+        onNodeDoubleClick={(event, node) => {
+          if (node.type !== 'device') return;
+          event.preventDefault();
+          event.stopPropagation();
+          closeActions();
+          onDeviceAction('inspect', node.id);
+        }}
+        onPaneClick={() => closeActions()}
+        onNodeDragStart={() => closeActions()}
+        onMoveStart={(event) => {
+          if (event) closeActions();
+        }}
         onConnect={onConnect}
         onEdgeClick={(_e, edge) => onEdge(edge.id)}
         connectionMode={ConnectionMode.Loose}
@@ -548,6 +615,7 @@ function Canvas({
         snapGrid={[20, 20]}
         minZoom={0.15}
         maxZoom={2.5}
+        zoomOnDoubleClick={false}
         fitView={!engine.state.viewport || window.innerWidth < 700}
         defaultViewport={window.innerWidth < 700 ? undefined : engine.state.viewport}
         fitViewOptions={{ padding: 0.3 }}
@@ -584,7 +652,7 @@ function Canvas({
           <span>
             <Network size={36} />
           </span>
-          <h2>Toda rede começa com uma conexão.</h2>
+          <h2>Canvas vazio</h2>
           <p>
             Arraste seu primeiro equipamento para o canvas
             <br />
@@ -599,6 +667,22 @@ function Canvas({
         <span className="live-dot" /> {engine.state.devices.length} dispositivos <span>·</span>{' '}
         {engine.state.links.length} conexões <span>·</span> {engine.state.clock.toFixed(2)} ms
       </div>
+      {actions && actionDevice && (
+        <DeviceActions
+          device={actionDevice}
+          point={actions}
+          bounds={container.current?.getBoundingClientRect()}
+          canConnect={
+            availablePorts(engine.state, actionDevice).length > 0 &&
+            engine.state.devices.some(
+              (entry) => entry.id !== actionDevice.id && availablePorts(engine.state, entry).length > 0
+            )
+          }
+          canDuplicate={engine.state.devices.length < 2000}
+          onAction={onDeviceAction}
+          onClose={closeActions}
+        />
+      )}
     </div>
   );
 }

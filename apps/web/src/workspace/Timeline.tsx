@@ -156,7 +156,9 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
                   <th>Equipamento</th>
                   <th>Evento</th>
                   <th>O que aconteceu?</th>
-                  <th />
+                  <th>
+                    <span className="sr-only">Detalhes</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>

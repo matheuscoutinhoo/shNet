@@ -1,9 +1,13 @@
 import { CommentDialog } from './CommentDialog';
 import { LearningPanel, TutorialPanel } from './LearningPanel';
 import { NetworkConceptGuide } from './NetworkConceptGuide';
+import { EquipmentCatalog } from './EquipmentCatalog';
+import { availablePorts } from './deviceCatalog';
+import type { DeviceAction } from './DeviceActions';
+import { labs } from '@shlab/engine';
 import { wirelessConfig, qosConfig, remoteConfig } from '@shlab/engine';
 import { CaptureDialog } from './CaptureDialog';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Connection } from '@xyflow/react';
 import {
   ArrowLeft,
@@ -51,7 +55,6 @@ import {
 } from '@shlab/engine';
 import { api, download, type Project, type User } from '../api';
 import { Brand } from '../components/Brand';
-import { DeviceIcon } from '../components/DeviceIcon';
 import { Modal } from '../components/Modal';
 import { useLab, type LabController } from './useLab';
 import { TopologyCanvas } from './TopologyCanvas';
@@ -73,8 +76,8 @@ export function Workspace({
 }) {
   const lab = useLab(project, onExpired),
     [selected, setSelected] = useState<string[]>([]),
+    [inspecting, setInspecting] = useState<string | null>(null),
     [query, setQuery] = useState(''),
-    [catalogQuery, setCatalogQuery] = useState(''),
     [detailed, setDetailed] = useState(true),
     [showCatalog, setShowCatalog] = useState(true),
     [connect, setConnect] = useState<Connection | true | null>(null),
@@ -92,24 +95,37 @@ export function Workspace({
     [drawing, setDrawing] = useState(false),
     [comment, setComment] = useState(false),
     [capture, setCapture] = useState(false),
+    [renaming, setRenaming] = useState<Device | null>(null),
     [mode, setMode] = useState<'simulation' | 'realtime'>('simulation');
   const importRef = useRef<HTMLInputElement>(null),
     copyRef = useRef<Device[]>([]);
   const copiedItems = useRef<CanvasItem[]>([]);
   const copiedLinks = useRef<Link[]>([]);
-  const device = lab.engine.state.devices.find((d) => d.id === selected[0]);
-  const duplicate = () =>
+  const device = lab.engine.state.devices.find((d) => d.id === inspecting);
+  const select = useCallback((ids: string[]) => {
+    setSelected(ids);
+    setInspecting((current) => (ids.length ? current : null));
+  }, []);
+  function inspect(id: string) {
+    setSelected([id]);
+    setInspecting(id);
+  }
+  const duplicate = (ids = selected, fromClipboard = false) =>
     lab.change((e) => {
-      const originals = copyRef.current.length
+      const originals = fromClipboard
         ? copyRef.current
         : e.state.devices.filter(
             (d) =>
-              selected.includes(d.id) ||
-              e.state.canvasItems?.some((item) => selected.includes(item.id) && item.members?.includes(d.id))
+              ids.includes(d.id) ||
+              e.state.canvasItems?.some((item) => ids.includes(item.id) && item.members?.includes(d.id))
           );
       const mapping = new Map<string, string>();
       const created = originals.map((d) => {
-        const copy = e.addDevice(d.type, { x: d.position.x + 50, y: d.position.y + 80 });
+        const position = { x: d.position.x + 50, y: d.position.y + 80 };
+        const copy =
+          d.profile && deviceProfiles.some((profile) => profile.id === d.profile)
+            ? e.addProfile(d.profile, position)
+            : e.addDevice(d.type, position);
         copy.profile = d.profile;
         copy.hostname = d.hostname.slice(0, 24) + '-copy';
         copy.ipRouting = d.ipRouting;
@@ -267,10 +283,10 @@ export function Workspace({
         mapping.set(d.id, copy.id);
         return copy.id;
       });
-      const annotations = copiedItems.current.length
+      const annotations = fromClipboard
         ? copiedItems.current
-        : (e.state.canvasItems?.filter((item) => selected.includes(item.id)) ?? []);
-      const internalLinks = copyRef.current.length
+        : (e.state.canvasItems?.filter((item) => ids.includes(item.id)) ?? []);
+      const internalLinks = fromClipboard
         ? copiedLinks.current
         : e.state.links.filter((link) => mapping.has(link.a.device) && mapping.has(link.b.device));
       for (const link of internalLinks.filter((l) => l.cable !== 'wireless'))
@@ -312,6 +328,7 @@ export function Workspace({
           }).id
       );
       setSelected(createdItems.length ? createdItems : created);
+      setInspecting(createdItems.length ? null : (created[0] ?? null));
     });
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -344,13 +361,10 @@ export function Workspace({
         }
         if (e.key.toLowerCase() === 'v') {
           e.preventDefault();
-          duplicate();
+          if (copyRef.current.length || copiedItems.current.length) duplicate([], true);
         }
         if (e.key.toLowerCase() === 'd') {
           e.preventDefault();
-          copyRef.current = [];
-          copiedItems.current = [];
-          copiedLinks.current = [];
           duplicate();
         }
       }
@@ -358,6 +372,47 @@ export function Workspace({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   });
+  function deviceAction(action: DeviceAction, id: string) {
+    const target = lab.engine.state.devices.find((entry) => entry.id === id);
+    if (!target) return;
+    if (action === 'inspect') inspect(id);
+    if (action === 'rename') {
+      lab.setError('');
+      setRenaming(target);
+    }
+    if (action === 'duplicate') {
+      duplicate([id]);
+    }
+    if (action === 'delete') {
+      lab.change((simulation) => removeCanvasItem(simulation, id));
+      setSelected((current) => current.filter((entry) => entry !== id));
+      setInspecting((current) => (current === id ? null : current));
+    }
+    if (action === 'power') {
+      const powered = !target.power;
+      lab.change((simulation) => {
+        simulation.setDevicePower(id, powered);
+        simulation.emit(
+          powered ? 'LINK_UP' : 'LINK_DOWN',
+          id,
+          powered ? 'Equipamento ligado' : 'Equipamento desligado'
+        );
+      });
+    }
+    if (action === 'connect') {
+      const source = availablePorts(lab.engine.state, target)[0];
+      const other = lab.engine.state.devices.find(
+        (entry) => entry.id !== id && availablePorts(lab.engine.state, entry).length
+      );
+      if (source && other)
+        setConnect({
+          source: id,
+          sourceHandle: source.id,
+          target: other.id,
+          targetHandle: availablePorts(lab.engine.state, other)[0].id,
+        });
+    }
+  }
   async function leave() {
     lab.setPlaying(false);
     try {
@@ -369,7 +424,8 @@ export function Workspace({
   }
   const lastProbe = lab.engine.state.probes.at(-1);
   return (
-    <div className="workspace">
+    <main className="workspace">
+      <h1 className="sr-only">{project.name}</h1>
       <header className="workspace-header">
         <button
           className="icon-button back-button"
@@ -458,12 +514,7 @@ export function Workspace({
             disabled={!selected.length}
             title="Duplicar (Ctrl+D)"
             aria-label="Duplicar"
-            onClick={() => {
-              copyRef.current = [];
-              copiedItems.current = [];
-              copiedLinks.current = [];
-              duplicate();
-            }}
+            onClick={() => duplicate()}
           >
             <Copy size={17} />
           </button>
@@ -771,68 +822,17 @@ export function Workspace({
             <div className="panel-heading">
               EQUIPAMENTOS <span className="count">{deviceProfiles.length}</span>
             </div>
-            <label className="search equipment-search">
-              <Search size={15} />
-              <input
-                placeholder="Buscar equipamento…"
-                aria-label="Buscar equipamento"
-                value={catalogQuery}
-                onChange={(e) => setCatalogQuery(e.target.value)}
-              />
-            </label>
-            <p className="panel-description">Arraste para o canvas ou clique para adicionar.</p>
-            <div className="catalog-section-label">PERFIS DE REDE</div>
-            {deviceProfiles
-              .filter((c) =>
-                (c.name + ' ' + c.category + ' ' + c.role).toLowerCase().includes(catalogQuery.toLowerCase())
-              )
-              .map((c, i, visible) => (
-                <div key={c.id}>
-                  {(i === 0 || visible[i - 1].category !== c.category) && (
-                    <div className="catalog-section-label">{c.category}</div>
-                  )}
-                  <button
-                    className="equipment-card"
-                    title={c.description}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('application/shlab-profile', c.id);
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    key={c.id}
-                    onClick={() =>
-                      lab.change((e) => {
-                        const d = e.addProfile(c.id, {
-                          x: 80 + (e.state.devices.length % 4) * 240,
-                          y: 120 + Math.floor(e.state.devices.length / 4) * 160,
-                        });
-                        setSelected([d.id]);
-                      })
-                    }
-                  >
-                    <span>
-                      <DeviceIcon profile={c.id} type={c.type} size={37} />
-                    </span>
-                    <div>
-                      <strong>{c.name}</strong>
-                      <small>
-                        {c.id === 'rack'
-                          ? 'Montagem física · 42 U'
-                          : c.id === 'ups'
-                            ? 'Bateria e potência'
-                            : c.ports
-                              ? c.ports + ' portas · ' + (c.uplinks ?? 'Ethernet')
-                              : c.type === 'switch'
-                                ? '8 RJ45 + 2 SFP'
-                                : c.type === 'router'
-                                  ? '4 RJ45 + 2 SFP'
-                                  : (c.ports ?? (c.type === 'pc' ? 1 : 2)) + ' × Ethernet'}
-                      </small>
-                    </div>
-                    <Plus size={15} />
-                  </button>
-                </div>
-              ))}
+            <EquipmentCatalog
+              onAdd={(profile) =>
+                lab.change((simulation) => {
+                  const added = simulation.addProfile(profile.id, {
+                    x: 80 + (simulation.state.devices.length % 4) * 240,
+                    y: 120 + Math.floor(simulation.state.devices.length / 4) * 160,
+                  });
+                  inspect(added.id);
+                })
+              }
+            />
             <div className="catalog-section-label">CONEXÕES</div>
             <button className="equipment-card cable-card" onClick={() => setConnect(true)}>
               <span>
@@ -853,7 +853,7 @@ export function Workspace({
               </button>
             </div>
             <div className="catalog-bottom">
-              <span className="status-dot" /> Motor determinístico <span>seed {lab.engine.state.seed}</span>
+              <span className="status-dot" /> Simulação local
             </div>
           </aside>
         )}
@@ -886,8 +886,9 @@ export function Workspace({
             </div>
             <TopologyCanvas
               lab={lab}
+              onDeviceAction={deviceAction}
               selected={selected}
-              onSelect={setSelected}
+              onSelect={select}
               onConnect={setConnect}
               onEdge={setLink}
               detailed={detailed}
@@ -910,14 +911,25 @@ export function Workspace({
               </div>
             )}
           </div>
-          <Timeline lab={lab} onSelect={(id) => setSelected([id])} />
+          <Timeline lab={lab} onSelect={inspect} />
         </div>
-        {device && <Inspector key={device.id} lab={lab} device={device} onClose={() => setSelected([])} />}
+        {device && (
+          <Inspector
+            key={device.id}
+            lab={lab}
+            device={device}
+            onClose={() => {
+              setInspecting(null);
+              setSelected([]);
+            }}
+          />
+        )}
       </div>
       <footer className="workspace-status">
         <span>
-          <MousePointer2 size={12} /> Arraste para mover <span>·</span> Shift para selecionar <span>·</span>{' '}
-          Ctrl+S para salvar
+          <MousePointer2 size={12} /> Clique para ações <span>·</span> Clique duplo para inspecionar{' '}
+          <span>·</span> Arraste para mover <span>·</span> Shift para selecionar <span>·</span> Ctrl+S para
+          salvar
         </span>
         <span>
           <span className="status-dot" /> NetOS 1.0 <span>·</span> Simulação local <span>·</span>{' '}
@@ -1061,7 +1073,7 @@ export function Workspace({
             if (panel === 'connections') setConnect(true);
             if (panel === 'inspector') {
               const hosts = lab.engine.state.devices.filter((d) => d.type === 'pc');
-              setSelected([hosts[hosts.length > 1 ? 1 : 0]?.id ?? '']);
+              inspect(hosts[hosts.length > 1 ? 1 : 0]?.id ?? '');
             }
             if (panel === 'timeline')
               document.querySelector('.timeline')?.scrollIntoView({ block: 'nearest' });
@@ -1072,63 +1084,96 @@ export function Workspace({
         <LabPanel project={project} lab={lab} onClose={() => setShowTasks(false)} />
       )}
       {showNetwork && (
-        <NetworkInspector
-          lab={lab}
-          onClose={() => setShowNetwork(false)}
-          onInspect={(id) => setSelected([id])}
-        />
+        <NetworkInspector lab={lab} onClose={() => setShowNetwork(false)} onInspect={inspect} />
+      )}
+      {renaming && (
+        <Modal title="Renomear equipamento" onClose={() => setRenaming(null)}>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = String(new FormData(event.currentTarget).get('hostname')).trim();
+              const saved = lab.change((simulation) => {
+                simulation.device(renaming.id).hostname = value;
+                return true;
+              });
+              if (saved) setRenaming(null);
+            }}
+          >
+            <label>
+              Nome do equipamento
+              <input
+                name="hostname"
+                autoFocus
+                required
+                defaultValue={renaming.hostname}
+                minLength={1}
+                maxLength={32}
+                pattern="[a-zA-Z0-9](?:[a-zA-Z0-9_]|-){0,31}"
+                aria-describedby="hostname-help"
+              />
+            </label>
+            <p className="muted" id="hostname-help">
+              Use até 32 caracteres: letras sem acento, números, hífen ou underscore. Comece com uma letra ou
+              número.
+            </p>
+            {lab.error && (
+              <p className="alert error" role="alert">
+                {lab.error}
+              </p>
+            )}
+            <div className="modal-actions">
+              <button className="button primary">Salvar nome</button>
+            </div>
+          </form>
+        </Modal>
       )}
       {help && (
-        <Modal title="Seu primeiro pacote, passo a passo" onClose={() => setHelp(false)} wide>
+        <Modal title="Dicas do laboratório" onClose={() => setHelp(false)} wide>
           <div className="help-intro">
             <BookOpen size={26} />
             <p>
-              O shLab simula a rede a partir das configurações dos equipamentos. Você pode montar, quebrar e
-              investigar cada conexão.
+              {project.mode === 'free'
+                ? 'Consulte os conceitos e observe seu funcionamento na topologia. No modo livre, todos os assuntos ficam disponíveis.'
+                : labs.find((entry) => entry.id === project.lab_id)?.objective}
             </p>
           </div>
-          <ol className="help-steps">
-            <li>
-              <strong>Monte uma LAN.</strong> Adicione dois computadores e um switch. Conecte Eth0 dos hosts
-              em portas distintas do switch.
-            </li>
-            <li>
-              <strong>Configure os IPs.</strong> Em Portas, use 192.168.10.10/24 e 192.168.10.20/24. Na mesma
-              sub-rede, o gateway é opcional.
-            </li>
-            <li>
-              <strong>Envie um ping.</strong> Escolha a origem e o destino; clique em Executar ou avance um
-              evento de cada vez.
-            </li>
-            <li>
-              <strong>Observe as decisões.</strong> Clique nos eventos ARP, consulte a tabela MAC e abra o
-              inspetor de frames.
-            </li>
-            <li>
-              <strong>Provoque uma falha.</strong> Desligue uma interface e envie outro ping. Corrija a
-              configuração e teste novamente.
-            </li>
-          </ol>
-          <div className="help-code">
-            <TerminalExample />
-          </div>
+          <NetworkConceptGuide mode={project.mode} labId={project.lab_id} />
+          {project.mode === 'free' && (
+            <>
+              <ol className="help-steps">
+                <li>
+                  <strong>Monte uma LAN.</strong> Adicione dois computadores e um switch. Conecte Eth0 dos
+                  hosts em portas distintas do switch.
+                </li>
+                <li>
+                  <strong>Configure os IPs.</strong> Em Portas, use 192.168.10.10/24 e 192.168.10.20/24. Na
+                  mesma sub-rede, o gateway é opcional.
+                </li>
+                <li>
+                  <strong>Envie um ping.</strong> Escolha a origem e o destino; clique em Executar ou avance
+                  um evento de cada vez.
+                </li>
+                <li>
+                  <strong>Observe as decisões.</strong> Clique nos eventos ARP, consulte a tabela MAC e abra o
+                  inspetor de frames.
+                </li>
+                <li>
+                  <strong>Provoque uma falha.</strong> Desligue uma interface e envie outro ping. Corrija a
+                  configuração e teste novamente.
+                </li>
+              </ol>
+              <div className="help-code">
+                <TerminalExample />
+              </div>
+            </>
+          )}
           <p className="muted">
             Atalhos: Ctrl+S salvar · Ctrl+Z desfazer · Ctrl+Shift+Z refazer · Ctrl+C/V copiar/colar · Ctrl+D
             duplicar · Delete excluir. Ao duplicar, IPs são removidos para evitar conflitos.
           </p>
-          <NetworkConceptGuide />
-          <div className="learning-card">
-            <p>
-              Ethernet, ARP, IPv4, ICMP, VLAN access/trunk, rotas estáticas, DHCPv4 com relay e reservas, DNS,
-              STP/RSTP, OSPF, RIPv2, BGP e gateway VRRP IPv4. ACL/NAT e firewall com zonas abrangem TCP, UDP,
-              ping e erros ICMP relacionados. Serviços echo/HTTP, SNMP de leitura e syslog UDP usam a rede
-              simulada. BGP, Wi-Fi, VPN/SD-WAN, IPv6, LACP, VRF, QoS, MPLS, VXLAN/EVPN, AAA e automação
-              possuem templates e labs. Internet real não é acessada.
-            </p>
-          </div>
         </Modal>
       )}
-    </div>
+    </main>
   );
 }
 function TerminalExample() {

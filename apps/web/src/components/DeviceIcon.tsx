@@ -1,4 +1,70 @@
 import type { Device } from '@shlab/engine';
+import {
+  Laptop,
+  Smartphone,
+  Phone,
+  Printer,
+  Cpu,
+  Wifi,
+  Radio,
+  RadioTower,
+  ScanEye,
+  ShieldAlert,
+  ShieldCheck,
+  LockKeyhole,
+  Waypoints,
+  Route,
+  Globe,
+  ListTree,
+  ListPlus,
+  Clock,
+  Fingerprint,
+  BadgeCheck,
+  KeyRound,
+  ScrollText,
+  Activity,
+  TerminalSquare,
+  ArrowLeftRight,
+  Split,
+  Antenna,
+  Cloud,
+  Shuffle,
+  type LucideIcon,
+} from 'lucide-react';
+
+const profileIcons: Record<string, LucideIcon> = {
+  laptop: Laptop,
+  smartphone: Smartphone,
+  phone: Phone,
+  printer: Printer,
+  iot: Cpu,
+  ap: Wifi,
+  mesh: Radio,
+  wlc: RadioTower,
+  ids: ScanEye,
+  ips: ShieldAlert,
+  firewall: ShieldCheck,
+  ngfw: ShieldCheck,
+  'vpn-gateway': LockKeyhole,
+  'sdwan-edge': Waypoints,
+  'sdwan-controller': Waypoints,
+  'sdwan-gateway': Route,
+  web: Globe,
+  dns: ListTree,
+  dhcp: ListPlus,
+  ntp: Clock,
+  aaa: Fingerprint,
+  radius: BadgeCheck,
+  tacacs: KeyRound,
+  syslog: ScrollText,
+  snmp: Activity,
+  remote: TerminalSquare,
+  proxy: ArrowLeftRight,
+  'load-balancer': Split,
+  mqtt: Antenna,
+  isp: Cloud,
+  'nat-gateway': Shuffle,
+};
 export function DeviceIcon({
   type,
   profile,
@@ -8,6 +74,9 @@ export function DeviceIcon({
   profile?: string;
   size?: number;
 }) {
+  const Icon = profile ? profileIcons[profile] : undefined;
+  if (Icon)
+    return <Icon size={size} strokeWidth={1.7} aria-hidden="true" className={'device-icon ' + type} />;
   return (
     <svg
       width={size}
