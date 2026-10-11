@@ -1,0 +1,336 @@
+.dashboard .page-heading h1 {
+  margin: 0 0 8px;
+}
+
+.dashboard .page-heading > .button {
+  margin: 0;
+  font-size: 13px;
+  padding: 10px 15px;
+}
+
+.dashboard .dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  gap: 12px;
+  padding: 0;
+  margin-bottom: 24px;
+  border: 0;
+}
+
+.dashboard .dashboard-stats > span {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 4px 8px;
+  border: 1px solid var(--control-border);
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 82px;
+  font-size: 12px;
+}
+
+.dashboard .stat-label {
+  grid-column: 1 / -1;
+}
+
+.dashboard .filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: #edf4f6;
+}
+
+.dashboard .filter-bar > label {
+  flex: 1 1 145px;
+  min-width: 0;
+  margin: 0;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.dashboard .filter-bar > .search {
+  flex: 2 1 250px;
+  gap: 8px;
+}
+
+.dashboard .filter-bar select {
+  width: 100%;
+  font-size: 12px;
+}
+
+.dashboard .filter-toggle {
+  flex-shrink: 0;
+}
+
+.dashboard .filter-toggle.is-active {
+  border-color: var(--control-focus);
+  background: #dff3f0;
+  color: #076467;
+}
+
+.dashboard .clear-filters {
+  min-height: var(--control-height);
+}
+
+.dashboard .filter-results {
+  margin: 14px 0 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dashboard .lab-grid,
+.dashboard .template-grid,
+.dashboard .lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  grid-auto-rows: 300px;
+  gap: 16px;
+}
+
+.dashboard .lab-card,
+.dashboard .new-lab-card,
+.dashboard .catalog-card {
+  height: 100%;
+  min-width: 0;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: #fff;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.dashboard .lab-card:hover,
+.dashboard .new-lab-card:hover,
+.dashboard .catalog-card:hover {
+  border-color: var(--control-focus);
+  box-shadow: 0 4px 16px #102b4010;
+}
+
+.dashboard .lab-open {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dashboard .lab-open:focus-visible {
+  outline-offset: -3px;
+}
+
+.dashboard .lab-preview {
+  height: 88px;
+  flex-shrink: 0;
+}
+
+.dashboard .lab-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  padding: 18px;
+}
+
+.dashboard .lab-card-content .eyebrow {
+  color: #37657e;
+  font-size: 10px;
+}
+
+.dashboard .lab-card h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.dashboard .lab-card p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.dashboard .lab-footer {
+  margin-top: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.dashboard .lab-card .favorite {
+  background: #fff;
+  color: #536777;
+}
+
+.dashboard .lab-card .starred {
+  color: #8b6812;
+  background: #fff7df;
+}
+
+.dashboard .delete-lab {
+  opacity: 1;
+  color: var(--muted);
+  right: 12px;
+  bottom: 51px;
+}
+
+.dashboard .new-lab-card {
+  border-style: dashed;
+  background: #f7fafc;
+}
+
+.dashboard .new-lab-card > strong {
+  font-size: 15px;
+  color: var(--navy);
+}
+
+.dashboard .new-lab-card > small {
+  font-size: 12px;
+}
+
+.dashboard .catalog-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  gap: 8px;
+  text-align: left;
+}
+
+.dashboard .catalog-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  color: #076b68;
+  background: #e0f5ef;
+}
+
+.dashboard .catalog-meta {
+  min-height: 32px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.dashboard .catalog-card h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-height: 44px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.dashboard .catalog-card p {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.dashboard .catalog-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  color: var(--link);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard .empty-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 20px;
+  border: 1px dashed var(--control-border);
+  border-radius: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.dashboard .empty-results p {
+  margin: 0;
+}
+
+.dashboard .activity-history {
+  margin-top: 32px;
+}
+
+.dashboard .activity-history ol {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0 16px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.dashboard .activity-history li {
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.dashboard .activity-history li:last-child {
+  border-bottom: 0;
+}
+
+.dashboard .activity-history li div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dashboard .dashboard-footer > span:last-child {
+  margin-left: auto;
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+  .dashboard .filter-bar > label {
+    flex-basis: 100%;
+  }
+
+  .dashboard .filter-bar > .search {
+    flex-basis: 100%;
+  }
+
+  .dashboard .filter-toggle {
+    flex: 1;
+  }
+
+  .dashboard .sidebar-bottom > button {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    font-size: 0;
+  }
+
+  .dashboard .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dashboard .dashboard-footer > span:last-child {
+    display: block;
+  }
+}

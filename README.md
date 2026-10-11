@@ -42,8 +42,9 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 
 - Cadastro, verificação de e-mail, login, logout, reenvio de verificação, recuperação e alteração de senha, revogação de sessões.
 - Nome de perfil, sessões individuais revogáveis e exclusão da própria conta com senha. Identidade visual azul/ciano com acentos neon e tipografia local.
-- Laboratórios privados, favoritos, templates, autosave com revisão otimista, snapshots e import/export JSON.
-- Canvas com zoom/pan, seleção múltipla, arrastar/adicionar dispositivos, grade/snap, minimapa, temas, busca, notas, desenhos, comentários ancorados, duplicação e undo/redo. Histórico privado de atividades no dashboard.
+- Meus laboratórios com busca, filtros por modo/progresso/favoritos e ordenação. Templates e trilhas em um catálogo separado, com filtros por tema, conteúdo e nível.
+- Laboratórios privados, autosave com revisão otimista, snapshots e import/export JSON. Histórico de atividades na página Meus laboratórios.
+- Canvas com zoom/pan, seleção múltipla, arrastar/adicionar dispositivos, grade/snap, minimapa, temas, busca, notas, desenhos, comentários ancorados, duplicação e undo/redo.
 - Catálogo extensível com 47 perfis, incluindo rack, patch panel, UPS, banco de dados, WLC, mesh e IDS/IPS. RJ45/SFP/QSFP, cobre/fibra/DAC, módulos configuráveis, validação de alcance/velocidade, power e shutdown. CPU, memória e temperatura derivam do trabalho e da configuração do motor.
 - Ethernet, flooding por VLAN, aprendizado/aging MAC, ARP request/reply/cache e retransmissão limitada, IPv4/CIDR, ICMP echo/time-exceeded, gateway e rotas estáticas por longest prefix match.
 - VLAN access/trunk/native/allowed. Latência, jitter, perda com seed, MTU e TTL.

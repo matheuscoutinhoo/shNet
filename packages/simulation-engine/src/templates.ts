@@ -198,7 +198,7 @@ export const templates = [
   {
     id: 'empty',
     name: 'Laboratório em branco',
-    description: 'Comece do zero. Cada porta e cada pacote, sob seu controle.',
+    description: 'Topologia sem equipamentos. Adicione dispositivos e configure as conexões.',
     level: 'Livre',
     devices: 0,
   },
@@ -212,7 +212,7 @@ export const templates = [
   {
     id: 'routed',
     name: 'Entre duas redes',
-    description: 'Duas sub-redes conectadas por um roteador. Explore o caminho completo.',
+    description: 'Duas sub-redes conectadas por um roteador, com tráfego entre os hosts.',
     level: 'Roteamento',
     devices: 5,
   },

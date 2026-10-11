@@ -202,8 +202,8 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
               <div className="timeline-empty">
                 <Send size={21} />
                 <div>
-                  <strong>O próximo pacote conta uma história.</strong>
-                  <span>Envie um ping para acompanhar as decisões da sua rede.</span>
+                  <strong>Nenhum evento registrado.</strong>
+                  <span>Envie um ping para visualizar o tráfego e os eventos da simulação.</span>
                 </div>
               </div>
             )}

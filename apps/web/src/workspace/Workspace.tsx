@@ -846,8 +846,8 @@ export function Workspace({
             </button>
             <div className="catalog-lesson">
               <BookOpen size={19} />
-              <h4>Um laboratório de verdade.</h4>
-              <p>Cada comando altera a rede. Cada evento explica uma decisão.</p>
+              <h4>Configuração e tráfego</h4>
+              <p>Use o terminal para configurar os equipamentos e consulte os eventos da simulação.</p>
               <button onClick={() => setHelp(true)}>
                 Guia rápido <ChevronRight size={14} />
               </button>

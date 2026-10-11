@@ -16,7 +16,7 @@ async function verificationLink(address = email) {
   throw new Error('E-mail de teste não encontrado');
 }
 async function registerAndLogin(page: Page, address: string) {
-  await page.getByRole('button', { name: 'Comece aqui' }).click();
+  await page.getByRole('button', { name: 'Criar conta' }).click();
   await page.getByLabel('Seu nome').fill('Network Explorer');
   await page.getByLabel('E-mail', { exact: true }).fill(address);
   await page.getByLabel('Senha', { exact: true }).fill(password);
@@ -35,14 +35,143 @@ async function registerAndLogin(page: Page, address: string) {
   await page.getByLabel('E-mail', { exact: true }).fill(address);
   await page.getByLabel('Senha', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Entrar no shLab' }).click();
-  await expect(page.getByRole('heading', { name: 'Sua próxima conexão.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
+test('Dashboard: navegação, filtros, favoritos, histórico e controles em desktop e mobile', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'dashboard-' + Date.now() + '@example.test');
+  const navigation = page.getByRole('navigation', { name: 'Navegação principal' });
+  await expect(navigation.getByRole('button')).toHaveCount(2);
+  await expect(navigation.getByRole('button', { name: 'Favoritos', exact: true })).toHaveCount(0);
+  await expect(navigation.getByRole('button', { name: 'Histórico', exact: true })).toHaveCount(0);
+  await navigation.getByRole('button', { name: 'Templates', exact: true }).click();
+  const search = page.getByRole('searchbox', { name: 'Buscar templates e trilhas' });
+  await search.focus();
+  expect(
+    await search.evaluate((input) => ({
+      border: getComputedStyle(input).borderWidth,
+      outline: getComputedStyle(input).outlineStyle,
+      shadow: getComputedStyle(input).boxShadow,
+    }))
+  ).toEqual({ border: '0px', outline: 'none', shadow: 'none' });
+  const heights = await page
+    .locator('.catalog-card')
+    .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
+  expect(heights.length).toBeGreaterThan(10);
+  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(1);
+  await page.getByRole('combobox', { name: 'Conteúdo', exact: true }).selectOption('lessons');
+  await page.getByRole('combobox', { name: 'Tema', exact: true }).selectOption('Roteamento');
+  await page.getByRole('combobox', { name: 'Nível da trilha', exact: true }).selectOption('Avançado');
+  await expect(page.locator('.template-card')).toHaveCount(0);
+  await expect(page.locator('.lesson-card')).toHaveCount(3);
+  await page.screenshot({ path: 'test-results/catalog-desktop.png', fullPage: true });
+  await page.locator('.lesson-card').filter({ hasText: 'Adjacência e caminho OSPF' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Modo do laboratório')).toHaveValue('guided');
+  const action = await dialog.getByRole('button', { name: 'Criar e abrir laboratório' }).boundingBox();
+  const bounds = await dialog.boundingBox();
+  expect(action).not.toBeNull();
+  expect(bounds).not.toBeNull();
+  expect(Math.abs(action!.x + action!.width / 2 - bounds!.x - bounds!.width / 2)).toBeLessThan(1);
+  await page.screenshot({ path: 'test-results/create-lab-centered.png', fullPage: true });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.lesson-card').filter({ hasText: 'Adjacência e caminho OSPF' })).toBeFocused();
+  await search.fill('nenhum-item-com-este-nome');
+  await expect(page.getByText('Nenhum template ou trilha corresponde aos filtros.')).toBeVisible();
+  await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Conteúdo', exact: true }).selectOption('templates');
+  await expect(page.getByLabel('Nível da trilha')).toBeDisabled();
+  await page.getByRole('combobox', { name: 'Tema', exact: true }).selectOption('Segurança');
+  await search.fill('802.1x');
+  await expect(page.locator('.template-card')).toHaveCount(1);
+  await expect(page.locator('.template-card')).toContainText('A porta espera autorização');
+  await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click();
+
+  const me = await (await page.request.get('/api/auth/me')).json();
+  for (const body of [
+    { name: 'Árvore LAN', template: 'lan', mode: 'free' },
+    { name: 'DNS salvo', template: 'dns', mode: 'free' },
+    { name: 'Laboratório guiado', template: 'broken', mode: 'guided', labId: 'routing-repair' },
+  ]) {
+    const response = await page.request.post('/api/projects', {
+      headers: { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken },
+      data: body,
+    });
+    expect(response.status()).toBe(201);
+  }
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
+  await expect(page.locator('.lab-card')).toHaveCount(3);
+  await expect(page.locator('.template-card, .lesson-card')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Histórico de atividades' })).toContainText(
+    'Criado · Árvore LAN'
+  );
+  await page.getByRole('button', { name: 'Favoritar Árvore LAN', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Remover dos favoritos Árvore LAN', exact: true })
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('region', { name: 'Histórico de atividades' })).toContainText(
+    'Favoritado · Árvore LAN'
+  );
+  await page.getByRole('button', { name: 'Favoritos', exact: true }).click();
+  await expect(page.locator('.lab-card')).toHaveCount(1);
+  const labSearch = page.getByRole('searchbox', { name: 'Buscar laboratórios' });
+  await labSearch.fill('arvore');
+  await expect(page.locator('.lab-card')).toHaveCount(1);
+  await labSearch.focus();
+  await page.screenshot({ path: 'test-results/labs-search-focus.png', fullPage: true });
+  await page.getByRole('combobox', { name: 'Modo', exact: true }).selectOption('guided');
+  await expect(page.getByText('Nenhum laboratório corresponde aos filtros.')).toBeVisible();
+  await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Modo', exact: true }).selectOption('guided');
+  await expect(page.locator('.lab-card')).toHaveCount(1);
+  await expect(page.locator('.lab-card')).toContainText('Laboratório guiado');
+  await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Progresso', exact: true }).selectOption('in-progress');
+  await expect(page.locator('.lab-card')).toHaveCount(1);
+  await page.getByRole('combobox', { name: 'Progresso', exact: true }).selectOption('completed');
+  await expect(page.locator('.lab-card')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Ordenar por', exact: true }).selectOption('name');
+  expect(await page.locator('.lab-card h3').allTextContents()).toEqual([
+    'Árvore LAN',
+    'DNS salvo',
+    'Laboratório guiado',
+  ]);
+  const labHeights = await page
+    .locator('.lab-card, .new-lab-card')
+    .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
+  expect(Math.max(...labHeights) - Math.min(...labHeights)).toBeLessThan(1);
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: 'Remover dos favoritos Árvore LAN', exact: true })
+  ).toHaveAttribute('aria-pressed', 'true');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: 'test-results/labs-dashboard-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/labs-dashboard-mobile.png', fullPage: true });
+  await navigation.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Conteúdo', exact: true }).selectOption('lessons');
+  await page.getByRole('combobox', { name: 'Tema', exact: true }).selectOption('Roteamento');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/catalog-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
+
 test('VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistência mobile', async ({ page }) => {
   test.setTimeout(150000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'sdwan-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /A aplicação escolhe o caminho/ }).click();
   await page.getByLabel('Nome do laboratório').fill('SD-WAN E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -142,6 +271,7 @@ for (const scenario of [
       page.on('pageerror', (e) => errors.push(e.message));
       await page.goto('/');
       await registerAndLogin(page, scenario.name.toLowerCase() + '-' + Date.now() + '@example.test');
+      await page.getByRole('button', { name: 'Templates', exact: true }).click();
       await page.getByRole('button', { name: new RegExp(scenario.template) }).click();
       await page.getByLabel('Nome do laboratório').fill(scenario.name + ' E2E');
       await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -229,6 +359,7 @@ test('AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile', async ({
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'aaa-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /A porta espera autorização/ }).click();
   await page.getByLabel('Nome do laboratório').fill('AAA E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -296,6 +427,7 @@ test('Inspeção de aplicação: Host HTTP bloqueado e permitido, regras e persi
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'inspection-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /O firewall lê a aplicação/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Inspection E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -351,6 +483,7 @@ test('VXLAN/EVPN: VNI, BGP MAC/IP, HTTP, encapsulamento e persistência mobile',
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'evpn-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /O BGP anuncia onde está o MAC/ }).click();
   await page.getByLabel('Nome do laboratório').fill('EVPN E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -412,6 +545,7 @@ test('DHCP relay: pool remoto, reserva, pacotes, ping, release e persistência m
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'relay-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Um servidor, duas redes/ }).click();
   await page.getByLabel('Nome do laboratório').fill('DHCP relay E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -507,6 +641,7 @@ test('RIP: configuração, vetores, expiração exibida e persistência mobile',
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'rip-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Rotas por distância/ }).click();
   await page.getByLabel('Nome do laboratório').fill('RIP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -565,6 +700,7 @@ test('OSPF: convergência, falha, inspector e persistência', async ({ page }) =
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'ospf-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Rotas que se adaptam/ }).click();
   await page.getByLabel('Nome do laboratório').fill('OSPF E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -621,6 +757,7 @@ test('gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobil
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'management-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Rede sob observação/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Gerenciamento E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -697,6 +834,7 @@ test('zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistênci
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'zones-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Três zonas, caminhos controlados/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Zonas E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -784,6 +922,7 @@ test('firewall: UDP, ICMP, bloqueio de entrada e sessões persistidas desktop/mo
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'firewall-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Entre duas redes/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Firewall E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -859,6 +998,7 @@ test('TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile',
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'tcp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Da conexão à resposta/ }).click();
   await page.getByLabel('Nome do laboratório').fill('TCP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1006,6 +1146,7 @@ async function connect(page: Page, a: string, portA: string, b: string, portB: s
 test('canvas: grupos, notas, grade e reabertura', async ({ page }) => {
   await page.goto('/');
   await registerAndLogin(page, 'canvas-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Canvas E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1048,11 +1189,12 @@ test('canvas: grupos, notas, grade e reabertura', async ({ page }) => {
 test('labs: tarefas, correção, avaliação e progresso persistido', async ({ page }) => {
   await page.goto('/');
   await registerAndLogin(page, 'guided-' + Date.now() + '@example.test');
-  await page.getByRole('button', { name: 'Abrir laboratório guiado', exact: true }).click();
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.locator('.lesson-card').filter({ hasText: 'Primeira LAN' }).click();
   await expect(page.getByRole('combobox', { name: 'Modo do laboratório', exact: true })).toHaveValue(
     'guided'
   );
-  await expect(page.getByRole('combobox', { name: 'Lab', exact: true })).toHaveValue('lan-foundations');
+  await expect(page.getByRole('combobox', { name: 'Trilha', exact: true })).toHaveValue('lan-foundations');
   await page
     .getByRole('dialog')
     .locator('.modal-head')
@@ -1102,6 +1244,7 @@ test('políticas: PAT, ACL, bloqueio, recuperação e persistência', async ({ p
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'policy-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Além da rede privada/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Políticas E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1176,18 +1319,18 @@ test('conta: perfil, sessões independentes, revogação e exclusão', async ({ 
     await other.getByLabel('E-mail', { exact: true }).fill(address);
     await other.getByLabel('Senha', { exact: true }).fill(password);
     await other.getByRole('button', { name: 'Entrar no shLab' }).click();
-    await expect(other.getByRole('heading', { name: 'Sua próxima conexão.' })).toBeVisible();
+    await expect(other.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Conta e segurança', exact: true }).click();
     await page.getByLabel('Nome de exibição').fill('Network Builder');
     await page.getByRole('button', { name: 'Salvar perfil', exact: true }).click();
-    await expect(page.getByRole('status')).toContainText('Perfil atualizado');
+    await expect(page.getByRole('dialog').getByRole('status')).toContainText('Perfil atualizado');
     await page.getByRole('tab', { name: 'Sessões', exact: true }).click();
     await expect(page.locator('.account-session')).toHaveCount(2);
     await page.screenshot({ path: 'test-results/account-desktop.png', fullPage: true });
     await page.getByRole('button', { name: 'Encerrar outra sessão', exact: true }).click();
     await expect(page.locator('.account-session')).toHaveCount(1);
     await other.reload();
-    await expect(other.getByRole('heading', { name: 'Bem-vindo de volta.' })).toBeVisible();
+    await expect(other.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('tab', { name: 'Perfil', exact: true }).click();
     await expect(page.getByLabel('Nome de exibição')).toHaveValue('Network Builder');
@@ -1197,7 +1340,7 @@ test('conta: perfil, sessões independentes, revogação e exclusão', async ({ 
     await page.getByLabel('Confirme sua senha').fill(password);
     await page.getByLabel('Entendo que esta ação é irreversível').check();
     await page.getByRole('button', { name: 'Excluir minha conta', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
   } finally {
     await otherContext.close();
   }
@@ -1209,6 +1352,7 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'shlab-rstp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Redundância sem loops/ }).click();
   await page.getByLabel('Nome do laboratório').fill('RSTP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1281,6 +1425,7 @@ test('DNS: registros, nslookup, cache, ping por nome, falha e persistência mobi
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'shlab-dns-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Nomes na rede/ }).click();
   await page.getByLabel('Nome do laboratório').fill('DNS E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1395,7 +1540,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   });
   await mkdir(resolve('test-results'), { recursive: true });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Bem-vindo de volta.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entrar no shLab', exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/auth-desktop.png', fullPage: true });
   await registerAndLogin(page, email);
   await page.screenshot({ path: 'test-results/dashboard-desktop.png', fullPage: true });
@@ -1439,6 +1584,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await expect(page.locator('.network-device')).toHaveCount(3);
   await expect(page.locator('.probe-toast')).toContainText('Resposta em');
   await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Entre duas redes/ }).click();
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
@@ -1479,7 +1625,7 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await page.getByRole('button', { name: 'Pausar simulação' }).click();
   await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole('heading', { name: 'Sua próxima conexão.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/dashboard-mobile.png', fullPage: true });
   await page.getByRole('button', { name: /^LABORATÓRIO LIVRE Entre duas redes/ }).click();
@@ -1505,6 +1651,7 @@ test('DHCP: pool, dois clientes, pacotes, ping, lease e persistência mobile', a
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'shlab-dhcp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Endereços automáticos/ }).click();
   await page.getByLabel('Nome do laboratório').fill('DHCP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1601,6 +1748,7 @@ test('VRRP: edição, eleição, failover, HTTP, anúncios e persistência deskt
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'vrrp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Um gateway, dois roteadores/ }).click();
   await page.getByLabel('Nome do laboratório').fill('VRRP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1682,6 +1830,7 @@ test('BGP: sessões TCP, AS_PATH, política, falha, inspector e persistência mo
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'bgp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Três sistemas autônomos/ }).click();
   await page.getByLabel('Nome do laboratório').fill('BGP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1779,6 +1928,7 @@ for (const [template, hostname] of [
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/');
     await registerAndLogin(page, 'l3-' + Date.now() + '@example.test');
+    await page.getByRole('button', { name: 'Templates', exact: true }).click();
     await page.getByRole('button', { name: new RegExp(template) }).click();
     await page.getByLabel('Nome do laboratório').fill('L3 E2E');
     await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1830,6 +1980,7 @@ test('L3: VRF mantém HTTP e IPs sobrepostos isolados no painel e no save/reload
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'vrf-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Mesmo endereço, redes separadas/ }).click();
   await page.getByLabel('Nome do laboratório').fill('VRF E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1874,6 +2025,7 @@ test('Tracking: uplink reduz prioridade VRRP no painel e mantém HTTP', async ({
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'track-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Gateway atento ao uplink/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Tracking E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1926,6 +2078,7 @@ test('LACP: negocia, conserva HTTP com membro restante e persiste no mobile', as
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'lacp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Dois cabos, um enlace/ }).click();
   await page.getByLabel('Nome do laboratório').fill('LACP E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -1999,6 +2152,7 @@ test('IPv6 serviços: DHCPv6, UDP, TCP com janela e persistência mobile', async
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'ipv6-services-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Serviços em uma rede IPv6/ }).click();
   await page.getByLabel('Nome do laboratório').fill('IPv6 Services E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2064,6 +2218,7 @@ test('IPv6: SLAAC, ping roteado, Hop Limit, pacote e persistência mobile', asyn
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'ipv6-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Endereços que chegam pela rede/ }).click();
   await page.getByLabel('Nome do laboratório').fill('IPv6 E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2136,6 +2291,7 @@ test('Wireless: autenticação, HTTP pelo rádio, pacotes e persistência mobile
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'wifi-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Do rádio à resposta HTTP/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Wireless E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2202,6 +2358,7 @@ test('Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile', a
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'automation-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /A configuração chega pela rede/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Automation E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2329,8 +2486,9 @@ test('Lab avançado: reparar roteamento SVI, validar HTTP e persistir tarefas mo
   test.setTimeout(120000);
   await page.goto('/');
   await registerAndLogin(page, 'advanced-' + Date.now() + '@example.test');
-  await page.getByRole('button', { name: 'Abrir laboratório guiado', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Lab', exact: true }).selectOption('svi-repair');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.locator('.lesson-card').filter({ hasText: 'Primeira LAN' }).click();
+  await page.getByRole('combobox', { name: 'Trilha', exact: true }).selectOption('svi-repair');
   await page.getByLabel('Nome do laboratório').fill('Advanced E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   const close = async () =>
@@ -2372,6 +2530,7 @@ test('Aprendizagem: editor de desafios, tutorial completo, pontuação e mobile'
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await registerAndLogin(page, 'learning-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Learning E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2411,7 +2570,7 @@ test('Aprendizagem: editor de desafios, tutorial completo, pontuação e mobile'
   await page.getByRole('dialog').getByRole('button', { name: 'Fechar', exact: true }).click();
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await page.reload();
-  await expect(page.getByText('Pontos de aprendizagem')).toBeVisible();
+  await expect(page.getByText('Pontos', { exact: false })).toBeVisible();
   await expect(page.locator('.dashboard-stats')).toContainText('200');
   await page.getByRole('button', { name: /^LABORATÓRIO LIVRE Learning E2E/ }).click();
   await page.getByRole('button', { name: 'Tutorial', exact: true }).click();
@@ -2426,6 +2585,7 @@ for (const method of ['tls', 'peap'] as const) {
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto('/');
     await registerAndLogin(page, 'enterprise-' + method + '-' + Date.now() + '@example.test');
+    await page.getByRole('button', { name: 'Templates', exact: true }).click();
     await page.getByRole('button', { name: /Campus com autenticação empresarial/ }).click();
     await page.getByLabel('Nome do laboratório').fill('Enterprise E2E');
     await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2512,6 +2672,7 @@ test('Workspace: desenho livre, comentário ancorado, histórico e telas ampliad
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await registerAndLogin(page, 'canvas-tools-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Workspace Extras E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
@@ -2534,7 +2695,7 @@ test('Workspace: desenho livre, comentário ancorado, histórico e telas ampliad
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.getByRole('button', { name: 'Voltar aos laboratórios', exact: true }).click();
-  await page.getByRole('button', { name: 'Histórico', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Histórico de atividades' })).toContainText(
     'Criado · Workspace Extras E2E'
   );
@@ -2577,6 +2738,7 @@ test('Produto: infraestrutura, formulários guiados, acessibilidade e teclado', 
   await audit('landing');
   await registerAndLogin(page, 'product-' + Date.now() + '@example.test');
   await audit('dashboard');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Produto E2E');
   await audit('modal');
@@ -2661,6 +2823,7 @@ test('Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alteraçõe
   });
   await page.goto('/');
   await registerAndLogin(page, 'scale-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
   await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
   await page.getByLabel('Nome do laboratório').fill('Escala E2E');
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();

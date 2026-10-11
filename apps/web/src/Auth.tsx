@@ -86,16 +86,16 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
       <section className="auth-story">
         <Brand />
         <div className="story-body">
-          <span className="eyebrow">SEU PRÓXIMO LABORATÓRIO COMEÇA AQUI</span>
+          <span className="eyebrow">SIMULADOR DE REDES</span>
           <h1>
-            A rede invisível.
+            Topologias de rede.
             <br />
-            <span>Agora, ao seu alcance.</span>
+            <span>Equipamentos e protocolos.</span>
           </h1>
           <p>
-            Monte, configure e explore redes de verdade.
+            Configure equipamentos e observe o tráfego
             <br />
-            Um pacote de cada vez.
+            entre os dispositivos do laboratório.
           </p>
           <div className="network-illustration">
             <div className="network-line line-a" />
@@ -118,10 +118,10 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
             </span>
           </div>
           <div className="story-caption">
-            <span className="live-dot" /> Aprenda o que acontece entre origem e destino.
+            <span className="live-dot" /> Simulação de tráfego entre equipamentos.
           </div>
         </div>
-        <footer>PROJETADO PARA QUEM QUER ENTENDER A REDE.</footer>
+        <footer>shLab · Simulação de redes</footer>
       </section>
       <section className="auth-form-side">
         <div className="auth-mobile-brand">
@@ -129,14 +129,14 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
         </div>
         <div className="auth-form-wrap">
           <div className="badge">
-            <ShieldCheck size={14} /> Seu laboratório, seu espaço
+            <ShieldCheck size={14} /> Acesso aos laboratórios
           </div>
           <h2>
             {
               {
-                login: 'Bem-vindo de volta.',
-                register: 'Crie seu espaço.',
-                forgot: 'Vamos recuperar seu acesso.',
+                login: 'Entrar no shLab',
+                register: 'Criar conta',
+                forgot: 'Recuperar acesso',
                 verify: 'Confirme seu e-mail.',
                 reset: 'Escolha uma nova senha.',
               }[mode]
@@ -145,8 +145,8 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
           <p className="muted">
             {
               {
-                login: 'Entre para continuar de onde seu último pacote parou.',
-                register: 'Construa sua primeira rede. Entenda cada conexão.',
+                login: 'Entre para acessar seus laboratórios.',
+                register: 'Informe seus dados para criar uma conta.',
                 forgot: 'Enviaremos um link seguro para redefinir sua senha.',
                 verify: 'Confirme abaixo para ativar sua conta no shLab.',
                 reset: 'Use pelo menos 12 caracteres para proteger sua conta.',
@@ -163,7 +163,7 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
                   minLength={2}
                   maxLength={80}
                   autoComplete="name"
-                  placeholder="Como podemos chamar você?"
+                  placeholder="Seu nome"
                 />
               </label>
             )}
@@ -227,7 +227,7 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
               <p className="auth-switch">
                 Ainda não tem uma conta?{' '}
                 <button className="text-button" onClick={() => change('register')}>
-                  Comece aqui
+                  Criar conta
                 </button>
               </p>
               {emailEnabled && (
@@ -259,7 +259,7 @@ export function Auth({ onLogin }: { onLogin: (user: User) => void }) {
             </button>
           )}
           <div className="auth-trust">
-            <ShieldCheck size={16} /> Sessões seguras. Laboratórios privados.
+            <ShieldCheck size={16} /> Seus laboratórios são privados.
           </div>
         </div>
       </section>

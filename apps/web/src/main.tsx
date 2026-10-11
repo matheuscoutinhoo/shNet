@@ -33,7 +33,7 @@ function App() {
   if (loading)
     return (
       <div className="loading-screen">
-        <span className="spinner" /> Preparando seu workspace…
+        <span className="spinner" /> Carregando laboratórios…
       </div>
     );
   if (!user)

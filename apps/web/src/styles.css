@@ -1,4 +1,5 @@
 @import './workspace.css';
+@import './dashboard.css';
 
 :root {
   font-family: 'Space Grotesk Variable', 'Segoe UI', sans-serif;
@@ -7,12 +8,19 @@
   font-synthesis: none;
   --navy: #102b40;
   --blue: #086de0;
+  --link: #075bbd;
   --teal: #078b91;
   --neon: #36f2de;
   --signal: #c1f56d;
   --focus-glow: 0 0 0 3px #08bda52b, 0 0 22px #11dccc20;
   --muted: #536777;
   --line: #e2e8ee;
+  --control-radius: 8px;
+  --control-height: 40px;
+  --control-border: #c7d8e2;
+  --control-focus: #087f85;
+  --surface: #fff;
+  --scroll-thumb: #a9bfcc;
 }
 
 * {
@@ -21,6 +29,18 @@
 
 body {
   margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 button,
@@ -45,8 +65,8 @@ button:disabled {
 input,
 select,
 textarea {
-  border: 1px solid #d6e0e7;
-  border-radius: 7px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
   padding: 11px 12px;
   background: #fff;
   color: #20354a;
@@ -57,14 +77,70 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #008b99;
-  box-shadow: var(--focus-glow);
+  border-color: var(--control-focus);
+  box-shadow: inset 0 0 0 1px var(--control-focus);
+  outline: none;
+}
+
+input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']),
+select {
+  min-height: var(--control-height);
+}
+
+select {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23536777' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+select option {
+  color: #20354a;
+  background: #fff;
+}
+
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'],
+progress {
+  accent-color: var(--teal);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--scroll-thumb);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--teal);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: #edf3f6;
+  color: var(--muted);
+  cursor: not-allowed;
 }
 
 button:focus-visible,
 a:focus-visible,
 tr:focus-visible {
-  outline: 2px solid #16a4b6;
+  outline: 2px solid var(--control-focus);
   outline-offset: 3px;
 }
 
@@ -145,9 +221,10 @@ form > .button {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  border: 1px solid #d9e3ea;
+  border: 1px solid var(--control-border);
   background: #fff;
-  border-radius: 7px;
+  border-radius: var(--control-radius);
+  min-height: var(--control-height);
   padding: 10px 15px;
   font-size: 13px;
   font-weight: 600;
@@ -159,22 +236,19 @@ form > .button {
 }
 
 .button.primary {
-  background: linear-gradient(115deg, #086de0, #087cc7);
+  background: var(--blue);
   border-color: var(--blue);
   color: #fff;
-  box-shadow:
-    0 3px 12px #086de024,
-    inset 0 1px 0 #ffffff30;
+  box-shadow: 0 3px 10px #086de018;
 }
 
 .button.primary:hover {
   background: #075bbd;
-  box-shadow:
-    0 0 0 2px #3de9d426,
-    0 5px 20px #086de030;
+  box-shadow: 0 3px 10px #086de024;
 }
 
 .button.small {
+  min-height: 32px;
   font-size: 12px;
   padding: 7px 11px;
 }
@@ -205,7 +279,7 @@ form > .button {
 }
 
 .text-button {
-  color: var(--blue);
+  color: var(--link);
   font-size: 13px;
   font-weight: 600;
   padding: 0;
@@ -681,8 +755,9 @@ body .workspace-header {
   flex-direction: row;
   align-items: center;
   gap: 8px;
-  border: 1px solid #dce5ec;
-  border-radius: 7px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  min-height: var(--control-height);
   background: #fff;
   padding: 0 11px;
   margin: 0;
@@ -690,6 +765,7 @@ body .workspace-header {
 }
 
 .search input {
+  min-height: calc(var(--control-height) - 2px);
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -699,8 +775,16 @@ body .workspace-header {
   font-weight: 400;
 }
 
+.search input:focus,
+.search input:focus-visible {
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+
 .search:focus-within {
-  border-color: #4391bf;
+  border-color: var(--control-focus);
+  box-shadow: inset 0 0 0 1px var(--control-focus);
 }
 
 .search svg {
@@ -1641,6 +1725,20 @@ body .workspace-header {
   margin: 0;
 }
 
+.modal-actions,
+.modal .button-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal form > .button {
+  display: flex;
+  margin: 24px auto 0;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1661,7 +1759,7 @@ body .workspace-header {
 .checkbox-label input {
   width: 15px;
   height: 15px;
-  accent-color: #137fb2;
+  accent-color: var(--teal);
 }
 
 .connection-symbol {

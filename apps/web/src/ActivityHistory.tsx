@@ -16,9 +16,15 @@ const actions: Record<string, string> = {
   favorited: 'Favoritado',
   unfavorited: 'Removido dos favoritos',
   deleted: 'Excluído',
-  snapshot: 'Snapshot criado',
+  snapshot: 'Versão salva',
 };
-export function ActivityHistory({ onOpen }: { onOpen: (id: string) => void }) {
+export function ActivityHistory({
+  onOpen,
+  refreshKey = 0,
+}: {
+  onOpen: (id: string) => void;
+  refreshKey?: number;
+}) {
   const [entries, setEntries] = useState<Entry[]>([]),
     [next, setNext] = useState<string | null>(null),
     [loading, setLoading] = useState(false),
@@ -27,7 +33,7 @@ export function ActivityHistory({ onOpen }: { onOpen: (id: string) => void }) {
     setLoading(true);
     setError('');
     try {
-      const page = await api<Page>('/activity' + (before ? '?before=' + before : ''));
+      const page = await api<Page>('/activity?limit=10' + (before ? '&before=' + before : ''));
       setEntries((current) => (before ? [...current, ...page.entries] : page.entries));
       setNext(page.next);
     } catch (cause) {
@@ -38,10 +44,15 @@ export function ActivityHistory({ onOpen }: { onOpen: (id: string) => void }) {
   }
   useEffect(() => {
     void load();
-  }, []);
+  }, [refreshKey]);
   return (
     <section className="activity-history" aria-label="Histórico de atividades">
-      <h2>Histórico de atividades</h2>
+      <div className="section-heading">
+        <div>
+          <h2>Histórico de atividades</h2>
+          <p className="muted">Criação, alterações e acessos aos seus laboratórios.</p>
+        </div>
+      </div>
       {error && <p role="alert">{error}</p>}
       <ol>
         {entries.map((entry) => (
