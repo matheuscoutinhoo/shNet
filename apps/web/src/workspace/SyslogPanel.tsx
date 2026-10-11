@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import type { Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 const severityNames = [
@@ -109,7 +110,7 @@ export function SyslogPanel({ lab, device }: { lab: LabController; device: Devic
           Enviar mensagem syslog
         </button>
       </form>
-      {(device.type === 'server' || device.type === 'router') && (
+      {deviceCapabilities(device).syslogServer && (
         <>
           <label className="checkbox-label">
             <input

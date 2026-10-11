@@ -1,10 +1,12 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { ConfigEditor, configChoices } from '../components/ConfigEditor';
 import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
 import { remoteConfig, telemetryConfig, ntpConfig, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function RemotePanel({ lab, device }: { lab: LabController; device: Device }) {
-  const [kind, setKind] = useState(device.type === 'pc' ? 'request' : 'server');
+  const kinds = deviceCapabilities(device).remoteKinds;
+  const [kind, setKind] = useState<string>(kinds[0]);
   const examples = {
     server: device.remoteManagement
       ? remoteConfig(device)
@@ -68,13 +70,21 @@ export function RemotePanel({ lab, device }: { lab: LabController; device: Devic
       <label>
         Operação de gerenciamento
         <select value={kind} onChange={(e) => setKind(e.target.value)}>
-          {device.type !== 'pc' && <option value="server">Servidor NETCONF / RESTCONF</option>}
-          <option value="request">Enviar RPC remoto</option>
-          <option value="automation">Executar sequência de automação</option>
-          <option value="telemetry">Publicador de telemetria</option>
-          {device.type !== 'pc' && <option value="collector">Coletor de telemetria</option>}
-          <option value="clock">Relógio / servidor NTP</option>
-          <option value="ntp">Cliente NTP</option>
+          {kinds.map((value) => (
+            <option key={value} value={value}>
+              {
+                {
+                  server: 'Servidor NETCONF / RESTCONF',
+                  request: 'Enviar RPC remoto',
+                  automation: 'Executar sequência de automação',
+                  telemetry: 'Publicador de telemetria',
+                  collector: 'Coletor de telemetria',
+                  clock: 'Relógio / servidor NTP',
+                  ntp: 'Cliente NTP',
+                }[value]
+              }
+            </option>
+          ))}
         </select>
       </label>
       <form

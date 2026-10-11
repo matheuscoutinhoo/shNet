@@ -1,3 +1,10 @@
+import {
+  deviceCapabilities,
+  inspectorTabIds,
+  deviceIntegrityIssues,
+  devicePresentationProfile,
+} from './deviceCapabilities';
+import { ResizableInspector } from './ResizableInspector';
 import { InfrastructurePanel } from './InfrastructurePanel';
 import { DatabasePanel } from './DatabasePanel';
 import { AaaPanel } from './AaaPanel';
@@ -57,17 +64,33 @@ export function Inspector({
   lab,
   device,
   onClose,
+  width,
+  onWidth,
 }: {
   lab: LabController;
   device: Device;
   onClose: () => void;
+  width: number;
+  onWidth: (width: number) => void;
 }) {
   const [tab, setTab] = useState('overview'),
     [port, setPort] = useState<string | null>(null),
     [basic, setBasic] = useState(true);
-  const spec = deviceProfile(device) ?? catalog.find((c) => c.type === device.type)!;
+  const presentation = devicePresentationProfile(device);
+  const spec = presentation ?? catalog.find((c) => c.type === device.type)!;
+  const capabilities = deviceCapabilities(device);
+  const issues = deviceIntegrityIssues(device);
+  const tabs = inspectorTabIds(device);
+  const activeTab = tabs.includes(tab) ? tab : 'overview';
+  const advancedName = capabilities.ap
+    ? 'CAPWAP / Mesh / EAP'
+    : capabilities.controller
+      ? 'WLC / CAPWAP'
+      : capabilities.advancedKinds.includes('ids')
+        ? 'IDS / IPS'
+        : 'EAP empresarial';
   return (
-    <aside className="inspector" aria-label="Inspeção de equipamento">
+    <ResizableInspector width={width} onWidth={onWidth}>
       <div className="panel-heading">
         <span>INSPECIONAR EQUIPAMENTO</span>
         <button className="icon-button" onClick={onClose} aria-label="Fechar inspector">
@@ -75,87 +98,75 @@ export function Inspector({
         </button>
       </div>
       <div className="inspector-device">
-        <DeviceIcon profile={device.profile} type={device.type} size={48} />
+        <DeviceIcon profile={presentation?.id} type={device.type} size={48} />
         <div>
           <h2>{device.hostname}</h2>
           <span>{spec.model}</span>
         </div>
-        <button
-          className={'power-button ' + (!device.power ? 'off' : '')}
-          title={device.power ? 'Desligar equipamento' : 'Ligar equipamento'}
-          aria-label={device.power ? 'Desligar equipamento' : 'Ligar equipamento'}
-          disabled={device.infrastructure?.kind === 'patch-panel'}
-          onClick={() =>
-            lab.change(() => {
-              lab.engine.setDevicePower(device.id, !device.power);
-              lab.engine.emit(
-                device.power ? 'LINK_UP' : 'LINK_DOWN',
-                device.id,
-                device.power ? 'Equipamento ligado' : 'Equipamento desligado'
-              );
-            })
-          }
-        >
-          <Power size={17} />
-        </button>
+        {capabilities.power && (
+          <button
+            className={'power-button ' + (!device.power ? 'off' : '')}
+            title={device.power ? 'Desligar equipamento' : 'Ligar equipamento'}
+            aria-label={device.power ? 'Desligar equipamento' : 'Ligar equipamento'}
+            disabled={device.infrastructure?.kind === 'patch-panel'}
+            onClick={() =>
+              lab.change(() => {
+                lab.engine.setDevicePower(device.id, !device.power);
+                lab.engine.emit(
+                  device.power ? 'LINK_UP' : 'LINK_DOWN',
+                  device.id,
+                  device.power ? 'Equipamento ligado' : 'Equipamento desligado'
+                );
+              })
+            }
+          >
+            <Power size={17} />
+          </button>
+        )}
       </div>
-      <div className="inspector-tabs">
+      <div className="inspector-tabs" aria-label="Recursos do equipamento">
         {[
           { id: 'overview', name: 'Resumo', icon: Info },
           { id: 'interfaces', name: 'Portas', icon: Network },
-          ...(['router', 'switch'].includes(device.type)
-            ? [{ id: 'lacp', name: 'LACP', icon: Network }]
-            : []),
-          ...(['router', 'switch'].includes(device.type)
-            ? [{ id: 'layer3', name: 'VLAN / VRF', icon: Network }]
-            : []),
+          { id: 'lacp', name: 'LACP', icon: Network },
+          { id: 'layer3', name: capabilities.vrf ? 'VLAN / VRF' : 'VLAN / SVI', icon: Network },
           { id: 'cli', name: 'Terminal', icon: TerminalSquare },
           { id: 'tables', name: 'Tabelas', icon: Table2 },
           { id: 'aaa', name: '802.1X / AAA', icon: ShieldCheck },
           { id: 'ipv6', name: 'IPv6', icon: Globe },
-          { id: 'forwarding', name: 'QoS / MPLS', icon: Network },
-          ...(device.type === 'switch' ? [{ id: 'vxlan', name: 'VXLAN / EVPN', icon: Network }] : []),
-          ...(device.type === 'router' ? [{ id: 'tunnels', name: 'VPN / SD-WAN', icon: Network }] : []),
-          ...(device.type !== 'pc'
-            ? [{ id: 'sdwanController', name: 'Controller WAN', icon: Settings2 }]
-            : []),
-          ...(device.type !== 'router' ? [{ id: 'wireless', name: 'Wireless', icon: Network }] : []),
-          { id: 'advancedNetwork', name: 'WLC / Mesh / IDS', icon: ShieldCheck },
-          { id: 'hardware', name: 'Serial / PoE', icon: Settings2 },
-          { id: 'infrastructure', name: 'Infraestrutura', icon: Settings2 },
+          { id: 'forwarding', name: device.type === 'router' ? 'QoS / MPLS' : 'QoS', icon: Network },
+          { id: 'vxlan', name: 'VXLAN / EVPN', icon: Network },
+          { id: 'tunnels', name: 'VPN / SD-WAN', icon: Network },
+          { id: 'sdwanController', name: 'Controller WAN', icon: Settings2 },
+          { id: 'wireless', name: 'Wireless', icon: Network },
+          { id: 'advancedNetwork', name: advancedName, icon: ShieldCheck },
+          { id: 'hardware', name: 'Hardware / PoE', icon: Settings2 },
+          {
+            id: 'infrastructure',
+            name: device.infrastructure ? 'Infraestrutura' : 'Recursos físicos',
+            icon: Settings2,
+          },
           { id: 'database', name: 'Banco de dados', icon: Table2 },
           { id: 'applications', name: 'Aplicações', icon: Globe },
           { id: 'dhcp', name: 'DHCP', icon: Settings2 },
-          ...(device.type !== 'switch' ? [{ id: 'dns', name: 'DNS', icon: Globe }] : []),
-          ...(device.type !== 'switch' ||
-          device.interfaces.some((p) => p.mode === 'routed' && (!!p.ip || !!p.ipv6))
-            ? [{ id: 'tcp', name: 'TCP / HTTP', icon: Globe }]
-            : []),
-          ...(device.type === 'switch' ? [{ id: 'stp', name: 'STP', icon: GitBranch }] : []),
-          ...(device.type === 'router' ? [{ id: 'ospf', name: 'OSPF', icon: GitBranch }] : []),
-          ...(device.type === 'router' ? [{ id: 'rip', name: 'RIP', icon: GitBranch }] : []),
-          ...(device.type === 'router' ? [{ id: 'vrrp', name: 'VRRP', icon: GitBranch }] : []),
-          ...(device.type === 'router' || device.ipRouting
-            ? [{ id: 'bgp', name: 'BGP', icon: GitBranch }]
-            : []),
-          ...(device.type !== 'switch' || device.interfaces.some((p) => p.mode === 'routed' && !!p.ip)
-            ? [{ id: 'policy', name: 'Políticas', icon: ShieldCheck }]
-            : []),
-          ...(device.type !== 'switch' || device.interfaces.some((p) => p.mode === 'routed' && !!p.ip)
-            ? [{ id: 'management', name: 'Gerenciamento', icon: Settings2 }]
-            : []),
+          { id: 'dns', name: 'DNS', icon: Globe },
+          { id: 'tcp', name: 'TCP / HTTP', icon: Globe },
+          { id: 'stp', name: 'STP', icon: GitBranch },
+          { id: 'ospf', name: 'OSPF', icon: GitBranch },
+          { id: 'rip', name: 'RIP', icon: GitBranch },
+          { id: 'vrrp', name: 'VRRP', icon: GitBranch },
+          { id: 'bgp', name: 'BGP', icon: GitBranch },
+          { id: 'policy', name: 'Políticas', icon: ShieldCheck },
+          { id: 'management', name: 'Gerenciamento', icon: Settings2 },
           { id: 'logs', name: 'Logs', icon: ScrollText },
         ]
-          .filter(
-            (t) =>
-              !device.infrastructure || ['overview', 'interfaces', 'infrastructure', 'logs'].includes(t.id)
-          )
+          .filter((t) => tabs.includes(t.id))
           .map((t) => (
             <button
               key={t.id}
-              className={tab === t.id ? 'active' : ''}
+              className={activeTab === t.id ? 'active' : ''}
               title={t.name}
-              aria-pressed={tab === t.id}
+              aria-pressed={activeTab === t.id}
               onClick={() => setTab(t.id)}
             >
               <t.icon size={16} />
@@ -163,9 +174,19 @@ export function Inspector({
             </button>
           ))}
       </div>
-      <div className={'inspector-body ' + (tab === 'cli' ? 'terminal-body' : '')}>
-        {tab === 'overview' && (
+      <div className={'inspector-body ' + (activeTab === 'cli' ? 'terminal-body' : '')}>
+        {activeTab === 'overview' && (
           <>
+            {issues.length > 0 && (
+              <section className="device-integrity-notice" aria-label="Revisão do perfil">
+                <h4>Revisão do perfil</h4>
+                <ul>
+                  {issues.map((issue) => (
+                    <li key={issue}>{issue}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <div className="mode-switch">
               <span>Modo educacional</span>
               <button
@@ -187,7 +208,7 @@ export function Inspector({
                   {spec.description}{' '}
                   {device.infrastructure
                     ? ''
-                    : device.type === 'switch'
+                    : capabilities.switching || capabilities.ap
                       ? 'Cada VLAN é um domínio de broadcast independente.'
                       : 'Para destinos fora de sua sub-rede, ele consulta a tabela de rotas.'}
                 </p>
@@ -201,7 +222,7 @@ export function Inspector({
                   const name = String(f.get('hostname'));
                   if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/.test(name)) throw new Error('Hostname inválido');
                   device.hostname = name;
-                  if (device.type === 'pc' || device.type === 'server') {
+                  if (capabilities.endpoint) {
                     const gateway = String(f.get('gateway') ?? '').trim();
                     if (gateway) device.gateway = ipv4Schema.parse(gateway);
                     else delete device.gateway;
@@ -219,7 +240,7 @@ export function Inspector({
                   required
                 />
               </label>
-              {(device.type === 'pc' || device.type === 'server') && (
+              {capabilities.endpoint && (
                 <label>
                   Gateway estático
                   <input
@@ -239,7 +260,7 @@ export function Inspector({
               <div>
                 <dt>Estado</dt>
                 <dd className={device.power ? 'good' : 'muted'}>
-                  {device.power ? '● Ligado' : '○ Desligado'}
+                  {capabilities.power ? (device.power ? '● Ligado' : '○ Desligado') : 'Passivo'}
                 </dd>
               </div>
               <div>
@@ -294,7 +315,7 @@ export function Inspector({
             </button>
           </>
         )}
-        {tab === 'interfaces' && (
+        {activeTab === 'interfaces' && (
           <>
             <p className="muted panel-description">
               Cada interface tem seu próprio endereço, estado e configuração.
@@ -325,9 +346,9 @@ export function Inspector({
             </div>
           </>
         )}
-        {tab === 'infrastructure' && <InfrastructurePanel lab={lab} device={device} />}
-        {tab === 'database' && <DatabasePanel lab={lab} device={device} />}
-        {tab === 'cli' && (
+        {activeTab === 'infrastructure' && <InfrastructurePanel lab={lab} device={device} />}
+        {activeTab === 'database' && <DatabasePanel lab={lab} device={device} />}
+        {activeTab === 'cli' && (
           <>
             <Suspense fallback={<p className="muted">Carregando terminal…</p>}>
               <Terminal lab={lab} deviceId={device.id} />
@@ -337,17 +358,19 @@ export function Inspector({
             </div>
           </>
         )}
-        {tab === 'tables' && (
+        {activeTab === 'tables' && (
           <>
-            <Table
-              title="Tabela MAC"
-              headers={['VLAN', 'MAC', 'Porta']}
-              rows={device.macTable.map((m) => [
-                String(m.vlan),
-                m.mac,
-                device.interfaces.find((i) => i.id === m.port)?.name ?? m.port,
-              ])}
-            />
+            {(capabilities.switching || capabilities.ap || capabilities.controller) && (
+              <Table
+                title="Tabela MAC"
+                headers={['VLAN', 'MAC', 'Porta']}
+                rows={device.macTable.map((m) => [
+                  String(m.vlan),
+                  m.mac,
+                  device.interfaces.find((i) => i.id === m.port)?.name ?? m.port,
+                ])}
+              />
+            )}
             <Table
               title="Cache ARP"
               headers={['IPv4', 'MAC', 'Porta']}
@@ -405,37 +428,43 @@ export function Inspector({
                 ]),
               ]}
             />
-            <Table
-              title="VLANs"
-              headers={['ID', 'Nome']}
-              rows={device.vlans.map((v) => [String(v.id), v.name])}
-            />
+            {capabilities.layer3 && (
+              <Table
+                title="VLANs"
+                headers={['ID', 'Nome']}
+                rows={device.vlans.map((v) => [String(v.id), v.name])}
+              />
+            )}
             <p className="muted">Use o terminal para criar VLANs, configurar trunks e rotas estáticas.</p>
           </>
         )}
-        {tab === 'layer3' && <Layer3Panel key={device.id} lab={lab} device={device} />}
-        {tab === 'wireless' && <WirelessPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'tunnels' && <TunnelPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'sdwanController' && <SdwanControllerPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'vxlan' && <VxlanPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'forwarding' && <ForwardingPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'aaa' && <AaaPanel lab={lab} device={device} />}
-        {tab === 'ipv6' && <Ipv6Panel key={device.id} lab={lab} device={device} />}
-        {tab === 'lacp' && <LacpPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'dhcp' && <DhcpPanel lab={lab} device={device} />}
-        {tab === 'dns' && <DnsPanel lab={lab} device={device} />}
-        {tab === 'advancedNetwork' && <AdvancedNetworkPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'hardware' && <HardwarePanel key={device.id} lab={lab} device={device} />}
-        {tab === 'applications' && <ApplicationsPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'tcp' && <TcpPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'ospf' && <OspfPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'rip' && <RipPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'vrrp' && <VrrpPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'bgp' && <BgpPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'management' && <ManagementPanel key={device.id} lab={lab} device={device} />}
-        {tab === 'stp' && <SpanningTreePanel lab={lab} device={device} />}
-        {tab === 'policy' && <PolicyPanel lab={lab} device={device} />}
-        {tab === 'logs' && (
+        {activeTab === 'layer3' && <Layer3Panel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'wireless' && <WirelessPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'tunnels' && <TunnelPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'sdwanController' && (
+          <SdwanControllerPanel key={device.id} lab={lab} device={device} />
+        )}
+        {activeTab === 'vxlan' && <VxlanPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'forwarding' && <ForwardingPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'aaa' && <AaaPanel lab={lab} device={device} />}
+        {activeTab === 'ipv6' && <Ipv6Panel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'lacp' && <LacpPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'dhcp' && <DhcpPanel lab={lab} device={device} />}
+        {activeTab === 'dns' && <DnsPanel lab={lab} device={device} />}
+        {activeTab === 'advancedNetwork' && (
+          <AdvancedNetworkPanel key={device.id} lab={lab} device={device} />
+        )}
+        {activeTab === 'hardware' && <HardwarePanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'applications' && <ApplicationsPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'tcp' && <TcpPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'ospf' && <OspfPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'rip' && <RipPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'vrrp' && <VrrpPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'bgp' && <BgpPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'management' && <ManagementPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'stp' && <SpanningTreePanel lab={lab} device={device} />}
+        {activeTab === 'policy' && <PolicyPanel lab={lab} device={device} />}
+        {activeTab === 'logs' && (
           <div className="device-logs">
             {device.logs.length ? (
               device.logs
@@ -456,7 +485,7 @@ export function Inspector({
           onClose={() => setPort(null)}
         />
       )}
-    </aside>
+    </ResizableInspector>
   );
 }
 function Table({ title, headers, rows }: { title: string; headers: string[]; rows: string[][] }) {
@@ -501,7 +530,7 @@ function PortEditor({
   port: NetworkInterface;
   onClose: () => void;
 }) {
-  const layer3 = device.type !== 'switch' || port.mode === 'routed';
+  const layer3 = device.type !== 'switch' || ['routed', 'svi'].includes(port.mode);
   const [error, setError] = useState('');
   const [addressMode, setAddressMode] = useState(port.ipv4Mode ?? 'static');
   function submit(e: FormEvent<HTMLFormElement>) {
@@ -524,7 +553,7 @@ function PortEditor({
         adminUp: f.get('adminUp') === 'on',
         description: String(f.get('description')),
         mtu: Number(f.get('mtu')),
-        speed: Number(f.get('speed')),
+        speed: port.media === 'wifi' ? port.speed : Number(f.get('speed')),
         ...(['sfp', 'qsfp'].includes(port.media)
           ? { transceiver: String(f.get('transceiver')) || undefined }
           : {}),
@@ -583,6 +612,26 @@ function PortEditor({
       setError((e as Error).message);
     }
   }
+  if (device.infrastructure || ['serial', 'console', 'mesh'].includes(port.media))
+    return (
+      <Modal title={device.hostname + ' · ' + port.name} onClose={onClose}>
+        <dl className="key-values">
+          <div>
+            <dt>Mídia</dt>
+            <dd>{port.media.toUpperCase()}</dd>
+          </div>
+          <div>
+            <dt>Estado</dt>
+            <dd>{port.adminUp ? 'Habilitada' : 'Desabilitada'}</dd>
+          </div>
+        </dl>
+        <p>
+          {device.infrastructure?.kind === 'patch-panel'
+            ? 'Porta passiva: o jumper apenas passa o sinal. Configure os pares na aba Infraestrutura; endereços IP e VLANs pertencem aos equipamentos conectados.'
+            : 'Esta porta não recebe endereços IP nesta tela. Configure serial ou console na aba Hardware / PoE.'}
+        </p>
+      </Modal>
+    );
   return (
     <Modal title={device.hostname + ' · ' + port.name} onClose={onClose}>
       <form onSubmit={submit}>
@@ -678,20 +727,22 @@ function PortEditor({
           </>
         )}
         <div className="form-grid">
-          <label>
-            Velocidade
-            <select name="speed" defaultValue={port.speed}>
-              <option value="100">100 Mbps</option>
-              <option value="1000">1 Gbps</option>
-              <option value="10000">10 Gbps</option>
-              {port.media === 'qsfp' && (
-                <>
-                  <option value="40000">40 Gbps</option>
-                  <option value="100000">100 Gbps</option>
-                </>
-              )}
-            </select>
-          </label>
+          {port.media !== 'wifi' && (
+            <label>
+              Velocidade
+              <select name="speed" defaultValue={port.speed}>
+                <option value="100">100 Mbps</option>
+                <option value="1000">1 Gbps</option>
+                <option value="10000">10 Gbps</option>
+                {port.media === 'qsfp' && (
+                  <>
+                    <option value="40000">40 Gbps</option>
+                    <option value="100000">100 Gbps</option>
+                  </>
+                )}
+              </select>
+            </label>
+          )}
           <label>
             MTU
             <input type="number" name="mtu" min="576" max="9216" defaultValue={port.mtu} />
@@ -712,7 +763,7 @@ function PortEditor({
           Mídia: {port.media.toUpperCase()}
           {port.transceiver ? ' · ' + port.transceiver : ''} · MAC: {port.mac}
         </p>
-        {device.type === 'switch' && !port.logical && port.mode !== 'routed' && (
+        {deviceCapabilities(device).switching && !port.logical && port.mode !== 'routed' && (
           <div className="form-grid">
             <label>
               Custo STP

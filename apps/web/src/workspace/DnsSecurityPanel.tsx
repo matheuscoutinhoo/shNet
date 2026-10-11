@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { ConfigEditor, configChoices } from '../components/ConfigEditor';
 import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
@@ -12,7 +13,7 @@ export function DnsSecurityPanel({ lab, device }: { lab: LabController; device: 
           anchors: [],
           edns: { version: 0, udpSize: 1232, dnssecOk: true },
         },
-        ...(['server', 'router'].includes(device.type) ? { zones: device.dnsServer?.zones ?? [] } : {}),
+        ...(deviceCapabilities(device).dnsServer ? { zones: device.dnsServer?.zones ?? [] } : {}),
       },
       null,
       2

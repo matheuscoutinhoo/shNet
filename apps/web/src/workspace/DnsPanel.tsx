@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { useState, type FormEvent } from 'react';
 import { Plus, Pencil, Trash2, Search, Eraser, Save } from 'lucide-react';
 import { dnsRecordSchema, formatDnsQuery, type Device, type DnsRecord } from '@shlab/engine';
@@ -11,7 +12,7 @@ export function DnsPanel({ lab, device }: { lab: LabController; device: Device }
   const port = device.interfaces.find((entry) => entry.id === portId)!;
   const latest = device.dnsQueries?.at(-1);
   const cache = device.dnsCache?.filter((entry) => entry.expiresAt > lab.engine.state.clock) ?? [];
-  const serverCapable = device.type === 'server' || device.type === 'router';
+  const serverCapable = deviceCapabilities(device).dnsServer;
   function query(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     lab.setError('');

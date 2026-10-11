@@ -5,9 +5,6 @@ import {
   Phone,
   Printer,
   Cpu,
-  Wifi,
-  Radio,
-  RadioTower,
   ScanEye,
   ShieldAlert,
   ShieldCheck,
@@ -38,9 +35,6 @@ const profileIcons: Record<string, LucideIcon> = {
   phone: Phone,
   printer: Printer,
   iot: Cpu,
-  ap: Wifi,
-  mesh: Radio,
-  wlc: RadioTower,
   ids: ScanEye,
   ips: ShieldAlert,
   firewall: ShieldCheck,
@@ -74,6 +68,72 @@ export function DeviceIcon({
   profile?: string;
   size?: number;
 }) {
+  if (['ap', 'mesh', 'wlc'].includes(profile ?? ''))
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none"
+        aria-hidden="true"
+        className={'device-icon ' + type}
+      >
+        {profile === 'ap' ? (
+          <>
+            <ellipse cx="32" cy="39" rx="25" ry="17" fill="currentColor" opacity=".12" />
+            <ellipse cx="32" cy="34" rx="25" ry="17" stroke="currentColor" strokeWidth="2.5" />
+            <path d="M7 34v5c0 23 50 23 50 0v-5" stroke="currentColor" strokeWidth="2.5" />
+            <path
+              d="M20 32q12-11 24 0m-18 5q6-6 12 0"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <circle cx="32" cy="42" r="2" fill="currentColor" />
+          </>
+        ) : profile === 'mesh' ? (
+          <>
+            <path d="M12 32V9m40 23V9" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            <rect
+              x="6"
+              y="31"
+              width="52"
+              height="22"
+              rx="5"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              fill="currentColor"
+              fillOpacity=".12"
+            />
+            <path d="M25 40h14m-14 5h14" stroke="currentColor" strokeWidth="2" />
+            <circle cx="14" cy="43" r="2" fill="currentColor" />
+            <path
+              d="M21 19q11-8 22 0m-16 5q5-4 10 0"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </>
+        ) : (
+          <>
+            <rect
+              x="4"
+              y="20"
+              width="56"
+              height="25"
+              rx="3"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              fill="currentColor"
+              fillOpacity=".12"
+            />
+            <path d="M8 25v15m48-15v15M25 29h17m-17 6h17" stroke="currentColor" strokeWidth="2" />
+            <rect x="14" y="29" width="6" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+            <circle cx="49" cy="32" r="2" fill="currentColor" />
+          </>
+        )}
+      </svg>
+    );
   const Icon = profile ? profileIcons[profile] : undefined;
   if (Icon)
     return <Icon size={size} strokeWidth={1.7} aria-hidden="true" className={'device-icon ' + type} />;

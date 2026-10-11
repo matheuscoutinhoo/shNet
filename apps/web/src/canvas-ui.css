@@ -219,3 +219,134 @@
     width: 200px;
   }
 }
+
+/* Equipment details resize from the canvas-facing edge. */
+.inspector {
+  min-width: 0;
+  max-width: none;
+  resize: none;
+  overflow: hidden;
+}
+@media (min-width: 701px) {
+  .inspector {
+    position: relative;
+  }
+}
+.inspector-resize-handle {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 9px;
+  cursor: ew-resize;
+  touch-action: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inspector-resize-handle span {
+  width: 3px;
+  height: 48px;
+  border-radius: 4px;
+  background: var(--line);
+}
+.inspector-resize-handle:hover,
+.inspector-resize-handle:focus-visible {
+  background: #e2f5f3;
+}
+.inspector-resize-handle:hover span,
+.inspector-resize-handle:focus-visible span {
+  background: var(--teal);
+}
+.inspector.resizing {
+  user-select: none;
+}
+.inspector-device > div {
+  min-width: 0;
+  flex: 1;
+}
+.inspector-device .device-icon {
+  flex-shrink: 0;
+}
+.inspector-device span {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.inspector-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+  justify-content: stretch;
+  max-height: 190px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex-shrink: 0;
+  padding: 0 12px;
+  gap: 2px;
+}
+.inspector-tabs button {
+  min-width: 0;
+  min-height: 48px;
+  font-size: 10px;
+  padding: 8px 4px;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.inspector-body {
+  min-width: 0;
+  overscroll-behavior: contain;
+}
+.inspector-body :is(input, select, textarea, .config-editor) {
+  max-width: 100%;
+  min-width: 0;
+}
+.inspector-body .form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+}
+
+.inspector > .panel-heading {
+  font-size: 11px;
+}
+.inspector .interface-item small,
+.inspector .interface-item > span:last-child {
+  color: var(--muted);
+  font-size: 11px;
+}
+.node-port-strip svg {
+  width: 14px;
+  height: 12px;
+  color: var(--teal);
+}
+.node-port-strip .off svg {
+  color: var(--muted);
+}
+.node-port-strip .port-sfp i,
+.node-port-strip .port-qsfp i {
+  border-radius: 0;
+  border-width: 2px;
+}
+.node-port-strip .port-console i {
+  border-radius: 50%;
+}
+
+.react-flow__attribution a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 4px;
+}
+
+.device-integrity-notice {
+  padding: 12px;
+  border: 1px solid #d7b57b;
+  background: #fff8eb;
+  border-radius: var(--control-radius);
+  color: var(--navy);
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.device-integrity-notice ul {
+  padding-left: 18px;
+}
+.device-integrity-notice li + li {
+  margin-top: 8px;
+}

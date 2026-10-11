@@ -1,3 +1,4 @@
+import { devicePresentationProfile } from './deviceCapabilities';
 import { DrawingLayer } from './DrawingLayer';
 import { canvasPosition, radioCoverage } from '@shlab/engine';
 import { useEffect, useCallback, useMemo, useState, useRef, memo } from 'react';
@@ -24,7 +25,7 @@ import {
   type Connection,
   type Edge,
 } from '@xyflow/react';
-import { Network, MousePointer2 } from 'lucide-react';
+import { Network, MousePointer2, Wifi } from 'lucide-react';
 import {
   type Device,
   type CanvasItem,
@@ -32,7 +33,6 @@ import {
   moveCanvasItem,
   removeCanvasItem,
   deviceParticipatesInVlan,
-  deviceProfile,
 } from '@shlab/engine';
 import { DeviceIcon } from '../components/DeviceIcon';
 import { DeviceActions, type DeviceAction } from './DeviceActions';
@@ -109,6 +109,8 @@ function AnnotationView({ data, selected }: NodeProps<AnnotationNode>) {
 }
 function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
   const d = data.device;
+  const presentation = devicePresentationProfile(d);
+  const passive = ['rack', 'patch-panel'].includes(d.infrastructure?.kind ?? '');
   if (data.overview)
     return (
       <div
@@ -148,10 +150,10 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
         </div>
       )}
       <div className="node-main">
-        <DeviceIcon profile={d.profile} type={d.type} />
+        <DeviceIcon profile={presentation?.id} type={d.type} />
         <div>
           <span className="node-type">
-            {deviceProfile(d)?.name.toLocaleUpperCase('pt-BR') ??
+            {presentation?.name.toLocaleUpperCase('pt-BR') ??
               (d.wireless?.role === 'ap'
                 ? 'ACCESS POINT'
                 : d.type === 'switch'
@@ -167,45 +169,54 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
           <strong>{d.hostname}</strong>
           <small>
             {d.interfaces.find((i) => i.ip)?.ip ??
-              deviceProfile(d)?.model ??
+              presentation?.model ??
               (d.type === 'switch' ? 'NetOS · ' + d.interfaces.length + ' portas' : 'IPv4 não configurado')}
           </small>
         </div>
-        <span className={'node-status ' + (d.power ? '' : 'off')} title={d.power ? 'Ligado' : 'Desligado'} />
+        {!passive && (
+          <span
+            className={'node-status ' + (d.power ? '' : 'off')}
+            title={d.power ? 'Ligado' : 'Desligado'}
+          />
+        )}
       </div>
-      {data.detailed && (
+      {data.detailed && d.infrastructure?.kind !== 'rack' && (
         <div className="node-port-strip">
           {d.interfaces
             .filter((p) => !p.logical && !p.aggregate && !p.tunnel && !p.vxlan)
             .map((p) => (
               <span
                 key={p.id}
-                className={!p.adminUp ? 'off' : ''}
+                className={'port-' + p.media + (!p.adminUp ? ' off' : '')}
                 title={
-                  p.name +
-                  ' · ' +
-                  p.mode +
-                  (['sfp', 'qsfp'].includes(p.media) ? ' · ' + p.media.toUpperCase() : '')
+                  p.name + ' · ' + (passive ? 'Passagem passiva' : p.mode) + ' · ' + p.media.toUpperCase()
                 }
               >
-                <i />
+                {['wifi', 'mesh'].includes(p.media) ? <Wifi aria-hidden="true" /> : <i />}
                 {p.name.replace('Gi0/', '')}
               </span>
             ))}
         </div>
       )}
       {d.interfaces
-        .filter((p) => !p.logical && !p.aggregate && !p.tunnel && !p.vxlan)
-        .map((p, i) => (
+        .filter(
+          (p) => d.infrastructure?.kind !== 'rack' && !p.logical && !p.aggregate && !p.tunnel && !p.vxlan
+        )
+        .map((p, i, ports) => (
           <Handle
             role="img"
             key={p.id}
             id={p.id}
-            isConnectable={p.media !== 'wifi' && !p.capwapPeer}
+            isConnectable={
+              !['wifi', 'mesh'].includes(p.media) &&
+              !p.capwapPeer &&
+              !p.meshPeer &&
+              d.infrastructure?.kind !== 'rack'
+            }
             type="source"
             position={Position.Bottom}
             style={{
-              left: ((i + 1) / (d.interfaces.length + 1)) * 100 + '%',
+              left: ((i + 1) / (ports.length + 1)) * 100 + '%',
               background: p.adminUp ? '#1d8790' : '#9aa9b5',
             }}
             title={d.hostname + ' ' + p.name + ' · ' + p.media}

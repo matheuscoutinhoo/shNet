@@ -77,6 +77,7 @@ export function Workspace({
   const lab = useLab(project, onExpired),
     [selected, setSelected] = useState<string[]>([]),
     [inspecting, setInspecting] = useState<string | null>(null),
+    [inspectorWidth, setInspectorWidth] = useState(360),
     [query, setQuery] = useState(''),
     [detailed, setDetailed] = useState(true),
     [showCatalog, setShowCatalog] = useState(true),
@@ -916,6 +917,8 @@ export function Workspace({
         {device && (
           <Inspector
             key={device.id}
+            width={inspectorWidth}
+            onWidth={setInspectorWidth}
             lab={lab}
             device={device}
             onClose={() => {

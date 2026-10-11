@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { useState } from 'react';
 import { ipv6Config, ipv6ConfigSchema, linkLocal6, type Device, type NetworkInterface } from '@shlab/engine';
 import type { LabController } from './useLab';
@@ -104,7 +105,7 @@ function Port6Form({ lab, device, port }: { lab: LabController; device: Device; 
         <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
         Obter endereço e gateway por SLAAC
       </label>
-      {['router', 'switch'].includes(device.type) && (
+      {deviceCapabilities(device).routing && (
         <>
           <label className="ipv6-check">
             <input type="checkbox" checked={advertise} onChange={(e) => setAdvertise(e.target.checked)} />

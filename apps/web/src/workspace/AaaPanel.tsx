@@ -1,11 +1,13 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { ConfigEditor, configChoices } from '../components/ConfigEditor';
 import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
 import { aaaServerConfig, dot1xConfig, supplicantConfig, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function AaaPanel({ lab, device }: { lab: LabController; device: Device }) {
-  const [kind, setKind] = useState(
-    device.type === 'pc' ? 'supplicant' : device.type === 'switch' ? 'dot1x' : 'server'
+  const kinds = deviceCapabilities(device).aaaKinds;
+  const [kind, setKind] = useState<string>(
+    device.aaaServer ? 'server' : device.type === 'switch' && kinds.includes('dot1x') ? 'dot1x' : kinds[0]
   );
   const [port, setPort] = useState(device.interfaces[0].id);
   const p = device.interfaces.find((p) => p.id === port) ?? device.interfaces[0];
@@ -39,18 +41,23 @@ export function AaaPanel({ lab, device }: { lab: LabController; device: Device }
         802.1X bloqueia dados na porta cabeada até EAPOL e RADIUS/UDP1812 autorizarem o MAC. TACACS+ usa
         TCP/49 para CHAP, autorização de comandos e accounting de sessão. Configure commands no usuário; ["*"]
         permite todos os comandos conforme o privilégio. Para Wi-Fi empresarial PEAP/TLS, use a configuração
-        EAP na aba Avançado. Credenciais pertencem ao laboratório.
+        EAP na aba de recursos empresariais. Credenciais pertencem ao laboratório.
       </p>
       <label>
         Configurar
         <select value={kind} onChange={(e) => setKind(e.target.value)}>
-          {device.type !== 'pc' && <option value="server">Servidor RADIUS / TACACS+</option>}
-          <option value="client">Cliente AAA / terminal</option>
-          {device.type === 'switch' ? (
-            <option value="dot1x">Porta controlada 802.1X</option>
-          ) : (
-            <option value="supplicant">Supplicant 802.1X</option>
-          )}
+          {kinds.map((value) => (
+            <option key={value} value={value}>
+              {
+                {
+                  server: 'Servidor RADIUS / TACACS+',
+                  client: 'Cliente AAA / terminal',
+                  dot1x: 'Porta controlada 802.1X',
+                  supplicant: 'Supplicant 802.1X',
+                }[value]
+              }
+            </option>
+          ))}
         </select>
       </label>
       {(kind === 'dot1x' || kind === 'supplicant') && (

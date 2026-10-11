@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { useState, type FormEvent } from 'react';
 import { Plus, Pencil, RefreshCw, Trash2, Unplug } from 'lucide-react';
 import {
@@ -29,7 +30,7 @@ const clientStates: Record<DhcpClient['status'] | 'static', string> = {
 export function DhcpPanel({ lab, device }: { lab: LabController; device: Device }) {
   const [editing, setEditing] = useState<DhcpPool | null>(null);
   const server = device.dhcpServer;
-  const serverCapable = device.type === 'server' || device.type === 'router';
+  const serverCapable = deviceCapabilities(device).dhcpServer;
   const eligible = device.interfaces.filter(
     (port) =>
       port.ip &&

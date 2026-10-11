@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Settings2, Pencil, Copy, Cable, Power, Trash2, X } from 'lucide-react';
@@ -24,6 +25,7 @@ export function DeviceActions({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ left: point.x, top: point.y });
+  const capabilities = deviceCapabilities(device);
   const items = [
     { id: 'inspect', label: 'Inspecionar', icon: Settings2 },
     { id: 'rename', label: 'Renomear', icon: Pencil },
@@ -37,6 +39,11 @@ export function DeviceActions({
     },
     { id: 'delete', label: 'Excluir', icon: Trash2 },
   ] as const;
+  const applicableItems = items.filter(
+    (item) =>
+      (item.id !== 'power' || capabilities.power) &&
+      (item.id !== 'connect' || (capabilities.ports && device.interfaces.some((p) => p.media !== 'wifi')))
+  );
   useLayoutEffect(() => {
     const menu = ref.current!;
     const width = menu.offsetWidth,
@@ -105,7 +112,7 @@ export function DeviceActions({
         </button>
       </div>
       <div role="menu" aria-label={'Ações de ' + device.hostname}>
-        {items.map((item) => (
+        {applicableItems.map((item) => (
           <button
             key={item.id}
             role="menuitem"

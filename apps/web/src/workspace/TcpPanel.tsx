@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { useState } from 'react';
 import { Play, Save } from 'lucide-react';
 import { tcpFinished, type Device } from '@shlab/engine';
@@ -60,7 +61,7 @@ export function TcpPanel({ lab, device }: { lab: LabController; device: Device }
           <button className="button small">Aplicar opções TCP</button>
         </form>
       </section>
-      {
+      {deviceCapabilities(device).tcpServer && (
         <section>
           <h4>Serviços TCP</h4>
           <form
@@ -120,7 +121,7 @@ export function TcpPanel({ lab, device }: { lab: LabController; device: Device }
             </label>
           ))}
         </section>
-      }
+      )}
       <section>
         <h4>Gerar tráfego</h4>
         <form

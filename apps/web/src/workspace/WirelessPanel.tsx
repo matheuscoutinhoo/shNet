@@ -14,7 +14,7 @@ export function WirelessPanel({ lab, device }: { lab: LabController; device: Dev
       <p className="muted">
         Associação e troca de mensagens habilitam o transporte pelo rádio. WPA2-PSK/WPA3-SAE usam provas de
         credencial do modelo. WPA2-Enterprise usa EAP, certificados, TLS e AES-GCM; configure cliente e
-        autenticador no painel WLC / Mesh / IDS. Posições no canvas usam escala de 4 px por metro.
+        autenticador no painel de recursos CAPWAP / EAP. Posições no canvas usam escala de 4 px por metro.
       </p>
       <form
         key={device.id}

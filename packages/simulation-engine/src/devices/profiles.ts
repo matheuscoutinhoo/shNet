@@ -81,7 +81,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Infraestrutura',
     'Montagem física',
     'Unidades de rack, montagem e ventilação influenciam a temperatura.',
-    { feature: 'rack', ports: 1 }
+    { feature: 'rack', ports: 1, layer: 'Estrutura física' }
   ),
   p(
     'patch-panel',
@@ -90,7 +90,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Infraestrutura',
     'Passagem passiva',
     '24 portas com jumpers transparentes; não aprende MAC nem altera VLAN.',
-    { feature: 'patch-panel', ports: 24 }
+    { feature: 'patch-panel', ports: 24, layer: 'L1' }
   ),
   p(
     'ups',
@@ -99,7 +99,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Infraestrutura',
     'Alimentação',
     'Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento.',
-    { feature: 'ups', ports: 1 }
+    { feature: 'ups', ports: 1, layer: 'Alimentação' }
   ),
   p(
     'wlc',
@@ -108,7 +108,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Wireless',
     'CAPWAP centralizado',
     'Configure IPv4 no underlay e os perfis WLAN antes de habilitar.',
-    { feature: 'wlc' }
+    { feature: 'wlc', ports: 2, layer: 'Controle WLAN / bridge L2' }
   ),
   p(
     'mesh',
@@ -117,7 +117,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Wireless',
     'Mesh',
     'AP com rádio e vizinhança mesh; configure identidade, raiz e chave.',
-    { feature: 'mesh' }
+    { feature: 'mesh', ports: 2, layer: 'L2 / rádio 802.11' }
   ),
   p(
     'ids',
@@ -184,10 +184,11 @@ export const deviceProfiles: DeviceProfile[] = [
     'Endpoints',
     'Endpoint IP',
     'IPP/HTTP, spool de páginas, consulta, cancelamento e papel.',
-    { feature: 'printer' }
+    { feature: 'printer', ports: 1 }
   ),
   p('phone', 'pc', 'Telefone IP', 'Endpoints', 'Endpoint IP', 'Chamadas SIP/SDP e áudio RTP/PCMU.', {
     feature: 'phone',
+    ports: 1,
   }),
   p(
     'iot',
@@ -209,6 +210,7 @@ export const deviceProfiles: DeviceProfile[] = [
   ),
   p('access', 'switch', 'Switch de acesso', 'Switching', 'Acesso', '24 portas Ethernet e 2 uplinks SFP.', {
     ports: 26,
+    uplinks: 'sfp',
   }),
   p(
     'distribution',
@@ -275,7 +277,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Wireless',
     'Bridge com rádio',
     'SSID, associação, WPA2/WPA3 didáticos e rádio.',
-    { feature: 'ap' }
+    { feature: 'ap', ports: 2, layer: 'L2 / rádio 802.11' }
   ),
   p(
     'sdwan-edge',
@@ -441,16 +443,40 @@ export function addProfile(e: SimulationEngine, id: string, position = { x: 100,
   if (!spec) throw new Error('Perfil de equipamento inexistente.');
   const d = e.addDevice(spec.type, position);
   d.profile = spec.id;
+  const prefix: Record<string, string> = {
+    ap: 'AP',
+    mesh: 'MESH',
+    wlc: 'WLC',
+    smartphone: 'MOBILE',
+    laptop: 'LAP',
+    phone: 'PHONE',
+    printer: 'PRN',
+    iot: 'IOT',
+    rack: 'RACK',
+    ups: 'UPS',
+    'patch-panel': 'PATCH',
+    firewall: 'FW',
+    ngfw: 'FW',
+    ids: 'IDS',
+    ips: 'IPS',
+  };
+  if (prefix[spec.id]) d.hostname = d.hostname.replace(/^[A-Z]+-/, prefix[spec.id] + '-');
   if (spec.ports || spec.speed || spec.uplinks) {
     const count = spec.ports ?? d.interfaces.length,
       seed = d.interfaces[0];
     d.interfaces = Array.from({ length: count }, (_, n) => {
-      const optical = spec.id === 'core' || n >= count - (spec.uplinks === 'qsfp' ? 4 : 2),
+      const optical =
+          spec.id === 'core' || (!!spec.uplinks && n >= count - (spec.uplinks === 'qsfp' ? 4 : 2)),
         media = optical ? (spec.uplinks ?? 'sfp') : 'rj45';
       return {
         ...structuredClone(seed),
         id: 'p' + n,
-        name: (media === 'qsfp' ? 'Fo' : media === 'sfp' ? 'Te' : 'Gi') + '0/' + (n + 1),
+        name:
+          spec.type === 'pc' || spec.type === 'server'
+            ? 'Eth' + n
+            : (media === 'qsfp' ? 'Fo' : media === 'sfp' && spec.speed === 10000 ? 'Te' : 'Gi') +
+              '0/' +
+              (n + 1),
         mac: seed.mac.slice(0, -2) + n.toString(16).padStart(2, '0'),
         media,
         speed: media === 'qsfp' ? 40000 : (spec.speed ?? 1000),
@@ -561,6 +587,7 @@ export function addProfile(e: SimulationEngine, id: string, position = { x: 100,
     d.ipv6Routing = true;
   }
   if (f === 'ap' || f === 'wireless-client') e.configureWireless(d.id, wirelessConfig(d));
+  if (spec.id === 'smartphone') d.interfaces = d.interfaces.filter((p) => p.media === 'wifi');
   if (f === 'firewall' || f === 'inspection') {
     e.configureFirewall(d.id, { enabled: true, trustedPorts: ['p0'], protocols: ['TCP', 'UDP', 'ICMP'] });
     if (f === 'inspection')

@@ -1,9 +1,11 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { ConfigEditor, configChoices } from '../components/ConfigEditor';
 import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
 import { wirelessConfig, enterpriseDefaults, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; device: Device }) {
+  const kinds = deviceCapabilities(device).advancedKinds;
   const demo = enterpriseDefaults();
   const defaults = {
     eapServer: demo.server,
@@ -71,7 +73,7 @@ export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; devi
               ? 'eapAuthenticator'
               : device.eapSupplicant
                 ? 'eapSupplicant'
-                : 'ids'
+                : kinds[0]
   );
   function configuration(type: keyof typeof defaults) {
     const value = device[type];
@@ -86,7 +88,7 @@ export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; devi
   const [json, setJson] = useState(() => JSON.stringify(configuration(kind), null, 2));
   return (
     <section>
-      <h4>WLC/CAPWAP, mesh, EAP empresarial e IDS/IPS</h4>
+      <h4>Recursos de rede do equipamento</h4>
       <label>
         Recurso de rede
         <select
@@ -98,21 +100,38 @@ export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; devi
             setJson(JSON.stringify(configuration(next), null, 2));
           }}
         >
-          <option value="eapServer">Servidor EAP TLS / PEAP</option>
-          <option value="eapAuthenticator">AP autenticador RADIUS</option>
-          <option value="eapSupplicant">Cliente EAP TLS / PEAP</option>
-          <option value="ids">IDS / IPS</option>
-          <option value="mesh">Mesh de APs</option>
-          <option value="wlc">Controller WLC</option>
-          <option value="wtp">AP gerenciado · WTP</option>
+          {kinds.map((value) => (
+            <option key={value} value={value}>
+              {
+                {
+                  eapServer: 'Servidor EAP TLS / PEAP',
+                  eapAuthenticator: 'AP autenticador RADIUS',
+                  eapSupplicant: 'Cliente EAP TLS / PEAP',
+                  ids: 'IDS / IPS',
+                  mesh: 'Mesh de APs',
+                  wlc: 'Controller WLC',
+                  wtp: 'AP gerenciado · WTP',
+                }[value]
+              }
+            </option>
+          ))}
         </select>
       </label>
       <p className="muted">
-        WLC e AP gerenciado exigem uma interface underlay routed/SVI com IPv4 e rota entre eles. O mesmo
-        perfil e a mesma chave habilitam UDP/5246 e /5247. Mesh exige APs no mesmo canal; root define uma
-        saída cabeada e priority escolhe a raiz. IDS alerta; IPS pode descartar. EAP exige SSID
-        WPA2-Enterprise, AP com rota ao servidor e certificado confiável no cliente. Os valores iniciais
-        incluem uma autoridade local para exercícios; PEAP usa senha dentro do canal TLS.
+        {
+          {
+            eapServer:
+              'Servidor RADIUS para EAP TLS/PEAP: autorize o AP pela chave compartilhada, configure usuários e a identidade de servidor. A autoridade do exemplo pertence ao laboratório.',
+            eapAuthenticator:
+              'O AP autentica o cliente com um servidor RADIUS alcançável pelo underlay IPv4. Use SSID WPA2-Enterprise; o cliente precisa confiar na autoridade do servidor.',
+            eapSupplicant:
+              'O cliente usa um certificado no EAP-TLS ou senha no PEAP. Configure o SSID WPA2-Enterprise e a autoridade confiável do servidor RADIUS.',
+            wlc: 'O controlador gerencia APs por CAPWAP. Configure IPv4 no underlay, perfis WLAN e a chave compartilhada com os APs. O transporte usa UDP/5246 para controle e /5247 para dados.',
+            wtp: 'Este AP gerenciado precisa de rota IPv4 até o controlador, perfil WLAN e chave correspondentes. O controlador entrega a configuração após discovery e join CAPWAP.',
+            mesh: 'APs da mesma mesh usam identidade, chave e canal comuns. Marque como raiz o AP com saída cabeada. A prioridade escolhe a raiz e a métrica determina o caminho entre vizinhos.',
+            ids: 'IDS observa assinaturas e taxas e gera alertas. IPS pode descartar o tráfego que corresponde às regras. Neste modelo, a inspeção atua no caminho de encaminhamento do equipamento.',
+          }[kind]
+        }
       </p>
       <form
         onSubmit={(ev) => {

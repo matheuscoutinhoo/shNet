@@ -38,6 +38,116 @@ async function registerAndLogin(page: Page, address: string) {
   await page.getByRole('button', { name: 'Entrar no shLab' }).click();
   await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
+test('Equipamentos: detalhes responsivos, expansão pela esquerda e opções específicas', async ({ page }) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'integridade-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Integridade de equipamentos');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const inspector = page.getByRole('complementary', { name: 'Inspeção de equipamento' });
+  const tabs = inspector.locator('.inspector-tabs');
+  const add = async (name: string) => {
+    await page.getByRole('searchbox', { name: 'Buscar equipamento' }).fill(name);
+    await page
+      .locator('.equipment-card')
+      .filter({ has: page.getByText(name, { exact: true }) })
+      .click();
+    await expect(inspector.locator('h2')).toBeVisible();
+  };
+  await add('Mesh AP');
+  const meshName = (await inspector.locator('h2').textContent())!;
+  expect(meshName).toMatch(/^MESH-/);
+  for (const name of ['LACP', 'VXLAN / EVPN', 'OSPF', 'Controller WAN', 'Banco de dados', 'Aplicações']) {
+    await expect(tabs.getByRole('button', { name, exact: true })).toHaveCount(0);
+  }
+  await tabs.getByRole('button', { name: 'CAPWAP / Mesh / EAP', exact: true }).click();
+  const features = inspector.getByRole('combobox', { name: 'Recurso de rede' });
+  await expect(features.locator('option')).toHaveCount(3);
+  await expect(features.locator('option[value="ids"]')).toHaveCount(0);
+  await expect(features.locator('option[value="wlc"]')).toHaveCount(0);
+  const handle = page.getByRole('separator', { name: 'Redimensionar detalhes do equipamento' });
+  const before = (await inspector.boundingBox())!;
+  const edge = (await handle.boundingBox())!;
+  await page.mouse.move(edge.x + edge.width / 2, edge.y + 120);
+  await page.mouse.down();
+  await page.mouse.move(edge.x - 210, edge.y + 120, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(async () => (await inspector.boundingBox())!.width).toBeGreaterThan(before.width + 180);
+  await expect(inspector).not.toHaveClass(/resizing/);
+  const expanded = (await inspector.boundingBox())!.width;
+  expect(await inspector.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await handle.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(async () => (await inspector.boundingBox())!.width).toBeLessThan(expanded);
+  await page.screenshot({ path: 'test-results/device-details-expanded.png', fullPage: true });
+  await page.setViewportSize({ width: 1000, height: 960 });
+  await page.getByRole('button', { name: 'Mostrar catálogo', exact: true }).click();
+  await handle.focus();
+  await page.keyboard.press('End');
+  const withoutCatalog = (await inspector.boundingBox())!.width;
+  await page.getByRole('button', { name: 'Mostrar catálogo', exact: true }).click();
+  await expect.poll(async () => (await inspector.boundingBox())!.width).toBeLessThan(withoutCatalog - 150);
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await handle.focus();
+  await page.keyboard.press('End');
+  await add('Wireless Controller');
+  expect((await inspector.boundingBox())!.width).toBeGreaterThan(before.width + 100);
+  await expect(inspector.locator('h2')).toHaveText(/^WLC-/);
+  await expect(tabs.getByRole('button', { name: 'Wireless', exact: true })).toHaveCount(0);
+  await tabs.getByRole('button', { name: 'WLC / CAPWAP', exact: true }).click();
+  await expect(inspector.getByRole('combobox', { name: 'Recurso de rede' }).locator('option')).toHaveCount(1);
+  await add('Telefone IP');
+  await tabs.getByRole('button', { name: 'Aplicações', exact: true }).click();
+  await expect(inspector.getByRole('combobox').locator('option')).toHaveCount(1);
+  await expect(inspector.getByRole('button', { name: 'Conectar IoT', exact: true })).toHaveCount(0);
+  await tabs.getByRole('button', { name: 'Hardware / PoE', exact: true }).click();
+  await expect(
+    inspector.getByRole('combobox', { name: 'Socket', exact: true }).locator('option')
+  ).toHaveCount(1);
+  await expect(
+    inspector.getByRole('combobox', { name: 'Socket', exact: true }).locator('option[value="serial"]')
+  ).toHaveCount(0);
+  await add('Rack');
+  const rackName = (await inspector.locator('h2').textContent())!;
+  await expect(tabs.getByRole('button')).toHaveCount(3);
+  await expect(inspector.getByRole('button', { name: 'Desligar equipamento', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Fechar inspector' }).click();
+  await page.getByRole('button', { name: 'Fit View', exact: true }).click();
+  await page
+    .locator('.network-device')
+    .filter({ has: page.getByText(rackName, { exact: true }) })
+    .click({ button: 'right' });
+  await expect(page.getByRole('menuitem', { name: 'Conectar', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Desligar', exact: true })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await add('Smartphone');
+  await expect(tabs.getByRole('button', { name: 'Hardware / PoE', exact: true })).toHaveCount(0);
+  await tabs.getByRole('button', { name: 'Portas', exact: true }).click();
+  await expect(inspector.locator('.interface-item')).toHaveCount(1);
+  await expect(inspector.locator('.interface-item')).toContainText('Wlan0');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(async () => (await inspector.boundingBox())!.width).toBeLessThanOrEqual(382);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await inspector.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await handle.focus();
+  await page.keyboard.press('Home');
+  await expect(handle).toHaveAttribute('aria-valuenow', '280');
+  await page.keyboard.press('End');
+  await expect.poll(async () => (await inspector.boundingBox())!.width).toBeGreaterThan(350);
+  await page.screenshot({ path: 'test-results/device-details-mobile.png', fullPage: true });
+  await expect(new AxeBuilder({ page }).include('.inspector').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await add('Mesh AP');
+  await tabs.getByRole('button', { name: 'Hardware / PoE', exact: true }).click();
+  await page.screenshot({ path: 'test-results/device-details-hardware.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
+
 test('Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório', async ({ page }) => {
   test.setTimeout(120000);
   const errors: string[] = [];
@@ -2780,7 +2890,7 @@ for (const method of ['tls', 'peap'] as const) {
         .dblclick();
       await page
         .locator('.inspector-tabs')
-        .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })
+        .getByRole('button', { name: /CAPWAP|EAP empresarial|IDS \/ IPS/ })
         .click();
       await expect(page.getByLabel('Recurso de rede', { exact: true })).toHaveValue('eapServer');
       const server = JSON.parse(await page.getByLabel('Configuração de rede avançada').inputValue());
@@ -2797,7 +2907,7 @@ for (const method of ['tls', 'peap'] as const) {
       .dblclick();
     await page
       .locator('.inspector-tabs')
-      .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })
+      .getByRole('button', { name: /CAPWAP|EAP empresarial|IDS \/ IPS/ })
       .click();
     await expect(page.getByLabel('Recurso de rede', { exact: true })).toHaveValue('eapSupplicant');
     if (method === 'peap') {
@@ -2836,7 +2946,7 @@ for (const method of ['tls', 'peap'] as const) {
       .dblclick();
     await page
       .locator('.inspector-tabs')
-      .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })
+      .getByRole('button', { name: /CAPWAP|EAP empresarial|IDS \/ IPS/ })
       .click();
     await expect(page.locator('.inspector-body')).toContainText('TLS ESTABLISHED');
     await expect(page.getByLabel('Recurso de rede', { exact: true })).toHaveValue('eapSupplicant');
@@ -2951,7 +3061,7 @@ test('Produto: infraestrutura, formulários guiados, acessibilidade e teclado', 
     .click();
   await page
     .locator('.inspector-tabs')
-    .getByRole('button', { name: 'WLC / Mesh / IDS', exact: true })
+    .getByRole('button', { name: /CAPWAP|EAP empresarial|IDS \/ IPS/ })
     .click();
   await page.getByLabel('Recurso de rede', { exact: true }).selectOption('ids');
   await page.getByLabel('Limiar de pacotes', { exact: true }).fill('12');

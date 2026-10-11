@@ -1,32 +1,43 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { ConfigEditor, configChoices } from '../components/ConfigEditor';
 import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
 import type { Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function HardwarePanel({ lab, device }: { lab: LabController; device: Device }) {
+  const capabilities = deviceCapabilities(device);
+  const [media, setMedia] = useState(capabilities.serial ? 'serial' : 'console');
   const [json, setJson] = useState(() =>
     JSON.stringify(
       {
-        supply: device.poeSupply
+        ...(capabilities.poeSupply
           ? {
-              enabled: device.poeSupply.enabled,
-              budget: device.poeSupply.budget,
-              ports: device.poeSupply.ports,
+              supply: device.poeSupply
+                ? {
+                    enabled: device.poeSupply.enabled,
+                    budget: device.poeSupply.budget,
+                    ports: device.poeSupply.ports,
+                  }
+                : {
+                    enabled: false,
+                    budget: 120,
+                    ports: device.interfaces
+                      .filter((p) => p.media === 'rj45')
+                      .map((p) => ({ port: p.id, enabled: true, standard: 'at', priority: 10 })),
+                  },
             }
-          : {
-              enabled: false,
-              budget: 120,
-              ports: device.interfaces
-                .filter((p) => p.media === 'rj45')
-                .map((p) => ({ port: p.id, enabled: true, standard: 'at', priority: 10 })),
-            },
-        load: device.poeDevice
+          : {}),
+        ...(capabilities.poeLoad
           ? {
-              required: device.poeDevice.required,
-              class: device.poeDevice.class,
-              watts: device.poeDevice.watts,
+              load: device.poeDevice
+                ? {
+                    required: device.poeDevice.required,
+                    class: device.poeDevice.class,
+                    watts: device.poeDevice.watts,
+                  }
+                : { required: false, class: 3, watts: 10 },
             }
-          : { required: false, class: 3, watts: 10 },
+          : {}),
       },
       null,
       2
@@ -43,26 +54,35 @@ export function HardwarePanel({ lab, device }: { lab: LabController; device: Dev
         PSE reserva potência por classe e prioridade. Um PD dependente de PoE só funciona com cabo de cobre e
         orçamento suficiente. Use required: true para telefone, AP ou câmera alimentados pela rede.
       </p>
-      <form
-        onSubmit={(ev) => {
-          ev.preventDefault();
-          lab.change((e) => {
-            const c = JSON.parse(json);
-            e.configurePoe(device.id, c.supply, c.load);
-          });
-        }}
-      >
-        <ConfigEditor
-          choices={configChoices(lab.engine, device)}
-          label="PSE / PD"
-          schema={configurationSchemas.hardware}
-          className="config-json"
-          rows={10}
-          value={json}
-          onChange={(ev) => setJson(ev.target.value)}
-        />
-        <button className="button small primary">Aplicar PoE</button>
-      </form>
+      {(capabilities.poeSupply || capabilities.poeLoad) && (
+        <form
+          onSubmit={(ev) => {
+            ev.preventDefault();
+            lab.change((e) => {
+              const c = JSON.parse(json);
+              e.configurePoe(
+                device.id,
+                capabilities.poeSupply ? c.supply : undefined,
+                capabilities.poeLoad ? c.load : undefined
+              );
+            });
+          }}
+        >
+          <ConfigEditor
+            choices={configChoices(lab.engine, device)}
+            label="PSE / PD"
+            schema={configurationSchemas.hardware.pick({
+              ...(capabilities.poeSupply ? { supply: true } : {}),
+              ...(capabilities.poeLoad ? { load: true } : {}),
+            })}
+            className="config-json"
+            rows={10}
+            value={json}
+            onChange={(ev) => setJson(ev.target.value)}
+          />
+          <button className="button small primary">Aplicar PoE</button>
+        </form>
+      )}
       <p>
         PoE:{' '}
         {device.poeDevice?.required
@@ -97,30 +117,36 @@ export function HardwarePanel({ lab, device }: { lab: LabController; device: Dev
         <h4>Adicionar porta serial ou console</h4>
         <label>
           Socket
-          <select name="media">
-            <option value="serial">Serial WAN · HDLC</option>
-            <option value="console">Console UART</option>
+          <select name="media" value={media} onChange={(ev) => setMedia(ev.target.value)}>
+            {capabilities.serial && <option value="serial">Serial WAN · HDLC</option>}
+            {capabilities.console && <option value="console">Console UART</option>}
           </select>
         </label>
-        <label>
-          Função serial
-          <select name="role">
-            <option>DCE</option>
-            <option>DTE</option>
-          </select>
-        </label>
-        <label>
-          Clock serial (bits/s)
-          <input name="clock" type="number" min={9600} max={2000000} defaultValue={64000} />
-        </label>
-        <label>
-          Baud console
-          <select name="baud">
-            {[9600, 19200, 38400, 57600, 115200].map((n) => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
-        </label>
+        {media === 'serial' && (
+          <>
+            <label>
+              Função serial
+              <select name="role">
+                <option>DCE</option>
+                <option>DTE</option>
+              </select>
+            </label>
+            <label>
+              Clock serial (bits/s)
+              <input name="clock" type="number" min={9600} max={2000000} defaultValue={64000} />
+            </label>
+          </>
+        )}
+        {media === 'console' && (
+          <label>
+            Baud console
+            <select name="baud">
+              {[9600, 19200, 38400, 57600, 115200].map((n) => (
+                <option key={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+        )}
         <button className="button small">Adicionar socket</button>
       </form>
       <p className="muted">

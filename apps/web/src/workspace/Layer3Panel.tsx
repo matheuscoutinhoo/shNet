@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import type { Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function Layer3Panel({ lab, device }: { lab: LabController; device: Device }) {
@@ -7,7 +8,7 @@ export function Layer3Panel({ lab, device }: { lab: LabController; device: Devic
         Subinterfaces transportam VLANs por 802.1Q. SVIs conectam a stack IP à VLAN do switch. VRFs isolam
         rotas e tráfego, inclusive com endereços sobrepostos.
       </p>
-      {device.type === 'switch' && (
+      {device.type === 'switch' && (deviceCapabilities(device).routing || !device.profile) && (
         <label className="checkbox-label">
           <input
             type="checkbox"
@@ -72,79 +73,81 @@ export function Layer3Panel({ lab, device }: { lab: LabController; device: Devic
             </p>
           ))}
       </section>
-      <section>
-        <h4>Tabelas VRF</h4>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            const f = new FormData(event.currentTarget);
-            lab.change((e) => e.configureVrf(device.id, String(f.get('name'))));
-          }}
-        >
-          <label>
-            Nome da VRF
-            <input name="name" pattern="[a-zA-Z0-9_-]{1,32}" maxLength={32} required placeholder="BLUE" />
-          </label>
-          <button className="button small">Criar VRF</button>
-        </form>
-        {(device.vrfs ?? []).map((vrf) => (
-          <p key={vrf}>
-            {vrf}{' '}
-            <button
-              className="button small"
-              onClick={() => lab.change((e) => e.configureVrf(device.id, vrf, true))}
-            >
-              Remover VRF {vrf}
-            </button>
+      {deviceCapabilities(device).vrf && (
+        <section>
+          <h4>Tabelas VRF</h4>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const f = new FormData(event.currentTarget);
+              lab.change((e) => e.configureVrf(device.id, String(f.get('name'))));
+            }}
+          >
+            <label>
+              Nome da VRF
+              <input name="name" pattern="[a-zA-Z0-9_-]{1,32}" maxLength={32} required placeholder="BLUE" />
+            </label>
+            <button className="button small">Criar VRF</button>
+          </form>
+          {(device.vrfs ?? []).map((vrf) => (
+            <p key={vrf}>
+              {vrf}{' '}
+              <button
+                className="button small"
+                onClick={() => lab.change((e) => e.configureVrf(device.id, vrf, true))}
+              >
+                Remover VRF {vrf}
+              </button>
+            </p>
+          ))}
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Interface</th>
+                  <th>VLAN / IPv4</th>
+                  <th>Tabela</th>
+                </tr>
+              </thead>
+              <tbody>
+                {device.interfaces
+                  .filter((p) => p.mode === 'routed')
+                  .map((port) => (
+                    <tr key={port.id}>
+                      <td>{port.name}</td>
+                      <td>
+                        {port.logical?.vlan ?? 'Sem tag'}
+                        <br />
+                        {port.ip ? `${port.ip}/${port.prefix}` : 'Sem IPv4'}
+                      </td>
+                      <td>
+                        <select
+                          aria-label={'VRF de ' + port.name}
+                          value={port.vrf ?? ''}
+                          onChange={(event) =>
+                            lab.change((e) =>
+                              e.setInterfaceVrf(device.id, port.id, event.target.value || undefined)
+                            )
+                          }
+                        >
+                          <option value="">Padrão</option>
+                          {(device.vrfs ?? []).map((v) => (
+                            <option key={v}>{v}</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="muted">
+            Rotas estáticas por VRF: <code>ip route vrf BLUE CIDR NEXT_HOP</code>. Teste com{' '}
+            <code>ping vrf BLUE IPv4</code> ou selecione a VRF no painel TCP. Os protocolos dinâmicos, DHCP e
+            NAT ainda usam a tabela padrão.
           </p>
-        ))}
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Interface</th>
-                <th>VLAN / IPv4</th>
-                <th>Tabela</th>
-              </tr>
-            </thead>
-            <tbody>
-              {device.interfaces
-                .filter((p) => p.mode === 'routed')
-                .map((port) => (
-                  <tr key={port.id}>
-                    <td>{port.name}</td>
-                    <td>
-                      {port.logical?.vlan ?? 'Sem tag'}
-                      <br />
-                      {port.ip ? `${port.ip}/${port.prefix}` : 'Sem IPv4'}
-                    </td>
-                    <td>
-                      <select
-                        aria-label={'VRF de ' + port.name}
-                        value={port.vrf ?? ''}
-                        onChange={(event) =>
-                          lab.change((e) =>
-                            e.setInterfaceVrf(device.id, port.id, event.target.value || undefined)
-                          )
-                        }
-                      >
-                        <option value="">Padrão</option>
-                        {(device.vrfs ?? []).map((v) => (
-                          <option key={v}>{v}</option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="muted">
-          Rotas estáticas por VRF: <code>ip route vrf BLUE CIDR NEXT_HOP</code>. Teste com{' '}
-          <code>ping vrf BLUE IPv4</code> ou selecione a VRF no painel TCP. Os protocolos dinâmicos, DHCP e
-          NAT ainda usam a tabela padrão.
-        </p>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

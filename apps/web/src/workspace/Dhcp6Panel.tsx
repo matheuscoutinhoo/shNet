@@ -1,3 +1,4 @@
+import { deviceCapabilities } from './deviceCapabilities';
 import { ConfigEditor, configChoices } from '../components/ConfigEditor';
 import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
@@ -92,13 +93,9 @@ export function Dhcp6Panel({
             }}
           >
             <option value="client">Cliente DHCPv6 da interface</option>
-            {['server', 'router', 'switch'].includes(device.type) && (
-              <option value="server">Servidor e pools DHCPv6</option>
-            )}
-            <option value="udp">Serviço echo UDP IPv6</option>
-            {['router', 'switch'].includes(device.type) && (
-              <option value="relay">Relay DHCPv6 da interface</option>
-            )}
+            {deviceCapabilities(device).dhcpServer && <option value="server">Servidor e pools DHCPv6</option>}
+            {deviceCapabilities(device).tcpServer && <option value="udp">Serviço echo UDP IPv6</option>}
+            {deviceCapabilities(device).routing && <option value="relay">Relay DHCPv6 da interface</option>}
           </select>
         </label>
         <ConfigEditor
