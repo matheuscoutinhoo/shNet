@@ -58,6 +58,7 @@ import { Brand } from '../components/Brand';
 import { Modal } from '../components/Modal';
 import { useLab, type LabController } from './useLab';
 import { TopologyCanvas } from './TopologyCanvas';
+import { findDevices } from './deviceFinder';
 import { LabPanel } from './LabPanel';
 import { NetworkInspector } from './NetworkInspector';
 import { Inspector } from './Inspector';
@@ -102,6 +103,10 @@ export function Workspace({
     copyRef = useRef<Device[]>([]);
   const copiedItems = useRef<CanvasItem[]>([]);
   const copiedLinks = useRef<Link[]>([]);
+  const [focusRequest, setFocusRequest] = useState<{ id: string; sequence: number }>();
+  const foundDevices = findDevices(lab.engine.state.devices, query);
+  const locate = (id: string) =>
+    setFocusRequest((previous) => ({ id, sequence: (previous?.sequence ?? 0) + 1 }));
   const device = lab.engine.state.devices.find((d) => d.id === inspecting);
   const select = useCallback((ids: string[]) => {
     setSelected(ids);
@@ -713,8 +718,41 @@ export function Workspace({
                   placeholder="Localizar equipamento…"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && foundDevices[0]) {
+                      e.preventDefault();
+                      locate(foundDevices[0].id);
+                    }
+                    if (e.key === 'Escape') setQuery('');
+                  }}
                 />
               </label>
+              {query.trim() && (
+                <div className="finder-results" aria-label="Resultados da busca">
+                  <p role="status">
+                    {foundDevices.length
+                      ? foundDevices.length +
+                        ' equipamento(s). Selecione para centralizar; Enter centraliza o primeiro.'
+                      : 'Nenhum equipamento encontrado por nome, IP ou MAC.'}
+                  </p>
+                  {foundDevices.slice(0, 8).map((d) => (
+                    <button
+                      type="button"
+                      key={d.id}
+                      onClick={() => locate(d.id)}
+                      aria-label={'Localizar ' + d.hostname}
+                    >
+                      <strong>{d.hostname}</strong>
+                      <span>
+                        {d.interfaces
+                          .map((p) => p.ip)
+                          .filter(Boolean)
+                          .join(' · ') || 'Sem IPv4 configurado'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <select
                 aria-label="Destacar VLAN"
                 value={highlight ?? ''}
@@ -740,6 +778,7 @@ export function Workspace({
               detailed={detailed}
               highlight={highlight}
               query={query}
+              focusRequest={focusRequest}
               drawing={drawing}
               onDrawingDone={() => setDrawing(false)}
             />
@@ -780,7 +819,7 @@ export function Workspace({
           salvar
         </span>
         <span>
-          <span className="status-dot" /> NetOS 1.0 <span>·</span> Simulação local <span>·</span>{' '}
+          <span className="status-dot" /> Motor de rede <span>·</span> Simulação local <span>·</span>{' '}
           {lab.engine.state.devices.length}/2000 dispositivos
         </span>
       </footer>

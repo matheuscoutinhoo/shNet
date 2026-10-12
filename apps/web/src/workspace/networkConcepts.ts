@@ -21,7 +21,7 @@ export const networkConcepts = [
       'Abra a conexão e compare mídia, velocidade e distância.',
       'Desative uma porta, teste o tráfego e observe os eventos de queda do enlace.',
     ],
-    'Distância, capacidade, latência e perda são parâmetros do modelo, sem medição física real.'
+    'Comprimento e mídia afetam a propagação e a compatibilidade. Latência, variação e perda exibem o resultado do modelo ou uma condição do cenário; não medem a rede real do computador.'
   ),
   concept(
     'ethernet',

@@ -21,9 +21,10 @@ export function TunnelPanel({ lab, device }: { lab: LabController; device: Devic
   return (
     <div className="tunnel-panel">
       <p className="muted">
-        Túneis L3 sobre UDP/4500 negociam INIT/AUTH, DH X25519 e SAs com AES-GCM, SPI, anti-replay e renovação
-        de chaves. O tráfego percorre o underlay e sofre suas ACLs, perda, latência e MTU. SD-WAN seleciona
-        túneis por SLA medido.
+        As pontas primeiro negociam identidade e chaves; depois transportam pacotes protegidos pela rede IP
+        externa, chamada underlay. Falhas, filtros e limite de tamanho dessa rede também afetam o túnel.
+        SD-WAN compara atraso, variação e perda para escolher caminhos. Este protocolo simulado não é
+        interoperável com uma VPN IPsec de produção.
       </p>
       {device.interfaces
         .filter((p) => p.tunnel)

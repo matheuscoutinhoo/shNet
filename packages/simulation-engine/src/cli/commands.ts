@@ -1,3 +1,5 @@
+﻿import { registerHostCommands } from './host';
+import { deviceCommandHelp, terminalIdentity } from './device-commands';
 import { registerApplicationCommands } from './applications';
 import type { NetworkInterface } from '../model';
 import { registerRemoteCommands, remoteRunningConfig } from './remote';
@@ -44,6 +46,7 @@ function vlanList(value: string) {
 }
 export function makeRegistry() {
   const r = new CommandRegistry();
+  registerHostCommands(r);
   registerRemoteCommands(r);
   registerApplicationCommands(r);
   registerAaaCommands(r);
@@ -67,79 +70,13 @@ export function makeRegistry() {
   r.register({
     pattern: /^(help|\?)$/i,
     modes: all,
-    run: () =>
+    run: (_m, _e, d, c) =>
       [
-        'NetOS — terminal simulado; nenhuma chamada ao sistema operacional.',
-        'enable | configure terminal | exit | end',
-        'hostname NAME | interface Gi0/1 | description TEXT',
-        'ip address IPv4 MASK|PREFIX | no ip address | ip default-gateway IPv4',
-        'ip address dhcp | ip dhcp renew [INTERFACE] | ip dhcp release [INTERFACE]',
-        'ip dhcp pool NAME [interface INTERFACE] | no ip dhcp pool NAME',
-        'ip dhcp pool NAME relay GIADDR/PREFIX [interface INTERFACE] | interface: ip helper-address SERVER',
-        'DHCP pool: reservation MAC IPv4 | no reservation MAC | show ip dhcp relay',
-        'DHCP pool: network IPv4/PREFIX | range START END | lease SECONDS',
-        'DHCP pool: default-router IPv4 | dns-server IPv4... | excluded-address IPv4...',
-        'service dhcp | no service dhcp | show ip dhcp pool | show ip dhcp binding | show dhcp lease',
-        'service dns | no service dns | dns record NAME A|AAAA|CNAME VALUE [ttl SECONDS]',
-        'service echo|http [PORT] | no service echo|http [PORT] | show services',
-        'tcp connect IPv4 PORT | tcp echo IPv4 PORT TEXT | tcp send ID TEXT | tcp close|reset ID',
-        'http get IPv4 [PORT] [/PATH] | show tcp [ID]',
-        'router ospf ROUTER_ID | service ospf | no service ospf',
-        'interface: ip ospf area NUMBER | ip ospf cost NUMBER | ip ospf network point-to-point|broadcast',
-        'interface: ip ospf priority NUMBER | ip ospf passive | no ip ospf | ip ospf hello-interval|dead-interval SECONDS',
-        'show ip ospf [neighbor|database|interface]',
-        'router bgp ASN | bgp router-id IP | bgp hold-time SECONDS | bgp network CIDR',
-        'neighbor IP remote-as ASN | neighbor IP passive|next-hop-self|route-reflector-client',
-        'neighbor IP local-preference|metric|as-path-prepend NUMBER | neighbor IP prefix-filter in|out SEQ permit|deny CIDR [ge N] [le N]',
-        'wireless ap|client ssid SSID security open|wpa2-psk|wpa3-sae [key KEY] channel N [band 2.4|5]',
-        'tunnel configure JSON | [no] service tunnel N | show tunnels',
-        'management configure JSON | management request JSON | automation run JSON | show management|automation',
-        'telemetry|collector|clock|ntp configure JSON | show telemetry|ntp',
-        'aaa server|client configure JSON | aaa login USER PASS | aaa logout | show aaa|dot1x',
-        'interface: dot1x|supplicant configure JSON | no dot1x|supplicant',
-        'vxlan configure JSON | [no] service vxlan VNI | no vxlan VNI | show vxlan|evpn',
-        'qos configure JSON (interface) | show qos | mpls configure JSON | mpls ingress|lfib JSON | show mpls',
-        'sdwan site SITE [controller IP underlay PORT key KEY] | sdwan policy JSON | sdwan controller JSON | show sdwan',
-        'wireless tx-power N | wireless obstruction none|drywall|brick|concrete | show wireless [scan|clients|radio] | [no] service wireless',
-        'ipv6 unicast-routing | interface: ipv6 enable | ipv6 address IPv6/PREFIX | ipv6 address autoconfig',
-        'interface: ipv6 nd prefix CIDR [valid SECONDS preferred SECONDS] | ipv6 traffic-filter in|out permit|deny KIND SRC/CIDR DST/CIDR',
-        'ipv6 route [vrf NAME] CIDR INTERFACE NEXT_HOP [metric N] | show ipv6 interface|neighbors|route|probes',
-        'ping ipv6 IP [interface NAME] [vrf NAME] [hop-limit N] [size N] | traceroute ipv6 IP [vrf NAME]',
-        'show ip bgp [summary|neighbors] | service bgp | no service bgp',
-        'service vrrp | no service vrrp | show vrrp',
-        'interface: vrrp VRID ip VIP | vrrp VRID priority NUMBER | vrrp VRID advertisement-interval MS',
-        'interface: [no] vrrp VRID preempt | no vrrp VRID',
-        'interface: [no] vrrp VRID track interface NAME|route IPv4 decrement NUMBER',
-        'router rip | service rip | no service rip | show ip rip [database|interface]',
-        'interface: ip rip enable | ip rip passive | ip rip poison-reverse | no ip rip',
-        'firewall trust INTERFACE... | firewall protocols tcp udp icmp | service firewall | no service firewall | show firewall',
-        'firewall mode trusted|zones | firewall zone NAME INTERFACE... | no firewall zone NAME | show firewall zones',
-        'firewall rule SEQ FROM TO inspect|permit|deny ip|tcp|udp|icmp [eq PORT] | no firewall rule SEQ',
-        'snmp-server community NAME | service snmp | snmp get|get-next IP COMMUNITY OID... | show snmp',
-        'logging host IP | logging severity 0..7 | logging facility 0..23 | logging automatic | no logging host',
-        'service syslog | syslog send SEVERITY TEXT | show syslog | clear syslog',
-        'interface: ip name-server IPv4... | no ip name-server',
-        'nslookup [-tcp|-udp] [-type=A|AAAA|CNAME] NAME [SERVER] | show dns records|cache|queries | clear dns cache',
-        'shutdown | no shutdown | mtu BYTES | speed MBPS | transceiver single-mode/multi-mode/dac/none',
-        'access-list NAME SEQ permit|deny ip|icmp|udp|tcp|ospf|vrrp SOURCE/CIDR DEST/CIDR [eq PORT]',
-        'interface: ip access-group NAME in|out | ip nat inside|outside',
-        'ip nat static LOCAL GLOBAL | ip nat pool NAME SOURCE/CIDR START END [overload]',
-        'show access-lists | show ip nat translations | service nat | no service nat',
-        'spanning-tree mode stp|rstp | spanning-tree priority NUMBER | no spanning-tree',
-        'interface: spanning-tree cost NUMBER | spanning-tree portfast | show spanning-tree',
-        'vlan ID | name NAME | no vlan ID',
-        'switchport mode access|trunk | switchport access vlan ID',
-        'switchport trunk native vlan ID | switchport trunk allowed vlan 10,20-30',
-        'interface: channel-group NUMBER mode active|passive | no channel-group | lacp min-links NUMBER',
-        'show etherchannel summary | show lacp neighbors | no port-channel NUMBER',
-        'ip route NETWORK MASK NEXT_HOP | no ip route NETWORK MASK NEXT_HOP',
-        'show interfaces | show ip interface brief | show vlan',
-        'interface Gi0/1.VLAN | interface VlanID | encapsulation dot1q VLAN | no switchport | ip routing',
-        'vrf definition NAME | interface: vrf forwarding NAME | show vrf | show ip route vrf NAME',
-        'ip route vrf NAME CIDR NEXT_HOP | ping vrf NAME IPv4 | http get vrf NAME IPv4 [PORT] [/PATH]',
-        'show mac address-table | show arp | show ip route | show running-config',
-        'ping IPv4|HOSTNAME | traceroute IPv4|HOSTNAME',
-        'write memory (estado salvo pelo workspace)',
+        terminalIdentity(d).family + ' · ' + terminalIdentity(d).name + ' · terminal simulado',
+        'Os comandos atuam somente neste laboratório. Use as abas do equipamento para configuração guiada.',
+        ...deviceCommandHelp(d, c).map(
+          (entry) => entry.command + '\n  ' + entry.description + '\n  Exemplo: ' + entry.example
+        ),
       ].join('\n'),
   });
   r.register({

@@ -2,7 +2,7 @@
 
 <img src="apps/web/public/shlab-mark.svg" alt="Logo shLab: um terminal com prompt e conexão de rede" width="80" height="80" />
 
-Um laboratório de redes web em português, com motor determinístico de eventos discretos. O canvas, o terminal NetOS e o inspetor consomem o mesmo estado.
+Um laboratório de redes web em português, com motor determinístico de eventos discretos. O canvas, os terminais por perfil e o inspetor consomem o mesmo estado.
 
 ## Executar
 
@@ -40,8 +40,12 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 
 ## O que funciona
 
+- Eventos com explicação do acontecimento, próxima verificação sugerida e campos técnicos acompanhados de significado. As camadas exibidas correspondem ao pacote observado; anúncios Wi-Fi não são apresentados como tráfego IPv4 ou Ethernet II.
+- Orientações nos painéis de equipamentos e no inspetor da rede explicam campos, pré-requisitos e experiências. Recursos específicos, como telefonia, MQTT, CAPWAP e IDS/IPS, recebem explicações conforme o perfil.
+- Busca do canvas por nome, IPv4, IPv6 ou MAC. Um resultado único ou nome exato é centralizado; resultados ambíguos oferecem seleção e Enter centraliza o primeiro.
+- Terminais HostShell, ServiceShell e NetOS por função, com ajuda, exemplos e execução limitada pelas mesmas capacidades dos menus. Hosts usam `ipconfig`, `ip addr`, `ip route`, `ip link` e, quando possuem rádio, `wifi`; switches oferecem VLAN/MAC/STP/LACP. Serviços de telefone, impressora, broker e banco têm seus próprios comandos. [Decisões e limites](docs/adr/041-educational-events-device-terminals.md).
 - Cadastro, verificação de e-mail, login, logout, reenvio de verificação, recuperação e alteração de senha, revogação de sessões.
-- Nome de perfil, sessões individuais revogáveis e exclusão da própria conta com senha. Identidade visual azul/ciano com acentos neon e tipografia local.
+- Nome de perfil, sessões individuais revogáveis e exclusão da própria conta com senha. Identidade visual em azul profundo e verde-água, com acentos neon e tipografia local.
 - Meus laboratórios com busca, filtros por modo/progresso/favoritos e ordenação. Templates e trilhas em um catálogo separado, com filtros por tema, conteúdo e nível.
 - Laboratórios privados, autosave com revisão otimista, snapshots e import/export JSON. Histórico de atividades na página Meus laboratórios.
 - Canvas com zoom/pan, seleção múltipla, arrastar/adicionar dispositivos, grade/snap, minimapa, temas, busca, notas, desenhos, comentários ancorados, duplicação e undo/redo.

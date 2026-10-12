@@ -2,7 +2,12 @@ import AxeBuilder from '@axe-core/playwright';
 import { test, expect, type Page } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { decodePcap, deviceProfiles } from '../../packages/simulation-engine/src';
+import {
+  decodePcap,
+  deviceProfiles,
+  SimulationEngine,
+  wirelessConfig,
+} from '../../packages/simulation-engine/src';
 import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 import type { Project, ProjectSummary } from '../../apps/web/src/api';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
@@ -59,6 +64,163 @@ async function registerAndLogin(page: Page, address: string) {
   await submitLogin(page);
   await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
+test('Aprendizado: finder centraliza equipamento presente e terminais respeitam o perfil', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'finder-terminal-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Finder e comandos específicos');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const e = new SimulationEngine(),
+    laptop = e.addProfile('laptop', { x: 5500, y: 1300 }),
+    sw = e.addProfile('switch-l2', { x: 100, y: 100 });
+  laptop.hostname = 'NOTEBOOK-REMOTO';
+  sw.hostname = 'SW-LOCAL';
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'finder.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  await expect(page.locator('.network-device')).toHaveCount(2);
+  const finder = page.getByRole('textbox', { name: 'Localizar equipamento' }),
+    viewport = page.locator('.react-flow__viewport');
+  const before = await viewport.getAttribute('style');
+  await finder.fill('NOTEBOOK-REMOTO');
+  const target = page
+    .locator('.network-device')
+    .filter({ has: page.getByText('NOTEBOOK-REMOTO', { exact: true }) });
+  await expect(target).toHaveClass(/selected/);
+  await expect.poll(() => viewport.getAttribute('style')).not.toBe(before);
+  await expect
+    .poll(async () => {
+      const box = await target.boundingBox(),
+        canvas = await page.locator('.react-flow').boundingBox();
+      return (
+        !!box &&
+        !!canvas &&
+        box.x >= canvas.x &&
+        box.y >= canvas.y &&
+        box.x + box.width <= canvas.x + canvas.width &&
+        box.y + box.height <= canvas.y + canvas.height
+      );
+    })
+    .toBe(true);
+  await expect.poll(async () => (await target.boundingBox())!.width).toBeGreaterThan(180);
+  await finder.fill('não-existe');
+  await expect(page.locator('.finder-results')).toContainText('Nenhum equipamento');
+  const centered = await viewport.getAttribute('style');
+  await finder.press('Enter');
+  await expect(viewport).toHaveAttribute('style', centered!);
+  await finder.fill('NOTEBOOK');
+  await page.getByRole('button', { name: 'Localizar NOTEBOOK-REMOTO', exact: true }).click();
+  await finder.press('Escape');
+  await target.dblclick();
+  const inspector = page.locator('.inspector'),
+    tabs = inspector.locator('.inspector-tabs');
+  await expect(tabs.getByRole('button', { name: 'STP', exact: true })).toHaveCount(0);
+  await tabs.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await inspector.locator('.terminal-guide summary').click();
+  await expect(inspector.locator('.terminal-guide')).toContainText('ipconfig /all');
+  await expect(inspector.locator('.terminal-guide')).not.toContainText('show spanning-tree');
+  await inspector.locator('.terminal-guide summary').click();
+  const command = async (text: string) => {
+    await page.locator('.xterm-helper-textarea').focus();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+  };
+  await command('ipconfig /all');
+  await expect(inspector.locator('.terminal-host')).toContainText('HostShell');
+  await expect(inspector.locator('.terminal-host')).toContainText('NOTEBOOK-REMOTO$');
+  await command('vlan 20');
+  await expect(inspector.locator('.terminal-host')).toContainText('não se aplica');
+  await command(`ip addr add 192.0.2.10/24 dev ${laptop.interfaces[0].name}`);
+  await tabs.getByRole('button', { name: 'Portas', exact: true }).click();
+  await expect(inspector.locator('.interface-item').first()).toContainText('192.0.2.10');
+  await expect(inspector.locator('.section-education')).toContainText('interface é');
+  await page.getByRole('button', { name: 'Fechar inspector' }).click();
+  await finder.fill('SW-LOCAL');
+  await finder.press('Enter');
+  await finder.press('Escape');
+  await page
+    .locator('.network-device')
+    .filter({ has: page.getByText('SW-LOCAL', { exact: true }) })
+    .dblclick();
+  await tabs.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await inspector.locator('.terminal-guide summary').click();
+  await expect(inspector.locator('.terminal-guide')).toContainText('show spanning-tree');
+  await expect(inspector.locator('.terminal-guide')).not.toContainText('ipconfig /all');
+  await inspector.locator('.terminal-guide summary').click();
+  await command('ipconfig');
+  await expect(inspector.locator('.terminal-host')).toContainText('não se aplica');
+  await page.getByRole('button', { name: 'Inspetor da rede', exact: true }).click();
+  const networkDialog = page.getByRole('dialog', { name: 'Inspetor da rede' });
+  await expect(networkDialog.locator('.section-education')).toContainText('RX / TX');
+  await networkDialog.getByRole('tab', { name: 'Caminho', exact: true }).click();
+  await expect(networkDialog.locator('.section-education')).toContainText('não é uma previsão');
+  await expect(new AxeBuilder({ page }).include('.modal').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  await networkDialog.locator('.modal-head').getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.screenshot({ path: testInfo.outputPath('finder-terminal.png'), fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corretas', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'event-education-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Anúncio Wi-Fi explicado');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const e = new SimulationEngine(),
+    ap = e.addProfile('ap');
+  e.configureWireless(ap.id, { ...wirelessConfig(ap), ssid: 'MinhaRede', security: 'open', key: undefined });
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'wifi.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  await advanceSimulation(
+    page,
+    async () => (await page.locator('.event-table tbody').innerText()).includes('WIFI_SENT'),
+    20
+  );
+  await page.locator('.event-table tbody tr').filter({ hasText: 'WIFI_SENT' }).first().click();
+  const dialog = page.getByRole('dialog', { name: 'Por que isso aconteceu?' });
+  await expect(dialog.locator('.event-explanation')).toContainText('não confirma associação');
+  await expect(dialog.locator('.event-explanation')).toContainText('MinhaRede');
+  await expect(dialog.locator('.event-technical')).not.toHaveAttribute('open', '');
+  await expect(dialog.getByText('EtherType', { exact: true })).toHaveCount(0);
+  await dialog.locator('.event-technical > summary').click();
+  await expect(dialog.locator('.packet-fields')).toContainText(['Nome da rede (SSID)']);
+  await expect(dialog).toContainText('Rede aberta — sem autenticação por chave');
+  await expect(dialog.getByText('Nonce', { exact: true })).toHaveCount(0);
+  await expect(dialog.getByText('Negociação', { exact: true })).toHaveCount(0);
+  await expect(dialog.locator('.osi-stack > div')).toHaveCount(2);
+  await expect(dialog.locator('.osi-stack')).toContainText('Rádio');
+  await expect(dialog).not.toContainText('Ethernet II');
+  await expect(new AxeBuilder({ page }).include('.modal').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  await page.screenshot({ path: testInfo.outputPath('event-education-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await expect(new AxeBuilder({ page }).include('.modal').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  await page.screenshot({ path: testInfo.outputPath('event-education-mobile.png'), fullPage: true });
+  expect(errors).toEqual([]);
+});
+
 test('Aparência: plataforma sempre escura, independente do sistema e de preferências antigas', async ({
   page,
 }) => {
@@ -1973,7 +2135,7 @@ test('TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile',
   await page.locator('.event-filters').getByRole('button', { name: 'TCP', exact: true }).click();
   const packetRow = page.locator('.event-table-wrap tr').filter({ hasText: 'FRAME_SENT' }).last();
   await packetRow.click();
-  await expect(page.getByRole('dialog')).toContainText('Acknowledgment');
+  await expect(page.getByRole('dialog')).toContainText('Confirmação TCP (ACK)');
   await expect(page.getByRole('dialog')).toContainText('6 (TCP)');
   await page
     .getByRole('dialog')
@@ -3193,7 +3355,7 @@ test('IPv6: SLAAC, ping roteado, Hop Limit, pacote e persistência mobile', asyn
   await page.screenshot({ path: 'test-results/ipv6-desktop.png', fullPage: true });
   await page.locator('.event-filters').getByRole('button', { name: 'IPv6 / NDP', exact: true }).click();
   await page.locator('.event-table-wrap tr').filter({ hasText: 'NDP_SENT' }).first().click();
-  await expect(page.getByRole('dialog')).toContainText('IPv6 — ICMPv6 / NDP');
+  await expect(page.getByRole('dialog')).toContainText('IPv6 — ICMPv6');
   await page
     .getByRole('dialog')
     .locator('.modal-head')
@@ -3261,7 +3423,7 @@ test('Wireless: autenticação, HTTP pelo rádio, pacotes e persistência mobile
   await expect(page.getByLabel('Cobertura aproximada do AP')).toBeAttached();
   await page.locator('.event-filters').getByRole('button', { name: 'Wi-Fi', exact: true }).click();
   await page.locator('.event-table-wrap tr').filter({ hasText: 'WIFI_SENT' }).first().click();
-  await expect(page.getByRole('dialog')).toContainText('802.11 — associação e segurança');
+  await expect(page.getByRole('dialog')).toContainText('Wi-Fi —');
   await page
     .getByRole('dialog')
     .locator('.modal-head')

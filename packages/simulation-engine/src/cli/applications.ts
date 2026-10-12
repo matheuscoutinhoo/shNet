@@ -1,5 +1,38 @@
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { z } from 'zod';
+import { transportAddressSchema } from '../protocols/tcp-model';
+import { redactNetworkSecrets } from './aaa';
 export function registerApplicationCommands(r: CommandRegistry) {
+  r.register({
+    pattern: /^database configure (\{.+\})$/i,
+    modes: CONFIG_MODES,
+    run: (m, e, d) => e.configureDatabase(d.id, JSON.parse(m[1])),
+  });
+  r.register({
+    pattern: /^show database$/i,
+    modes: ALL_MODES,
+    run: (_m, _e, d) => redactNetworkSecrets(JSON.stringify(d.database ?? {}, null, 2)),
+  });
+  r.register({
+    pattern: /^database query (\{.+\})$/i,
+    modes: ALL_MODES,
+    run: (m, e, d) => {
+      const c = z
+        .object({
+          target: transportAddressSchema,
+          port: z.number().int().min(1).max(65535).default(8080),
+          key: z.string().min(8).max(128),
+          query: z.string().min(1).max(2048),
+        })
+        .strict()
+        .parse(JSON.parse(m[1]));
+      return (
+        'Consulta enviada pela conexão TCP [' +
+        e.queryDatabase(d.id, c.target, c.query, c.key, c.port) +
+        ']. Avance a simulação.'
+      );
+    },
+  });
   r.register({
     pattern: /^eap (server|authenticator|supplicant) configure (.+)$/i,
     modes: CONFIG_MODES,

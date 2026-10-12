@@ -1,4 +1,5 @@
 import { devicePresentationProfile } from './deviceCapabilities';
+import { findDevices } from './deviceFinder';
 import { DrawingLayer } from './DrawingLayer';
 import {
   collectCanvasActivities,
@@ -416,6 +417,7 @@ interface Props {
   detailed: boolean;
   highlight: number | undefined;
   query: string;
+  focusRequest?: { id: string; sequence: number };
   drawing: boolean;
   onDrawingDone: () => void;
 }
@@ -501,11 +503,12 @@ function Canvas({
   detailed,
   highlight,
   query,
+  focusRequest,
   drawing,
   onDrawingDone,
 }: Props) {
   const { engine, tick } = lab,
-    { screenToFlowPosition, fitView, setCenter, getViewport } = useReactFlow();
+    { screenToFlowPosition, fitView, setCenter, getViewport, getNode } = useReactFlow();
   const motion = useCanvasMotion();
   const activities = useCanvasActivities(lab, motion.visible);
   const canMove = motion.visible && !motion.reduced;
@@ -528,6 +531,50 @@ function Canvas({
     if (actions && !selected.includes(actions.id)) setActions(null);
   }, [actions, selected]);
   const nodesInitialized = useNodesInitialized();
+  const matches = findDevices(engine.state.devices, query);
+  const matchIds = matches.map((d) => d.id).join(',');
+  const lastSearch = useRef('');
+  const focusDevice = useCallback(
+    (id: string) => {
+      const d = engine.state.devices.find((d) => d.id === id);
+      if (!d) return;
+      const node = getNode(id);
+      onSelect([id]);
+      void setCenter(
+        d.position.x + (node?.measured?.width ?? 296) / 2,
+        d.position.y + (node?.measured?.height ?? 154) / 2,
+        { zoom: 1.2, duration: motion.reduced ? 0 : 300 }
+      );
+    },
+    [engine, getNode, onSelect, setCenter, motion.reduced]
+  );
+  useEffect(() => {
+    if (!query.trim()) {
+      lastSearch.current = '';
+      return;
+    }
+    const key = query.trim().toLowerCase() + ':' + matchIds;
+    if (key === lastSearch.current) return;
+    const found = findDevices(engine.state.devices, query);
+    const exact = found.find((d) => d.hostname.toLowerCase() === query.trim().toLowerCase());
+    const target = exact ?? (found.length === 1 ? found[0] : undefined);
+    if (!target) {
+      lastSearch.current = '';
+      return;
+    }
+    const timer = setTimeout(() => {
+      lastSearch.current = key;
+      focusDevice(target.id);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [engine, query, matchIds, focusDevice]);
+  const handledFocus = useRef(0);
+  useEffect(() => {
+    if (focusRequest && handledFocus.current !== focusRequest.sequence) {
+      handledFocus.current = focusRequest.sequence;
+      focusDevice(focusRequest.id);
+    }
+  }, [focusRequest, focusDevice]);
   const fittedDeviceCount = useRef(engine.state.devices.length);
   useEffect(() => {
     const size = engine.state.devices.length;
@@ -552,6 +599,7 @@ function Canvas({
   activityView.current = { activities, canMove, playing: lab.playing };
   useEffect(() => {
     const view = activityView.current;
+    const searchIds = new Set(findDevices(engine.state.devices, query).map((d) => d.id));
     const items = engine.state.canvasItems ?? [];
     const parents = new Map<string, CanvasItem>();
     for (const item of items) for (const member of item.members ?? []) parents.set(member, item);
@@ -609,7 +657,7 @@ function Canvas({
           detailed,
           highlight: highlight !== undefined && deviceParticipatesInVlan(engine.state, d.id, highlight),
         },
-        className: query && !d.hostname.toLowerCase().includes(query.toLowerCase()) ? 'dim-node' : '',
+        className: searchIds.size && !searchIds.has(d.id) ? 'dim-node' : '',
       };
     });
     setNodes((previous) => {

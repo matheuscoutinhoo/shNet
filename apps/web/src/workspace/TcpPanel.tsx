@@ -73,7 +73,7 @@ export function TcpPanel({ lab, device }: { lab: LabController; device: Device }
                   kind: data.get('kind'),
                   port: Number(data.get('port')),
                   enabled: true,
-                  body: String(data.get('body')),
+                  body: data.get('kind') === 'http' ? String(data.get('body')) : undefined,
                 })
               );
             }}
@@ -98,10 +98,18 @@ export function TcpPanel({ lab, device }: { lab: LabController; device: Device }
                 />
               </label>
             </div>
-            <label>
-              Resposta HTTP
-              <textarea name="body" maxLength={4096} defaultValue="Olá da rede simulada!" />
-            </label>
+            {device.type !== 'pc' && (
+              <label>
+                Resposta HTTP
+                <textarea name="body" maxLength={4096} defaultValue="Olá da rede simulada!" />
+              </label>
+            )}
+            {device.type === 'pc' && (
+              <p className="muted">
+                Este host pode atender Echo TCP: devolve os bytes recebidos ao remetente. Ele não oferece um
+                servidor HTTP neste perfil.
+              </p>
+            )}
             <button className="button small">
               <Save size={14} /> Salvar serviço
             </button>

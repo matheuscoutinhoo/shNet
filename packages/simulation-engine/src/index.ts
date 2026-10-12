@@ -55,6 +55,8 @@ export { telemetryConfig, telemetryMetrics } from './protocols/telemetry';
 export { ntpConfig, networkTime } from './protocols/ntp';
 
 export * from './devices/profiles';
+export * from './devices/capabilities';
+export * from './cli/device-commands';
 export * from './network-analysis';
 export { advancedLabs } from './advanced-labs';
 

@@ -6,6 +6,7 @@ import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './re
 export function redactNetworkSecrets(text: string) {
   return text
     .replace(/("(?:key|password)"\s*:\s*)"[^"]*"/gi, '$1"[redacted]"')
+    .replace(/((?:wifi connect|wireless (?:ap|client)) .+? key) \S+/i, '$1 [redacted]')
     .replace(/^(aaa login \S+) \S+$/i, '$1 [redacted]');
 }
 export function registerAaaCommands(r: CommandRegistry) {

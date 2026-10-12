@@ -13,6 +13,7 @@ import {
 } from '@shlab/engine';
 import { Modal } from '../components/Modal';
 import type { LabController } from './useLab';
+import { SectionEducation } from './SectionEducation';
 
 export function NetworkInspector({
   lab,
@@ -197,6 +198,25 @@ export function NetworkInspector({
           </button>
         ))}
       </div>
+      <SectionEducation
+        section={
+          (
+            {
+              devices: 'networkSummary',
+              interfaces: 'interfaces',
+              vlans: 'layer3',
+              routes: 'tables',
+              errors: 'networkErrors',
+              path: 'path',
+              protocols: 'networkProtocols',
+              overlays: 'networkOverlays',
+              security: 'networkSecurity',
+              monitoring: 'management',
+              dependencies: 'dependencies',
+            } as Record<string, string>
+          )[tab]
+        }
+      />
       {tab === 'path' ? (
         <>
           <form

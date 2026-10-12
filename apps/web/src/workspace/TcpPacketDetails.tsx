@@ -1,4 +1,5 @@
 import { bgpMessageSchema, type TcpPacket } from '@shlab/engine';
+import { PacketFields } from './PacketFields';
 
 export function TcpPacketDetails({ packet }: { packet: TcpPacket }) {
   const isBgp = [packet.sourcePort, packet.destinationPort].includes(179);
@@ -16,7 +17,7 @@ export function TcpPacketDetails({ packet }: { packet: TcpPacket }) {
         <summary>
           <span>04</span> TCP
         </summary>
-        <dl>
+        <PacketFields>
           <dt>Source port</dt>
           <dd>{packet.sourcePort}</dd>
           <dt>Destination port</dt>
@@ -29,7 +30,7 @@ export function TcpPacketDetails({ packet }: { packet: TcpPacket }) {
           <dd>{packet.acknowledgment}</dd>
           <dt>Window</dt>
           <dd>{packet.window} bytes</dd>
-        </dl>
+        </PacketFields>
       </details>
       {!!packet.data && (
         <details open>
@@ -42,24 +43,26 @@ export function TcpPacketDetails({ packet }: { packet: TcpPacket }) {
             </p>
           )}
           {bgp?.type === 'OPEN' && (
-            <dl>
+            <PacketFields>
               <dt>AS / Router ID</dt>
               <dd>
                 {bgp.asn} / {bgp.routerId}
               </dd>
               <dt>Hold time</dt>
               <dd>{bgp.holdMs / 1000} s</dd>
-            </dl>
+            </PacketFields>
           )}
           {bgp?.type === 'UPDATE' && (
-            <dl>
+            <PacketFields>
               <dt>Anúncios / retiradas</dt>
               <dd>
                 {bgp.announcements.length} / {bgp.withdrawn.length}
               </dd>
-            </dl>
+            </PacketFields>
           )}
-          <pre className="tcp-payload">{packet.data}</pre>
+          <pre className="tcp-payload" tabIndex={0} aria-label="Dados da aplicação transportados por TCP">
+            {packet.data}
+          </pre>
         </details>
       )}
     </>

@@ -1,5 +1,6 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface } from '../model';
+import { commandSupported, terminalIdentity } from './device-commands';
 export type Mode = 'user' | 'privileged' | 'config' | 'interface' | 'vlan' | 'dhcp';
 export const CONFIG_MODES: Mode[] = ['config', 'interface', 'vlan', 'dhcp'];
 export const ALL_MODES: Mode[] = ['user', 'privileged', ...CONFIG_MODES];
@@ -29,6 +30,12 @@ export class CommandRegistry {
     for (const command of this.commands) {
       const match = input.match(command.pattern);
       if (match) {
+        if (!commandSupported(d, input, c))
+          throw new Error(
+            'Este comando não se aplica a ' +
+              terminalIdentity(d).name +
+              '. Digite help para os comandos deste equipamento.'
+          );
         if (!command.modes.includes(c.mode))
           throw new Error('Comando indisponível neste modo. Use enable / configure terminal.');
         return command.run(match, e, d, c) ?? 'OK';

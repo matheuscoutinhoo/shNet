@@ -5,6 +5,8 @@ import {
   devicePresentationProfile,
 } from './deviceCapabilities';
 import { ResizableInspector } from './ResizableInspector';
+import { SectionEducation } from './SectionEducation';
+import { devicePurpose } from './educationalContent';
 import { InfrastructurePanel } from './InfrastructurePanel';
 import { DatabasePanel } from './DatabasePanel';
 import { AaaPanel } from './AaaPanel';
@@ -176,6 +178,7 @@ export function Inspector({
       </div>
       <div className={'inspector-body ' + (activeTab === 'cli' ? 'terminal-body' : '')}>
         <h3 className="sr-only">Configuração e estado de {device.hostname}</h3>
+        <SectionEducation section={activeTab} device={device} />
         {activeTab === 'overview' && (
           <>
             {issues.length > 0 && (
@@ -205,14 +208,7 @@ export function Inspector({
                 <span>
                   <Info size={16} /> O que este equipamento faz?
                 </span>
-                <p>
-                  {spec.description}{' '}
-                  {device.infrastructure
-                    ? ''
-                    : capabilities.switching || capabilities.ap
-                      ? 'Cada VLAN é um domínio de broadcast independente.'
-                      : 'Para destinos fora de sua sub-rede, ele consulta a tabela de rotas.'}
-                </p>
+                <p>{devicePurpose(device)}</p>
               </div>
             )}
             <form

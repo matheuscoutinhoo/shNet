@@ -5,6 +5,7 @@ import type { Context } from './registry';
 import { makeRegistry } from './commands';
 import { validateSnapshot } from '../core/validation';
 import { terminalText } from './tcp';
+import { terminalIdentity } from './device-commands';
 export class TerminalSession {
   context: Context = { mode: 'user' };
   history: string[] = [];
@@ -13,9 +14,12 @@ export class TerminalSession {
     readonly engine: SimulationEngine,
     readonly deviceId: string
   ) {}
+  get identity() {
+    return terminalIdentity(this.engine.device(this.deviceId));
+  }
   get prompt() {
     const suffix = {
-      user: '>',
+      user: this.identity.host ? '$' : '>',
       privileged: '#',
       config: '(config)#',
       interface: '(config-if)#',
@@ -67,6 +71,9 @@ export class TerminalSession {
       this.engine.refreshBgp();
       validateSnapshot(this.engine.state);
       if (
+        !/^(ipconfig(?: \/all)?$|ip (?:addr|address|link|route) show$|route print$|arp -a$|wifi scan$)/i.test(
+          line
+        ) &&
         !/^(show|help|\?|ping|traceroute|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf)/i.test(
           line
         )

@@ -1,7 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
-import { formatDnsQuery, formatTcpConnection, formatSnmpQuery, tcpFinished } from '@shlab/engine';
+import {
+  formatDnsQuery,
+  formatTcpConnection,
+  formatSnmpQuery,
+  tcpFinished,
+  deviceCommandHelp,
+  terminalIdentity,
+} from '@shlab/engine';
 import type { LabController } from './useLab';
 import {
   appendTerminalOutput,
@@ -82,7 +89,11 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
     if (!state.initialized) {
       appendTerminalOutput(
         state,
-        '\x1b[36mNetOS 1.0 · Terminal de simulação\x1b[0m\r\n' +
+        '\x1b[36m' +
+          cli.identity.family +
+          ' · ' +
+          cli.identity.name +
+          ' · Terminal simulado\x1b[0m\r\n' +
           'Digite help para ver os comandos disponíveis.\r\n\r\n'
       );
       state.initialized = true;
@@ -194,5 +205,39 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       );
     }
   }, [lab.tick, lab.engine, deviceId]);
-  return <div className="terminal-host" ref={ref} aria-label="Terminal NetOS" />;
+  const device = lab.engine.device(deviceId),
+    identity = terminalIdentity(device);
+  return (
+    <>
+      <details className="terminal-guide">
+        <summary>Comandos de {identity.name}</summary>
+        <p>
+          Este terminal é simulado. Os comandos consultam ou alteram apenas este equipamento no laboratório.
+        </p>
+        {(!identity.host || identity.family === 'ServiceShell') && (
+          <p>
+            Para configurar: digite <code>enable</code>, depois <code>configure terminal</code>. Use{' '}
+            <code>interface NOME</code> antes dos comandos de porta e <code>end</code> para sair.
+          </p>
+        )}
+        <dl>
+          {deviceCommandHelp(device, stateRef.current?.cli.context ?? { mode: 'user' }).map((entry) => (
+            <div key={entry.command}>
+              <dt>
+                <code>{entry.command}</code>
+              </dt>
+              <dd>
+                {entry.description}
+                <br />
+                <span>
+                  Exemplo: <code>{entry.example}</code>
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+      <div className="terminal-host" ref={ref} aria-label={'Terminal de ' + identity.name} />
+    </>
+  );
 }
