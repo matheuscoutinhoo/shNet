@@ -5,7 +5,7 @@ import { EquipmentCatalog } from './EquipmentCatalog';
 import { availablePorts } from './deviceCatalog';
 import type { DeviceAction } from './DeviceActions';
 import { labs } from '@shlab/engine';
-import { wirelessConfig, qosConfig, remoteConfig } from '@shlab/engine';
+import { duplicateDevice } from './duplicateDevice';
 import { CaptureDialog } from './CaptureDialog';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Connection } from '@xyflow/react';
@@ -121,167 +121,11 @@ export function Workspace({
               e.state.canvasItems?.some((item) => ids.includes(item.id) && item.members?.includes(d.id))
           );
       const mapping = new Map<string, string>();
+      const copiedPorts = new Map<string, Map<string, string>>();
       const created = originals.map((d) => {
-        const position = { x: d.position.x + 50, y: d.position.y + 80 };
-        const copy =
-          d.profile && deviceProfiles.some((profile) => profile.id === d.profile)
-            ? e.addProfile(d.profile, position)
-            : e.addDevice(d.type, position);
-        copy.profile = d.profile;
-        copy.hostname = d.hostname.slice(0, 24) + '-copy';
-        copy.ipRouting = d.ipRouting;
-        copy.ipv6Routing = d.ipv6Routing;
-        if (d.wireless) e.configureWireless(copy.id, wirelessConfig(d));
-        copy.vrfs = structuredClone(d.vrfs);
-        const physical = copy.interfaces;
-        const portMapping = new Map(
-          d.interfaces.map((p, i) => [
-            p.id,
-            p.logical
-              ? e.id('interface')
-              : p.aggregate || p.tunnel || p.vxlan
-                ? p.id
-                : (physical[i]?.id ?? p.id),
-          ])
-        );
-        copy.interfaces = d.interfaces.map((p, i) => ({
-          ...structuredClone(p),
-          id: portMapping.get(p.id)!,
-          mac: p.aggregate
-            ? physical[0].mac.split(':').slice(0, 4).join(':') +
-              ':02:' +
-              p.aggregate.number.toString(16).padStart(2, '0')
-            : p.vxlan
-              ? physical[0].mac.split(':').slice(0, 4).join(':') + ':05:' + i.toString(16).padStart(2, '0')
-              : p.tunnel
-                ? physical[0].mac.split(':').slice(0, 4).join(':') +
-                  ':04:' +
-                  p.tunnel.number.toString(16).padStart(2, '0')
-                : p.logical
-                  ? physical[0].mac.split(':').slice(0, 4).join(':') +
-                    ':01:' +
-                    i.toString(16).padStart(2, '0')
-                  : (physical[i]?.mac ?? physical[0].mac.slice(0, -2) + i.toString(16).padStart(2, '0')),
-          ...(p.logical
-            ? {
-                logical: {
-                  ...p.logical,
-                  ...(p.logical.parent ? { parent: portMapping.get(p.logical.parent)! } : {}),
-                },
-              }
-            : {}),
-          rx: 0,
-          tx: 0,
-          errors: 0,
-        }));
-        copy.interfaces.forEach((p) => {
-          if (p.dot1x) p.accessVlan = p.dot1x.baseVlan;
-          delete p.dot1x;
-          delete p.supplicant;
-          delete p.ip;
-          delete p.prefix;
-          delete p.gateway;
-          delete p.dns;
-          delete p.dhcp;
-          delete p.dhcpRelay;
-          delete p.spanningTree;
-          delete p.spanningInstances;
-          delete p.mstBoundary;
-          delete p.ipv6;
-          delete p.dhcp6;
-          if (p.qos) {
-            const c = qosConfig(p);
-            delete p.qos;
-            e.configureQos(copy.id, p.id, c);
-          }
-          if (p.vxlan)
-            p.vxlan = {
-              ...p.vxlan,
-              enabled: false,
-              underlay: portMapping.get(p.vxlan.underlay)!,
-              local: [],
-              routes: [],
-              learned: [],
-              sent: 0,
-              received: 0,
-            };
-          if (p.tunnel) {
-            p.ip = p.tunnel.ip;
-            p.prefix = p.tunnel.prefix;
-            p.tunnel = {
-              ...p.tunnel,
-              enabled: false,
-              underlay: portMapping.get(p.tunnel.underlay)!,
-              status: 'down',
-              token: e.id('tunnel'),
-              tickAt: e.state.clock + 0.001,
-              samples: [],
-              remotePrefixes: [],
-              txSequence: 0,
-              receivedSequences: [],
-              sent: 0,
-              received: 0,
-              lastRx: undefined,
-              peerNonce: undefined,
-              peerEndpoint: undefined,
-              pending: undefined,
-            };
-            e.schedule(0.001, { kind: 'tunnel-tick', device: copy.id, port: p.id, token: p.tunnel.token });
-          }
-          if (p.aggregate) {
-            p.aggregate = {
-              ...p.aggregate,
-              members: p.aggregate.members.map((id) => portMapping.get(id)!),
-              received: [],
-              selected: [],
-              token: e.id('lacp'),
-              tickAt: e.state.clock + 0.001,
-            };
-            e.schedule(0.001, { kind: 'lacp-tick', device: copy.id, port: p.id, token: p.aggregate.token });
-          }
-          if (p.ipv4Mode === 'dhcp') e.requestDhcp(copy.id, p.id);
-        });
-        copy.vlans = structuredClone(d.vlans);
-        copy.routes = structuredClone(d.routes);
-        if (d.accessLists)
-          copy.accessLists = structuredClone(d.accessLists).map((acl) => ({
-            ...acl,
-            implicitDrops: 0,
-            rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
-          }));
-        if (d.dnsServer) copy.dnsServer = structuredClone(d.dnsServer);
-        if (d.tcpServices) copy.tcpServices = structuredClone(d.tcpServices);
-        if (d.udp6Services) copy.udp6Services = structuredClone(d.udp6Services);
-        if (d.firewall) {
-          copy.firewall = { ...structuredClone(d.firewall), sessions: [], dropped: 0 };
-          if (copy.firewall.application) copy.firewall.application.flows = [];
-          copy.firewall.trustedPorts = copy.firewall.trustedPorts.map((p) => portMapping.get(p)!);
-          if (copy.firewall.zonePolicy)
-            copy.firewall.zonePolicy.zones.forEach((zone) => {
-              zone.ports = zone.ports.map((p) => portMapping.get(p)!);
-            });
-        }
-        if (d.remoteManagement) e.configureRemote(copy.id, remoteConfig(d));
-        if (d.networkClock) e.configureClock(copy.id, structuredClone(d.networkClock));
-        if (d.telemetryCollector)
-          e.configureCollector(copy.id, {
-            enabled: d.telemetryCollector.enabled,
-            key: d.telemetryCollector.key,
-          });
-        if (d.snmpAgent) copy.snmpAgent = { ...structuredClone(d.snmpAgent), startedAt: e.state.clock };
-        if (d.syslogClient) copy.syslogClient = structuredClone(d.syslogClient);
-        if (d.syslogServer) copy.syslogServer = { enabled: d.syslogServer.enabled, entries: [] };
-        if (d.multiSpanningTree)
-          e.configureMultiSpanningTree(copy.id, {
-            mode: d.multiSpanningTree.mode,
-            region: d.multiSpanningTree.region,
-            revision: d.multiSpanningTree.revision,
-            priorities: d.multiSpanningTree.priorities,
-            mappings: d.multiSpanningTree.mappings,
-          });
-        else if (d.spanningTree?.enabled)
-          e.configureSpanningTree(copy.id, d.spanningTree.mode, d.spanningTree.priority);
+        const { device: copy, portMapping } = duplicateDevice(e, d);
         mapping.set(d.id, copy.id);
+        copiedPorts.set(d.id, portMapping);
         return copy.id;
       });
       const annotations = fromClipboard
@@ -290,10 +134,10 @@ export function Workspace({
       const internalLinks = fromClipboard
         ? copiedLinks.current
         : e.state.links.filter((link) => mapping.has(link.a.device) && mapping.has(link.b.device));
-      for (const link of internalLinks.filter((l) => l.cable !== 'wireless'))
+      for (const link of internalLinks.filter((l) => !['wireless', 'mesh'].includes(l.cable)))
         e.connect(
-          { device: mapping.get(link.a.device)!, port: link.a.port },
-          { device: mapping.get(link.b.device)!, port: link.b.port },
+          { device: mapping.get(link.a.device)!, port: copiedPorts.get(link.a.device)!.get(link.a.port)! },
+          { device: mapping.get(link.b.device)!, port: copiedPorts.get(link.b.device)!.get(link.b.port)! },
           link.cable,
           { latency: link.latency, jitter: link.jitter, loss: link.loss, distance: link.distance }
         ).up = link.up;
@@ -827,7 +671,7 @@ export function Workspace({
             <EquipmentCatalog
               onAdd={(profile) =>
                 lab.change((simulation) => {
-                  const added = simulation.addProfile(profile.id, {
+                  const added = simulation.addFactoryProfile(profile.id, {
                     x: 80 + (simulation.state.devices.length % 4) * 240,
                     y: 120 + Math.floor(simulation.state.devices.length / 4) * 160,
                   });

@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { wirelessConfig, wirelessMetrics, type Device } from '@shlab/engine';
+import { radioObstructions, wirelessConfig, wirelessMetrics, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 
 export function WirelessPanel({ lab, device }: { lab: LabController; device: Device }) {
-  const c = wirelessConfig(device),
+  const c = device.wireless
+      ? wirelessConfig(device)
+      : { ...wirelessConfig(device), ssid: '', enabled: false },
     [band, setBand] = useState(c.band),
     [security, setSecurity] = useState(c.security);
+  const obstruction = radioObstructions.find((entry) => entry.attenuation === c.attenuation);
   const links = lab.engine.state.links.filter(
     (l) => l.cable === 'wireless' && [l.a, l.b].some((p) => p.device === device.id)
   );
@@ -30,8 +33,10 @@ export function WirelessPanel({ lab, device }: { lab: LabController; device: Dev
               band,
               channel: Number(f.get('channel')),
               txPower: Number(f.get('power')),
-              noise: Number(f.get('noise')),
-              attenuation: Number(f.get('attenuation')),
+              noise: c.noise,
+              attenuation:
+                radioObstructions.find((entry) => entry.id === f.get('obstruction'))?.attenuation ??
+                c.attenuation,
               enabled: f.get('enabled') === 'on',
             })
           );
@@ -110,22 +115,23 @@ export function WirelessPanel({ lab, device }: { lab: LabController; device: Dev
             Potência (dBm)
             <input name="power" type="number" min={0} max={30} defaultValue={c.txPower} />
           </label>
-          <label>
-            Ruído (dBm)
-            <input name="noise" type="number" min={-110} max={-30} defaultValue={c.noise} />
-          </label>
         </div>
         <label>
-          Atenuação de obstáculos (dB)
-          <input
-            aria-label="Atenuação de obstáculos"
-            name="attenuation"
-            type="number"
-            min={0}
-            max={40}
-            defaultValue={c.attenuation}
-          />
+          Obstrução do rádio
+          <select name="obstruction" defaultValue={obstruction?.id ?? 'preserved'}>
+            {!obstruction && <option value="preserved">Condição preservada do laboratório</option>}
+            {radioObstructions.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.label}
+              </option>
+            ))}
+          </select>
         </label>
+        <p className="muted">
+          A obstrução afeta os enlaces desse rádio. Os materiais usam perdas aproximadas; não representam
+          paredes desenhadas no canvas. A interferência resulta dos outros rádios, suas posições, bandas e
+          canais. Nenhum valor de interferência ou perda é definido aqui.
+        </p>
         <button className="button primary">Aplicar wireless</button>
       </form>
       <section className="wireless-state" aria-live="polite">

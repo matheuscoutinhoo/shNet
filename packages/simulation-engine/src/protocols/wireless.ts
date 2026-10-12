@@ -432,9 +432,19 @@ export function validateWireless(s: Snapshot) {
     pairs = new Set<string>();
   for (const d of s.devices) {
     const w = d.wireless;
-    for (const p of d.interfaces)
-      if (p.media === 'wifi' && p.id !== w?.port && !p.meshPeer)
+    for (const p of d.interfaces) {
+      const factoryRadio =
+        !w &&
+        p.id === 'wlan0' &&
+        !p.logical &&
+        !p.aggregate &&
+        !p.channel &&
+        (['ap', 'mesh'].includes(d.profile ?? '')
+          ? d.type === 'switch' && p.mode === 'access'
+          : ['laptop', 'smartphone'].includes(d.profile ?? '') && d.type === 'pc' && p.mode === 'routed');
+      if (p.media === 'wifi' && p.id !== w?.port && !p.meshPeer && !factoryRadio)
         throw new Error('Rádio sem configuração wireless.');
+    }
     if (!w) continue;
     const p = d.interfaces.find((p) => p.id === w.port);
     if (

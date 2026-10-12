@@ -85,7 +85,7 @@ function saveBinding(
     ({ action }) =>
       action.kind !== 'dhcp-binding-expire' || action.device !== device.id || action.binding !== binding!.id
   );
-  engine.schedule(binding.expiresAt - engine.state.clock, {
+  engine.scheduleAt(binding.expiresAt, {
     kind: 'dhcp-binding-expire',
     device: device.id,
     binding: binding.id,

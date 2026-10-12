@@ -1,7 +1,7 @@
 /* Canvas signals use their own palette; platform appearance never changes its background. */
 .canvas-container {
   --signal-traffic: #087c86;
-  --signal-control: #176bb1;
+  --signal-control: #6950a3;
   --signal-success: #257650;
   --signal-drop: #b73553;
   --signal-config: #84601c;
@@ -10,8 +10,8 @@
 }
 
 .canvas-container.theme-dark {
-  --signal-traffic: #55ead5;
-  --signal-control: #80bcff;
+  --signal-traffic: #59e7cd;
+  --signal-control: #c3b8f9;
   --signal-success: #96eab2;
   --signal-drop: #ff91a8;
   --signal-config: #f4d49a;
@@ -33,15 +33,14 @@
 }
 
 .canvas-container .network-device.selected {
-  outline-color: var(--signal-traffic);
-  box-shadow:
-    0 0 0 1px var(--signal-paper),
-    0 0 18px color-mix(in srgb, var(--signal-traffic) 18%, transparent);
+  border-color: var(--signal-traffic);
+  outline: none;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--signal-traffic) 18%, transparent);
 }
 
 .canvas-container .network-device.highlight {
   border-color: var(--signal-control);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal-control) 22%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--signal-control) 22%, transparent);
 }
 
 .canvas-container .node-main {
@@ -129,13 +128,11 @@
 
 .canvas-container .network-device[data-event-id] {
   border-color: var(--activity-color);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--activity-color) 26%, transparent),
-    0 0 15px color-mix(in srgb, var(--activity-color) 18%, transparent);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--activity-color) 18%, transparent);
 }
 
 .canvas-container .network-device[data-event-id].selected {
-  outline-color: var(--signal-traffic);
+  border-color: var(--signal-traffic);
 }
 
 .canvas-container .node-activity-indicator {

@@ -167,7 +167,7 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
             ))}
             <span>Clique em um evento para entender a decisão.</span>
           </div>
-          <div className="event-table-wrap">
+          <div className="event-table-wrap" role="region" aria-label="Lista de eventos" tabIndex={0}>
             <table className="event-table">
               <thead>
                 <tr>

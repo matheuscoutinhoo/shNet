@@ -1,4 +1,4 @@
-import type { Device, NetworkInterface } from '../model';
+import { interfaceSchema, type Device, type NetworkInterface } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { wirelessConfig } from '../protocols/wireless';
 export interface DeviceProfile {
@@ -346,7 +346,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'DNS Server',
     'Serviços',
     'Resolução de nomes',
-    'Agente DNS UDP/TCP habilitado; adicione registros.',
+    'DNS UDP/TCP; configure o endereço, os registros e habilite o serviço.',
     { feature: 'dns' }
   ),
   p(
@@ -355,7 +355,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'DHCP Server',
     'Serviços',
     'Concessões IP',
-    'Servidor habilitado; configure IP estático e pool antes de usar.',
+    'Configure IP estático e pool de concessões antes de habilitar o serviço.',
     { feature: 'dhcp' }
   ),
   p(
@@ -364,7 +364,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'NTP Server',
     'Serviços',
     'Sincronização de relógio',
-    'UDP/123, stratum 1 e offset inicial zero.',
+    'NTP UDP/123; configure o relógio e habilite o servidor.',
     { feature: 'ntp' }
   ),
   p(
@@ -394,12 +394,28 @@ export const deviceProfiles: DeviceProfile[] = [
     'TCP/49 e privilégio do usuário.',
     { feature: 'tacacs' }
   ),
-  p('web', 'server', 'Web Server', 'Serviços', 'Aplicação HTTP', 'Serviço HTTP TCP/80 habilitado.', {
-    feature: 'web',
-  }),
-  p('syslog', 'server', 'Syslog Server', 'Serviços', 'Coleta de eventos', 'Coletor UDP/514 habilitado.', {
-    feature: 'syslog',
-  }),
+  p(
+    'web',
+    'server',
+    'Web Server',
+    'Serviços',
+    'Aplicação HTTP',
+    'Configure o endereço e o serviço HTTP/TCP.',
+    {
+      feature: 'web',
+    }
+  ),
+  p(
+    'syslog',
+    'server',
+    'Syslog Server',
+    'Serviços',
+    'Coleta de eventos',
+    'Configure e habilite o coletor UDP/514.',
+    {
+      feature: 'syslog',
+    }
+  ),
   p(
     'snmp',
     'server',
@@ -415,7 +431,7 @@ export const deviceProfiles: DeviceProfile[] = [
     'Servidor de automação',
     'Serviços',
     'Gerenciamento remoto',
-    'NETCONF/RESTCONF e jobs; credencial de exemplo admin/rede-admin e chave remote-key.',
+    'NETCONF/RESTCONF e jobs; configure usuários, credenciais e acesso remoto.',
     { feature: 'remote' }
   ),
   p(
@@ -438,7 +454,7 @@ export const deviceProfiles: DeviceProfile[] = [
 export function deviceProfile(d: Device) {
   return deviceProfiles.find((p) => p.id === d.profile);
 }
-export function addProfile(e: SimulationEngine, id: string, position = { x: 100, y: 100 }) {
+function createProfileHardware(e: SimulationEngine, id: string, position: { x: number; y: number }) {
   const spec = deviceProfiles.find((p) => p.id === id);
   if (!spec) throw new Error('Perfil de equipamento inexistente.');
   const d = e.addDevice(spec.type, position);
@@ -491,6 +507,68 @@ export function addProfile(e: SimulationEngine, id: string, position = { x: 100,
     d.interfaces[0].console = { baud: '9600' };
     delete d.interfaces[0].transceiver;
   }
+  return { device: d, spec, feature: f };
+}
+
+/** Factory hardware for the equipment catalog. Provisioning belongs to the user. */
+export function addFactoryProfile(e: SimulationEngine, id: string, position = { x: 100, y: 100 }) {
+  const { device: d, feature: f } = createProfileHardware(e, id, position);
+  d.power = f === 'rack' || f === 'patch-panel';
+  if (f === 'rack') d.infrastructure = { kind: 'rack', units: 42, ambientC: 22, ventilation: 1, slots: [] };
+  else if (f === 'patch-panel') d.infrastructure = { kind: 'patch-panel', pairs: [] };
+  else if (f === 'ups')
+    d.infrastructure = {
+      kind: 'ups',
+      mains: true,
+      capacityWh: 1000,
+      remainingWh: 1000,
+      maxWatts: 1500,
+      chargeWatts: 100,
+      efficiency: 0.9,
+      loads: [],
+      lastAt: e.state.clock,
+      output: false,
+    };
+  else
+    d.system = {
+      enabled: true,
+      capacityPps: 100000,
+      memoryLimitKiB: 65536,
+      ambientC: 22,
+      thermalLimitC: 85,
+      windowAt: e.state.clock,
+      work: 0,
+      processed: 0,
+      nextReadyAt: e.state.clock,
+      lastAt: e.state.clock,
+      cpuPercent: 0,
+      memoryKiB: 64,
+      temperatureC: 22,
+      throttled: false,
+    };
+  if (f === 'ap' || f === 'mesh' || f === 'wireless-client') {
+    const base = d.interfaces[0];
+    d.interfaces.push(
+      interfaceSchema.parse({
+        ...base,
+        id: 'wlan0',
+        name: 'Wlan0',
+        mac: base.mac.split(':').slice(0, 4).join(':') + ':03:00',
+        media: 'wifi',
+        transceiver: undefined,
+        mode: f === 'wireless-client' ? 'routed' : 'access',
+        stpEdge: true,
+      })
+    );
+  }
+  if (id === 'smartphone') d.interfaces = d.interfaces.filter((p) => p.media === 'wifi');
+  if (f === 'wlc') d.interfaces[0].mode = 'routed';
+  return d;
+}
+
+/** Provisioned profiles retained for explicit demonstrations and prepared lab fixtures. */
+export function addProfile(e: SimulationEngine, id: string, position = { x: 100, y: 100 }) {
+  const { device: d, spec, feature: f } = createProfileHardware(e, id, position);
   if (f === 'rack')
     e.configureInfrastructure(d.id, { kind: 'rack', units: 42, ambientC: 22, ventilation: 1, slots: [] });
   if (f === 'patch-panel') {

@@ -100,7 +100,7 @@ export function makeRegistry() {
         'vxlan configure JSON | [no] service vxlan VNI | no vxlan VNI | show vxlan|evpn',
         'qos configure JSON (interface) | show qos | mpls configure JSON | mpls ingress|lfib JSON | show mpls',
         'sdwan site SITE [controller IP underlay PORT key KEY] | sdwan policy JSON | sdwan controller JSON | show sdwan',
-        'wireless tx-power|noise|attenuation N | show wireless [scan|clients|radio] | [no] service wireless',
+        'wireless tx-power N | wireless obstruction none|drywall|brick|concrete | show wireless [scan|clients|radio] | [no] service wireless',
         'ipv6 unicast-routing | interface: ipv6 enable | ipv6 address IPv6/PREFIX | ipv6 address autoconfig',
         'interface: ipv6 nd prefix CIDR [valid SECONDS preferred SECONDS] | ipv6 traffic-filter in|out permit|deny KIND SRC/CIDR DST/CIDR',
         'ipv6 route [vrf NAME] CIDR INTERFACE NEXT_HOP [metric N] | show ipv6 interface|neighbors|route|probes',

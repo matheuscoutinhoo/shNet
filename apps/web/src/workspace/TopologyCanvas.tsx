@@ -770,13 +770,13 @@ function Canvas({
         const profile = e.dataTransfer.getData('application/shlab-profile');
         if (profile) {
           const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-          lab.change((sim) => sim.addProfile(profile, position));
+          lab.change((sim) => sim.addFactoryProfile(profile, position));
           return;
         }
         const type = e.dataTransfer.getData('application/shlab');
         if (!['pc', 'switch', 'router', 'server'].includes(type)) return;
         const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-        lab.change((sim) => sim.addDevice(type as Device['type'], position));
+        lab.change((sim) => sim.addFactoryDevice(type as Device['type'], position));
       }}
     >
       <ReactFlow<CanvasNode, CableEdge>

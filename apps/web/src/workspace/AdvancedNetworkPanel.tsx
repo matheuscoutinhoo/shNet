@@ -4,6 +4,7 @@ import { configurationSchemas } from '@shlab/engine';
 import { useState } from 'react';
 import { wirelessConfig, enterpriseDefaults, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
+import { wlcPhysicalControls } from './physicalControls';
 export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; device: Device }) {
   const kinds = deviceCapabilities(device).advancedKinds;
   const demo = enterpriseDefaults();
@@ -46,18 +47,9 @@ export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; devi
       profile: 'campus',
     },
     ids: {
-      enabled: true,
-      mode: 'ids',
-      rules: [
-        {
-          id: 'http-path',
-          name: 'Travessia de caminho HTTP',
-          protocol: 'TCP',
-          destinationPort: 80,
-          pattern: '../',
-          action: 'alert',
-        },
-      ],
+      enabled: false,
+      mode: device.profile === 'ips' ? 'ips' : 'ids',
+      rules: [],
     },
   };
   const [kind, setKind] = useState<keyof typeof defaults>(
@@ -142,7 +134,8 @@ export function AdvancedNetworkPanel({ lab, device }: { lab: LabController; devi
             else if (kind === 'eapAuthenticator') e.configureEapAuthenticator(device.id, c);
             else if (kind === 'eapSupplicant') e.configureEapSupplicant(device.id, c);
             else if (kind === 'mesh') e.configureMesh(device.id, c);
-            else if (kind === 'wlc') e.configureWlc(device.id, c);
+            else if (kind === 'wlc')
+              e.configureWlc(device.id, wlcPhysicalControls(c, e.device(device.id).wlc));
             else if (kind === 'wtp') e.configureWtp(device.id, c);
             else e.configureIds(device.id, c);
           });

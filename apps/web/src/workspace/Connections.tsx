@@ -1,10 +1,33 @@
-import { wirelessMetrics } from '@shlab/engine';
+import {
+  cableMetrics,
+  endpoint,
+  linkOperational,
+  linkSchema,
+  validateMedia,
+  wirelessMetrics,
+  type Link,
+} from '@shlab/engine';
 import { useState, type FormEvent } from 'react';
 import type { Connection } from '@xyflow/react';
 import { Cable, Trash2 } from 'lucide-react';
-import { linkSchema, type Link } from '@shlab/engine';
 import { Modal } from '../components/Modal';
 import type { LabController } from './useLab';
+const cableChoices = [
+  ['serial', 'Serial WAN · DCE / DTE'],
+  ['console', 'Console · UART'],
+  ['copper', 'UTP Cat6 · direto'],
+  ['crossover', 'UTP Cat6 · crossover'],
+  ['fiber-sm', 'Fibra monomodo · SFP'],
+  ['fiber-mm', 'Fibra multimodo · SFP/QSFP'],
+  ['dac', 'DAC · SFP/QSFP (até 7 m)'],
+] as const;
+function CableOptions() {
+  return cableChoices.map(([value, label]) => (
+    <option key={value} value={value}>
+      {label}
+    </option>
+  ));
+}
 export function ConnectDialog({
   lab,
   initial,
@@ -110,13 +133,7 @@ export function ConnectDialog({
           <label>
             Tipo de cabo
             <select value={cable} onChange={(e) => setCable(e.target.value as Link['cable'])}>
-              <option value="serial">Serial WAN · DCE / DTE</option>
-              <option value="console">Console · UART</option>
-              <option value="copper">UTP Cat6 · direto</option>
-              <option value="crossover">UTP Cat6 · crossover</option>
-              <option value="fiber-sm">Fibra monomodo · SFP</option>
-              <option value="fiber-mm">Fibra multimodo · SFP/QSFP</option>
-              <option value="dac">DAC · SFP/QSFP (até 7 m)</option>
+              <CableOptions />
             </select>
           </label>
           <label>
@@ -126,11 +143,15 @@ export function ConnectDialog({
         </div>
         <div className="learning-card">
           <p>
-            {cable === 'dac'
-              ? 'DAC exige módulos DAC, sockets iguais e distância até 7 m.'
-              : cable.startsWith('fiber')
-                ? 'Fibra exige transceivers compatíveis nas duas pontas. Portas SFP do catálogo vêm com módulos monomodo.'
-                : 'RJ45 · até 100 m no modelo. As portas usam Auto-MDIX conceitual, aceitando cabo direto ou crossover.'}
+            {cable === 'serial'
+              ? 'Serial exige interfaces DCE/DTE e até 50 m. O clock do DCE define a transmissão.'
+              : cable === 'console'
+                ? 'Console exige portas UART compatíveis, mesma taxa de baud e até 15 m.'
+                : cable === 'dac'
+                  ? 'DAC exige módulos DAC, sockets iguais e distância até 7 m.'
+                  : cable.startsWith('fiber')
+                    ? 'Fibra exige transceivers compatíveis nas duas pontas. Portas SFP do catálogo vêm com módulos monomodo.'
+                    : 'RJ45 · até 100 m no modelo. As portas usam Auto-MDIX conceitual, aceitando cabo direto ou crossover.'}
           </p>
         </div>
         {error && (
@@ -146,8 +167,10 @@ export function ConnectDialog({
   );
 }
 export function LinkDialog({ lab, id, onClose }: { lab: LabController; id: string; onClose: () => void }) {
-  const link = lab.engine.state.links.find((l) => l.id === id)!;
-  if (link.cable === 'wireless') {
+  const link = lab.engine.state.links.find((l) => l.id === id);
+  const [error, setError] = useState('');
+  if (!link) return null;
+  if (link.cable === 'wireless' || link.cable === 'mesh') {
     const m = wirelessMetrics(lab.engine.state, link);
     return (
       <Modal title="Enlace wireless" onClose={onClose}>
@@ -160,14 +183,16 @@ export function LinkDialog({ lab, id, onClose }: { lab: LabController; id: strin
         <p>
           Interferência {m.interference.toFixed(1)} dB · Perda {(m.loss * 100).toFixed(1)}%
         </p>
+        <p>Latência base {m.latency.toFixed(3)} ms</p>
         <p className="muted">
           O enlace é criado pelo rádio. Posição, canal, potência e obstáculos determinam os parâmetros.
         </p>
         <button
           className="button primary"
           onClick={() =>
-            lab.change(() => {
-              link.up = !link.up;
+            lab.change((sim) => {
+              const current = sim.state.links.find((entry) => entry.id === id);
+              if (current) current.up = !current.up;
             })
           }
         >
@@ -176,30 +201,57 @@ export function LinkDialog({ lab, id, onClose }: { lab: LabController; id: strin
       </Modal>
     );
   }
+  const metrics = cableMetrics(link);
   return (
     <Modal title="Propriedades da conexão" onClose={onClose}>
       <p className="muted">
         {lab.engine.device(link.a.device).hostname} ↔ {lab.engine.device(link.b.device).hostname} ·{' '}
         {link.cable}
       </p>
+      <dl className="link-metrics" aria-label="Métricas da conexão">
+        <dt>Estado físico</dt>
+        <dd>{linkOperational(lab.engine.state, link) ? 'Operacional' : 'Inoperante'}</dd>
+        <dt>Latência base</dt>
+        <dd>{metrics.latency.toFixed(6)} ms</dd>
+        <dt>Propagação no cabo</dt>
+        <dd>{(metrics.propagation * 1000).toFixed(3)} µs</dd>
+        <dt>Jitter do cenário</dt>
+        <dd>{metrics.jitter.toFixed(3)} ms</dd>
+        <dt>Perda do cenário</dt>
+        <dd>{(metrics.loss * 100).toFixed(1)}%</dd>
+      </dl>
+      <p className="muted">
+        O comprimento contribui para o tempo de propagação. Mídia, módulos e velocidades precisam ser
+        compatíveis. A entrega também depende do tamanho do frame, das filas e do processamento.
+      </p>
+      {(link.loss > 0 || link.jitter > 0 || link.latency !== 2) && (
+        <p className="muted">Este laboratório contém uma condição de transporte definida pelo cenário.</p>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           const f = new FormData(e.currentTarget);
-          const result = lab.change(() => {
-            Object.assign(
-              link,
-              linkSchema.parse({
-                ...link,
+          let failure = '';
+          const result = lab.change((sim) => {
+            try {
+              const current = sim.state.links.find((entry) => entry.id === id);
+              if (!current) throw new Error('Conexão inexistente.');
+              const next = linkSchema.parse({
+                ...current,
                 up: f.get('up') === 'on',
-                latency: Number(f.get('latency')),
-                loss: Number(f.get('loss')) / 100,
-                jitter: Number(f.get('jitter')),
-              })
-            );
-            return true;
+                cable: String(f.get('cable')),
+                distance: Number(f.get('distance')),
+              });
+              validateMedia(next, endpoint(sim.state, next.a).port, endpoint(sim.state, next.b).port);
+              Object.assign(current, next);
+              return true;
+            } catch (failureCause) {
+              failure = (failureCause as Error).message;
+              throw failureCause;
+            }
           });
           if (result) onClose();
+          else setError(failure);
         }}
       >
         <label className="checkbox-label">
@@ -207,18 +259,29 @@ export function LinkDialog({ lab, id, onClose }: { lab: LabController; id: strin
         </label>
         <div className="form-grid">
           <label>
-            Latência (ms)
-            <input name="latency" type="number" step=".1" min=".1" max="10000" defaultValue={link.latency} />
+            Tipo de cabo
+            <select name="cable" defaultValue={link.cable}>
+              <CableOptions />
+            </select>
           </label>
           <label>
-            Jitter (ms)
-            <input name="jitter" type="number" step=".1" min="0" max="10000" defaultValue={link.jitter} />
+            Comprimento do cabo (metros)
+            <input
+              name="distance"
+              type="number"
+              min="0"
+              max="100000"
+              step="0.1"
+              defaultValue={link.distance}
+              required
+            />
           </label>
         </div>
-        <label>
-          Perda de pacotes (%)
-          <input name="loss" type="number" step=".1" min="0" max="100" defaultValue={link.loss * 100} />
-        </label>
+        {error && (
+          <div role="alert" className="alert error">
+            {error}
+          </div>
+        )}
         <div className="button-row">
           <button className="button primary">Aplicar</button>
           <button

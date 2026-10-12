@@ -58,7 +58,7 @@ function schedule(
   at: number,
   token: string
 ) {
-  engine.schedule(Math.max(0, at - engine.state.clock), {
+  engine.scheduleAt(at, {
     kind: 'dhcp-client-timer',
     device: device.id,
     port: port.id,

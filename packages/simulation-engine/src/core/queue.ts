@@ -1,11 +1,15 @@
 import type { Action, Snapshot } from '../model';
 import { LIMITS } from '../model';
 export function enqueue(state: Snapshot, delay: number, action: Action) {
+  enqueueAt(state, state.clock + Math.max(0.001, delay), action);
+}
+/** Preserve an absolute protocol deadline without subtracting and adding the current clock. */
+export function enqueueAt(state: Snapshot, at: number, action: Action) {
   if (state.queue.length >= LIMITS.queue)
     throw new Error(
       'Limite de eventos pendentes atingido. Interrompa o tráfego e revise loops na topologia.'
     );
-  const item = { at: state.clock + Math.max(0.001, delay), order: ++state.sequence, action };
+  const item = { at: Math.max(state.clock + 0.001, at), order: ++state.sequence, action };
   let lo = 0,
     hi = state.queue.length;
   while (lo < hi) {

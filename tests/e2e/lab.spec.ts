@@ -331,6 +331,217 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
   });
 }
 
+test('Workspace: inicialização manual e terminal preservado por dispositivo', async ({ page }, testInfo) => {
+  test.setTimeout(150000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Entrar no shLab', exact: true })).toHaveCSS(
+    'background-color',
+    'rgb(89, 231, 205)'
+  );
+  await registerAndLogin(page, 'factory-terminal-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  const name = 'Inicialização e terminal';
+  await page.getByLabel('Nome do laboratório').fill(name);
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  for (const profile of ['Switch L2', 'Computador']) {
+    await page.getByRole('searchbox', { name: 'Buscar equipamento' }).fill(profile);
+    await page
+      .locator('.equipment-card')
+      .filter({ has: page.getByText(profile, { exact: true }) })
+      .click();
+  }
+  await expect(page.locator('.network-device.powered-off')).toHaveCount(2);
+  await expect(page.locator('.event-table tbody tr')).toHaveCount(0);
+  await expect(page.locator('.cable-packet')).toHaveCount(0);
+  await expect(page.locator('.network-device[data-event-id]')).toHaveCount(0);
+  const selected = page.locator('.network-device.selected');
+  await expect(selected).toHaveCSS('outline-style', 'none');
+  await expect(selected).toHaveCSS('border-top-width', '1px');
+  const shadows = await selected.evaluate((element) => getComputedStyle(element).boxShadow);
+  expect(shadows).not.toMatch(/0px 0px 0px [1-9]/);
+  await page.screenshot({ path: testInfo.outputPath('factory-single-border.png'), fullPage: true });
+  const save = async () => {
+    await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+    await expect(page.locator('.project-title')).toContainText('Salvo');
+    const projects: ProjectSummary[] = await (await page.request.get('/api/projects')).json();
+    const summary = projects.find((project) => project.name === name)!;
+    const response = await page.request.get('/api/projects/' + summary.id);
+    expect(response.status()).toBe(200);
+    return (await response.json()) as Project;
+  };
+  const initial = await save();
+  expect(initial.topology.events).toEqual([]);
+  expect(initial.topology.queue).toEqual([]);
+  for (const device of initial.topology.devices) {
+    expect(device.power).toBe(false);
+    expect(device.interfaces.every((port) => !port.ip && !port.ipv6 && port.rx === 0 && port.tx === 0)).toBe(
+      true
+    );
+    expect(device.wireless).toBeUndefined();
+    expect(device.tcpServices ?? []).toEqual([]);
+  }
+  const first = initial.topology.devices.find((device) => device.profile === 'switch-l2')!;
+  const second = initial.topology.devices.find((device) => device.profile === 'desktop')!;
+  const inspector = page.locator('.inspector');
+  const open = async (hostname: string, tab: string) => {
+    const close = page.getByRole('button', { name: 'Fechar inspector' });
+    if (await close.count()) await close.click();
+    await page
+      .locator('.network-device')
+      .filter({ has: page.getByText(hostname, { exact: true }) })
+      .dblclick();
+    await inspector.locator('.inspector-tabs').getByRole('button', { name: tab, exact: true }).click();
+  };
+  await open(first.hostname, 'Resumo');
+  await page.getByRole('button', { name: 'Ligar equipamento', exact: true }).click();
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  const command = async (text: string) => {
+    await page.locator('.xterm-helper-textarea').focus();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+  };
+  for (const text of ['enable', 'configure terminal', 'hostname SW-A', 'interface Gi0/1', 'description KEEP'])
+    await command(text);
+  await expect(inspector.locator('.terminal-host')).toContainText('KEEP');
+  await page.keyboard.type('description NEXT');
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Resumo', exact: true }).click();
+  await page.getByLabel('Hostname', { exact: true }).fill('SW-B');
+  await page.getByRole('button', { name: 'Aplicar configuração', exact: true }).click();
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  await expect(inspector.locator('.terminal-host')).toContainText('KEEP');
+  await expect(inspector.locator('.terminal-host')).toContainText('SW-B(config-if)#');
+  await expect(inspector.locator('.terminal-host')).toContainText('NEXT');
+  await page.locator('.xterm-helper-textarea').focus();
+  await page.keyboard.press('Enter');
+  await open(second.hostname, 'Resumo');
+  await page.getByRole('button', { name: 'Ligar equipamento', exact: true }).click();
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  await command('show ip interface brief');
+  await expect(inspector.locator('.terminal-host')).not.toContainText('KEEP');
+  await expect(inspector.locator('.terminal-host')).not.toContainText('(config-if)#');
+  await open('SW-B', 'Terminal');
+  await expect(inspector.locator('.terminal-host')).toContainText('KEEP');
+  await expect(inspector.locator('.terminal-host')).toContainText('NEXT');
+  await page.locator('.xterm-helper-textarea').focus();
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Enter');
+  const draft = 'description wrap_' + '0123456789'.repeat(8);
+  await page.keyboard.type(draft);
+  const rows = () =>
+    inspector.locator('.xterm-rows').evaluate((element) =>
+      Array.from(element.children)
+        .map((row) => row.textContent)
+        .join('')
+        .replaceAll('\u00a0', ' ')
+    );
+  await expect.poll(rows).toContain(draft);
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Resumo', exact: true }).click();
+  await page.getByLabel('Hostname', { exact: true }).fill('SW-C');
+  await page.getByRole('button', { name: 'Aplicar configuração', exact: true }).click();
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  await expect.poll(rows).toContain(draft);
+  expect((await rows()).match(/0123456789/g)).toHaveLength(8);
+  await page.screenshot({ path: testInfo.outputPath('terminal-retained-draft.png'), fullPage: true });
+  await page.locator('.xterm-helper-textarea').focus();
+  await page.keyboard.press('Control+c');
+  const saved = await save();
+  expect(saved.topology.devices.find((device) => device.id === first.id)!.interfaces[0].description).toBe(
+    'NEXT'
+  );
+  expect(
+    saved.topology.devices.find((device) => device.id === second.id)!.interfaces[0].description ?? ''
+  ).toBe('');
+  expect(saved.topology).not.toHaveProperty('terminal');
+  expect(errors).toEqual([]);
+});
+
+test('Conexões: métricas calculadas, compatibilidade física e obstrução do rádio', async ({ page }) => {
+  test.setTimeout(150000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'physical-controls-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
+  await page.getByLabel('Nome do laboratório').fill('Condição física do cabo');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const edge = page.locator('.react-flow__edge .react-flow__edge-interaction').first();
+  const openLink = async () => {
+    const point = await edge.evaluate((element) => {
+      const path = element as SVGPathElement;
+      const midpoint = path.getPointAtLength(path.getTotalLength() / 2);
+      const position = new DOMPoint(midpoint.x, midpoint.y).matrixTransform(path.getScreenCTM()!);
+      return { x: position.x, y: position.y };
+    });
+    await page.mouse.click(point.x, point.y);
+  };
+  await openLink();
+  let dialog = page.getByRole('dialog', { name: 'Propriedades da conexão' });
+  await expect(dialog.locator('input[name="latency"], input[name="jitter"], input[name="loss"]')).toHaveCount(
+    0
+  );
+  await expect(dialog.locator('.link-metrics')).toContainText('Propagação no cabo');
+  await dialog.getByLabel('Comprimento do cabo (metros)').fill('101');
+  await dialog.getByRole('button', { name: 'Aplicar', exact: true }).click();
+  await expect(dialog.getByRole('alert')).toBeVisible();
+  await dialog.getByLabel('Comprimento do cabo (metros)').fill('50');
+  await dialog.getByRole('button', { name: 'Aplicar', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await openLink();
+  dialog = page.getByRole('dialog', { name: 'Propriedades da conexão' });
+  await expect(dialog.getByLabel('Comprimento do cabo (metros)')).toHaveValue('50');
+  await expect(dialog.locator('.link-metrics')).toContainText('0.250 µs');
+  const audit = await new AxeBuilder({ page }).include('.modal').analyze();
+  expect(
+    audit.violations.map((entry) => ({ id: entry.id, nodes: entry.nodes.map((node) => node.target) }))
+  ).toEqual([]);
+  await dialog.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.getByRole('button', { name: /Do rádio à resposta HTTP/ }).click();
+  const name = 'Obstrução física do rádio';
+  await page.getByLabel('Nome do laboratório').fill(name);
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page
+    .locator('.network-device')
+    .filter({ has: page.getByText('AP-CAMPUS', { exact: true }) })
+    .dblclick();
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Wireless', exact: true }).click();
+  const radio = page.locator('.wireless-panel');
+  await expect(radio.locator('input[name="noise"], input[name="attenuation"]')).toHaveCount(0);
+  const signal = async () => {
+    const text = await radio.locator('.wireless-link').first().innerText();
+    return Number(text.match(/RSSI (-?[\d.]+) dBm/)![1]);
+  };
+  const before = await signal();
+  await radio.getByLabel('Obstrução do rádio').selectOption('concrete');
+  await radio.getByRole('button', { name: 'Aplicar wireless', exact: true }).click();
+  await expect.poll(signal).toBeLessThan(before);
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  const projects: ProjectSummary[] = await (await page.request.get('/api/projects')).json();
+  const summary = projects.find((project) => project.name === name)!;
+  const response = await page.request.get('/api/projects/' + summary.id);
+  expect(response.status()).toBe(200);
+  const project: Project = await response.json();
+  expect(
+    project.topology.devices.find((device) => device.hostname === 'AP-CAMPUS')!.wireless!.attenuation
+  ).toBe(12);
+  await page.reload();
+  await page.locator('.lab-card').filter({ hasText: name }).locator('.lab-open').click();
+  await page
+    .locator('.network-device')
+    .filter({ has: page.getByText('AP-CAMPUS', { exact: true }) })
+    .dblclick();
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Wireless', exact: true }).click();
+  await expect(page.getByLabel('Obstrução do rádio')).toHaveValue('concrete');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test('Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas', async ({ page }) => {
   test.setTimeout(360000);
   const errors: string[] = [];
@@ -628,6 +839,10 @@ test('Canvas: categorias recolhíveis, ações com botão direito e dicas por la
   await rename.getByLabel('Nome do equipamento').fill('HOST-TESTE');
   await rename.getByRole('button', { name: 'Salvar nome' }).click();
   await expect(rename).toHaveCount(0);
+  await expect(node('HOST-TESTE')).toHaveClass(/powered-off/);
+  await node('HOST-TESTE').click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Ligar', exact: true }).click();
+  await expect(node('HOST-TESTE')).not.toHaveClass(/powered-off/);
   await node('HOST-TESTE').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Desligar', exact: true }).click();
   await expect(node('HOST-TESTE')).toHaveClass(/powered-off/);
@@ -1836,6 +2051,8 @@ async function rstpPing(page: Page, result: string, destination = '192.168.10.20
 }
 async function configureIp(page: Page, hostname: string, ip: string) {
   await page.locator('.network-device').filter({ hasText: hostname }).dblclick();
+  const power = page.getByRole('button', { name: 'Ligar equipamento', exact: true });
+  if (await power.count()) await power.click();
   await page.getByRole('button', { name: 'Portas', exact: true }).click();
   await page.locator('.interface-item').first().click();
   await page.getByLabel('Endereço IPv4').fill(ip);
@@ -2274,6 +2491,9 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await expect(page.locator('.network-device.selected')).toHaveCount(0);
   await configureIp(page, clientA, '192.168.10.10');
   await configureIp(page, clientB, '192.168.10.20');
+  await page.locator('.network-device').filter({ hasText: switchName }).dblclick();
+  await page.getByRole('button', { name: 'Ligar equipamento', exact: true }).click();
+  await page.getByRole('button', { name: 'Fechar inspector' }).click();
   await connect(page, clientA, 'Eth0', switchName, 'Gi0/1');
   await connect(page, clientB, 'Eth0', switchName, 'Gi0/2');
   await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
@@ -3500,6 +3720,11 @@ test('Produto: infraestrutura, formulários guiados, acessibilidade e teclado', 
     .getByRole('button', { name: /CAPWAP|EAP empresarial|IDS \/ IPS/ })
     .click();
   await page.getByLabel('Recurso de rede', { exact: true }).selectOption('ids');
+  await expect(page.getByLabel('Habilitado', { exact: true })).not.toBeChecked();
+  await page.getByLabel('Habilitado', { exact: true }).check();
+  await expect(page.getByLabel('Limiar de pacotes', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Adicionar regras', exact: true }).click();
+  await page.getByRole('button', { name: 'Adicionar limiar de pacotes', exact: true }).click();
   await page.getByLabel('Limiar de pacotes', { exact: true }).fill('12');
   await page.getByRole('button', { name: 'Aplicar recurso de rede', exact: true }).click();
   const cfg = JSON.parse(

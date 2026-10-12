@@ -3,6 +3,14 @@ const id = z.string().min(1).max(80),
   mac = z.string().regex(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i),
   time = z.number().finite().nonnegative();
 export const securitySchema = z.enum(['open', 'wpa2-psk', 'wpa3-sae', 'wpa2-enterprise']);
+// A single nearby obstruction per radio, not a geometric wall or RF site survey.
+// Typical material losses are approximate; see ADR-039 for the source and limits.
+export const radioObstructions = [
+  { id: 'none', label: 'Sem obstrução', attenuation: 0 },
+  { id: 'drywall', label: 'Parede de drywall', attenuation: 3 },
+  { id: 'brick', label: 'Parede de tijolos', attenuation: 10 },
+  { id: 'concrete', label: 'Parede de concreto', attenuation: 12 },
+] as const;
 const base = {
   role: z.enum(['ap', 'client']),
   ssid: z.string().min(1).max(32),

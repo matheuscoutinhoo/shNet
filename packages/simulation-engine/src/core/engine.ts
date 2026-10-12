@@ -54,7 +54,7 @@ import { handleHairpinExpiry, hairpinError } from '../protocols/nat-hairpin';
 import { fragmentFrame, receiveFragment, handleFragmentAction } from '../protocols/fragment';
 import { configureDhcpSnooping } from '../protocols/dhcp-snooping';
 import { spanningPortState, frameVlan } from '../protocols/stp-scope';
-import { addProfile } from '../devices/profiles';
+import { addFactoryProfile, addProfile } from '../devices/profiles';
 import { configureTelemetry, configureCollector, handleTelemetry } from '../protocols/telemetry';
 import { configureClock, configureNtp, handleNtp, stampNtp } from '../protocols/ntp';
 import { configureRemote } from '../protocols/remote';
@@ -125,8 +125,8 @@ import {
   type Snapshot,
 } from '../model';
 import { createDevice } from '../devices/catalog';
-import { endpoint, linkOperational, validateConnection } from '../links/physical';
-import { enqueue, random } from './queue';
+import { cableMetrics, endpoint, linkOperational, validateConnection } from '../links/physical';
+import { enqueue, enqueueAt, random } from './queue';
 import { validateSnapshot } from './validation';
 import { receiveArp, sendWithArp, handleArpTimer } from '../protocols/arp';
 import { switchFrame, switchTransmit } from '../protocols/ethernet';
@@ -224,6 +224,9 @@ export class SimulationEngine {
   addProfile(id: string, position = { x: 100, y: 100 }) {
     return addProfile(this, id, position);
   }
+  addFactoryProfile(id: string, position = { x: 100, y: 100 }) {
+    return addFactoryProfile(this, id, position);
+  }
   addDevice(type: Device['type'], position = { x: 100, y: 100 }) {
     if (this.state.devices.length >= LIMITS.devices)
       throw new Error('Limite de ' + LIMITS.devices + ' equipamentos');
@@ -231,6 +234,11 @@ export class SimulationEngine {
     const d = createDevice(type, id, this.state.sequence, position);
     this.state.devices.push(d);
     return d;
+  }
+  addFactoryDevice(type: Device['type'], position = { x: 100, y: 100 }) {
+    const device = this.addDevice(type, position);
+    device.power = false;
+    return device;
   }
   addSubinterface(deviceId: string, parent: string, vlan: number) {
     return createLogicalInterface(this, this.device(deviceId), 'subinterface', vlan, parent);
@@ -513,11 +521,17 @@ export class SimulationEngine {
     validateConnection(this.state, link);
     this.state.links.push(link);
     refreshPower(this);
-    this.emit('LINK_UP', a.device, 'Cabo conectado: ' + cable, {
-      port: a.port,
-      peer: b.device,
-      link: link.id,
-    });
+    const operational = linkOperational(this.state, link);
+    this.emit(
+      operational ? 'LINK_UP' : 'CONFIG_CHANGED',
+      a.device,
+      operational ? 'Cabo conectado: ' + cable : 'Cabo instalado; enlace físico inoperante: ' + cable,
+      {
+        port: a.port,
+        peer: b.device,
+        link: link.id,
+      }
+    );
     return link;
   }
   removeLink(id: string) {
@@ -932,6 +946,9 @@ export class SimulationEngine {
   schedule(delay: number, action: Action) {
     enqueue(this.state, delay, structuredClone(action));
   }
+  scheduleAt(at: number, action: Action) {
+    enqueueAt(this.state, at, structuredClone(action));
+  }
   sendFrame(deviceId: string, portId: string, frame: Frame) {
     const { device: d, port } = endpoint(this.state, { device: deviceId, port: portId });
     if (port.capwapPeer) {
@@ -1093,7 +1110,7 @@ export class SimulationEngine {
     }
     const delay = Math.max(
       0.001,
-      (radio?.latency ?? link.latency) +
+      (radio?.latency ?? cableMetrics(link).latency) +
         (random(this.state) * 2 - 1) * link.jitter +
         serialization +
         workDelay

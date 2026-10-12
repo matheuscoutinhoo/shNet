@@ -37,7 +37,7 @@ export function deviceCapabilities(d: Device) {
   const infrastructure = d.infrastructure?.kind;
   const active = !infrastructure;
   const ap = active && (d.wireless?.role === 'ap' || ['ap', 'mesh'].includes(d.profile ?? ''));
-  const clientRadio = active && d.wireless?.role === 'client';
+  const clientRadio = active && (d.wireless?.role === 'client' || profile?.feature === 'wireless-client');
   const controller = active && (d.profile === 'wlc' || !!d.wlc);
   const switching = active && d.type === 'switch' && !ap && !controller;
   const routing =
@@ -55,9 +55,11 @@ export function deviceCapabilities(d: Device) {
   ];
   const applicationKinds = [
     ...(server || !!d.phone || d.profile === 'phone' ? (['phone'] as const) : []),
-    ...(server || !!d.proxy ? (['proxy'] as const) : []),
-    ...(server || !!d.printer ? (['printer'] as const) : []),
-    ...(server || !!d.broker ? (['broker'] as const) : []),
+    ...(server || !!d.proxy || ['proxy', 'load-balancer'].includes(d.profile ?? '')
+      ? (['proxy'] as const)
+      : []),
+    ...(server || !!d.printer || d.profile === 'printer' ? (['printer'] as const) : []),
+    ...(server || !!d.broker || d.profile === 'mqtt' ? (['broker'] as const) : []),
   ];
   const aaaKinds = [
     ...(server || !!d.aaaServer || ['aaa', 'radius', 'tacacs'].includes(d.profile ?? '')
@@ -79,11 +81,11 @@ export function deviceCapabilities(d: Device) {
       ...(server || switching || routing || ap || controller || !!d.telemetry
         ? (['telemetry'] as const)
         : []),
-      ...(server || !!d.telemetryCollector ? (['collector'] as const) : []),
+      ...(server || !!d.telemetryCollector || d.profile === 'snmp' ? (['collector'] as const) : []),
       ...(server || routing || d.profile === 'ntp' ? (['clock'] as const) : []),
       'ntp' as const,
     ],
-    syslogServer: server || !!d.syslogServer || (routing && d.type === 'router'),
+    syslogServer: server || !!d.syslogServer || d.profile === 'syslog' || (routing && d.type === 'router'),
     active,
     ap,
     controller,
@@ -105,14 +107,20 @@ export function deviceCapabilities(d: Device) {
     wireless: ap || clientRadio,
     clientApplications,
     tcpServer: active && ((endpoint && generic) || d.profile === 'web' || !!d.tcpServices?.length),
-    dhcpServer: active && (server || (routing && d.type === 'router') || !!d.dhcpServer || !!d.dhcp6Server),
-    dnsServer: active && (server || (routing && d.type === 'router') || !!d.dnsServer),
+    dhcpServer:
+      active &&
+      (server ||
+        (routing && d.type === 'router') ||
+        d.profile === 'dhcp' ||
+        !!d.dhcpServer ||
+        !!d.dhcp6Server),
+    dnsServer: active && (server || (routing && d.type === 'router') || d.profile === 'dns' || !!d.dnsServer),
     poeSupply: active && ((switching && d.interfaces.some((p) => p.media === 'rj45')) || !!d.poeSupply),
     poeLoad: active && (ap || ['phone', 'iot'].includes(d.profile ?? '') || !!d.poeDevice),
     serial: active && d.type === 'router' && d.profile !== 'virtual-router',
     console: active && !['smartphone', 'virtual-router'].includes(d.profile ?? ''),
-    sdwanController: active && (server || !!d.sdwanController),
-    database: active && (server || !!d.database),
+    sdwanController: active && (server || d.profile === 'sdwan-controller' || !!d.sdwanController),
+    database: active && (server || d.profile === 'database' || !!d.database),
   };
 }
 

@@ -1,7 +1,12 @@
 import type { Device } from '../model';
 import { wirelessConfig } from '../protocols/wireless';
 import { wirelessMetrics } from '../protocols/wireless-radio';
+import { radioObstructions } from '../protocols/wireless-model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+function configuredRadio(device: Device) {
+  if (!device.wireless) throw new Error('Configure o SSID do rádio antes de alterar suas condições.');
+  return wirelessConfig(device);
+}
 export function registerWirelessCommands(r: CommandRegistry) {
   r.register({
     pattern:
@@ -22,17 +27,24 @@ export function registerWirelessCommands(r: CommandRegistry) {
   r.register({
     pattern: /^(no )?service wireless$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureWireless(d.id, { ...wirelessConfig(d), enabled: !m[1] }),
+    run: (m, e, d) => e.configureWireless(d.id, { ...configuredRadio(d), enabled: !m[1] }),
   });
   r.register({
-    pattern: /^wireless (tx-power|noise|attenuation) (-?\d+)$/i,
+    pattern: /^wireless tx-power (-?\d+)$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) =>
       e.configureWireless(d.id, {
-        ...wirelessConfig(d),
-        [{ 'tx-power': 'txPower', noise: 'noise', attenuation: 'attenuation' }[m[1].toLowerCase()]!]: Number(
-          m[2]
-        ),
+        ...configuredRadio(d),
+        txPower: Number(m[1]),
+      }),
+  });
+  r.register({
+    pattern: /^wireless obstruction (none|drywall|brick|concrete)$/i,
+    modes: CONFIG_MODES,
+    run: (m, e, d) =>
+      e.configureWireless(d.id, {
+        ...configuredRadio(d),
+        attenuation: radioObstructions.find((entry) => entry.id === m[1].toLowerCase())!.attenuation,
       }),
   });
   r.register({
@@ -61,11 +73,11 @@ export function registerWirelessCommands(r: CommandRegistry) {
 export function wirelessRunningConfig(d: Device) {
   const w = d.wireless;
   if (!w) return [];
+  const obstruction = radioObstructions.find((entry) => entry.attenuation === w.attenuation);
   return [
     `wireless ${w.role} ssid ${w.ssid} security ${w.security}${w.key ? ' key [configured]' : ''} channel ${w.channel} band ${w.band}`,
     `wireless tx-power ${w.txPower}`,
-    `wireless noise ${w.noise}`,
-    `wireless attenuation ${w.attenuation}`,
+    ...(obstruction ? [`wireless obstruction ${obstruction.id}`] : ['! Obstrução preservada do cenário']),
     ...(!w.enabled ? ['no service wireless'] : []),
   ];
 }

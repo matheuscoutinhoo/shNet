@@ -227,15 +227,15 @@ form > .button {
 }
 
 .button.primary {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: #fff;
-  box-shadow: 0 3px 10px #086de018;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 3px 10px #59e7cd18;
 }
 
 .button.primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 3px 10px #086de024;
+  box-shadow: 0 3px 10px #59e7cd24;
 }
 
 .button.small {
@@ -597,9 +597,7 @@ body .dashboard-sidebar .sidebar-guide p {
 
 body .network-device.selected {
   border-color: var(--control-focus);
-  box-shadow:
-    0 0 0 3px #36f2de38,
-    0 0 25px #21bea323;
+  box-shadow: 0 0 25px #21bea323;
 }
 
 body .theme-dark .network-device {

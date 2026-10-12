@@ -1,6 +1,6 @@
 import { useId, useState, type TextareaHTMLAttributes } from 'react';
 import { z } from 'zod';
-import type { Device, SimulationEngine } from '@shlab/engine';
+import { radioObstructions, type Device, type SimulationEngine } from '@shlab/engine';
 type Choice = { value: string; label: string };
 export function configChoices(engine: SimulationEngine, device: Device) {
   const ports = device.interfaces.map((p) => ({ value: p.id, label: p.name }));
@@ -137,7 +137,10 @@ function seed(schema?: z.ZodType, key = '', depth = 0): unknown {
     return Object.fromEntries(
       Object.entries(s.shape)
         .filter(([, v]) => !(v instanceof z.ZodOptional))
-        .map(([k, v]) => [k, seed(v as z.ZodType, k, depth + 1)])
+        .map(([k, v]) => [
+          k,
+          k === 'noise' && s.shape.ssid && s.shape.txPower ? -95 : seed(v as z.ZodType, k, depth + 1),
+        ])
     );
   if (s instanceof z.ZodArray) return [];
   if (s instanceof z.ZodUnion) return seed(s.options[0] as z.ZodType, key, depth + 1);
@@ -171,6 +174,29 @@ function Field({
   const key = path.split('.').at(-1) ?? path,
     id = useId();
   if (depth > 12) return <p>Estrutura profunda: use o editor avançado.</p>;
+  if (path.includes('.wireless.') && key === 'noise')
+    return (
+      <label htmlFor={id}>
+        Ruído ambiente (dBm)
+        <input id={id} type="number" value={String(value ?? -95)} readOnly />
+      </label>
+    );
+  if (path.includes('.wireless.') && key === 'attenuation')
+    return (
+      <label htmlFor={id}>
+        Obstrução do rádio
+        <select id={id} value={String(value ?? 0)} onChange={(event) => change(Number(event.target.value))}>
+          {!radioObstructions.some((entry) => entry.attenuation === value) && (
+            <option value={String(value)}>Condição preservada do laboratório</option>
+          )}
+          {radioObstructions.map((entry) => (
+            <option key={entry.id} value={entry.attenuation}>
+              {entry.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
   if (s instanceof z.ZodUnion) {
     const options = s.options as z.ZodType[];
     const variant =

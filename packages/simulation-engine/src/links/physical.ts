@@ -2,6 +2,16 @@ import { meshOperational } from '../protocols/mesh';
 import { wirelessAssociated } from '../protocols/wireless-radio';
 import type { Device, Link, NetworkInterface, Snapshot } from '../model';
 import { findDevice, findPort } from '../core/topology-index';
+/** Approximate cable propagation: 5 microseconds/km. Endpoint/queue delays are separate. */
+export function cableMetrics(link: Pick<Link, 'distance' | 'latency' | 'jitter' | 'loss'>) {
+  const propagation = link.distance / 200000;
+  return {
+    propagation,
+    latency: link.latency + propagation,
+    jitter: link.jitter,
+    loss: link.loss,
+  };
+}
 export function endpoint(state: Snapshot, end: Link['a']): { device: Device; port: NetworkInterface } {
   const device = findDevice(state, end.device);
   const port = device && findPort(device, end.port);
@@ -29,11 +39,6 @@ export function validateConnection(state: Snapshot, link: Link, ignoreId?: strin
   )
     throw new Error('Cabo exige interfaces físicas.');
   if (a.device.id === b.device.id) throw new Error('Conecte interfaces de equipamentos diferentes');
-  if (
-    (!a.device.power && !(a.device.poeDevice?.required && a.device.poeDevice.requested)) ||
-    (!b.device.power && !(b.device.poeDevice?.required && b.device.poeDevice.requested))
-  )
-    throw new Error('Ligue os equipamentos antes de conectar');
   for (const end of [link.a, link.b])
     if (
       state.links.some(
