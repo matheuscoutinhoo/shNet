@@ -4,6 +4,8 @@ import { bridgeLabel, type NetworkEvent } from '@shlab/engine';
 import type { LabController } from './useLab';
 import { Modal } from '../components/Modal';
 import { TcpPacketDetails } from './TcpPacketDetails';
+import { eventTone } from './canvasActivity';
+import { NetworkText } from '../components/NetworkText';
 export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id: string) => void }) {
   const [tab, setTab] = useState('events'),
     [filter, setFilter] = useState('all'),
@@ -101,13 +103,25 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
     <section className="timeline">
       <div className="timeline-header">
         <div className="timeline-tabs">
-          <button className={tab === 'events' ? 'active' : ''} onClick={() => setTab('events')}>
+          <button
+            className={tab === 'events' ? 'active' : ''}
+            aria-pressed={tab === 'events'}
+            onClick={() => setTab('events')}
+          >
             <List size={15} /> Eventos <span>{lab.engine.state.events.length}</span>
           </button>
-          <button className={tab === 'traffic' ? 'active' : ''} onClick={() => setTab('traffic')}>
+          <button
+            className={tab === 'traffic' ? 'active' : ''}
+            aria-pressed={tab === 'traffic'}
+            onClick={() => setTab('traffic')}
+          >
             <Activity size={15} /> Tráfego <span>{lab.engine.state.probes.length}</span>
           </button>
-          <button className={tab === 'notes' ? 'active' : ''} onClick={() => setTab('notes')}>
+          <button
+            className={tab === 'notes' ? 'active' : ''}
+            aria-pressed={tab === 'notes'}
+            onClick={() => setTab('notes')}
+          >
             <StickyNote size={15} /> Notas do laboratório
           </button>
         </div>
@@ -142,7 +156,12 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
               ['ethernet', 'Ethernet'],
               ['drops', 'Descartes'],
             ].map(([id, label]) => (
-              <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>
+              <button
+                key={id}
+                className={filter === id ? 'active' : ''}
+                aria-pressed={filter === id}
+                onClick={() => setFilter(id)}
+              >
                 {label}
               </button>
             ))}
@@ -168,6 +187,9 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
                   .map((e) => (
                     <tr
                       key={e.id}
+                      className={'event-row event-tone-' + eventTone(e)}
+                      data-event-id={e.id}
+                      data-latest={e.id === lab.engine.state.events.at(-1)?.id}
                       onClick={() => setEvent(e)}
                       tabIndex={0}
                       onKeyDown={(k) => {
@@ -192,7 +214,9 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
                           {e.type}
                         </span>
                       </td>
-                      <td>{e.reason}</td>
+                      <td>
+                        <NetworkText text={e.reason} />
+                      </td>
                       <td>
                         <ChevronRight size={14} />
                       </td>
@@ -270,7 +294,7 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
       )}
       {event && (
         <Modal title="Por que isso aconteceu?" onClose={() => setEvent(null)} wide>
-          <div className="packet-title">
+          <div className={'packet-title event-tone-' + eventTone(event)}>
             <span className="event-badge">{event.type}</span>
             <span>{event.time.toFixed(3)} ms</span>
           </div>
@@ -278,7 +302,9 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
             <span>
               <Info size={17} /> Decisão do motor
             </span>
-            <p>{event.reason}</p>
+            <p>
+              <NetworkText text={event.reason} />
+            </p>
           </div>
           <dl className="key-values">
             <div>

@@ -4,6 +4,7 @@ import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { decodePcap, deviceProfiles } from '../../packages/simulation-engine/src';
 import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
+import type { Project, ProjectSummary } from '../../apps/web/src/api';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 async function waitForLoginRetry(value: string | undefined) {
@@ -58,39 +59,38 @@ async function registerAndLogin(page: Page, address: string) {
   await submitLogin(page);
   await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
 }
-test('Aparência: sistema, escolha explícita, persistência e sincronização entre abas', async ({ page }) => {
+test('Aparência: plataforma sempre escura, independente do sistema e de preferências antigas', async ({
+  page,
+}) => {
   const root = page.locator('html');
   const control = page.getByRole('combobox', { name: 'Aparência da plataforma' });
+  await page.addInitScript(() => localStorage.setItem('shlab.appearance', 'light'));
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/');
-  await expect(root).toHaveAttribute('data-theme', 'light');
-  await expect(control).toHaveValue('system');
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  await expect(root).toHaveCSS('color-scheme', 'dark');
+  await expect(control).toHaveCount(0);
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(root).toHaveAttribute('data-theme', 'dark');
-  await control.selectOption('light');
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(root).toHaveAttribute('data-theme', 'light');
+  await page.emulateMedia({ colorScheme: 'light' });
   await page.reload();
-  await expect(root).toHaveAttribute('data-theme', 'light');
-  await expect(control).toHaveValue('light');
+  await expect(root).toHaveAttribute('data-theme', 'dark');
   const other = await page.context().newPage();
   await other.goto('/');
-  await control.selectOption('dark');
   await expect(other.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(other.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveValue('dark');
-  await other.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('light');
-  await expect(root).toHaveAttribute('data-theme', 'light');
-  await other.evaluate(() => localStorage.clear());
-  await expect(control).toHaveValue('system');
+  await other.evaluate(() => localStorage.setItem('shlab.appearance', 'system'));
   await expect(root).toHaveAttribute('data-theme', 'dark');
+  await other.evaluate(() => localStorage.setItem('shlab.appearance', 'invalid'));
+  await expect(root).toHaveAttribute('data-theme', 'dark');
+  await other.evaluate(() => localStorage.clear());
+  await expect(other.locator('html')).toHaveAttribute('data-theme', 'dark');
   await other.close();
-  await page.evaluate(() => localStorage.setItem('shlab.appearance', 'invalid'));
+  await expect(control).toHaveCount(0);
   await page.reload();
-  await expect(control).toHaveValue('system');
   await expect(root).toHaveAttribute('data-theme', 'dark');
 });
 
-test('Aparência: armazenamento indisponível mantém o seletor funcionando', async ({ page }) => {
+test('Aparência: armazenamento indisponível não interfere no tema escuro', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.addInitScript(() => {
@@ -106,10 +106,10 @@ test('Aparência: armazenamento indisponível mantém o seletor funcionando', as
     };
   });
   await page.goto('/');
-  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('light');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(errors).toEqual([]);
 });
 
@@ -119,10 +119,8 @@ test('Aparência: plataforma e canvas independentes, conta, modais e mobile', as
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.locator('html')).toHaveAttribute(
-    'data-theme',
-    testInfo.project.name === 'escuro' ? 'dark' : 'light'
-  );
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveCount(0);
   const audit = async () => {
     const result = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
@@ -137,6 +135,7 @@ test('Aparência: plataforma e canvas independentes, conta, modais e mobile', as
   await audit();
   await page.screenshot({ path: testInfo.outputPath('auth.png'), fullPage: true });
   await registerAndLogin(page, 'appearance-' + testInfo.project.name + '-' + Date.now() + '@example.test');
+  await expect(page.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveCount(0);
   await audit();
   await page.screenshot({ path: testInfo.outputPath('dashboard.png'), fullPage: true });
   await page.getByRole('button', { name: 'Conta e segurança' }).click();
@@ -157,13 +156,15 @@ test('Aparência: plataforma e canvas independentes, conta, modais e mobile', as
     .click();
   const palette = { light: 'rgb(251, 253, 255)', gray: 'rgb(231, 237, 241)', dark: 'rgb(19, 41, 58)' };
   const canvas = page.locator('.canvas-container');
+  await expect(canvas).toHaveClass(/theme-dark/);
   for (const [background, color] of Object.entries(palette)) {
     await page.getByRole('button', { name: 'Opções do laboratório' }).click();
     await page.getByLabel('Fundo do canvas', { exact: true }).selectOption(background);
     await page.getByRole('button', { name: 'Opções do laboratório' }).click();
     let cardColor = '';
-    for (const appearance of ['light', 'dark', 'system']) {
-      await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption(appearance);
+    for (const colorScheme of ['light', 'dark'] as const) {
+      await page.emulateMedia({ colorScheme });
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
       await expect(canvas).toHaveCSS('background-color', color);
       await expect(canvas.locator('.react-flow')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       const card = canvas.locator('.network-device').first();
@@ -173,19 +174,18 @@ test('Aparência: plataforma e canvas independentes, conta, modais e mobile', as
       await audit();
     }
   }
-  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('dark');
+  await expect(page.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('workspace-dark.png'), fullPage: true });
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.locator('.project-title')).toContainText('Salvo');
-  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('light');
+  await page.emulateMedia({ colorScheme: 'light' });
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await expect(canvas).toHaveCSS('background-color', palette.dark);
   await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
   await page.reload();
-  await expect(page.getByRole('combobox', { name: 'Aparência da plataforma' })).toHaveValue('light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.locator('.lab-card').filter({ hasText: 'Aparência independente' }).locator('.lab-open').click();
   await expect(canvas).toHaveCSS('background-color', palette.dark);
-  await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption('dark');
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -194,6 +194,142 @@ test('Aparência: plataforma e canvas independentes, conta, modais e mobile', as
   await page.screenshot({ path: testInfo.outputPath('workspace.png'), fullPage: true });
   expect(errors).toEqual([]);
 });
+
+for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+  test('Canvas: fluxo real e destaques com movimento ' + reducedMotion, async ({ page }, testInfo) => {
+    test.setTimeout(120000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.emulateMedia({ reducedMotion });
+    await page.goto('/');
+    await registerAndLogin(page, 'motion-' + reducedMotion + '-' + Date.now() + '@example.test');
+    await page.getByRole('button', { name: 'Templates', exact: true }).click();
+    await page.getByRole('button', { name: /Sua primeira LAN/ }).click();
+    const name = 'Fluxo observado ' + reducedMotion;
+    await page.getByLabel('Nome do laboratório').fill(name);
+    await page.getByRole('dialog').locator('select[name="background"]').selectOption('dark');
+    await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+    await expect(page.locator('.network-device')).toHaveCount(3);
+    await expect(page.locator('.cable-packet')).toHaveCount(0);
+    await expect(page.locator('.network-device[data-activity]:not([data-activity="none"])')).toHaveCount(0);
+    const projects: ProjectSummary[] = await (await page.request.get('/api/projects')).json();
+    const summary = projects.find((p) => p.name === name);
+    expect(summary).toBeDefined();
+    const detail = await page.request.get('/api/projects/' + summary!.id);
+    expect(detail.status()).toBe(200);
+    const project: Project = await detail.json();
+    const peer = project.topology.devices.filter((d) => d.type === 'pc').at(-1);
+    expect(peer?.interfaces[0].ip).toBeTruthy();
+    const destination = peer!.interfaces[0].ip!;
+    type Observation = {
+      packets: { id: string; direction: string; moving: boolean }[];
+      devices: { id: string; activity: string; animation: string }[];
+    };
+    // Os destaques são transitórios. Registrar suas inserções evita alongar a animação para os testes.
+    await page.evaluate(() => {
+      const observation: Observation = { packets: [], devices: [] };
+      const record = () => {
+        for (const packet of document.querySelectorAll('.cable-packet[data-event-id]')) {
+          const id = packet.getAttribute('data-event-id')!;
+          const direction = packet.getAttribute('data-direction')!;
+          if (!observation.packets.some((p) => p.id === id && p.direction === direction))
+            observation.packets.push({
+              id,
+              direction,
+              moving: packet.querySelector('animateMotion') !== null,
+            });
+        }
+        for (const device of document.querySelectorAll('.network-device[data-event-id]')) {
+          const id = device.getAttribute('data-event-id')!;
+          const activity = device.getAttribute('data-activity')!;
+          if (activity !== 'none' && !observation.devices.some((d) => d.id === id && d.activity === activity))
+            observation.devices.push({
+              id,
+              activity,
+              animation: getComputedStyle(device.querySelector('.node-activity-indicator') ?? device)
+                .animationName,
+            });
+        }
+      };
+      (window as Window & { __shlabMotionObservation?: Observation }).__shlabMotionObservation = observation;
+      new MutationObserver(record).observe(document.querySelector('.canvas-container')!, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+      });
+    });
+    await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
+    await page.getByLabel('Destino IPv4 ou hostname').fill(destination);
+    await page.getByRole('button', { name: 'Enfileirar ping' }).click();
+    await advanceSimulation(page, async () =>
+      (await page.locator('.probe-toast').innerText()).includes('Resposta em')
+    );
+    const observed = await page.evaluate(
+      () => (window as unknown as { __shlabMotionObservation: Observation }).__shlabMotionObservation
+    );
+    const verifyObservation = async (observation: Observation, assertMotion = true) => {
+      expect(observation.packets.length).toBeGreaterThan(0);
+      expect(observation.devices.length).toBeGreaterThan(0);
+      for (const packet of observation.packets) {
+        const matching = page.locator('.event-table tr[data-event-id="' + packet.id + '"]');
+        await expect(matching).toContainText('FRAME_SENT');
+        expect(['forward', 'reverse']).toContain(packet.direction);
+        if (assertMotion || reducedMotion === 'reduce')
+          expect(packet.moving).toBe(reducedMotion === 'no-preference');
+      }
+      const loggedIds = await page
+        .locator('.event-table tr[data-event-id]')
+        .evaluateAll((rows) => rows.map((row) => row.getAttribute('data-event-id')));
+      for (const device of observation.devices) {
+        expect(loggedIds).toContain(device.id);
+        if (reducedMotion === 'reduce') expect(device.animation).toBe('none');
+      }
+    };
+    expect(new Set(observed.packets.map((p) => p.direction))).toEqual(new Set(['forward', 'reverse']));
+    await verifyObservation(observed);
+    await expect(page.locator('.cable-packet')).toHaveCount(0);
+    await expect(page.locator('.network-device[data-activity]:not([data-activity="none"])')).toHaveCount(0);
+    await page.evaluate(() => {
+      const observation = (window as unknown as { __shlabMotionObservation: Observation })
+        .__shlabMotionObservation;
+      observation.packets = [];
+      observation.devices = [];
+    });
+    const successes = page.locator('.event-table tr').filter({ hasText: 'PING_SUCCESS' });
+    const beforeWorker = await successes.count();
+    await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
+    await page.getByLabel('Destino IPv4 ou hostname').fill(destination);
+    await page.getByRole('button', { name: 'Enfileirar ping' }).click();
+    await page.getByLabel('Velocidade', { exact: true }).selectOption('5');
+    await page.getByRole('button', { name: 'Executar simulação' }).click();
+    await expect(successes).toHaveCount(beforeWorker + 1);
+    await page.screenshot({
+      path: testInfo.outputPath('canvas-flow-' + reducedMotion + '.png'),
+      fullPage: true,
+      animations: 'allow',
+    });
+    await page.getByRole('button', { name: 'Pausar simulação' }).click();
+    await expect(page.locator('.cable-packet[data-motion="active"]')).toHaveCount(0);
+    const workerObservation = await page.evaluate(
+      () => (window as unknown as { __shlabMotionObservation: Observation }).__shlabMotionObservation
+    );
+    // Um delta pode reunir ida e volta. A atividade mais recente por enlace é uma amostra fiel, não um replay.
+    await verifyObservation(workerObservation, false);
+    await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+    await expect(page.locator('.project-title')).toContainText('Salvo');
+    await page.getByRole('button', { name: 'Voltar aos laboratórios' }).click();
+    await page.locator('.lab-card').filter({ hasText: name }).locator('.lab-open').click();
+    await expect(page.locator('.event-table')).toContainText('FRAME_SENT');
+    await expect(page.locator('.cable-packet')).toHaveCount(0);
+    await expect(page.locator('.network-device[data-activity]:not([data-activity="none"])')).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.screenshot({
+      path: testInfo.outputPath('canvas-motion-' + reducedMotion + '.png'),
+      fullPage: true,
+    });
+    expect(errors).toEqual([]);
+  });
+}
 
 test('Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas', async ({ page }) => {
   test.setTimeout(360000);
@@ -234,7 +370,7 @@ test('Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas', as
   expect(errors).toEqual([]);
 });
 
-test('Resiliência: falha ao salvar, recuperação, importação inválida e tema durante simulação', async ({
+test('Resiliência: falha ao salvar, recuperação, importação inválida e menus durante simulação', async ({
   page,
 }) => {
   test.setTimeout(120000);
@@ -285,8 +421,12 @@ test('Resiliência: falha ao salvar, recuperação, importação inválida e tem
   await page.getByRole('button', { name: 'Enfileirar ping' }).click();
   await page.getByLabel('Velocidade', { exact: true }).selectOption('5');
   await page.getByRole('button', { name: 'Executar simulação' }).click();
-  for (const preference of ['dark', 'light', 'system']) {
-    await page.getByRole('combobox', { name: 'Aparência da plataforma' }).selectOption(preference);
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+    await expect(page.getByLabel('Fundo do canvas', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(page.getByRole('button', { name: 'Pausar simulação' })).toBeVisible();
   }
   await expect(page.locator('.probe-toast')).toContainText('Resposta em');
@@ -3250,6 +3390,28 @@ test('Workspace: desenho livre, comentário ancorado, histórico e telas ampliad
   await page.getByLabel('Comentário', { exact: true }).fill('Conferir VLAN e gateway');
   await page.getByRole('button', { name: 'Adicionar comentário', exact: true }).click();
   await expect(page.locator('.canvas-comment')).toContainText('Conferir VLAN e gateway');
+  for (const background of ['light', 'gray', 'dark']) {
+    await options().click();
+    await page.getByLabel('Fundo do canvas', { exact: true }).selectOption(background);
+    await page.getByRole('button', { name: 'Desenhar à mão livre', exact: true }).click();
+    const layer = page.getByRole('region', { name: 'Área de desenho livre' });
+    await expect(layer.locator('.drawing-hint')).toContainText('Escape cancela');
+    const audit = await new AxeBuilder({ page })
+      .include('.drawing-layer')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(
+      audit.violations.map((violation) => ({
+        id: violation.id,
+        nodes: violation.nodes.map((node) => ({ target: node.target, summary: node.failureSummary })),
+      })),
+      'Desenho no fundo ' + background
+    ).toEqual([]);
+    await layer.focus();
+    await page.keyboard.press('Escape');
+    await expect(layer).toHaveCount(0);
+    await expect(page.locator('.canvas-drawing polyline')).toHaveCount(0);
+  }
   await options().click();
   await page.getByRole('button', { name: 'Desenhar à mão livre', exact: true }).click();
   const bounds = await page.getByRole('region', { name: 'Área de desenho livre' }).boundingBox();

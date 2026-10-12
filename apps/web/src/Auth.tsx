@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowLeft, ShieldCheck, Network, Layers, TerminalSquare } from 'lucide-react';
 import { api, type User } from './api';
 import { Brand } from './components/Brand';
-import { ThemeControl } from './components/ThemeControl';
 type Mode = 'login' | 'register' | 'forgot' | 'verify' | 'reset';
 const initialMode = (): Mode => {
   const action = new URLSearchParams(location.search).get('action');
@@ -134,9 +133,6 @@ export function Auth({
         <footer>shLab · Simulação de redes</footer>
       </section>
       <section className="auth-form-side">
-        <div className="auth-appearance">
-          <ThemeControl />
-        </div>
         <div className="auth-mobile-brand">
           <Brand />
         </div>

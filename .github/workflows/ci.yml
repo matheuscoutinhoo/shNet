@@ -83,7 +83,7 @@ jobs:
             shlab-backup:ci
           curl --fail --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:3002/api/health
           curl --fail --output /dev/null http://127.0.0.1:3002/
-          curl --fail http://127.0.0.1:3002/theme-init.js | grep -q 'shlab.appearance'
+          curl --fail http://127.0.0.1:3002/theme-init.js | grep -q "dataset.theme = 'dark'"
           for attempt in $(seq 1 30); do
             if curl --silent --fail -H 'Authorization: Bearer ci-monitoring-token-with-40-characters-long' \
               http://127.0.0.1:3002/api/metrics | grep -Eq '^shlab_backup_last_success_timestamp_seconds [1-9]'; then break; fi

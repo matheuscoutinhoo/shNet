@@ -17,7 +17,6 @@ import {
 import { templates, labs, type LabId, type TemplateId, type LearningScore } from '@shlab/engine';
 import { api, type User, type Project, type ProjectSummary } from './api';
 import { Brand } from './components/Brand';
-import { ThemeControl } from './components/ThemeControl';
 import { Modal } from './components/Modal';
 import { SearchField } from './components/SearchField';
 import { CatalogCard } from './components/CatalogCard';
@@ -238,7 +237,6 @@ export function Dashboard({
             <span className="private-label">
               <span className="status-dot" /> Privado
             </span>
-            <ThemeControl />
           </div>
         </header>
         <main className="dashboard-content">
@@ -605,7 +603,7 @@ export function Dashboard({
             )}
             <label>
               Fundo do canvas
-              <select name="background">
+              <select name="background" defaultValue="dark">
                 <option value="light">Claro</option>
                 <option value="gray">Cinza</option>
                 <option value="dark">Escuro</option>

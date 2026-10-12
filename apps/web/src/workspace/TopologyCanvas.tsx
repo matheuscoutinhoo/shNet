@@ -1,6 +1,14 @@
 import { devicePresentationProfile } from './deviceCapabilities';
 import { DrawingLayer } from './DrawingLayer';
-import { canvasPosition, radioCoverage } from '@shlab/engine';
+import {
+  collectCanvasActivities,
+  emptyCanvasActivities,
+  newCanvasEvents,
+  pruneCanvasActivities,
+  type CanvasActivities,
+  type CanvasActivity,
+} from './canvasActivity';
+import { canvasPosition, radioCoverage, wirelessMetrics } from '@shlab/engine';
 import { useEffect, useCallback, useMemo, useState, useRef, memo } from 'react';
 import {
   ReactFlow,
@@ -40,7 +48,15 @@ import { availablePorts } from './deviceCatalog';
 import type { LabController } from './useLab';
 import '@xyflow/react/dist/style.css';
 type DeviceNode = Node<
-  { device: Device; detailed: boolean; overview: boolean; highlight: boolean; renderKey: string },
+  {
+    device: Device;
+    detailed: boolean;
+    overview: boolean;
+    highlight: boolean;
+    renderKey: string;
+    activity?: CanvasActivity;
+    moving: boolean;
+  },
   'device'
 >;
 type AnnotationNode = Node<{ item: CanvasItem; change: (value: Partial<CanvasItem>) => void }, 'annotation'>;
@@ -111,13 +127,31 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
   const d = data.device;
   const presentation = devicePresentationProfile(d);
   const passive = ['rack', 'patch-panel'].includes(d.infrastructure?.kind ?? '');
+  const activityClass = data.activity ? ' activity-' + data.activity.tone : '';
+  const activityLabel = data.activity
+    ? data.activity.reason
+    : passive
+      ? 'Infraestrutura passiva'
+      : d.power
+        ? 'Ligado'
+        : 'Desligado';
+  const activityAttributes = {
+    'data-activity': data.activity?.kind ?? 'none',
+    'data-event-id': data.activity?.eventId,
+    'data-motion': data.moving && !passive ? 'active' : 'static',
+  };
   if (data.overview)
     return (
       <div
         className={
-          'network-device overview-device ' + (selected ? 'selected ' : '') + (!d.power ? 'powered-off' : '')
+          'network-device overview-device ' +
+          (selected ? 'selected ' : '') +
+          (!d.power ? 'powered-off' : '') +
+          activityClass
         }
         aria-label={d.hostname}
+        title={activityLabel}
+        {...activityAttributes}
       >
         <strong>{d.hostname}</strong>
         <Handle
@@ -136,8 +170,10 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
         'network-device ' +
         (selected ? 'selected ' : '') +
         (!d.power ? 'powered-off ' : '') +
-        (data.highlight ? 'highlight ' : '')
+        (data.highlight ? 'highlight ' : '') +
+        activityClass
       }
+      {...activityAttributes}
     >
       {d.wireless?.role === 'ap' && selected && (
         <div
@@ -167,7 +203,7 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
                       : 'COMPUTADOR')}
           </span>
           <strong>{d.hostname}</strong>
-          <small>
+          <small className={d.interfaces.some((p) => p.ip) ? 'node-address' : undefined}>
             {d.interfaces.find((i) => i.ip)?.ip ??
               presentation?.model ??
               (d.type === 'switch' ? 'NetOS · ' + d.interfaces.length + ' portas' : 'IPv4 não configurado')}
@@ -180,6 +216,26 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
           />
         )}
       </div>
+      {data.activity && (
+        <span
+          key={data.activity.eventId}
+          className={'node-activity-indicator tone-' + data.activity.tone}
+          title={activityLabel}
+        >
+          <span aria-hidden="true">
+            {data.activity.kind === 'transmit'
+              ? '↗'
+              : data.activity.kind === 'receive'
+                ? '↙'
+                : data.activity.tone === 'drop'
+                  ? '×'
+                  : data.activity.tone === 'success'
+                    ? '✓'
+                    : '·'}
+          </span>
+          <span className="sr-only">{activityLabel}</span>
+        </span>
+      )}
       {data.detailed && d.infrastructure?.kind !== 'rack' && (
         <div className="node-port-strip">
           {d.interfaces
@@ -187,7 +243,12 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
             .map((p) => (
               <span
                 key={p.id}
-                className={'port-' + p.media + (!p.adminUp ? ' off' : '')}
+                className={
+                  'port-' +
+                  p.media +
+                  (!p.adminUp ? ' off' : '') +
+                  (data.activity?.port === p.id ? ' port-active tone-' + data.activity.tone : '')
+                }
                 title={
                   p.name + ' · ' + (passive ? 'Passagem passiva' : p.mode) + ' · ' + p.media.toUpperCase()
                 }
@@ -227,68 +288,107 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
   );
 }
 type CableEdge = Edge<{
-  active?: string;
+  activity?: CanvasActivity;
+  moving: boolean;
   blocked: boolean;
+  radioControlOperational: boolean;
   discarding: boolean;
-  control: boolean;
-  reverse: boolean;
   cable: string;
 }>;
 function CableView(props: EdgeProps<CableEdge>) {
   const [path, labelX, labelY] = getBezierPath(props);
-  const moving = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const activity = props.data?.activity;
+  const packet = activity?.packet;
+  const transmitting =
+    !!packet &&
+    (!props.data?.blocked || (packet.radioControl && props.data?.radioControlOperational)) &&
+    (!props.data?.discarding || packet.control);
+  const moving = !!props.data?.moving;
+  const motionPath = packet?.reverse
+    ? getBezierPath({
+        ...props,
+        sourceX: props.targetX,
+        sourceY: props.targetY,
+        sourcePosition: props.targetPosition,
+        targetX: props.sourceX,
+        targetY: props.sourceY,
+        targetPosition: props.sourcePosition,
+      })[0]
+    : path;
   return (
-    <>
+    <g className="cable-visual" data-event-id={activity?.eventId} data-tone={activity?.tone}>
       <BaseEdge
         id={props.id}
         path={path}
-        className={props.data?.discarding ? 'stp-blocked' : undefined}
+        className={
+          'cable-line ' +
+          (props.data?.discarding ? 'stp-blocked ' : '') +
+          (props.data?.blocked ? 'link-down ' : '') +
+          (props.selected ? 'link-selected' : '')
+        }
         style={{
-          stroke: props.data?.blocked
-            ? '#bb6865'
-            : props.data?.discarding
-              ? '#b48221'
-              : props.selected
-                ? '#1479c5'
-                : '#8da7b5',
-          strokeWidth: props.selected ? 3 : 2,
           strokeDasharray:
-            props.data?.blocked || props.data?.discarding || props.data?.cable === 'wireless'
+            props.data?.blocked ||
+            props.data?.discarding ||
+            ['wireless', 'mesh'].includes(props.data?.cable ?? '')
               ? '7 5'
               : undefined,
         }}
         interactionWidth={18}
       />
+      {activity && (
+        <path
+          className="cable-activity"
+          d={path}
+          fill="none"
+          data-tone={activity.tone}
+          data-event-id={activity.eventId}
+          data-motion={moving ? 'active' : 'static'}
+          aria-hidden="true"
+        />
+      )}
       <text x={labelX} y={labelY - 10} textAnchor="middle" className="cable-label">
         {props.label}
         {props.data?.discarding ? ' · STP discarding' : ''}
       </text>
-      {props.data?.active && !props.data.blocked && (!props.data.discarding || props.data.control) && (
-        <g key={props.data.active}>
-          <rect
-            x={moving ? -6 : labelX - 6}
-            y={moving ? -4 : labelY - 4}
-            width="12"
-            height="8"
-            rx="2"
-            fill="#05a9b4"
-            stroke="white"
-            strokeWidth="2"
-          />
+      {transmitting && packet && (
+        <g
+          key={packet.eventId + (moving ? '-moving' : '-static')}
+          className={'cable-packet tone-' + packet.tone}
+          data-tone={packet.tone}
+          data-event-id={packet.eventId}
+          data-direction={packet.reverse ? 'reverse' : 'forward'}
+          data-motion={moving ? 'active' : 'static'}
+          transform={moving ? undefined : 'translate(' + labelX + ' ' + labelY + ')'}
+          aria-hidden="true"
+        >
+          <circle className="packet-halo" r="11" />
+          <rect className="packet-core" x="-7" y="-4" width="14" height="8" rx="2" />
+          <path className="packet-direction" d="M -1 -2.5 L 3 0 L -1 2.5" />
           {moving && (
             <animateMotion
-              dur=".6s"
-              path={path}
+              dur=".72s"
+              path={motionPath}
               rotate="auto"
               fill="freeze"
-              keyPoints={props.data.reverse ? '1;0' : '0;1'}
+              keyPoints="0;1"
               keyTimes="0;1"
               calcMode="linear"
             />
           )}
         </g>
       )}
-    </>
+      {activity?.tone === 'drop' && (
+        <g
+          className="cable-drop-marker"
+          transform={'translate(' + labelX + ' ' + labelY + ')'}
+          aria-hidden="true"
+        >
+          <circle r="7" />
+          <path d="M -2 -2 L 2 2 M 2 -2 L -2 2" />
+        </g>
+      )}
+    </g>
   );
 }
 const nodeTypes = {
@@ -299,7 +399,9 @@ const nodeTypes = {
         a.data.renderKey === b.data.renderKey &&
         a.data.overview === b.data.overview &&
         a.data.detailed === b.data.detailed &&
-        a.data.highlight === b.data.highlight
+        a.data.highlight === b.data.highlight &&
+        a.data.activity === b.data.activity &&
+        a.data.moving === b.data.moving
     ),
     annotation: AnnotationView,
   },
@@ -317,6 +419,78 @@ interface Props {
   drawing: boolean;
   onDrawingDone: () => void;
 }
+function useCanvasMotion() {
+  const [state, setState] = useState(() => ({
+    visible: document.visibilityState !== 'hidden',
+    reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  }));
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setState({ visible: document.visibilityState !== 'hidden', reduced: media.matches });
+    document.addEventListener('visibilitychange', update);
+    media.addEventListener('change', update);
+    return () => {
+      document.removeEventListener('visibilitychange', update);
+      media.removeEventListener('change', update);
+    };
+  }, []);
+  return state;
+}
+function useCanvasActivities(lab: LabController, visible: boolean) {
+  const { engine, tick, playing } = lab;
+  const [activities, setActivities] = useState<CanvasActivities>(emptyCanvasActivities);
+  const cursor = useRef({
+    state: engine.state,
+    id: engine.state.events.at(-1)?.id,
+    sequence: engine.state.sequence,
+    playing,
+  });
+  useEffect(() => {
+    const previous = cursor.current;
+    const events = engine.state.events;
+    cursor.current = { state: engine.state, id: events.at(-1)?.id, sequence: engine.state.sequence, playing };
+    // Loading, restoring or undoing a snapshot must not replay historical packets.
+    if (!visible || engine.state !== previous.state || engine.state.sequence < previous.sequence) {
+      setActivities(emptyCanvasActivities());
+      return;
+    }
+    const fresh = newCanvasEvents(events, previous.id);
+    if (fresh.length)
+      setActivities((old) => collectCanvasActivities(old, fresh, engine.state.links, Date.now(), !playing));
+    else if (playing && !previous.playing)
+      setActivities((old) => {
+        // A manual pulse becomes ordinary playback activity when Run is pressed.
+        // Pausing immediately afterward must stop it just like a Worker-generated frame.
+        const clearManual = (map: Map<string, CanvasActivity>) =>
+          new Map(
+            [...map].map(([id, activity]) => [
+              id,
+              activity.manualStep ? { ...activity, manualStep: false } : activity,
+            ])
+          );
+        if (![...old.devices.values(), ...old.links.values()].some((activity) => activity.manualStep))
+          return old;
+        return { devices: clearManual(old.devices), links: clearManual(old.links) };
+      });
+  }, [engine, tick, playing, visible]);
+  useEffect(() => {
+    const all = [...activities.devices.values(), ...activities.links.values()];
+    if (!all.length) return;
+    const timer = setTimeout(
+      () => setActivities((old) => pruneCanvasActivities(old, Date.now())),
+      Math.max(
+        1,
+        Math.min(
+          ...all.flatMap((activity) =>
+            activity.packet ? [activity.expiresAt, activity.packet.expiresAt] : [activity.expiresAt]
+          )
+        ) - Date.now()
+      )
+    );
+    return () => clearTimeout(timer);
+  }, [activities]);
+  return activities;
+}
 function Canvas({
   lab,
   selected,
@@ -332,6 +506,9 @@ function Canvas({
 }: Props) {
   const { engine, tick } = lab,
     { screenToFlowPosition, fitView, setCenter, getViewport } = useReactFlow();
+  const motion = useCanvasMotion();
+  const activities = useCanvasActivities(lab, motion.visible);
+  const canMove = motion.visible && !motion.reduced;
   const zoom = useStore((state) => state.transform[2]);
   const overview = engine.state.devices.length > 200 && zoom < 0.45;
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
@@ -371,7 +548,10 @@ function Canvas({
     fittedDeviceCount.current = size;
   }, [engine, nodes, nodesInitialized, selected, fitView, setCenter, getViewport]);
   const previousEdges = useRef(new Map<string, CableEdge>());
+  const activityView = useRef({ activities, canMove, playing: lab.playing });
+  activityView.current = { activities, canMove, playing: lab.playing };
   useEffect(() => {
+    const view = activityView.current;
     const items = engine.state.canvasItems ?? [];
     const parents = new Map<string, CanvasItem>();
     for (const item of items) for (const member of item.members ?? []) parents.set(member, item);
@@ -398,6 +578,7 @@ function Canvas({
     }));
     const devices: DeviceNode[] = engine.state.devices.map((d) => {
       const parent = parents.get(d.id);
+      const activity = view.activities.devices.get(d.id);
       return {
         id: d.id,
         type: 'device',
@@ -409,6 +590,8 @@ function Canvas({
         data: {
           device: d,
           overview,
+          activity,
+          moving: !overview && !!activity && view.canMove && (view.playing || activity.manualStep),
           renderKey: JSON.stringify([
             d.hostname,
             d.type,
@@ -444,7 +627,9 @@ function Canvas({
           old.data.renderKey === node.data.renderKey &&
           old.data.overview === node.data.overview &&
           old.data.detailed === node.data.detailed &&
-          old.data.highlight === node.data.highlight
+          old.data.highlight === node.data.highlight &&
+          old.data.activity === node.data.activity &&
+          old.data.moving === node.data.moving
         )
           return old;
         return node;
@@ -454,14 +639,27 @@ function Canvas({
         : next;
     });
   }, [engine, tick, selected, detailed, highlight, query, lab.change, overview]);
-  const edges = useMemo<CableEdge[]>(() => {
-    const sent = new Map<string, (typeof engine.state.events)[number]>();
-    for (const event of engine.state.events)
-      if (event.type === 'FRAME_SENT' && event.link) sent.set(event.link, event);
+  useEffect(() => {
+    // Transient highlights must not rebuild geometry and serialize every device again.
+    setNodes((previous) => {
+      let changed = false;
+      const next = previous.map((node) => {
+        if (node.type !== 'device') return node;
+        const activity = activities.devices.get(node.id);
+        const moving = !overview && !!activity && canMove && (lab.playing || activity.manualStep);
+        if (node.data.activity === activity && node.data.moving === moving) return node;
+        changed = true;
+        return { ...node, data: { ...node.data, activity, moving } };
+      });
+      return changed ? next : previous;
+    });
+  }, [activities.devices, canMove, lab.playing, overview]);
+  const baseEdges = useMemo<CableEdge[]>(() => {
+    const devicesById = new Map(engine.state.devices.map((device) => [device.id, device]));
     const next = engine.state.links.map((l) => {
-      const a = engine.device(l.a.device),
-        b = engine.device(l.b.device);
-      const recent = sent.get(l.id);
+      const a = devicesById.get(l.a.device)!,
+        b = devicesById.get(l.b.device)!;
+      const operational = linkOperational(engine.state, l);
       const edge: CableEdge = {
         id: l.id,
         source: l.a.device,
@@ -476,12 +674,12 @@ function Canvas({
             b.interfaces.find((p) => p.id === l.b.port)?.name,
         data: {
           cable: l.cable,
-          blocked: !linkOperational(engine.state, l),
-          active: overview ? undefined : recent?.id,
-          control: !!recent?.frame?.bpdu,
-          reverse: recent?.device === l.b.device,
+          blocked: !operational,
+          radioControlOperational:
+            ['wireless', 'mesh'].includes(l.cable) && wirelessMetrics(engine.state, l).operational,
+          moving: false,
           discarding:
-            linkOperational(engine.state, l) &&
+            operational &&
             [
               a.interfaces.find((port) => port.id === l.a.port),
               b.interfaces.find((port) => port.id === l.b.port),
@@ -489,11 +687,49 @@ function Canvas({
         },
       };
       const old = previousEdges.current.get(l.id);
-      return old && JSON.stringify(old) === JSON.stringify(edge) ? old : edge;
+      return old &&
+        old.source === edge.source &&
+        old.target === edge.target &&
+        old.sourceHandle === edge.sourceHandle &&
+        old.targetHandle === edge.targetHandle &&
+        old.label === edge.label &&
+        old.data?.blocked === edge.data?.blocked &&
+        old.data?.radioControlOperational === edge.data?.radioControlOperational &&
+        old.data?.discarding === edge.data?.discarding &&
+        old.data?.cable === edge.data?.cable
+        ? old
+        : edge;
     });
     previousEdges.current = new Map(next.map((edge) => [edge.id, edge]));
     return next;
   }, [engine, tick, overview]);
+  const decoratedEdges = useRef(new Map<string, CableEdge>());
+  const edges = useMemo<CableEdge[]>(() => {
+    if (overview) return baseEdges;
+    const next = baseEdges.map((edge) => {
+      const activity = activities.links.get(edge.id);
+      if (!activity) return edge;
+      const moving = canMove && (lab.playing || activity.manualStep);
+      const old = decoratedEdges.current.get(edge.id);
+      if (
+        old?.data?.activity === activity &&
+        old.data.moving === moving &&
+        old.data.blocked === edge.data?.blocked &&
+        old.data.radioControlOperational === edge.data?.radioControlOperational &&
+        old.data.discarding === edge.data?.discarding &&
+        old.data.cable === edge.data?.cable &&
+        old.source === edge.source &&
+        old.target === edge.target &&
+        old.sourceHandle === edge.sourceHandle &&
+        old.targetHandle === edge.targetHandle &&
+        old.label === edge.label
+      )
+        return old;
+      return { ...edge, data: { ...edge.data!, activity, moving } };
+    });
+    decoratedEdges.current = new Map(next.map((edge) => [edge.id, edge]));
+    return next;
+  }, [baseEdges, overview, activities.links, canMove, lab.playing]);
   const onNodesChange = useCallback(
     (changes: Parameters<typeof applyNodeChanges<CanvasNode>>[0]) =>
       setNodes((ns) => applyNodeChanges(changes, ns)),
@@ -507,6 +743,7 @@ function Canvas({
     <div
       ref={container}
       className={'canvas-container theme-' + engine.state.background}
+      data-motion={canMove ? 'enabled' : 'static'}
       onKeyDownCapture={(event) => {
         if (
           !['Enter', ' '].includes(event.key) ||
@@ -682,8 +919,12 @@ function Canvas({
         </div>
       )}
       <div className="canvas-coordinate">
-        <span className="live-dot" /> {engine.state.devices.length} dispositivos <span>·</span>{' '}
-        {engine.state.links.length} conexões <span>·</span> {engine.state.clock.toFixed(2)} ms
+        <span
+          className={'canvas-run-status ' + (lab.playing ? 'is-playing' : 'is-paused')}
+          aria-hidden="true"
+        />{' '}
+        {engine.state.devices.length} dispositivos <span>·</span> {engine.state.links.length} conexões{' '}
+        <span>·</span> {engine.state.clock.toFixed(2)} ms
       </div>
       {actions && actionDevice && (
         <DeviceActions

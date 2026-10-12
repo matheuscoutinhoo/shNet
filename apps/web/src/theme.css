@@ -1,110 +1,47 @@
-/* shLab: navy foundations, teal interaction, blue actions and distinct signal colors. */
+/* shLab: one dark platform, independent canvas palettes, distinct network signals. */
 :root {
-  color-scheme: light;
-  --text: #183248;
-  --page-bg: #f2f7fa;
-  --surface-soft: #f7fafc;
-  --surface-hover: #eef4f7;
-  --text-strong: #355168;
-  --info-text: #37657e;
-  --info-bg: #edf5f9;
-  --accent-text: #076b68;
-  --accent-bg: #e0f5ef;
-  --accent-hover: #d4eee9;
-  --success-text: #187b67;
-  --success-bg: #eef9f4;
-  --success-border: #b2d8cd;
-  --warning-text: #8b6812;
-  --warning-bg: #fff7df;
-  --warning-border: #d7b57b;
-  --danger-text: #ad3e3e;
-  --danger-bg: #fff4f3;
-  --danger-border: #e7c6bf;
+  color-scheme: dark;
+  --text: #c5d8e5;
+  --navy: #e7f2f8;
+  --page-bg: #08151f;
+  --surface: #102532;
+  --surface-soft: #0c1d29;
+  --surface-hover: #193746;
+  --surface-raised: #17313f;
+  --text-strong: #dfedf5;
+  --muted: #9db5c5;
+  --line: #274452;
+  --control-border: #507485;
+  --control-focus: #59e7cd;
+  --scroll-thumb: #496e7d;
+  --blue: #086de0;
+  --primary-hover: #075bbd;
+  --teal: #59e7cd;
+  --neon: #36f2de;
+  --signal: #c1f56d;
+  --link: #8fcaff;
+  --value: #92dfeb;
+  --value-secondary: #c3b8f9;
+  --info-text: #a8d4fa;
+  --info-bg: #19384c;
+  --accent-text: #8debd9;
+  --accent-bg: #143d3e;
+  --accent-hover: #205153;
+  --success-text: #9ee3c0;
+  --success-bg: #153b32;
+  --success-border: #396c59;
+  --warning-text: #f4d49a;
+  --warning-bg: #3b3223;
+  --warning-border: #8a6c3e;
+  --danger-text: #ffb3c1;
+  --danger-bg: #3e2632;
+  --danger-border: #875168;
   --border: var(--line);
-  --primary-hover: #075bbd;
-  --shadow: #102b401a;
-  --overlay: #102b4066;
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23536777' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --text: #c7d9e2;
-  --navy: #e1eef3;
-  --page-bg: #0e202b;
-  --surface: #192f3d;
-  --surface-soft: #142a36;
-  --surface-hover: #233f4e;
-  --text-strong: #d4e6ee;
-  --muted: #9db6c5;
-  --line: #2b4756;
-  --control-border: #40606f;
-  --control-focus: #63d7c3;
-  --scroll-thumb: #486572;
-  --teal: #63d7c3;
-  --link: #89c4ff;
-  --info-text: #a1d3ee;
-  --info-bg: #193a4d;
-  --accent-text: #8ce4d0;
-  --accent-bg: #183e40;
-  --accent-hover: #214d4e;
-  --success-text: #92dcba;
-  --success-bg: #1a3933;
-  --success-border: #386c5a;
-  --warning-text: #efd395;
-  --warning-bg: #393326;
-  --warning-border: #7e6843;
-  --danger-text: #f3afb3;
-  --danger-bg: #402d37;
-  --danger-border: #80505a;
-  --primary-hover: #075bbd;
-  --shadow: #030e1859;
-  --overlay: #06131c9e;
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239db6c5' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
-}
-
-.theme-control {
-  position: relative;
-  margin: 0;
-  flex-shrink: 0;
-}
-.theme-control > svg {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--teal);
-  pointer-events: none;
-}
-.theme-control select {
-  min-height: 36px;
-  width: 126px;
-  padding: 7px 30px 7px 34px;
-  font-size: 12px;
-}
-.auth-form-side {
-  position: relative;
-}
-.auth-appearance {
-  position: absolute;
-  top: 22px;
-  right: 24px;
-}
-.topbar-preferences,
-.topbar-preferences .private-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.workspace-header .theme-control {
-  --surface: #183b4c;
-  --text: #d8e5ef;
-  --control-border: #36596b;
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239db6c5' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
-  color-scheme: dark;
-}
-.workspace-header .theme-control > svg {
-  color: var(--neon);
+  --shadow: #030d165c;
+  --overlay: #020c16bd;
+  --focus-glow: 0 0 0 3px #36f2de18, 0 0 20px #36f2de0e;
+  --font-data: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239db5c5' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
 }
 .workspace-header-actions {
   flex-shrink: 0;
@@ -113,8 +50,7 @@
   flex: 1;
   min-width: 0;
 }
-
-/* Canvas appearance is owned by the lab, independently of the platform preference. */
+/* Canvas appearance is owned by the lab, independently of the dark platform. */
 .canvas-container {
   --xy-background-color: transparent;
   --xy-minimap-background-color: var(--canvas-stroke);
@@ -127,7 +63,12 @@
   --text-strong: #355168;
   --muted: #536777;
   --line: #e2e8ee;
-  --control-border: #c7d8e2;
+  --control-border: #728b9b;
+  --control-focus: #087f85;
+  --focus-glow: 0 0 0 3px #087f8518;
+  --link: #075bbd;
+  --scroll-thumb: #7d98a9;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23536777' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
   --teal: #078b91;
   --info-text: #37657e;
   --accent-bg: #e0f5ef;
@@ -153,6 +94,11 @@
   --muted: #a2bdcc;
   --line: #345264;
   --control-border: #486b7d;
+  --control-focus: #63d7c3;
+  --focus-glow: 0 0 0 3px #63d7c318;
+  --link: #9dcdff;
+  --scroll-thumb: #5c7d91;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a2bdcc' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
   --teal: #63d7c3;
   --info-text: #a1d3ee;
   --accent-bg: #214d4e;
@@ -193,21 +139,7 @@
 }
 
 @media (max-width: 700px) {
-  .workspace-header .theme-control select,
-  .dashboard-topbar .theme-control select {
-    width: 36px;
-    color: transparent;
-    padding: 7px;
-    background-image: none;
-  }
-  .theme-control select option {
-    color: var(--text);
-  }
   .workspace-header-actions {
     gap: 4px;
-  }
-  .auth-appearance {
-    top: 24px;
-    right: 24px;
   }
 }

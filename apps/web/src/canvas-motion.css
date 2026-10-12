@@ -1,0 +1,302 @@
+/* Canvas signals use their own palette; platform appearance never changes its background. */
+.canvas-container {
+  --signal-traffic: #087c86;
+  --signal-control: #176bb1;
+  --signal-success: #257650;
+  --signal-drop: #b73553;
+  --signal-config: #84601c;
+  --signal-wire: #78939f;
+  --signal-paper: #fff;
+}
+
+.canvas-container.theme-dark {
+  --signal-traffic: #55ead5;
+  --signal-control: #80bcff;
+  --signal-success: #96eab2;
+  --signal-drop: #ff91a8;
+  --signal-config: #f4d49a;
+  --signal-wire: #5d8396;
+  --signal-paper: #112b3b;
+}
+
+.canvas-container .network-device {
+  border-radius: 11px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.canvas-container.theme-dark .network-device {
+  background: linear-gradient(135deg, #193849, #142c3b);
+  border-color: #426275;
+  box-shadow: 0 4px 12px #07182440;
+}
+
+.canvas-container .network-device.selected {
+  outline-color: var(--signal-traffic);
+  box-shadow:
+    0 0 0 1px var(--signal-paper),
+    0 0 18px color-mix(in srgb, var(--signal-traffic) 18%, transparent);
+}
+
+.canvas-container .network-device.highlight {
+  border-color: var(--signal-control);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal-control) 22%, transparent);
+}
+
+.canvas-container .node-main {
+  padding: 14px 12px;
+  gap: 10px;
+}
+
+.canvas-container .node-type {
+  font-size: 7.5px;
+  line-height: 1.35;
+  letter-spacing: 0.025em;
+  margin-bottom: 4px;
+}
+
+.canvas-container .node-main strong {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.canvas-container .node-main small {
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.canvas-container .node-main .node-address {
+  color: var(--signal-traffic);
+  font-variant-numeric: tabular-nums;
+}
+
+.canvas-container .node-status {
+  width: 5px;
+  height: 5px;
+  background: var(--signal-success);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--signal-success) 24%, transparent);
+}
+
+.canvas-container .node-status.off {
+  background: var(--signal-wire);
+  box-shadow: none;
+}
+
+.canvas-container .node-port-strip > span {
+  font-size: 6.5px;
+}
+
+.canvas-container .node-port-strip .port-active {
+  color: var(--activity-color);
+}
+
+.canvas-container .node-port-strip .port-active i {
+  background: color-mix(in srgb, var(--activity-color) 25%, var(--signal-paper));
+  border-color: var(--activity-color);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--activity-color) 32%, transparent);
+}
+
+.canvas-container .activity-traffic,
+.canvas-container .tone-traffic,
+.canvas-container [data-tone='traffic'] {
+  --activity-color: var(--signal-traffic);
+}
+
+.canvas-container .activity-control,
+.canvas-container .tone-control,
+.canvas-container [data-tone='control'] {
+  --activity-color: var(--signal-control);
+}
+
+.canvas-container .activity-success,
+.canvas-container .tone-success,
+.canvas-container [data-tone='success'] {
+  --activity-color: var(--signal-success);
+}
+
+.canvas-container .activity-drop,
+.canvas-container .tone-drop,
+.canvas-container [data-tone='drop'] {
+  --activity-color: var(--signal-drop);
+}
+
+.canvas-container .activity-config,
+.canvas-container .tone-config,
+.canvas-container [data-tone='config'] {
+  --activity-color: var(--signal-config);
+}
+
+.canvas-container .network-device[data-event-id] {
+  border-color: var(--activity-color);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--activity-color) 26%, transparent),
+    0 0 15px color-mix(in srgb, var(--activity-color) 18%, transparent);
+}
+
+.canvas-container .network-device[data-event-id].selected {
+  outline-color: var(--signal-traffic);
+}
+
+.canvas-container .node-activity-indicator {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  color: var(--activity-color);
+  background: var(--signal-paper);
+  border: 1px solid color-mix(in srgb, var(--activity-color) 65%, transparent);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.canvas-container .network-device[data-motion='active'] .node-activity-indicator {
+  animation: node-event-reveal 720ms ease-out both;
+}
+
+.canvas-container .network-device.overview-device {
+  border-radius: 7px;
+  background: var(--surface);
+  box-shadow: none;
+  transition: none;
+}
+.canvas-container .network-device.overview-device.selected,
+.canvas-container .network-device.overview-device[data-event-id] {
+  box-shadow: none;
+}
+
+.canvas-container .cable-line {
+  stroke: var(--signal-wire);
+  stroke-width: 2;
+  transition: stroke 140ms ease;
+}
+
+.canvas-container .cable-line.link-down {
+  stroke: var(--signal-drop);
+  opacity: 0.65;
+}
+
+.canvas-container .cable-line.stp-blocked {
+  stroke: #b58539;
+}
+
+.canvas-container.theme-dark .cable-line.stp-blocked {
+  stroke: #e6bc76;
+}
+
+.canvas-container .cable-line.link-selected {
+  stroke: var(--signal-traffic);
+  stroke-width: 3;
+}
+
+.canvas-container .cable-activity {
+  stroke: var(--activity-color);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.82;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--activity-color) 44%, transparent));
+  pointer-events: none;
+}
+
+.canvas-container .cable-activity[data-tone='drop'] {
+  stroke-dasharray: 4 6;
+}
+
+.canvas-container .cable-activity[data-tone='control'] {
+  stroke-dasharray: 3 5;
+}
+
+.canvas-container .cable-packet {
+  color: var(--activity-color);
+  pointer-events: none;
+}
+
+.canvas-container .packet-halo {
+  fill: currentColor;
+  opacity: 0.14;
+}
+
+.canvas-container .packet-core {
+  fill: currentColor;
+  stroke: var(--signal-paper);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, currentColor 45%, transparent));
+}
+
+.canvas-container .packet-direction {
+  fill: none;
+  stroke: var(--signal-paper);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.25;
+}
+
+.canvas-container .cable-packet[data-motion='static'][data-direction='reverse'] .packet-direction {
+  transform: rotate(180deg);
+}
+
+.canvas-container .cable-drop-marker {
+  pointer-events: none;
+}
+
+.canvas-container .cable-drop-marker circle {
+  fill: var(--signal-paper);
+  stroke: var(--signal-drop);
+  stroke-width: 1.6;
+}
+
+.canvas-container .cable-drop-marker path {
+  stroke: var(--signal-drop);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.canvas-container .cable-label {
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.canvas-container .canvas-run-status {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--signal-wire);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.canvas-container .canvas-run-status.is-playing {
+  background: var(--signal-traffic);
+  border-color: var(--signal-traffic);
+}
+
+.canvas-container[data-motion='static'] *,
+.canvas-container [data-motion='static'] .node-activity-indicator {
+  animation: none !important;
+  transition: none !important;
+}
+
+@keyframes node-event-reveal {
+  from {
+    opacity: 0.6;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--activity-color) 15%, transparent);
+  }
+  to {
+    opacity: 1;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-container *,
+  .canvas-container *::before,
+  .canvas-container *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

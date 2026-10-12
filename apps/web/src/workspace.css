@@ -2405,8 +2405,9 @@ td {
   top: 60px;
   left: 16px;
   padding: 10px 14px;
-  background: var(--navy);
-  color: white;
+  background: var(--surface);
+  color: var(--text-strong);
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   pointer-events: none;
 }

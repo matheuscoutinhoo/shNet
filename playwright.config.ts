@@ -9,8 +9,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   projects: [
-    { name: 'claro', use: { colorScheme: 'light' } },
-    { name: 'escuro', use: { colorScheme: 'dark' } },
+    { name: 'sistema-claro', use: { colorScheme: 'light' } },
+    { name: 'sistema-escuro', use: { colorScheme: 'dark' } },
   ],
   use: {
     baseURL: origin,

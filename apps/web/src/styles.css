@@ -2,27 +2,16 @@
 @import './canvas-ui.css';
 @import './dashboard.css';
 @import './theme.css';
+@import './redesign.css';
+@import './canvas-motion.css';
 
 :root {
   font-family: 'Space Grotesk Variable', 'Segoe UI', sans-serif;
   color: var(--text);
   background: var(--page-bg);
   font-synthesis: none;
-  --navy: #102b40;
-  --blue: #086de0;
-  --link: #075bbd;
-  --teal: #078b91;
-  --neon: #36f2de;
-  --signal: #c1f56d;
-  --focus-glow: 0 0 0 3px #08bda52b, 0 0 22px #11dccc20;
-  --muted: #536777;
-  --line: #e2e8ee;
   --control-radius: 8px;
   --control-height: 40px;
-  --control-border: #c7d8e2;
-  --control-focus: #087f85;
-  --surface: #fff;
-  --scroll-thumb: #a9bfcc;
 }
 
 * {
