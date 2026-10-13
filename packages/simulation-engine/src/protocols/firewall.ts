@@ -101,7 +101,7 @@ export function permitFirewall(
       ' → ' +
       packet.dst +
       '.';
-    engine.emit('FIREWALL_DENY', device.id, message, { port: input.id });
+    engine.emit('FIREWALL_DENY', device.id, message, { port: input.id, packet });
     engine.drop(device, message, input.id);
     return false;
   };

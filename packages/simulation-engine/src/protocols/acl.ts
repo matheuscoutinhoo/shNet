@@ -60,7 +60,7 @@ export function permitPacket(
     ' -> ' +
     packet.dst +
     '.';
-  engine.emit(permitted ? 'ACL_PERMIT' : 'ACL_DENY', device.id, reason, { port: port.id });
+  engine.emit(permitted ? 'ACL_PERMIT' : 'ACL_DENY', device.id, reason, { port: port.id, packet });
   if (!permitted) engine.drop(device, reason, port.id);
   return permitted;
 }

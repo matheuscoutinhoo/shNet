@@ -1,0 +1,175 @@
+import { z } from 'zod';
+import { eventSchema } from './model';
+import { scenarioSchema } from './scenarios-model';
+const ms = z.number().finite().nonnegative();
+const name = z.string().min(1).max(100);
+const sampleSchema = z
+  .object({
+    flow: name,
+    atMs: ms,
+    id: z.string().min(1).max(100).optional(),
+    status: z.enum(['pending', 'success', 'failed']),
+    elapsedMs: ms.optional(),
+    reason: z.string().max(2000).optional(),
+    responseReceived: z.boolean().optional(),
+    evidence: z
+      .object({
+        cause: z.enum(['policy', 'link', 'transport', 'response', 'timeout', 'unknown']),
+        events: z
+          .array(
+            z
+              .object({
+                id: z.string().max(100),
+                atMs: ms,
+                device: z.string().max(100),
+                type: eventSchema.shape.type,
+                reason: z.string().max(500),
+              })
+              .strict()
+          )
+          .max(16),
+        path: z.array(z.string().max(100)).max(64),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+export const scenarioReportSchema = z
+  .object({
+    format: z.literal('shlab-scenario-v1'),
+    engineVersion: z.string().min(1).max(32),
+    name,
+    clock: z.literal('virtual-ms'),
+    complete: z.literal(true),
+    passed: z.boolean(),
+    scenario: scenarioSchema,
+    flows: z
+      .array(
+        z
+          .object({
+            name,
+            expect: z.enum(['allow', 'deny']),
+            sent: z.number().int().min(1).max(180),
+            received: z.number().int().min(0).max(180),
+            lossPercent: z.number().min(0).max(100),
+            p95Ms: ms.nullable(),
+            p99Ms: ms.nullable(),
+            jitterP95Ms: ms.nullable(),
+            passed: z.boolean(),
+          })
+          .strict()
+      )
+      .min(1)
+      .max(16),
+    samples: z.array(sampleSchema).min(1).max(180),
+    warnings: z
+      .array(
+        z
+          .object({
+            code: name,
+            severity: z.enum(['error', 'warning', 'info']),
+            devices: z.array(z.string().max(100)).max(2000),
+            message: z.string().max(2000),
+            recommendation: z.string().max(2000),
+          })
+          .strict()
+      )
+      .max(5000),
+    faults: z
+      .array(
+        z
+          .object({
+            ...scenarioSchema.shape.faults.element.shape,
+            recovery: z
+              .array(
+                z
+                  .object({
+                    flow: name,
+                    recoveryMs: ms.nullable(),
+                    observedFailure: z.boolean(),
+                    resolutionMs: ms,
+                  })
+                  .strict()
+              )
+              .max(16),
+          })
+          .strict()
+      )
+      .max(32),
+    diagnostics: z.array(eventSchema).max(4000),
+    captureDropped: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((r, ctx) => {
+    const names = r.scenario.flows.map((f) => f.name);
+    if (
+      r.name !== r.scenario.name ||
+      r.flows.length !== names.length ||
+      r.samples.some(
+        (s) => !names.includes(s.flow) || s.status === 'pending' || s.atMs >= r.scenario.durationMs
+      ) ||
+      r.faults.length !== r.scenario.faults.length ||
+      r.passed !== r.flows.every((f) => f.passed)
+    )
+      ctx.addIssue({ code: 'custom', message: 'Relatório incompleto ou incompatível com a definição.' });
+    r.flows.forEach((f, i) => {
+      const samples = r.samples.filter((s) => s.flow === f.name),
+        successful = samples.filter((s) => s.status === 'success'),
+        received = successful.length;
+      const flow = r.scenario.flows[i];
+      const latencies = successful.flatMap((s) => (s.elapsedMs !== undefined ? [s.elapsedMs] : []));
+      const percentile = (values: number[], p: number) =>
+        values.length
+          ? [...values].sort((a, b) => a - b)[Math.max(0, Math.ceil(values.length * p) - 1)]
+          : null;
+      const jitter = latencies.slice(1).map((n, i) => Math.abs(n - latencies[i]));
+      const passed =
+        (!flow.requireFinalSuccess || samples.at(-1)?.status === 'success') &&
+        (flow.expect === 'deny'
+          ? received === 0 && samples.every((s) => s.id && !s.responseReceived)
+          : (100 * (samples.length - received)) / samples.length <= flow.maxLossPercent &&
+            (flow.maxLatencyMs === undefined || successful.every((s) => s.elapsedMs! <= flow.maxLatencyMs!)));
+      if (
+        f.name !== names[i] ||
+        f.expect !== r.scenario.flows[i].expect ||
+        f.sent !== samples.length ||
+        f.received !== received ||
+        Math.abs(f.lossPercent - (100 * (samples.length - received)) / samples.length) > 0.000001 ||
+        samples.length !== Math.ceil(r.scenario.durationMs / r.scenario.intervalMs) ||
+        samples.some(
+          (s, i) =>
+            s.atMs !== i * r.scenario.intervalMs ||
+            (s.status === 'success' && (s.elapsedMs === undefined || s.elapsedMs > r.scenario.deadlineMs))
+        ) ||
+        f.passed !== passed ||
+        f.p95Ms !== percentile(latencies, 0.95) ||
+        f.p99Ms !== percentile(latencies, 0.99) ||
+        f.jitterP95Ms !== percentile(jitter, 0.95)
+      )
+        ctx.addIssue({ code: 'custom', message: 'Resumo de fluxo divergente das amostras.' });
+    });
+    r.faults.forEach((f, i) => {
+      const { recovery, ...fault } = f;
+      if (
+        canonicalScenarioJson(fault) !== canonicalScenarioJson(r.scenario.faults[i]) ||
+        recovery.length !== names.length ||
+        recovery.some((x, i) => x.flow !== names[i] || x.resolutionMs !== r.scenario.intervalMs)
+      )
+        ctx.addIssue({ code: 'custom', message: 'Falhas e recuperação divergentes da definição.' });
+    });
+  });
+export type ScenarioReport = z.infer<typeof scenarioReportSchema>;
+// Stable JSON ordering permits the server to fingerprint a JSONB snapshot without depending on key order.
+export function canonicalScenarioJson(value: unknown): string {
+  const sort = (v: unknown): unknown =>
+    Array.isArray(v)
+      ? v.map(sort)
+      : v && typeof v === 'object'
+        ? Object.fromEntries(
+            Object.entries(v)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([k, n]) => [k, sort(n)])
+          )
+        : v;
+  return JSON.stringify(sort(value));
+}

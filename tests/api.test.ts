@@ -5,7 +5,7 @@ import { buildApp } from '../apps/api/src/app';
 import { runtimeConfig } from '../apps/api/src/config';
 import railwayConfig from '../.railway/railway';
 import { createRailwayContext, project as railwayProject } from 'railway/iac';
-import { makeTemplate, SimulationEngine, templates } from '@shlab/engine';
+import { makeTemplate, SimulationEngine, templates, ScenarioRunner } from '@shlab/engine';
 import type { Mail } from '../apps/api/src/mailer';
 import { createMailer } from '../apps/api/src/mailer';
 import nodemailer from 'nodemailer';
@@ -298,6 +298,93 @@ function mailToken(address: string) {
   const mail = mails.filter((m) => m.to === address).at(-1)!;
   return mail.text.match(/#token=([\w-]+)/)![1];
 }
+describe('Ensaios persistidos por laboratório', () => {
+  it('guarda origem imutável, conclui depois de editar projeto e impede acesso entre usuários', async () => {
+    const owner = await signup('scenario-owner@example.test', '203.0.113.230'),
+      foreign = await signup('scenario-foreign@example.test', '203.0.113.231');
+    const project = (await request('/projects', 'POST', { name: 'Cenários', template: 'lan' }, owner)).json();
+    const source = project.topology.devices.find((d: { interfaces: { ip?: string }[] }) =>
+      d.interfaces.some((p) => p.ip)
+    );
+    const target = project.topology.devices.find(
+      (d: { id: string; interfaces: { ip?: string }[] }) =>
+        d.id !== source.id && d.interfaces.some((p) => p.ip)
+    );
+    const scenario = {
+      name: 'Disponibilidade',
+      durationMs: 1000,
+      intervalMs: 1000,
+      deadlineMs: 500,
+      flows: [
+        {
+          name: 'Ping',
+          source: source.id,
+          target: target.interfaces.find((p: { ip?: string }) => p.ip).ip,
+          protocol: 'icmp',
+          expect: 'allow',
+        },
+      ],
+      faults: [],
+    };
+    const endpoint = '/projects/' + project.id + '/scenario-runs';
+    expect(
+      (await request(endpoint, 'POST', { revision: 99, kind: 'scenario', scenario }, owner)).statusCode
+    ).toBe(409);
+    expect(
+      (await request(endpoint, 'POST', { revision: 1, kind: 'scenario', scenario }, foreign)).statusCode
+    ).toBe(404);
+    expect(
+      (
+        await request(endpoint, 'POST', { revision: 1, kind: 'scenario', scenario }, owner, {
+          'x-csrf-token': '',
+        })
+      ).statusCode
+    ).toBe(403);
+    const started = await request(endpoint, 'POST', { revision: 1, kind: 'scenario', scenario }, owner);
+    expect(started.statusCode).toBe(201);
+    const row = started.json();
+    expect(row.source_hash).toMatch(/^[a-f0-9]{64}$/);
+    const runner = new ScenarioRunner(row.topology, row.scenario);
+    while (!runner.step(100));
+    const report = runner.report();
+    expect(report.passed).toBe(true);
+    project.topology.devices[0].hostname = 'PC-ALTERADO';
+    expect(
+      (
+        await request(
+          '/projects/' + project.id,
+          'PUT',
+          { name: project.name, revision: project.revision, topology: project.topology },
+          owner
+        )
+      ).statusCode
+    ).toBe(200);
+    expect((await request(endpoint + '/' + row.id, 'PUT', { report }, foreign)).statusCode).toBe(404);
+    expect(
+      (await request(endpoint + '/' + row.id, 'PUT', { report: { ...report, name: 'Outro' } }, owner))
+        .statusCode
+    ).toBe(400);
+    const complete = await request(endpoint + '/' + row.id, 'PUT', { report }, owner);
+    expect(complete.statusCode).toBe(200);
+    expect(complete.json()).toMatchObject({ revision: 1, status: 'complete', report: { passed: true } });
+    expect((await request(endpoint + '/' + row.id, 'PUT', { report }, owner)).statusCode).toBe(200);
+    const fetched = (await request(endpoint + '/' + row.id, 'GET', undefined, owner)).json();
+    expect(fetched.topology.devices[0].hostname).not.toBe(project.topology.devices[0].hostname);
+    expect((await request(endpoint, 'GET', undefined, owner)).json()[0].report).toEqual(report);
+    expect((await request(endpoint + '/' + row.id, 'GET', undefined, foreign)).statusCode).toBe(404);
+    expect((await request(endpoint + '/' + row.id, 'PATCH', { status: 'cancelled' }, owner)).statusCode).toBe(
+      409
+    );
+    const next = (await request(endpoint, 'POST', { revision: 2, kind: 'baseline', scenario }, owner)).json();
+    expect(
+      (await request(endpoint + '/' + next.id, 'PATCH', { status: 'cancelled' }, owner)).statusCode
+    ).toBe(200);
+    expect((await request(endpoint + '/' + next.id, 'PUT', { report }, owner)).statusCode).toBe(409);
+    expect((await request(endpoint + '/' + row.id, 'DELETE', undefined, foreign)).statusCode).toBe(404);
+    expect((await request('/projects/' + project.id, 'DELETE', undefined, owner)).statusCode).toBe(200);
+    expect(await db.query('SELECT id FROM scenario_runs WHERE project_id=$1', [project.id])).toHaveLength(0);
+  });
+});
 async function signup(email: string, remoteAddress?: string): Promise<Client> {
   expect(
     (

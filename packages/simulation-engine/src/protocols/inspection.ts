@@ -55,7 +55,7 @@ export function inspectApplication(
   if (!c?.enabled) return true;
   const deny = (reason: string) => {
     d.firewall!.dropped++;
-    e.emit('FIREWALL_DENY', d.id, reason, { port: input.id });
+    e.emit('FIREWALL_DENY', d.id, reason, { port: input.id, packet });
     e.drop(d, reason, input.id);
     return false;
   };

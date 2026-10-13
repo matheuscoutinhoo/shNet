@@ -121,9 +121,9 @@
   },
   {
     "id": "U01",
-    "status": "Parcial",
-    "change": "Executor nativo ICMP/HTTP/Modbus com falhas, baseline, assertions, cancelamento, sete modelos e até 32 definições salvas.",
-    "remaining": "Os 42 casos foram migrados para regressão automatizada do motor; ações DNS/DHCP/MQTT/SNMP/NTP/syslog e persistência não estão todas no executor nativo."
+    "status": "Ampliado; migração integral ainda parcial",
+    "change": "Executor nativo com nove protocolos, assertions de respostas, falhas de dispositivo/enlace/porta/serviço/UPS e 17 modelos.",
+    "remaining": "Ações de checkpoint/restauração e migração integral dos 42 casos para a interface continuam pendentes."
   },
   {
     "id": "U02",
@@ -145,9 +145,9 @@
   },
   {
     "id": "U05",
-    "status": "Parcial",
-    "change": "Perda, p95/p99, jitter, deadlines, amostras e recuperação observada com resolução declarada; exportação e comparação.",
-    "remaining": "Não atribui automaticamente a causa de todos os eventos; relatórios do painel duram a sessão e podem ser exportados."
+    "status": "Persistência implementada; correlação parcial",
+    "change": "Ensaios persistidos no backend com revisão, SHA-256 e origem imutável; reabertura/exportação/cancelamento. Evidências de negação por pacote e caminho observado. Recuperação com resolução declarada.",
+    "remaining": "Causas sem evento correspondente, caminhos intermediados e recuperação exata além do polling ainda exigem ampliação. O servidor não reexecuta resultados calculados pelo navegador."
   },
   {
     "id": "U06",

@@ -11,6 +11,7 @@ import type { Database } from './db';
 import type { Mailer } from './mailer';
 import { registerAuth } from './auth';
 import { registerProjects } from './projects';
+import { registerScenarioRuns } from './scenario-runs';
 import { registerActivity } from './activity';
 import { registerLearning } from './learning';
 import { checkOrigin, currentUser, error } from './security';
@@ -185,6 +186,7 @@ export async function buildApp(options: Options) {
   app.get('/api/openapi.json', async () => openapi);
   await registerAuth(app, { db, mailer, origin, production });
   await registerProjects(app, db, notify);
+  await registerScenarioRuns(app, db);
   await registerActivity(app, db);
   await registerLearning(app, db, notify);
   return app;

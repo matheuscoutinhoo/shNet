@@ -71,4 +71,6 @@ Wireless entrega AP/cliente, SSID, associação/negociação de credencial, cana
 
 ## Fábrica PLC/HMI e rede IP
 
+O executor foi ampliado para nove protocolos e 17 modelos com falhas de porta/serviço/UPS, assertions de aplicações e ensaios persistidos com origem imutável. [ADR-043](adr/043-scenario-protocols-persistent-reports.md).
+
 O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).

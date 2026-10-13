@@ -1,12 +1,16 @@
 # Pendências da fábrica PLC/HMI com Modbus TCP e rede IP
 
-Atualizado em 13/10/2026. Este documento distingue correções entregues de recursos ainda parciais. A identificação dos achados corresponde ao [relatório original](../artifacts/factory-audit/RELATORIO.md); o [status por achado](../artifacts/factory-audit/remediation/remediation-status.json) mantém a rastreabilidade.
+Atualizado em 13/10/2026, após a ampliação do executor e persistência dos ensaios. Este documento distingue correções entregues de recursos ainda parciais. A identificação dos achados corresponde ao [relatório original](../artifacts/factory-audit/RELATORIO.md); o [status por achado](../artifacts/factory-audit/remediation/remediation-status.json) mantém a rastreabilidade.
 
 ## Entregue e validado
 
 Correções de execução em tempo real, retenção da captura, gerência em switches L2, hierarquia de títulos, convergência RSTP, relay DHCP/VRRP, retorno WAN, segmentação de visitantes e enquadramento em telas pequenas. Novos recursos: template de fábrica com 43 dispositivos, 47 enlaces e oito VLANs; PLC/HMI com registradores Modbus 03/06/16; executor ICMP/HTTP/Modbus; preflight; revisão por diff; métricas de SLA; posições físicas RF; autenticação e publicação MQTT QoS 1.
 
-Validação registrada: **664 testes aprovados, zero falhas e um ignorado**, em 71 arquivos; 42 casos de fábrica no motor e sete modelos de cenários na interface. Build, TypeScript, lint e formatação aprovados. A interface foi exercitada com Modbus, cenários, captura, acessibilidade e viewport de 390 × 844. A descrição completa está em [correções e validação](../artifacts/factory-audit/remediation/CORRECOES-E-VALIDACAO.md) e no [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).
+Validação da primeira entrega: **664 testes aprovados, zero falhas e um ignorado**, em 71 arquivos; 42 casos de fábrica no motor e sete modelos de cenários na interface. Build, TypeScript, lint e formatação aprovados. A interface foi exercitada com Modbus, cenários, captura, acessibilidade e viewport de 390 × 844. A descrição completa está em [correções e validação](../artifacts/factory-audit/remediation/CORRECOES-E-VALIDACAO.md) e no [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).
+
+A segunda etapa oferece nove protocolos e 17 modelos nativos, falhas de porta/serviço/UPS, relatórios persistidos com origem imutável e evidências de bloqueio por pacote. Contratos e limites no [ADR-043](adr/043-scenario-protocols-persistent-reports.md).
+
+Validação consolidada desta etapa: **677 testes aprovados, nenhuma falha pendente e um ignorado**, em 72 arquivos. A suíte completa foi seguida da reexecução dos testes IDS/IPS após correção. Modbus, MQTT e reabertura de resultados passaram na interface, incluindo o histórico em tela móvel. [Evidências e método](../artifacts/factory-audit/remediation/ETAPA-2.md).
 
 ## Fase 1 — P1: disponibilidade e continuidade da produção
 
@@ -20,11 +24,11 @@ Os pontos únicos estão identificados e ensaiados. Dois uplinks não eliminam u
 
 ## Fase 2 — P1: cobertura e rastreabilidade dos cenários
 
-| Achados | Falta implementar                                                                                                         | Critério de aceite                                                                                                                                                                                |
-| ------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| U01     | Ações DNS, DHCP, MQTT, SNMP, NTP e syslog no executor nativo; falhas de serviço/energia e ações de snapshot/persistência. | Executar os 42 casos pela interface com assertions e resultados reproduzíveis. Hoje os 42 estão na regressão do motor; o executor nativo oferece ICMP/HTTP/Modbus e falhas de dispositivo/enlace. |
-| U05     | Persistência dos relatórios no backend; correlação automática entre falha, caminho e resultado.                           | Reabrir o projeto e consultar relatórios com versão da configuração, parâmetros, causa e comparação de baseline.                                                                                  |
-| U05     | Medição de recuperação com maior precisão temporal.                                                                       | Declarar resolução e distinguir instante do evento de primeira amostra bem-sucedida; não tratar polling como medição exata.                                                                       |
+| Achados | Falta implementar                                                                              | Critério de aceite                                                                                                                                                       |
+| ------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| U01     | Ações de checkpoint/restauração no executor e migração integral dos 42 casos para a interface. | Executar os 42 casos pela interface com assertions e resultados reproduzíveis. Os nove protocolos e falhas de dispositivo/enlace/porta/serviço/UPS já estão disponíveis. |
+| U05     | Ampliar correlação para fluxos intermediados, retries e evidências descartadas.                | Relatórios e origem já persistem no backend, com versão, SHA-256 e evidências por pacote. Identificar causas adicionais sem atribuir certeza a um timeout.               |
+| U05     | Medição de recuperação com maior precisão temporal.                                            | Declarar resolução e distinguir instante do evento de primeira amostra bem-sucedida; não tratar polling como medição exata.                                              |
 
 ## Fase 3 — P1: fidelidade do escopo industrial
 

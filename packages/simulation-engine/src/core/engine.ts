@@ -922,7 +922,7 @@ export class SimulationEngine {
     type: NetworkEvent['type'],
     device: string,
     reason: string,
-    details: Partial<Pick<NetworkEvent, 'port' | 'peer' | 'link' | 'frame'>> = {}
+    details: Partial<Pick<NetworkEvent, 'port' | 'peer' | 'link' | 'frame' | 'packet'>> = {}
   ) {
     const event: NetworkEvent = {
       id: this.id('event'),
@@ -976,7 +976,7 @@ export class SimulationEngine {
       }
     } else if (
       !event.frame &&
-      /SUCCESS|FAILED|TIMEOUT|DROPPED|CHANGED|CANCELLED|ANSWER|UNREACHABLE|EXCEEDED/.test(type)
+      /SUCCESS|FAILED|TIMEOUT|DROPPED|CHANGED|CANCELLED|ANSWER|UNREACHABLE|EXCEEDED|DENY/.test(type)
     ) {
       this.state.diagnostics ??= [];
       this.state.diagnostics.push(event);

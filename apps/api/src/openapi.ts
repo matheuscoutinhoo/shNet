@@ -148,6 +148,33 @@ export const openapi = {
       parameters: [idParam],
       patch: op('Toggle favorite', json({ favorite: { type: 'boolean' } }), true),
     },
+    '/api/projects/{id}/scenario-runs': {
+      parameters: [idParam],
+      get: op('List persisted browser scenario results, latest first', undefined, true),
+      post: op(
+        'Capture immutable source topology and revision before a scenario run',
+        json({
+          revision: { type: 'integer', minimum: 1 },
+          kind: { type: 'string', enum: ['scenario', 'baseline'] },
+          scenario: { type: 'object' },
+        }),
+        true
+      ),
+    },
+    '/api/projects/{id}/scenario-runs/{run}': {
+      parameters: [
+        idParam,
+        { name: 'run', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+      ],
+      get: op('Get result and immutable source topology', undefined, true),
+      put: op(
+        'Persist completed browser report with matching scenario and consistent summaries',
+        json({ report: { type: 'object' } }),
+        true
+      ),
+      patch: op('Cancel an unfinished run', json({ status: { type: 'string', enum: ['cancelled'] } }), true),
+      delete: op('Delete own scenario run', undefined, true),
+    },
     '/api/labs': { get: op('List guided lab definitions', undefined, true) },
     '/api/projects/{id}/progress': {
       parameters: [idParam],

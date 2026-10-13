@@ -60,6 +60,7 @@ export * from './cli/device-commands';
 export * from './network-analysis';
 export * from './preflight';
 export * from './scenarios';
+export * from './scenario-report';
 export * from './fidelity';
 export * from './configuration-review';
 export * from './protocols/modbus';

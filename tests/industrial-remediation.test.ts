@@ -137,10 +137,10 @@ describe('Transações industriais e cenários', () => {
       scenarioSchema.parse({ ...scenario, flows: [{ ...scenario.flows[0], modbus: undefined }] })
     ).toThrow();
   });
-  it('oferece e executa os sete cenários nativos da fábrica', () => {
+  it('oferece e executa os cenários nativos da fábrica para nove protocolos e alimentação', () => {
     const snapshot = makeTemplate('factory');
     const presets = factoryScenarios(snapshot);
-    expect(presets).toHaveLength(7);
+    expect(presets).toHaveLength(17);
     for (const scenario of presets) {
       const run = new ScenarioRunner(snapshot, scenario);
       for (let i = 0; i < 2000 && !run.step(100); i++);

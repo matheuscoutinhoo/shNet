@@ -1041,6 +1041,7 @@ export const eventSchema = z
     reason: z.string().max(500),
     application: z.string().max(40).optional(),
     frame: frameSchema.optional(),
+    packet: packetSchema.optional(),
   })
   .strict();
 export const actionSchema = z.discriminatedUnion('kind', [

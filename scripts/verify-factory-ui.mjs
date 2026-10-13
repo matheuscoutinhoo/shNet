@@ -27,6 +27,12 @@ await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click()
 await expect(page.getByRole('dialog')).toContainText('única instância');
 await page.screenshot({ path: out + '/preflight.png' });
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
+await expect(
+  page
+    .getByLabel('Carregar cenário')
+    .getByRole('option')
+    .filter({ hasText: /^Modelo:/ })
+).toHaveCount(17);
 await page.getByLabel('Definição do cenário').fill(
   JSON.stringify({
     name: 'SCADA-PLC baseline',
@@ -52,6 +58,23 @@ await page.getByRole('button', { name: 'Salvar cenário no laboratório', exact:
 await expect(page.getByLabel('Carregar cenário')).toContainText('Salvo: SCADA-PLC baseline');
 await page.getByRole('button', { name: 'Executar cenário', exact: true }).click();
 await expect(page.getByRole('cell', { name: 'Aprovado', exact: true })).toBeVisible({ timeout: 30000 });
+await expect(
+  page
+    .getByRole('dialog')
+    .locator('summary')
+    .filter({ hasText: /SCADA-PLC baseline · revisão \d+ · Salvo/ })
+).toBeVisible({ timeout: 15000 });
+await page
+  .getByLabel('Carregar cenário')
+  .selectOption({ label: 'Modelo: MQTT — publicação QoS 1 e assinatura wildcard' });
+await page.getByRole('button', { name: 'Executar cenário', exact: true }).click();
+await expect(
+  page
+    .getByRole('dialog')
+    .locator('summary')
+    .filter({ hasText: /MQTT — publicação QoS 1 e assinatura wildcard · revisão \d+ · Salvo/ })
+).toBeVisible({ timeout: 30000 });
+await expect(page.getByRole('cell', { name: 'Aprovado', exact: true })).toHaveCount(2);
 const scenarioText = await page.getByRole('dialog').innerText();
 const scenarioAxe = await new AxeBuilder({ page }).analyze();
 await page.screenshot({ path: out + '/scenarios.png' });
@@ -94,6 +117,13 @@ await page.getByRole('button', { name: 'Opções do laboratório' }).click();
 await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
 await expect(page.getByLabel('Carregar cenário')).toContainText('Salvo: SCADA-PLC baseline');
+await expect(page.getByRole('cell', { name: 'Aprovado', exact: true })).toHaveCount(2);
+await expect(
+  page
+    .getByRole('dialog')
+    .locator('summary')
+    .filter({ hasText: /SCADA-PLC baseline · revisão \d+ · Salvo/ })
+).toBeVisible();
 await page.getByRole('button', { name: 'Fechar', exact: true }).click();
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(700);
@@ -111,6 +141,20 @@ const mobile = await page.evaluate(() => ({
   bodyWidth: globalThis.document.body.scrollWidth,
 }));
 expect(mobile.bodyWidth).toBeLessThanOrEqual(mobile.viewport);
+await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
+await page.getByRole('button', { name: 'Cenários e SLA' }).click();
+await page
+  .getByRole('dialog')
+  .locator('summary')
+  .filter({ hasText: / · Salvo/ })
+  .first()
+  .click();
+const mobileReports = await page
+  .getByRole('dialog')
+  .evaluate((e) => ({ width: e.clientWidth, scrollWidth: e.scrollWidth }));
+expect(mobileReports.scrollWidth).toBeLessThanOrEqual(mobileReports.width + 1);
+await page.screenshot({ path: out + '/mobile-reports.png' });
 await writeFile(
   out + '/ui-results.json',
   JSON.stringify(
@@ -126,6 +170,7 @@ await writeFile(
       })),
       accessibility: axe.violations.map((v) => ({ id: v.id, impact: v.impact, count: v.nodes.length })),
       mobile: { ...mobile, visibleDevices },
+      mobileReports,
       errors,
     },
     null,

@@ -4,6 +4,16 @@ import { scenarioSchema, type Scenario } from './scenarios-model';
 import { modbusRequest, decodeModbus } from './protocols/modbus';
 export { scenarioSchema, type Scenario } from './scenarios-model';
 import { preflight } from './preflight';
+import { scenarioEvidence, type ScenarioEvidence } from './scenario-evidence';
+import {
+  applyScenarioFault,
+  validateScenarioFault,
+  validateProtocolFlow,
+  scenarioDevice,
+  startProtocol,
+  observeProtocol,
+  type ProtocolAttempt,
+} from './scenario-protocols';
 export interface ScenarioSample {
   flow: string;
   atMs: number;
@@ -11,6 +21,8 @@ export interface ScenarioSample {
   status: 'pending' | 'success' | 'failed';
   elapsedMs?: number;
   reason?: string;
+  responseReceived?: boolean;
+  evidence?: ScenarioEvidence;
 }
 const percentile = (values: number[], p: number) =>
   values.length ? [...values].sort((a, b) => a - b)[Math.max(0, Math.ceil(values.length * p) - 1)] : null;
@@ -22,6 +34,7 @@ export class ScenarioRunner {
   private started: number;
   private tasks: { at: number; flow?: number; fault?: number }[] = [];
   private resolved = new Map<string, string>();
+  private attempts = new Map<ScenarioSample, ProtocolAttempt>();
   constructor(snapshot: Snapshot, input: unknown) {
     this.scenario = scenarioSchema.parse(input);
     this.engine = new SimulationEngine(snapshot);
@@ -32,15 +45,18 @@ export class ScenarioRunner {
       const d = this.engine.state.devices.find((d) => d.id === f.source || d.hostname === f.source);
       if (!d) throw new Error('Origem inexistente: ' + f.source);
       this.resolved.set(f.source, d.id);
+      validateProtocolFlow(this.engine, f);
     }
+    const owners = this.scenario.flows
+      .filter((f) => ['dhcp', 'mqtt', 'ntp'].includes(f.protocol))
+      .flatMap((f) => [
+        scenarioDevice(this.engine, f.source).id,
+        ...(f.mqtt?.receiver ? [scenarioDevice(this.engine, f.mqtt.receiver).id] : []),
+      ]);
+    if (new Set(owners).size !== owners.length)
+      throw new Error('Fluxos com estado compartilham o mesmo equipamento por nome/ID.');
     this.scenario.faults.forEach((f, i) => {
-      if (
-        f.kind === 'device' &&
-        !this.engine.state.devices.some((d) => d.id === f.target || d.hostname === f.target)
-      )
-        throw new Error('Equipamento inexistente: ' + f.target);
-      if (f.kind === 'link' && !this.engine.state.links.some((l) => l.id === f.target))
-        throw new Error('Enlace inexistente: ' + f.target);
+      validateScenarioFault(this.engine, f);
       this.tasks.push({ at: f.atMs, fault: i });
     });
     for (let at = 0; at < this.scenario.durationMs; at += this.scenario.intervalMs)
@@ -59,16 +75,19 @@ export class ScenarioRunner {
       if (flow.protocol === 'icmp') {
         const p = this.engine.state.probes.find((p) => p.id === s.id);
         if (p?.status === 'success') {
+          s.responseReceived = true;
           s.elapsedMs = p.rtt;
           s.status = p.rtt! <= this.scenario.deadlineMs ? 'success' : 'failed';
           s.reason = p.rtt! > this.scenario.deadlineMs ? 'Deadline excedido' : undefined;
         } else if (p && p.status !== 'pending') {
+          s.responseReceived = !['timeout', 'failed'].includes(p.status);
           s.status = 'failed';
           s.reason = p.status;
         }
       } else if (flow.protocol === 'modbus') {
         const c = d.tcpConnections?.find((c) => c.id === s.id);
         if (c?.received.includes('\n')) {
+          s.responseReceived = true;
           try {
             const response = decodeModbus(c.received.split('\n')[0]);
             const request = flow.modbus!;
@@ -105,7 +124,7 @@ export class ScenarioRunner {
           s.status = 'failed';
           s.reason = c.state;
         }
-      } else {
+      } else if (flow.protocol === 'http') {
         const c = d.tcpConnections?.find((c) => c.id === s.id);
         const status = c?.received.match(/^HTTP\/1\.[01] (\d{3})/);
         const headerEnd = c?.received.indexOf('\r\n\r\n') ?? -1;
@@ -116,12 +135,25 @@ export class ScenarioRunner {
           length !== undefined &&
           new TextEncoder().encode(c.received.slice(headerEnd + 4)).length >= Number(length);
         if (status && c && fullResponse) {
+          s.responseReceived = true;
           s.elapsedMs = (c.responseAt ?? c.updatedAt) - (this.started + s.atMs);
           s.status = status[1] === '200' && s.elapsedMs <= this.scenario.deadlineMs ? 'success' : 'failed';
           s.reason = 'HTTP ' + status[1];
         } else if (c && ['RESET', 'TIMED-OUT'].includes(c.state)) {
           s.status = 'failed';
           s.reason = c.state;
+        }
+      } else {
+        const attempt = this.attempts.get(s);
+        if (attempt) {
+          const result = observeProtocol(this.engine, d, flow, attempt, this.started + s.atMs);
+          if (result) {
+            s.elapsedMs = result.at - (this.started + s.atMs);
+            s.responseReceived = result.received;
+            s.status = result.valid && s.elapsedMs <= this.scenario.deadlineMs ? 'success' : 'failed';
+            s.reason =
+              result.reason ?? (s.elapsedMs > this.scenario.deadlineMs ? 'Deadline excedido' : undefined);
+          }
         }
       }
       if (
@@ -131,6 +163,16 @@ export class ScenarioRunner {
         s.status = 'failed';
         s.reason = 'Deadline sem resposta';
       }
+      if (s.status === 'failed' && !s.evidence)
+        s.evidence = scenarioEvidence(
+          this.engine,
+          d,
+          flow,
+          s.id,
+          this.started + s.atMs,
+          this.engine.state.clock,
+          Boolean(s.responseReceived)
+        );
     }
   }
   step(wallMs = 20) {
@@ -138,24 +180,22 @@ export class ScenarioRunner {
     const end = this.started + this.scenario.durationMs + this.scenario.deadlineMs;
     while (performance.now() - start < wallMs) {
       const task = this.tasks[0];
-      const target = task ? this.started + task.at : end;
+      const taskTime = task ? this.started + task.at : end;
+      const deadline = Math.min(
+        ...this.samples
+          .filter((s) => s.status === 'pending')
+          .map((s) => this.started + s.atMs + this.scenario.deadlineMs)
+      );
+      const target = Math.min(taskTime, this.engine.state.clock + 100, deadline);
       this.engine.advanceTo(target, 20000, Math.max(1, Math.min(100, wallMs - (performance.now() - start))));
       this.observe();
       if (this.engine.state.clock < target) break;
+      if (this.engine.state.clock < taskTime) continue;
       if (!task) return true;
       this.tasks.shift();
       if (task.fault !== undefined) {
         const f = this.scenario.faults[task.fault];
-        if (f.kind === 'device')
-          this.engine.setDevicePower(
-            this.engine.state.devices.find((d) => d.id === f.target || d.hostname === f.target)!.id,
-            f.up
-          );
-        else {
-          this.engine.state.links.find((l) => l.id === f.target)!.up = f.up;
-          this.engine.refreshSpanningTree();
-          this.engine.refreshVrrp();
-        }
+        applyScenarioFault(this.engine, f);
       } else if (task.flow !== undefined) {
         const flow = this.scenario.flows[task.flow],
           sample: ScenarioSample = { flow: flow.name, atMs: task.at, status: 'pending' };
@@ -172,7 +212,17 @@ export class ScenarioRunner {
                     flow.modbus!,
                     flow.port ?? 502
                   )
-                : this.engine.httpGet(this.resolved.get(flow.source)!, flow.target, flow.port ?? 80);
+                : flow.protocol === 'http'
+                  ? this.engine.httpGet(this.resolved.get(flow.source)!, flow.target, flow.port ?? 80)
+                  : (() => {
+                      const attempt = startProtocol(
+                        this.engine,
+                        this.engine.device(this.resolved.get(flow.source)!),
+                        flow
+                      );
+                      this.attempts.set(sample, attempt);
+                      return attempt.id;
+                    })();
         } catch (e) {
           sample.status = 'failed';
           sample.reason = (e as Error).message;
@@ -210,7 +260,7 @@ export class ScenarioRunner {
           !samples.some((s) => s.status === 'pending') &&
           (!f.requireFinalSuccess || samples.at(-1)?.status === 'success') &&
           (f.expect === 'deny'
-            ? successful.length === 0 && samples.every((s) => s.id)
+            ? successful.length === 0 && samples.every((s) => s.id && !s.responseReceived)
             : lossPercent <= f.maxLossPercent &&
               (f.maxLatencyMs === undefined || latencies.every((n) => n <= f.maxLatencyMs!))),
       };

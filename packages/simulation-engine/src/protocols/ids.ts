@@ -113,6 +113,7 @@ export function permitIds(e: SimulationEngine, d: Device, port: NetworkInterface
       if (c.alerts.length > 256) c.alerts.shift();
       e.emit(blocked ? 'FIREWALL_DENY' : 'FIREWALL_APPLICATION', d.id, 'IDS/IPS: ' + reason, {
         port: port.id,
+        packet: 'ttl' in p ? p : undefined,
       });
     }
   }

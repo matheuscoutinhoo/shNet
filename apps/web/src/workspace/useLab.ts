@@ -224,6 +224,7 @@ export function useLab(project: Project, onExpired: () => void) {
   }, [project.id]);
   return {
     engine,
+    projectId: project.id,
     revision: revision.current,
     getRevision: () => revision.current,
     acceptProject: (next: Project) => {

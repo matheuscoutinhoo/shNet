@@ -206,4 +206,6 @@ O template **Campus com autenticação empresarial** conecta cliente, AP, RADIUS
 
 Pendências, prioridades e critérios de aceite: [plano das próximas correções](docs/factory-remediation-backlog.md).
 
+O executor oferece nove protocolos e 17 modelos, falhas de serviço/porta/UPS e relatórios persistidos com cópia da topologia e revisão do ensaio. As evidências associam bloqueios ao pacote do fluxo: [ADR-043](docs/adr/043-scenario-protocols-persistent-reports.md).
+
 O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](docs/adr/042-factory-modbus-scenarios-remediation.md).

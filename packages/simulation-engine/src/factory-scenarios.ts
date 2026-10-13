@@ -89,5 +89,124 @@ export function factoryScenarios(snapshot: Snapshot): Scenario[] {
         ],
       })
     );
+  const ip = (name: string) =>
+    snapshot.devices.find((d) => d.hostname === name)?.interfaces.find((p) => p.ip)?.ip;
+  const add = (name: string, flow: unknown, faults: unknown[] = [], deadlineMs = 1000) =>
+    scenarios.push(
+      scenarioSchema.parse({
+        name,
+        durationMs: 10000,
+        intervalMs: Math.max(1000, deadlineMs),
+        deadlineMs,
+        flows: [flow],
+        faults,
+      })
+    );
+  if (ip('PC-ERP') && ip('DNS-DMZ')) {
+    const flow = {
+      name: 'Resolver MES',
+      source: 'PC-ERP',
+      target: ip('DNS-DMZ'),
+      protocol: 'dns',
+      dns: { name: 'mes.fabrica.test', expectedAnswers: [mesIp] },
+      expect: 'allow',
+    };
+    add('DNS — resposta sem cache', flow);
+    add('DNS — falha e restauração do serviço', { ...flow, maxLossPercent: 50, requireFinalSuccess: true }, [
+      { atMs: 2000, kind: 'service', target: 'DNS-DMZ', service: 'dns', up: false },
+      { atMs: 6000, kind: 'service', target: 'DNS-DMZ', service: 'dns', up: true },
+    ]);
+  }
+  if (ip('PC-FINANCEIRO') && ip('DHCP-DMZ'))
+    add(
+      'DHCP — concessões por relay',
+      {
+        name: 'Concessão TI',
+        source: 'PC-FINANCEIRO',
+        target: ip('DHCP-DMZ'),
+        protocol: 'dhcp',
+        dhcp: { interface: 'p0', expectedServer: ip('DHCP-DMZ') },
+        expect: 'allow',
+      },
+      [],
+      3000
+    );
+  if (ip('SENSOR-A') && ip('BROKER-OT') && scada)
+    add('MQTT — publicação QoS 1 e assinatura wildcard', {
+      name: 'Temperatura A',
+      source: 'SENSOR-A',
+      target: ip('BROKER-OT'),
+      protocol: 'mqtt',
+      mqtt: {
+        operation: 'publish',
+        topic: 'fabrica/A/temperatura',
+        payload: '72.5',
+        retain: true,
+        receiver: 'SCADA',
+        filter: 'fabrica/+/temperatura',
+      },
+      expect: 'allow',
+    });
+  if (ip('NMS-SYSLOG') && ip('SCADA'))
+    add('SNMP — identidade do SCADA', {
+      name: 'sysName',
+      source: 'NMS-SYSLOG',
+      target: ip('SCADA'),
+      protocol: 'snmp',
+      snmp: {
+        community: scada?.snmpAgent?.community ?? 'factory-test',
+        oids: ['1.3.6.1.2.1.1.5.0'],
+        expectedVarbinds: [{ oid: '1.3.6.1.2.1.1.5.0', type: 'OctetString', value: 'SCADA' }],
+      },
+      expect: 'allow',
+    });
+  if (ip('ADMIN-REDE') && ip('NTP-MGMT'))
+    add('NTP — sincronismo de gerenciamento', {
+      name: 'Sincronizar relógio',
+      source: 'ADMIN-REDE',
+      target: ip('NTP-MGMT'),
+      protocol: 'ntp',
+      ntp: { maxOffsetMs: 1 },
+      expect: 'allow',
+    });
+  if (ip('ADMIN-REDE') && ip('NMS-SYSLOG'))
+    add('Syslog — recepção no coletor', {
+      name: 'Manutenção',
+      source: 'ADMIN-REDE',
+      target: ip('NMS-SYSLOG'),
+      protocol: 'syslog',
+      syslog: { text: 'Manutenção da fábrica' },
+      expect: 'allow',
+    });
+  if (ip('PC-ERP') && mesIp)
+    add(
+      'MES — falha e restauração HTTP',
+      {
+        name: 'MES HTTP',
+        source: 'PC-ERP',
+        target: mesIp,
+        protocol: 'http',
+        expect: 'allow',
+        maxLossPercent: 50,
+        requireFinalSuccess: true,
+      },
+      [
+        { atMs: 2000, kind: 'service', target: 'MES-DMZ', service: 'http', up: false },
+        { atMs: 6000, kind: 'service', target: 'MES-DMZ', service: 'http', up: true },
+      ]
+    );
+  for (const target of ['UPS-A', 'UPS-B'])
+    if (snapshot.devices.some((d) => d.hostname === target && d.infrastructure?.kind === 'ups'))
+      scenarios.push(
+        scenarioSchema.parse({
+          ...base,
+          name: target + ' — perda e restauração da alimentação',
+          flows: flows.map((f) => ({ ...f, maxLossPercent: 50, requireFinalSuccess: true })),
+          faults: [
+            { atMs: 2000, kind: 'power', target, up: false },
+            { atMs: 6000, kind: 'power', target, up: true },
+          ],
+        })
+      );
   return scenarios;
 }

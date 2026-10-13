@@ -2529,3 +2529,19 @@ td {
   width: 245px;
   text-align: right;
 }
+
+.factory-tools {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.factory-tools > label {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.factory-tools select,
+.factory-tools textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
