@@ -169,6 +169,94 @@ test('Aprendizado: finder centraliza equipamento presente e terminais respeitam 
   expect(errors).toEqual([]);
 });
 
+test('Painel inferior: eventos e tráfego acompanham a seleção e preservam a visão da rede', async ({
+  page,
+}) => {
+  test.setTimeout(90000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'timeline-selection-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Eventos por equipamento');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const e = new SimulationEngine(),
+    a = e.addProfile('desktop', { x: 100, y: 100 }),
+    b = e.addProfile('desktop', { x: 480, y: 100 }),
+    quiet = e.addFactoryProfile('desktop', { x: 860, y: 100 });
+  a.hostname = 'HOST-A';
+  b.hostname = 'HOST-B';
+  quiet.hostname = 'HOST-SEM-EVENTOS';
+  a.interfaces[0].ip = '192.0.2.10';
+  a.interfaces[0].prefix = 24;
+  b.interfaces[0].ip = '192.0.2.20';
+  b.interfaces[0].prefix = 24;
+  e.ping(a.id, '192.0.2.100');
+  e.ping(b.id, '192.0.2.200');
+  const originalEvents = e.state.events.length;
+  expect(e.state.events.filter((event) => event.device === a.id).length).toBeGreaterThan(0);
+  expect(e.state.events.filter((event) => event.device === b.id).length).toBeGreaterThan(0);
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'timeline.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  const timeline = page.locator('.timeline'),
+    rows = timeline.locator('.event-table tbody tr'),
+    finder = page.getByRole('textbox', { name: 'Localizar equipamento' });
+  await expect(timeline.locator('.timeline-scope')).toContainText('Toda a rede');
+  await expect(rows).toHaveCount(originalEvents);
+  const select = async (name: string) => {
+    await finder.fill(name);
+    await finder.press('Enter');
+    await expect(timeline.locator('.timeline-scope')).toContainText(name);
+    await finder.press('Escape');
+  };
+  await select(a.hostname);
+  await expect(rows).toHaveCount(e.state.events.filter((event) => event.device === a.id).length);
+  expect(await rows.locator('td:nth-child(2)').allTextContents()).toEqual(
+    Array(await rows.count()).fill(a.hostname)
+  );
+  await timeline.getByRole('button', { name: 'ARP', exact: true }).click();
+  await expect(rows).toHaveCount(
+    e.state.events.filter((event) => event.device === a.id && event.type.startsWith('ARP')).length
+  );
+  await timeline.getByRole('button', { name: 'Tráfego', exact: false }).click();
+  await expect(timeline.locator('.traffic-table tbody tr')).toHaveCount(1);
+  await expect(timeline.locator('.traffic-table')).toContainText('192.0.2.100');
+  await expect(timeline.locator('.traffic-table')).not.toContainText('192.0.2.200');
+  await select(b.hostname);
+  await expect(timeline.locator('.traffic-table tbody tr')).toHaveCount(1);
+  await expect(timeline.locator('.traffic-table')).toContainText('192.0.2.200');
+  await expect(timeline.locator('.traffic-table')).not.toContainText('192.0.2.100');
+  await timeline.getByRole('button', { name: 'Notas do laboratório', exact: true }).click();
+  await timeline
+    .getByRole('textbox', { name: 'Notas do laboratório' })
+    .fill('Hipótese compartilhada da rede');
+  await timeline.getByRole('button', { name: /^Eventos/ }).click();
+  await timeline.getByRole('button', { name: 'Todos', exact: true }).click();
+  await select(quiet.hostname);
+  await expect(rows).toHaveCount(0);
+  await expect(timeline).toContainText('Nenhum evento registrado para a seleção');
+  await timeline.getByRole('button', { name: /^Tráfego/ }).click();
+  await expect(timeline.locator('.traffic-table tbody tr')).toHaveCount(0);
+  await expect(timeline).toContainText('Nenhum teste de ping iniciado pela seleção');
+  await timeline.getByRole('button', { name: 'Ver toda a rede', exact: true }).click();
+  await expect(timeline.locator('.timeline-scope')).toContainText('Toda a rede');
+  await expect(timeline.locator('.traffic-table tbody tr')).toHaveCount(2);
+  await timeline.getByRole('button', { name: /^Eventos/ }).click();
+  await expect(rows).toHaveCount(originalEvents);
+  await select(a.hostname);
+  await page.locator('.react-flow__pane').click({ position: { x: 30, y: 160 } });
+  await expect(timeline.locator('.timeline-scope')).toContainText('Toda a rede');
+  await expect(rows).toHaveCount(originalEvents);
+  await timeline.getByRole('button', { name: 'Notas do laboratório', exact: true }).click();
+  await expect(timeline.getByRole('textbox', { name: 'Notas do laboratório' })).toHaveValue(
+    'Hipótese compartilhada da rede'
+  );
+  expect(errors).toEqual([]);
+});
+
 test('Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corretas', async ({
   page,
 }, testInfo) => {
@@ -207,11 +295,30 @@ test('Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corr
   await expect(dialog.locator('.osi-stack > div')).toHaveCount(2);
   await expect(dialog.locator('.osi-stack')).toContainText('Rádio');
   await expect(dialog).not.toContainText('Ethernet II');
+  const wifi = dialog.locator('.packet-wifi');
+  const checkWifiSpacing = async () => {
+    expect(
+      await wifi.evaluate((element) => parseFloat(getComputedStyle(element).paddingLeft))
+    ).toBeGreaterThanOrEqual(14);
+    expect(
+      await wifi.locator('h3').evaluate((element) => parseFloat(getComputedStyle(element).marginBottom))
+    ).toBeGreaterThanOrEqual(12);
+    expect(
+      await wifi
+        .locator('dt small')
+        .first()
+        .evaluate((element) => parseFloat(getComputedStyle(element).lineHeight))
+    ).toBeGreaterThanOrEqual(19);
+  };
+  await checkWifiSpacing();
   await expect(new AxeBuilder({ page }).include('.modal').analyze()).resolves.toMatchObject({
     violations: [],
   });
+  await wifi.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('event-education-desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
+  await checkWifiSpacing();
+  await wifi.scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   await expect(new AxeBuilder({ page }).include('.modal').analyze()).resolves.toMatchObject({
@@ -1675,11 +1782,12 @@ test('DHCP relay: pool remoto, reserva, pacotes, ping, release e persistência m
   await inspectDhcp(page, 'PC-01');
   await expect(page.locator('.dhcp-client')).toHaveAttribute('data-state', 'bound');
   await expect(page.locator('.dhcp-client')).toContainText('192.168.20.10');
+  await inspectDhcp(page, 'R-EDGE-01');
   await page.locator('.event-filters').getByRole('button', { name: 'DHCP', exact: true }).click();
   await page.locator('.event-table tr').filter({ hasText: 'DHCP_RELAY_REPLY' }).first().click();
-  await expect(page.getByRole('dialog')).toContainText('giaddr (relay)');
+  await expect(page.getByRole('dialog')).toContainText('Endereço do relay DHCP');
   await expect(page.getByRole('dialog')).toContainText('192.168.10.1');
-  await expect(page.getByRole('dialog')).toContainText('Relay hops');
+  await expect(page.getByRole('dialog')).toContainText('Saltos de relay');
   await page.screenshot({ path: 'test-results/relay-packet-desktop.png', fullPage: true });
   await page
     .getByRole('dialog')
@@ -1963,6 +2071,7 @@ test('zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistênci
     await expect(page.locator('.tcp-result')).toContainText('HTTP/1.1 200 OK');
   }
   await switchTerminal(page, 'PC-01', ['traceroute 192.168.20.10']);
+  await inspect();
   await page.locator('.event-filters').getByRole('button', { name: 'ACL / NAT', exact: true }).click();
   await advanceSimulation(
     page,
@@ -1971,7 +2080,7 @@ test('zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistênci
   );
   await page.locator('.event-filters').getByRole('button', { name: 'ICMP', exact: true }).click();
   await page.locator('.event-table-wrap tr').filter({ hasText: 'FRAME_SENT' }).first().click();
-  await expect(page.getByRole('dialog')).toContainText('Cabeçalho citado');
+  await expect(page.getByRole('dialog')).toContainText('Pacote que provocou o erro');
   await expect(page.getByRole('dialog')).toContainText('time-exceeded');
   await expect(page.getByRole('dialog')).toContainText('192.168.10.10');
   await page.screenshot({ path: 'test-results/zones-icmp-desktop.png', fullPage: true });
@@ -2785,10 +2894,13 @@ test('DHCP: pool, dois clientes, pacotes, ping, lease e persistência mobile', a
   await expect(page.locator('.dhcp-client')).toContainText('192.168.50.1');
   await page.locator('.event-filters').getByRole('button', { name: 'DHCP', exact: true }).click();
   await expect(page.locator('.event-table')).toContainText('DHCP_DISCOVER');
+  await expect(page.locator('.event-table')).not.toContainText('DHCP_ACK');
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await inspectDhcp(page, 'DHCP-01');
   await expect(page.locator('.event-table')).toContainText('DHCP_ACK');
   await page.locator('.event-table').getByRole('row').filter({ hasText: 'DHCP_ACK' }).first().click();
   await expect(page.getByRole('dialog')).toContainText('17 (UDP)');
-  await expect(page.getByRole('dialog')).toContainText('DNS option');
+  await expect(page.getByRole('dialog')).toContainText('Servidores DNS informados');
   await page.screenshot({ path: 'test-results/dhcp-packet-desktop.png', fullPage: true });
   await page
     .getByRole('dialog')

@@ -512,6 +512,67 @@ body .modal .packet-layer {
   border-color: #375b6a;
   background: #102c3a;
 }
+.workspace .timeline-scope {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.workspace .timeline-scope > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.workspace .timeline-scope strong {
+  color: var(--value);
+}
+.workspace .timeline-scope small {
+  display: block;
+  font-size: 11px;
+}
+.workspace .timeline-scope button {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+body .modal .packet-wifi {
+  margin: 20px 0;
+  padding: 16px 20px;
+  border-radius: 8px;
+}
+body .modal .packet-wifi > h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+body .modal .packet-wifi .packet-fields {
+  margin: 0;
+}
+body .modal .packet-wifi .packet-fields dt,
+body .modal .packet-wifi .packet-fields dd {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  line-height: 1.65;
+}
+body .modal .packet-wifi .packet-fields dt small {
+  margin-top: 6px;
+  line-height: 1.65;
+}
+@media (max-width: 540px) {
+  body .modal .packet-wifi {
+    padding: 14px;
+  }
+  body .modal .packet-wifi .packet-fields dt {
+    padding-bottom: 4px;
+  }
+  body .modal .packet-wifi .packet-fields dd {
+    padding-top: 0;
+  }
+}
 .section-education,
 .terminal-guide {
   margin: 0 0 16px;

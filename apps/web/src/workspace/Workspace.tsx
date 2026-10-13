@@ -796,7 +796,7 @@ export function Workspace({
               </div>
             )}
           </div>
-          <Timeline lab={lab} onSelect={inspect} />
+          <Timeline lab={lab} selected={selected} onSelect={inspect} onClearSelection={() => select([])} />
         </div>
         {device && (
           <Inspector

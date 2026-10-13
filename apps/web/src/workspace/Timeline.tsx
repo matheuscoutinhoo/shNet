@@ -8,11 +8,30 @@ import { eventTone } from './canvasActivity';
 import { NetworkText } from '../components/NetworkText';
 import { explainEvent, eventLayers, wifiMessages, ipv6Messages } from './eventEducation';
 import { PacketFields } from './PacketFields';
-export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id: string) => void }) {
+export function Timeline({
+  lab,
+  selected,
+  onSelect,
+  onClearSelection,
+}: {
+  lab: LabController;
+  selected: string[];
+  onSelect: (id: string) => void;
+  onClearSelection: () => void;
+}) {
   const [tab, setTab] = useState('events'),
     [filter, setFilter] = useState('all'),
     [event, setEvent] = useState<NetworkEvent | null>(null);
-  const events = lab.engine.state.events.filter(
+  const selectedIds = new Set(selected);
+  const devices = lab.engine.state.devices.filter((d) => selectedIds.has(d.id));
+  const deviceIds = new Set(devices.map((d) => d.id));
+  const scopedEvents = deviceIds.size
+    ? lab.engine.state.events.filter((e) => deviceIds.has(e.device))
+    : lab.engine.state.events;
+  const probes = deviceIds.size
+    ? lab.engine.state.probes.filter((p) => deviceIds.has(p.device))
+    : lab.engine.state.probes;
+  const events = scopedEvents.filter(
     (e) =>
       filter === 'all' ||
       (filter === 'aaa'
@@ -121,14 +140,14 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
             aria-pressed={tab === 'events'}
             onClick={() => setTab('events')}
           >
-            <List size={15} /> Eventos <span>{lab.engine.state.events.length}</span>
+            <List size={15} /> Eventos <span>{scopedEvents.length}</span>
           </button>
           <button
             className={tab === 'traffic' ? 'active' : ''}
             aria-pressed={tab === 'traffic'}
             onClick={() => setTab('traffic')}
           >
-            <Activity size={15} /> Tráfego <span>{lab.engine.state.probes.length}</span>
+            <Activity size={15} /> Tráfego <span>{probes.length}</span>
           </button>
           <button
             className={tab === 'notes' ? 'active' : ''}
@@ -142,6 +161,30 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
           TEMPO VIRTUAL <strong>{lab.engine.state.clock.toFixed(3)} ms</strong>
         </span>
       </div>
+      {tab !== 'notes' && (
+        <div className="timeline-scope">
+          <span role="status">
+            {devices.length ? (
+              <>
+                Seleção:{' '}
+                <strong>
+                  {devices.length === 1 ? devices[0].hostname : devices.length + ' equipamentos'}
+                </strong>
+              </>
+            ) : (
+              'Toda a rede'
+            )}
+            {tab === 'traffic' && (
+              <small>Testes de ping iniciados {devices.length ? 'pela seleção' : 'na rede'}.</small>
+            )}
+          </span>
+          {!!devices.length && (
+            <button type="button" className="text-button" onClick={onClearSelection}>
+              Ver toda a rede
+            </button>
+          )}
+        </div>
+      )}
       {tab === 'events' && (
         <>
           <div className="event-filters">
@@ -202,7 +245,7 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
                       key={e.id}
                       className={'event-row event-tone-' + eventTone(e)}
                       data-event-id={e.id}
-                      data-latest={e.id === lab.engine.state.events.at(-1)?.id}
+                      data-latest={e.id === scopedEvents.at(-1)?.id}
                       onClick={() => setEvent(e)}
                       tabIndex={0}
                       onKeyDown={(k) => {
@@ -242,7 +285,13 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
               <div className="timeline-empty">
                 <Send size={21} />
                 <div>
-                  <strong>Nenhum evento registrado.</strong>
+                  <strong>
+                    {filter !== 'all'
+                      ? 'Nenhum evento neste filtro.'
+                      : devices.length
+                        ? 'Nenhum evento registrado para a seleção.'
+                        : 'Nenhum evento registrado.'}
+                  </strong>
                   <span>Envie um ping para visualizar o tráfego e os eventos da simulação.</span>
                 </div>
               </div>
@@ -264,14 +313,15 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
               </tr>
             </thead>
             <tbody>
-              {lab.engine.state.probes
+              {probes
                 .slice()
                 .reverse()
                 .map((p) => (
                   <tr key={p.id}>
                     <td>
                       <button className="text-button" onClick={() => onSelect(p.device)}>
-                        {lab.engine.device(p.device).hostname}
+                        {lab.engine.state.devices.find((d) => d.id === p.device)?.hostname ??
+                          'Equipamento removido'}
                       </button>
                     </td>
                     <td>{p.target}</td>
@@ -289,7 +339,13 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
                 ))}
             </tbody>
           </table>
-          {!lab.engine.state.probes.length && <p className="table-empty">Nenhum probe enviado.</p>}
+          {!probes.length && (
+            <p className="table-empty">
+              {devices.length
+                ? 'Nenhum teste de ping iniciado pela seleção.'
+                : 'Nenhum teste de ping enviado.'}
+            </p>
+          )}
         </div>
       )}
       {tab === 'notes' && (
@@ -494,7 +550,7 @@ export function Timeline({ lab, onSelect }: { lab: LabController; onSelect: (id:
               </section>
             )}
             {event.frame?.wifi && (
-              <section className="packet-layer">
+              <section className="packet-layer packet-wifi">
                 <h3>Wi-Fi — {wifiMessages[event.frame.wifi.kind]}</h3>
                 <PacketFields>
                   <dt>Mensagem</dt>
