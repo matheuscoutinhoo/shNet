@@ -28,17 +28,24 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
     const cli = state.cli;
     stateRef.current = state;
     const term = new XTerm({
-      fontFamily: 'Consolas, monospace',
-      fontSize: 12,
-      lineHeight: 1.5,
+      fontFamily:
+        getComputedStyle(document.documentElement).getPropertyValue('--font-data').trim() ||
+        'Consolas, monospace',
+      fontSize: 14,
+      lineHeight: 1.4,
+      cursorStyle: 'bar',
+      cursorWidth: 2,
       cursorBlink: true,
       convertEol: true,
       scrollback: 600,
       theme: {
-        background: '#102333',
-        foreground: '#dce8ef',
-        cursor: '#5fd4d4',
-        selectionBackground: '#34546a',
+        background: '#0b202b',
+        foreground: '#deedf1',
+        cursor: '#59e7cd',
+        selectionBackground: '#24555b',
+        cyan: '#92ece0',
+        blue: '#78cebc',
+        brightBlue: '#adf1dc',
       },
     });
     const fit = new FitAddon();
@@ -208,7 +215,11 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
   const device = lab.engine.device(deviceId),
     identity = terminalIdentity(device);
   return (
-    <>
+    <div className="terminal-shell">
+      <div className="terminal-heading">
+        <strong title={device.hostname}>{device.hostname}</strong>
+        <span>{identity.family}</span>
+      </div>
       <details className="terminal-guide">
         <summary>Comandos de {identity.name}</summary>
         <p>
@@ -237,7 +248,20 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
           ))}
         </dl>
       </details>
-      <div className="terminal-host" ref={ref} aria-label={'Terminal de ' + identity.name} />
-    </>
+      <div className="terminal-frame">
+        <div className="terminal-host" ref={ref} aria-label={'Terminal de ' + identity.name} />
+      </div>
+      <div className="terminal-shortcuts">
+        <span>
+          <kbd>help</kbd> Comandos
+        </span>
+        <span>
+          <kbd>↑</kbd> <kbd>↓</kbd> Histórico
+        </span>
+        <span>
+          <kbd>Ctrl</kbd> + <kbd>C</kbd> Limpar linha
+        </span>
+      </div>
+    </div>
   );
 }

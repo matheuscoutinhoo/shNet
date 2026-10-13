@@ -133,7 +133,8 @@ test('Aprendizado: finder centraliza equipamento presente e terminais respeitam 
     await page.keyboard.press('Enter');
   };
   await command('ipconfig /all');
-  await expect(inspector.locator('.terminal-host')).toContainText('HostShell');
+  await expect(inspector.locator('.terminal-heading')).toContainText('HostShell');
+  await expect(inspector.locator('.terminal-host')).toContainText('IPv4:');
   await expect(inspector.locator('.terminal-host')).toContainText('NOTEBOOK-REMOTO$');
   await command('vlan 20');
   await expect(inspector.locator('.terminal-host')).toContainText('não se aplica');
@@ -166,6 +167,109 @@ test('Aprendizado: finder centraliza equipamento presente e terminais respeitam 
   });
   await networkDialog.locator('.modal-head').getByRole('button', { name: 'Fechar', exact: true }).click();
   await page.screenshot({ path: testInfo.outputPath('finder-terminal.png'), fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'terminal-layout-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Categorias e terminal legível');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const e = new SimulationEngine(),
+    laptop = e.addProfile('laptop', { x: 100, y: 100 }),
+    sw = e.addProfile('switch-l2', { x: 480, y: 100 });
+  laptop.hostname = 'NOTEBOOK-CLI';
+  sw.hostname = 'SW-CLI';
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'terminal.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  const finder = page.getByRole('textbox', { name: 'Localizar equipamento' }),
+    filters = page.locator('.event-filters');
+  const select = async (name: string) => {
+    await finder.fill(name);
+    await finder.press('Enter');
+    await expect(page.locator('.timeline-scope')).toContainText(name);
+    await finder.press('Escape');
+  };
+  await select(sw.hostname);
+  await expect(filters.getByRole('button', { name: 'STP', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button', { name: 'OSPF', exact: true })).toHaveCount(0);
+  await filters.getByRole('button', { name: 'STP', exact: true }).click();
+  await select(laptop.hostname);
+  await expect(filters.getByRole('button', { name: 'STP', exact: true })).toHaveCount(0);
+  await expect(filters.getByRole('button', { name: 'OSPF', exact: true })).toHaveCount(0);
+  await expect(filters.getByRole('button', { name: 'Wi-Fi', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button', { name: 'Todos', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+  await page.locator('.network-device').filter({ hasText: laptop.hostname }).click();
+  const inspector = page.locator('.inspector'),
+    tabs = inspector.locator('.inspector-tabs');
+  await tabs.getByRole('button', { name: 'Terminal', exact: true }).click();
+  const terminal = inspector.locator('.terminal-host');
+  await expect(terminal).toContainText('HostShell');
+  const command = async (text: string) => {
+    await page.locator('.xterm-helper-textarea').focus();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+  };
+  await command('ipconfig /all');
+  await expect(terminal).toContainText('IPv4:');
+  const geometry = async () => {
+    const host = (await terminal.boundingBox())!,
+      screen = (await terminal.locator('.xterm-screen').boundingBox())!;
+    return (
+      screen.x >= host.x - 1 &&
+      screen.y >= host.y - 1 &&
+      screen.x + screen.width <= host.x + host.width + 1 &&
+      screen.y + screen.height <= host.y + host.height + 1
+    );
+  };
+  await expect(inspector.locator('.terminal-body')).toHaveCSS('padding-left', '12px');
+  await expect.poll(geometry).toBe(true);
+  const draft = 'ping ' + '0123456789'.repeat(9);
+  await page.locator('.xterm-helper-textarea').focus();
+  await page.keyboard.type(draft);
+  const text = () =>
+    terminal.locator('.xterm-rows').evaluate((el) =>
+      Array.from(el.children)
+        .map((row) => row.textContent)
+        .join('')
+        .replaceAll('\u00a0', ' ')
+    );
+  await expect.poll(text).toContain(draft);
+  await inspector.locator('.terminal-guide summary').click();
+  await expect.poll(geometry).toBe(true);
+  await inspector.locator('.terminal-guide summary').click();
+  await tabs.getByRole('button', { name: 'Portas', exact: true }).click();
+  await tabs.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await expect.poll(text).toContain(draft);
+  const resize = page.getByRole('separator', { name: 'Redimensionar detalhes do equipamento' });
+  await resize.focus();
+  await page.keyboard.press('End');
+  await expect.poll(geometry).toBe(true);
+  await expect(new AxeBuilder({ page }).include('.inspector').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  await page.screenshot({ path: testInfo.outputPath('terminal-readable-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(geometry).toBe(true);
+  await expect.poll(text).toContain(draft);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('terminal-readable-mobile.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await expect(filters.getByRole('button', { name: 'OSPF', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button', { name: 'STP', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button')).toHaveCount(22);
   expect(errors).toEqual([]);
 });
 

@@ -308,7 +308,7 @@ export function Inspector({
                 </div>
               ))}
             <button className="button terminal-shortcut" onClick={() => setTab('cli')}>
-              <TerminalSquare size={17} /> Abrir terminal NetOS <ChevronRight size={16} />
+              <TerminalSquare size={17} /> Abrir terminal <ChevronRight size={16} />
             </button>
           </>
         )}
@@ -350,9 +350,6 @@ export function Inspector({
             <Suspense fallback={<p className="muted">Carregando terminal…</p>}>
               <Terminal lab={lab} deviceId={device.id} />
             </Suspense>
-            <div className="terminal-help">
-              <kbd>help</kbd> Comandos disponíveis <span>·</span> <kbd>↑ ↓</kbd> Histórico
-            </div>
           </>
         )}
         {activeTab === 'tables' && (

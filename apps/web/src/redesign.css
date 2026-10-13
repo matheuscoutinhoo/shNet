@@ -661,6 +661,76 @@ body .modal .packet-wifi .packet-fields dt small {
 .terminal-guide {
   flex: 0 0 auto;
 }
+.inspector-body.terminal-body {
+  padding: 12px;
+  gap: 12px;
+  background: #0e2531;
+}
+.terminal-shell {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  gap: 10px;
+}
+.terminal-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  font-size: 13px;
+}
+.terminal-heading strong {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+.terminal-heading span {
+  color: var(--value);
+  font-size: 12px;
+}
+.terminal-shell .terminal-guide {
+  margin: 0;
+}
+.terminal-shell .terminal-guide[open] {
+  max-height: min(240px, 30vh);
+}
+.terminal-frame {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 180px;
+  padding: 12px;
+  border: 1px solid #375b6a;
+  border-radius: 9px;
+  background: #0b202b;
+}
+.terminal-frame .terminal-host {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.terminal-host .xterm {
+  height: 100%;
+}
+.terminal-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.terminal-shortcuts kbd {
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--value);
+  font-family: var(--font-data);
+}
 .terminal-guide[open] {
   max-height: 280px;
   overflow: auto;
