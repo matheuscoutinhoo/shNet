@@ -60,11 +60,13 @@ syslog send 5 Alteração planejada no laboratório
 show syslog
 ```
 
-Avance os eventos para entregar os datagramas. ACL, firewall, MTU, rota e perdas influenciam os dois serviços. SNMP é leitura v2c conceitual, sem SET, GETBULK, traps, SNMPv3 ou BER; syslog não possui relay, TLS, ACK/retry ou codec interoperável. Switch L2 não tem IP de gerenciamento nesta entrega. Detalhes em [ADR-013](adr/013-snmp-and-syslog.md).
+Avance os eventos para entregar os datagramas. ACL, firewall, MTU, rota e perdas influenciam os dois serviços. SNMP é leitura v2c conceitual, sem SET, GETBULK, traps, SNMPv3 ou BER; syslog não possui relay, TLS, ACK/retry ou codec interoperável. Switch L2 aceita IP de gerenciamento em SVI para SNMP e syslog, sem habilitar roteamento entre VLANs. Detalhes em [ADR-013](adr/013-snmp-and-syslog.md).
 
 ## Firewall stateful de trânsito
 
 O painel Políticas permite escolher TCP, UDP e ICMP. Configurações novas rastreiam os três; snapshots anteriores mantêm TCP. Protocolos desmarcados seguem as ACLs. Alterar a política reinicia sessões e timers.
+
+As zonas e regras ip/TCP/UDP/ICMP agora se aplicam ao trânsito IPv4 e IPv6. ICMP inclui Echo e erros IPv6 relacionados a sessões; NDP continua local. A inspeção de aplicação e SIP ALG permanecem IPv4. ACL IPv6 de saída é aplicada antes da transmissão. Testes: `enterprise-remediation.test.ts`, `ipv6-transport.test.ts` e `firewall-zones.test.ts`.
 
 UDP correlaciona IPs, portas e interfaces dos dois sentidos; o primeiro datagrama cria UNREPLIED e o retorno muda para REPLIED. Inatividade de 120 s expira a entrada. ICMP aceita Echo Request da rede confiável e Echo Reply com IPs invertidos e o mesmo probeId; inatividade de 60 s expira a entrada. Retorno externo sem sessão, porta/interface incorreta e Echo Request externo são bloqueados.
 
@@ -395,4 +397,8 @@ As extensões TCP, PMTUD, relay DHCPv6 e codecs/capturas atuais estão detalhado
 
 DNS, DHCP, MQTT, SNMP, NTP e syslog também são ações do executor nativo. Falhas de serviço/porta/UPS e relatórios persistidos estão disponíveis; contratos e limites no [ADR-043](adr/043-scenario-protocols-persistent-reports.md).
 
-O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).
+O template de fábrica e o menu **Validar rede e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).
+
+## Correções enterprise/datacenter e contrato atual
+
+O [ADR-044](adr/044-enterprise-integrity-fabric-binary-modbus.md) documenta zonas IPv4/IPv6, loopbacks e IMET estrito, DHCP T1/T2, UPS A/B, Modbus binário 01/02/03/04/05/06/15/16, PCAP VXLAN, executor dual stack, assertions, checkpoints e reexecução no servidor. A cobertura completa e as funcionalidades adicionais permanecem acompanhadas no [plano consolidado](consolidated-remediation-plan.md); as descrições de incrementos anteriores acima são históricas.

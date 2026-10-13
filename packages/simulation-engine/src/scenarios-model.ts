@@ -1,8 +1,11 @@
 import { z } from 'zod';
 import { ipv4Schema } from './schemas';
+import { transportAddressSchema } from './protocols/tcp-model';
+import { linkLocal6 } from './protocols/ipv6-address';
 import { modbusRequestSchema } from './protocols/modbus-model';
 import { dnsNameSchema } from './protocols/dns-model';
 import { oidSchema, snmpVarbindSchema } from './protocols/snmp-model';
+import { scenarioAssertionSchema } from './scenario-assertions';
 export const scenarioServiceSchema = z.enum([
   'dns',
   'dhcp',
@@ -14,23 +17,39 @@ export const scenarioServiceSchema = z.enum([
   'syslog',
 ]);
 const ref = z.string().min(1).max(80);
+export const scenarioActionSchema = z
+  .object({
+    atMs: z.number().int().nonnegative(),
+    kind: z.enum(['checkpoint', 'restore']),
+    checkpoint: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
+  })
+  .strict();
 export const scenarioSchema = z
   .object({
     name: z.string().min(1).max(100),
     durationMs: z.number().int().min(100).max(120000),
     intervalMs: z.number().int().min(100).max(30000),
     deadlineMs: z.number().int().min(1).max(30000),
+    warmupMs: z.number().int().min(0).max(60000).optional(),
+    actions: z.array(scenarioActionSchema).max(16).optional(),
+    assertions: z.array(scenarioAssertionSchema).max(64).optional(),
     flows: z
       .array(
         z
           .object({
             name: z.string().min(1).max(80),
             source: z.string().min(1).max(80),
-            target: ipv4Schema,
+            target: transportAddressSchema,
+            vrf: z
+              .string()
+              .regex(/^[a-zA-Z0-9_-]{1,32}$/)
+              .optional(),
+            scope: ref.optional(),
             protocol: z.enum(['icmp', 'http', 'modbus', 'dns', 'dhcp', 'mqtt', 'snmp', 'ntp', 'syslog']),
             port: z.number().int().min(1).max(65535).optional(),
             modbus: modbusRequestSchema.optional(),
             expectedRegisters: z.array(z.number().int().min(0).max(65535)).max(125).optional(),
+            expectedBits: z.array(z.boolean()).max(2000).optional(),
             dns: z
               .object({
                 name: dnsNameSchema,
@@ -89,6 +108,7 @@ export const scenarioSchema = z
               .strict()
               .optional(),
             expect: z.enum(['allow', 'deny']),
+            denyEvidence: z.enum(['no-response', 'policy']).optional(),
             maxLossPercent: z.number().min(0).max(100).default(0),
             maxLatencyMs: z.number().positive().max(30000).optional(),
             requireFinalSuccess: z.boolean().default(false),
@@ -119,7 +139,33 @@ export const scenarioSchema = z
       ctx.addIssue({ code: 'custom', message: 'Limite de 180 amostras por cenário; aumente o intervalo.' });
     if (s.faults.some((f) => f.atMs > s.durationMs))
       ctx.addIssue({ code: 'custom', message: 'Falha fora da duração do cenário.' });
+    if (
+      s.assertions?.some((a) => a.atMs > s.durationMs) ||
+      new Set(s.assertions?.map((a) => a.name)).size !== (s.assertions?.length ?? 0)
+    )
+      ctx.addIssue({ code: 'custom', message: 'Assertion fora da duração ou nome repetido.' });
+    const checkpoints = new Set<string>();
+    for (const action of [...(s.actions ?? [])].sort((a, b) => a.atMs - b.atMs)) {
+      if (action.atMs > s.durationMs)
+        ctx.addIssue({ code: 'custom', message: 'Ação fora da duração do cenário.' });
+      if (action.kind === 'checkpoint') {
+        if (checkpoints.has(action.checkpoint) || checkpoints.size >= 4)
+          ctx.addIssue({ code: 'custom', message: 'Checkpoint repetido ou limite de quatro excedido.' });
+        checkpoints.add(action.checkpoint);
+      } else if (!checkpoints.has(action.checkpoint))
+        ctx.addIssue({ code: 'custom', message: 'Restore exige checkpoint anterior.' });
+    }
     for (const f of s.flows) {
+      if ((f.target.includes(':') || f.vrf || f.scope) && !['icmp', 'http', 'modbus'].includes(f.protocol))
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'IPv6/VRF/escopo disponíveis para ICMP, HTTP e Modbus; este adaptador de serviço usa IPv4 na tabela padrão.',
+        });
+      if (f.scope && !f.target.includes(':'))
+        ctx.addIssue({ code: 'custom', message: 'Escopo de interface pertence ao IPv6.' });
+      if (f.target.includes(':') && linkLocal6(f.target) && !f.scope)
+        ctx.addIssue({ code: 'custom', message: 'Destino IPv6 link-local exige scope.' });
       for (const protocol of ['dns', 'dhcp', 'mqtt', 'snmp', 'ntp', 'syslog'] as const) {
         if ((f.protocol === protocol) !== Boolean(f[protocol]))
           ctx.addIssue({
@@ -147,15 +193,23 @@ export const scenarioSchema = z
         ctx.addIssue({ code: 'custom', message: 'Recepção MQTT exige receiver e filter em uma publicação.' });
       if (f.protocol === 'modbus' && !f.modbus)
         ctx.addIssue({ code: 'custom', message: 'Fluxo Modbus exige uma requisição modbus.' });
-      if (f.protocol !== 'modbus' && (f.modbus || f.expectedRegisters))
+      if (f.protocol !== 'modbus' && (f.modbus || f.expectedRegisters || f.expectedBits))
         ctx.addIssue({ code: 'custom', message: 'Parâmetros Modbus em outro protocolo.' });
       if (
         f.expectedRegisters &&
-        (f.modbus?.function !== 3 || f.expectedRegisters.length !== f.modbus.quantity)
+        (![3, 4].includes(f.modbus?.function ?? 0) || f.expectedRegisters.length !== f.modbus?.quantity)
       )
         ctx.addIssue({
           code: 'custom',
           message: 'Registradores esperados exigem leitura com a mesma quantidade.',
+        });
+      if (
+        f.expectedBits &&
+        (![1, 2].includes(f.modbus?.function ?? 0) || f.expectedBits.length !== f.modbus?.quantity)
+      )
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Bits esperados exigem leitura 01/02 com a mesma quantidade.',
         });
     }
     for (const f of s.faults) {

@@ -1,4 +1,5 @@
 import { findDevice, findLink, linksAt } from './topology-index';
+import { interfaceSchema } from '../model';
 import { configureDatabase, queryDatabase } from '../protocols/database';
 import {
   configureInfrastructure,
@@ -132,6 +133,7 @@ import { receiveArp, sendWithArp, handleArpTimer } from '../protocols/arp';
 import { switchFrame, switchTransmit } from '../protocols/ethernet';
 import {
   createLogicalInterface,
+  interfaceOperational,
   interfaceUp,
   requireVrf,
   routingEnabled,
@@ -154,6 +156,7 @@ import {
   configureSpanningTree,
   configureMultiSpanningTree,
   rebuildSpanningTree,
+  updateSpanningTreePort,
   handleSpanningTreeAction,
   receiveBpdu,
   refreshSpanningTree,
@@ -352,6 +355,45 @@ export class SimulationEngine {
   ping6(deviceId: string, target: string, hopLimit = 64, vrf?: string, scope?: string, bytes = 104) {
     return ping6(this, this.device(deviceId), target, hopLimit, vrf, scope, bytes);
   }
+  addLoopback(deviceId: string, index = 0) {
+    const d = this.device(deviceId);
+    if (!['router', 'switch'].includes(d.type) || !Number.isInteger(index) || index < 0 || index > 999)
+      throw new Error('Loopback exige roteador/switch e índice entre 0 e 999.');
+    const existing = d.interfaces.find((p) => p.loopback && p.name === 'Loopback' + index);
+    if (existing) return existing;
+    if (d.interfaces.length >= 48) throw new Error('Limite de 48 interfaces.');
+    const used = new Set(this.state.devices.flatMap((x) => x.interfaces.map((p) => p.mac)));
+    let suffix = 0,
+      mac: string;
+    do {
+      mac =
+        d.interfaces[0].mac.split(':').slice(0, 4).join(':') +
+        ':06:' +
+        (suffix++).toString(16).padStart(2, '0');
+    } while (used.has(mac));
+    const p = interfaceSchema.parse({
+      id: this.id('loopback'),
+      name: 'Loopback' + index,
+      mac,
+      mode: 'routed',
+      media: 'rj45',
+      loopback: true,
+      adminUp: true,
+      speed: 1000,
+      duplex: 'full',
+      mtu: 9216,
+      accessVlan: 1,
+      nativeVlan: 1,
+      allowedVlans: [1],
+      rx: 0,
+      tx: 0,
+      errors: 0,
+      description: 'Endpoint IP estável',
+    });
+    d.interfaces.push(p);
+    this.emit('CONFIG_CHANGED', d.id, p.name + ' criada.', { port: p.id });
+    return p;
+  }
   sendIp6(deviceId: string, packet: Packet6, ingress?: NetworkInterface, vrf = ingress?.vrf, scope?: string) {
     sendIp6(this, this.device(deviceId), packet, ingress, vrf, scope);
   }
@@ -360,7 +402,7 @@ export class SimulationEngine {
   }
   removeLogicalInterface(deviceId: string, portId: string) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
-    if (!port.logical && !port.tunnel && !port.vxlan)
+    if (!port.logical && !port.tunnel && !port.vxlan && !port.loopback)
       throw new Error('Somente interfaces lógicas/túneis podem ser removidos.');
     if (
       device.interfaces.some(
@@ -607,12 +649,13 @@ export class SimulationEngine {
       (!Number.isInteger(options.cost) || options.cost < 1 || options.cost > 200000000)
     )
       throw new Error('Custo STP inválido.');
+    const edgeChanged = options.edge !== undefined && Boolean(port.stpEdge) !== options.edge;
     if (options.edge !== undefined) port.stpEdge = options.edge;
     if (Object.hasOwn(options, 'cost')) {
       if (options.cost === undefined) delete port.stpCost;
       else port.stpCost = options.cost;
     }
-    if (device.spanningTree?.enabled) rebuildSpanningTree(this, device);
+    if (device.spanningTree?.enabled) updateSpanningTreePort(this, device, port, edgeChanged);
   }
   refreshSpanningTree() {
     refreshPower(this);
@@ -1196,12 +1239,17 @@ export class SimulationEngine {
       return;
     }
     const labelRoute = mplsRoute(d, packet, vrf);
-    const baseline = labelRoute ?? resolveRoute(d, packet.dst, vrf);
+    const baseline = labelRoute ?? resolveRoute(d, packet.dst, vrf, this.state);
     const connected = baseline && !baseline.port.tunnel && baseline.nextHop === packet.dst;
     const selection = !vrf && !connected && !labelRoute ? selectSdwan(this, d, packet) : undefined;
     const route = selection?.blocked ? undefined : (selection?.route ?? baseline);
     if (!route) {
-      this.drop(d, 'Nenhuma rota corresponde a ' + packet.dst + ' e não há gateway/rota padrão válido.');
+      const configured = resolveRoute(d, packet.dst, vrf);
+      const reason =
+        configured?.port.logical?.kind === 'svi' && !interfaceOperational(this.state, d, configured.port)
+          ? 'SVI sem porta operacional na VLAN.'
+          : 'Nenhuma rota corresponde a ' + packet.dst + ' e não há gateway/rota padrão válido.';
+      this.drop(d, reason);
       if (ingress && routingEnabled(d)) sendIcmpError(this, d, ingress, packet, 'unreachable', 0);
       return;
     }
@@ -1538,25 +1586,30 @@ export class SimulationEngine {
     else if (a.frame.fragment) receiveFragment(this, d, input, a.frame);
     else if (a.frame.packet) receiveIp(this, d, input, a.frame.packet, a.frame.src);
   }
-  advanceTo(time: number, maxSteps = 20000, wallMs?: number) {
+  advanceTo(time: number, maxSteps = 20000, wallMs?: number, refreshState = true) {
     if (!Number.isFinite(time) || time < this.state.clock) throw new Error('Instante virtual inválido.');
     if (!Number.isInteger(maxSteps) || maxSteps < 1) throw new Error('Orçamento de eventos inválido.');
     if (wallMs !== undefined && (!Number.isFinite(wallMs) || wallMs < 1 || wallMs > 100))
       throw new Error('Orçamento de tempo inválido.');
     const started = performance.now();
-    refreshPower(this);
-    refreshDot1x(this);
-    refreshWireless(this);
-    refreshLacp(this);
-    refreshSpanningTree(this);
-    refreshVrrp(this);
-    refreshBgp(this);
+    // A resumed slice of the same boundary has no intervening configuration
+    // edits. Refresh only once, so wall-time slicing cannot create extra state
+    // transitions or consume the entire budget before processing any event.
+    if (refreshState) {
+      refreshPower(this);
+      refreshDot1x(this);
+      refreshWireless(this);
+      refreshLacp(this);
+      refreshSpanningTree(this);
+      refreshVrrp(this);
+      refreshBgp(this);
+    }
     let count = 0;
     while (
       this.state.queue.length &&
       this.state.queue[0].at <= time &&
       count < maxSteps &&
-      (wallMs === undefined || performance.now() - started < wallMs)
+      (wallMs === undefined || count === 0 || performance.now() - started < wallMs)
     ) {
       this.step();
       count++;

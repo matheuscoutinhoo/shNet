@@ -1,12 +1,15 @@
+import { canonicalScenarioJson } from './canonical-json';
 import { z } from 'zod';
 import { eventSchema } from './model';
 import { scenarioSchema } from './scenarios-model';
+import { scenarioRecovery } from './scenario-metrics';
 const ms = z.number().finite().nonnegative();
 const name = z.string().min(1).max(100);
 const sampleSchema = z
   .object({
     flow: name,
     atMs: ms,
+    epoch: z.number().int().nonnegative().max(16).optional(),
     id: z.string().min(1).max(100).optional(),
     status: z.enum(['pending', 'success', 'failed']),
     elapsedMs: ms.optional(),
@@ -38,6 +41,8 @@ export const scenarioReportSchema = z
   .object({
     format: z.literal('shlab-scenario-v1'),
     engineVersion: z.string().min(1).max(32),
+    engineContract: z.string().min(1).max(32).optional(),
+    integrityVersion: z.literal(2).optional(),
     name,
     clock: z.literal('virtual-ms'),
     complete: z.literal(true),
@@ -98,10 +103,77 @@ export const scenarioReportSchema = z
       .max(32),
     diagnostics: z.array(eventSchema).max(4000),
     captureDropped: z.number().int().nonnegative(),
+    actions: z
+      .array(
+        z
+          .object({
+            ...scenarioSchema.shape.actions.unwrap().element.shape,
+            epoch: z.number().int().nonnegative().max(16),
+            beforeClock: ms,
+            afterClock: ms,
+            snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
+          })
+          .strict()
+      )
+      .max(16)
+      .optional(),
+    assertions: z
+      .array(
+        z
+          .object({
+            name,
+            atMs: ms,
+            epoch: z.number().int().nonnegative().max(16),
+            observed: z.string().max(100),
+            passed: z.boolean(),
+          })
+          .strict()
+      )
+      .max(64)
+      .optional(),
   })
   .strict()
   .superRefine((r, ctx) => {
     const names = r.scenario.flows.map((f) => f.name);
+    const actions = [...(r.scenario.actions ?? [])].sort((a, b) => a.atMs - b.atMs);
+    if (actions.length !== (r.actions?.length ?? 0))
+      ctx.addIssue({ code: 'custom', message: 'Ações incompletas.' });
+    const hashes = new Map<string, string>();
+    let epoch = 0;
+    r.actions?.forEach((result, i) => {
+      const expected = actions[i],
+        { beforeClock, afterClock, snapshotHash, epoch: recordedEpoch, ...action } = result;
+      if (action.kind === 'checkpoint') hashes.set(action.checkpoint, snapshotHash);
+      else epoch++;
+      if (
+        canonicalScenarioJson(expected) !== canonicalScenarioJson(action) ||
+        recordedEpoch !== epoch ||
+        (action.kind === 'checkpoint' && beforeClock !== afterClock) ||
+        (action.kind === 'restore' && hashes.get(action.checkpoint) !== snapshotHash)
+      )
+        ctx.addIssue({ code: 'custom', message: 'Evidência de checkpoint divergente.' });
+    });
+    if (
+      r.scenario.actions &&
+      r.samples.some(
+        (s) => s.epoch !== r.actions!.filter((a) => a.kind === 'restore' && a.atMs <= s.atMs).length
+      )
+    )
+      ctx.addIssue({ code: 'custom', message: 'Amostra pertence a outra época da simulação.' });
+    const assertions = [...(r.scenario.assertions ?? [])].sort((a, b) => a.atMs - b.atMs);
+    if (assertions.length !== (r.assertions?.length ?? 0))
+      ctx.addIssue({ code: 'custom', message: 'Assertions incompletas.' });
+    r.assertions?.forEach((a, i) => {
+      const definition = assertions[i];
+      if (
+        !definition ||
+        a.name !== definition.name ||
+        a.atMs !== definition.atMs ||
+        a.passed !== (a.observed === String(definition.expected)) ||
+        a.epoch !== (r.actions ?? []).filter((r) => r.kind === 'restore' && r.atMs <= a.atMs).length
+      )
+        ctx.addIssue({ code: 'custom', message: 'Resumo de assertion divergente.' });
+    });
     if (
       r.name !== r.scenario.name ||
       r.flows.length !== names.length ||
@@ -109,7 +181,7 @@ export const scenarioReportSchema = z
         (s) => !names.includes(s.flow) || s.status === 'pending' || s.atMs >= r.scenario.durationMs
       ) ||
       r.faults.length !== r.scenario.faults.length ||
-      r.passed !== r.flows.every((f) => f.passed)
+      r.passed !== (r.flows.every((f) => f.passed) && (r.assertions ?? []).every((a) => a.passed))
     )
       ctx.addIssue({ code: 'custom', message: 'Relatório incompleto ou incompatível com a definição.' });
     r.flows.forEach((f, i) => {
@@ -126,7 +198,13 @@ export const scenarioReportSchema = z
       const passed =
         (!flow.requireFinalSuccess || samples.at(-1)?.status === 'success') &&
         (flow.expect === 'deny'
-          ? received === 0 && samples.every((s) => s.id && !s.responseReceived)
+          ? received === 0 &&
+            samples.every(
+              (s) =>
+                s.id &&
+                !s.responseReceived &&
+                (flow.denyEvidence !== 'policy' || s.evidence?.cause === 'policy')
+            )
           : (100 * (samples.length - received)) / samples.length <= flow.maxLossPercent &&
             (flow.maxLatencyMs === undefined || successful.every((s) => s.elapsedMs! <= flow.maxLatencyMs!)));
       if (
@@ -153,23 +231,12 @@ export const scenarioReportSchema = z
       if (
         canonicalScenarioJson(fault) !== canonicalScenarioJson(r.scenario.faults[i]) ||
         recovery.length !== names.length ||
-        recovery.some((x, i) => x.flow !== names[i] || x.resolutionMs !== r.scenario.intervalMs)
+        canonicalScenarioJson(recovery) !==
+          canonicalScenarioJson(scenarioRecovery(r.scenario, r.samples, f.atMs))
       )
         ctx.addIssue({ code: 'custom', message: 'Falhas e recuperação divergentes da definição.' });
     });
   });
 export type ScenarioReport = z.infer<typeof scenarioReportSchema>;
-// Stable JSON ordering permits the server to fingerprint a JSONB snapshot without depending on key order.
-export function canonicalScenarioJson(value: unknown): string {
-  const sort = (v: unknown): unknown =>
-    Array.isArray(v)
-      ? v.map(sort)
-      : v && typeof v === 'object'
-        ? Object.fromEntries(
-            Object.entries(v)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([k, n]) => [k, sort(n)])
-          )
-        : v;
-  return JSON.stringify(sort(value));
-}
+// Stable JSON ordering fingerprints JSONB snapshots independently of key order.
+export { canonicalScenarioJson } from './canonical-json';

@@ -27,6 +27,7 @@ export function vxlanConfig(p: NetworkInterface) {
     underlay: v.underlay,
     peers: v.peers,
     evpn: v.evpn,
+    peerPolicy: v.peerPolicy,
     routeTarget: v.routeTarget,
     mtu: v.mtu,
   };
@@ -42,6 +43,7 @@ export function configureVxlan(e: SimulationEngine, d: Device, input: unknown) {
     underlay.tunnel ||
     underlay.vxlan ||
     underlay.vrf ||
+    (c.peerPolicy === 'evpn' && !c.evpn) ||
     new Set(c.peers).size !== c.peers.length ||
     c.peers.some((ip) => !isUnicast(ip) || d.interfaces.some((p) => p.ip === ip)) ||
     d.interfaces.some((p) => p.vxlan?.vlan === c.vlan && p.vxlan.vni !== c.vni)
@@ -130,7 +132,23 @@ export function sendVxlanFrame(e: SimulationEngine, d: Device, p: NetworkInterfa
   }
   const route = evpnMac(d, p, frame.dst),
     learned = v.learned.find((m) => m.mac === frame.dst && e.state.clock - m.at < LIMITS.macAge),
-    peers = route ? [route.nextHop] : learned ? [learned.vtep] : v.peers;
+    members = [
+      ...new Set(
+        (v.members ?? [])
+          .filter((m) => d.bgp?.peers.some((n) => n.ip === m.peer && n.state === 'Established'))
+          .map((m) => m.nextHop)
+      ),
+    ],
+    peers =
+      v.peerPolicy === 'evpn'
+        ? route && members.includes(route.nextHop)
+          ? [route.nextHop]
+          : members
+        : route
+          ? [route.nextHop]
+          : learned
+            ? [learned.vtep]
+            : v.peers;
   if (!peers.length) {
     e.drop(d, 'VXLAN sem VTEPs para replicação.', p.id, frame);
     return;
@@ -139,7 +157,7 @@ export function sendVxlanFrame(e: SimulationEngine, d: Device, p: NetworkInterfa
   p.tx++;
   v.sent++;
   for (const remote of peers) {
-    const carrier = resolveUnderlay(d, underlay, remote);
+    const carrier = resolveUnderlay(d, underlay, remote, e.state);
     if (!carrier) {
       e.drop(d, 'VXLAN: sem rota underlay para ' + remote + '.', p.id);
       continue;
@@ -151,11 +169,18 @@ export function sendVxlanFrame(e: SimulationEngine, d: Device, p: NetworkInterfa
       ttl: 64,
       sourcePort: 49152 + (parseInt(frame.src.replaceAll(':', '').slice(-4), 16) % 16384),
       destinationPort: 4789,
-      bytes: bytes + 50,
-      payload: { protocol: 'VXLAN', message: { vni: v.vni, iFlag: true, frame: body, innerBytes: bytes } },
+      bytes: 36 + Math.max(60, bytes + 14),
+      payload: {
+        protocol: 'VXLAN',
+        message: { vni: v.vni, iFlag: true, frame: body, innerBytes: bytes, wireVersion: 2 },
+      },
     };
     e.emit('VXLAN_ENCAP', d.id, 'VNI ' + v.vni + ' → VTEP ' + remote + '.', { port: p.id, frame });
-    sendWithArp(e, d, underlay, carrier.nextHop, packet);
+    if (packet.bytes > carrier.port.mtu) {
+      e.drop(d, 'VXLAN: MTU underlay insuficiente para encapsulamento.', p.id, frame);
+      continue;
+    }
+    sendWithArp(e, d, carrier.port, carrier.nextHop, packet);
   }
 }
 export function receiveVxlan(e: SimulationEngine, d: Device, ingress: NetworkInterface, packet: UdpPacket) {
@@ -167,8 +192,18 @@ export function receiveVxlan(e: SimulationEngine, d: Device, ingress: NetworkInt
     !p ||
     !v ||
     packet.destinationPort !== 4789 ||
-    ingress.id !== v.underlay ||
-    (!v.peers.includes(packet.src) && !v.routes.some((r) => r.nextHop === packet.src))
+    (d.interfaces.find((p) => p.id === v.underlay)?.loopback
+      ? ingress.vrf !== undefined ||
+        ingress.mode !== 'routed' ||
+        !!ingress.tunnel ||
+        packet.dst !== d.interfaces.find((p) => p.id === v.underlay)?.ip
+      : ingress.id !== v.underlay) ||
+    (v.peerPolicy === 'evpn'
+      ? !(v.members ?? []).some(
+          (m) =>
+            m.nextHop === packet.src && d.bgp?.peers.some((n) => n.ip === m.peer && n.state === 'Established')
+        )
+      : !v.peers.includes(packet.src) && !v.routes.some((r) => r.nextHop === packet.src))
   ) {
     e.drop(d, 'VXLAN: VNI/peer/underlay não autorizado.', ingress.id);
     return;
@@ -185,7 +220,7 @@ export function receiveVxlan(e: SimulationEngine, d: Device, ingress: NetworkInt
       frame.secure ||
       frame.vlan !== undefined ||
       bytes !== m.innerBytes ||
-      packet.bytes !== bytes + 50 ||
+      packet.bytes !== (m.wireVersion === 2 ? 36 + Math.max(60, bytes + 14) : bytes + 50) ||
       bytes > p.mtu ||
       frame.hops < 1
     )
@@ -215,7 +250,7 @@ export function validateVxlan(s: Snapshot) {
       bytes = frame.packet?.bytes ?? frame.fragment?.bytes ?? frame.ipv6?.bytes ?? frame.mpls?.bytes ?? 28;
     if (
       bytes !== m.innerBytes ||
-      packet.bytes !== bytes + 50 ||
+      packet.bytes !== (m.wireVersion === 2 ? 36 + Math.max(60, bytes + 14) : bytes + 50) ||
       frame.wifi ||
       frame.secure ||
       frame.lacp ||
@@ -245,6 +280,7 @@ export function validateVxlan(s: Snapshot) {
         underlay.vxlan ||
         underlay.channel ||
         underlay.vrf ||
+        (v.peerPolicy === 'evpn' && !v.evpn) ||
         p.mode !== 'access' ||
         p.accessVlan !== v.vlan ||
         p.mtu !== v.mtu ||

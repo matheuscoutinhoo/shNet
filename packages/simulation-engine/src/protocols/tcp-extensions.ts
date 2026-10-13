@@ -89,7 +89,10 @@ export function extendTcpPacket(c: TcpConnection, p: TcpPacket, now: number) {
   }
   if (!syn && !reset && x.sack && p.flags.includes('ACK')) {
     const queued = tcpFlow(c)
-        .receiveQueue.map((q) => ({ left: q.sequence, right: tcpAdd(q.sequence, tcpBytes(q.data)) }))
+        .receiveQueue.map((q) => ({
+          left: q.sequence,
+          right: tcpAdd(q.sequence, tcpBytes(q.data, q.encoding)),
+        }))
         .filter((b) => b.left !== b.right)
         .sort((a, b) => tcpDistance(c.receiveNext, a.left) - tcpDistance(c.receiveNext, b.left)),
       blocks: typeof queued = [];
@@ -107,7 +110,7 @@ export function extendTcpPacket(c: TcpConnection, p: TcpPacket, now: number) {
   }
   if (Object.keys(options).length) p.options = options;
   if (x.local.pmtud && !p.family) p.df = true;
-  p.bytes = (p.family ? 60 : 40) + tcpOptionBytes(p.options) + tcpBytes(p.data);
+  p.bytes = (p.family ? 60 : 40) + tcpOptionBytes(p.options) + tcpBytes(p.data, p.encoding);
   return p;
 }
 export function receiveTcpExtensions(e: SimulationEngine, d: Device, c: TcpConnection, p: TcpPacket) {
@@ -155,7 +158,7 @@ export function receiveTcpExtensions(e: SimulationEngine, d: Device, c: TcpConne
     )
       for (const segment of flight) {
         const start = tcpDistance(c.sendUna, segment.packet.sequence),
-          end = start + tcpBytes(segment.packet.data);
+          end = start + tcpBytes(segment.packet.data, segment.packet.encoding);
         if (
           segment.packet.data &&
           p.options.sack.some(

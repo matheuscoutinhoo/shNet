@@ -1,5 +1,7 @@
 # ADR-025 — VXLAN e EVPN no simulador
 
+> Registro histórico deste incremento. O [ADR-044](044-enterprise-integrity-fabric-binary-modbus.md) atualiza IMET/loopbacks, Modbus binário e funções adicionais, executor dual stack, checkpoints e verificação no servidor. Os limites descritos abaixo representam a versão original.
+
 Status: implementado no motor educacional.
 
 ## Transporte

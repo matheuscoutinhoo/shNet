@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import console from 'node:console';
 import process from 'node:process';
-const out = 'artifacts/enterprise-datacenter-audit';
+const out = process.env.SHLAB_AUDIT_OUTPUT ?? 'artifacts/enterprise-datacenter-audit';
 await mkdir(out + '/screenshots', { recursive: true });
 const topology = JSON.parse(await readFile(out + '/enterprise-datacenter.shlab.json', 'utf8'));
 const reference = await chromium.connectOverCDP('http://127.0.0.1:9223');
@@ -14,7 +14,7 @@ const context = await browser.newContext({ storageState: state, viewport: { widt
 const page = await context.newPage();
 const errors = [],
   failures = [];
-page.on('pageerror', (error) => errors.push(error.message));
+page.on('pageerror', (error) => errors.push(error.stack ?? error.message));
 page.on('response', (response) => {
   if (response.status() >= 400 && response.url().includes('/api/projects'))
     failures.push({ status: response.status(), path: new globalThis.URL(response.url()).pathname });
@@ -62,8 +62,18 @@ realtime.ratio = realtime.advancedMs / (realtime.elapsedMs * 5);
 await page.screenshot({ path: out + '/screenshots/desktop.png' });
 const desktopAxe = await new AxeBuilder({ page }).analyze();
 await page.getByRole('button', { name: 'Opções do laboratório' }).click();
-await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
-const preflightText = await page.getByRole('dialog').innerText();
+await page.getByRole('button', { name: 'Validar rede e cenários' }).click();
+let preflightText;
+try {
+  preflightText = await page.getByRole('dialog').innerText();
+} catch (error) {
+  console.log(
+    JSON.stringify({ errors, failures, page: (await page.locator('body').innerText()).slice(0, 3000) })
+  );
+  await page.screenshot({ path: out + '/screenshots/failure.png' });
+  await browser.close();
+  throw error;
+}
 await page.screenshot({ path: out + '/screenshots/preflight.png' });
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
 const nativePresets = await page
@@ -76,6 +86,7 @@ const scenario = {
   durationMs: 6000,
   intervalMs: 1000,
   deadlineMs: 500,
+  warmupMs: Math.max(0, Math.ceil(35000 - (await clock()))),
   flows: [
     {
       name: 'ERP autorizado',
@@ -136,7 +147,7 @@ await page.reload();
 await page.getByRole('heading', { name, exact: true }).click();
 await expect(page.locator('.react-flow__node-device')).toHaveCount(topology.devices.length);
 await page.getByRole('button', { name: 'Opções do laboratório' }).click();
-await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
+await page.getByRole('button', { name: 'Validar rede e cenários' }).click();
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
 await expect(page.getByRole('cell', { name: 'Aprovado', exact: true })).toHaveCount(5);
 const persisted = true;
@@ -156,7 +167,7 @@ const visibleDevices = await page.locator('.react-flow__node-device').evaluateAl
 );
 await page.screenshot({ path: out + '/screenshots/mobile.png' });
 await page.getByRole('button', { name: 'Opções do laboratório' }).click();
-await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
+await page.getByRole('button', { name: 'Validar rede e cenários' }).click();
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
 await page
   .getByRole('dialog')

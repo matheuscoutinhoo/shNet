@@ -30,6 +30,8 @@ export function validateConnection(state: Snapshot, link: Link, ignoreId?: strin
     b.port.meshPeer ||
     a.port.logical ||
     b.port.logical ||
+    a.port.loopback ||
+    b.port.loopback ||
     a.port.aggregate ||
     b.port.aggregate ||
     a.port.tunnel ||

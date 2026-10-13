@@ -1,0 +1,25 @@
+{
+  "scenarioText": "Validação de redes e cenários\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\nExecute em uma cópia isolada da topologia. Compare baseline e falhas; tempos e SLAs são virtuais. Até 180 amostras por cenário. Os ensaios guardam a revisão e a topologia de origem no laboratório.\n\nCarregar cenário\nSelecione um cenário\nSalvo: SCADA-PLC baseline\nModelo: PLC/HMI — baseline Modbus\nModelo: Perda do firewall primário\nModelo: Perda da distribuição primária\nModelo: Isolamento da célula A\nModelo: PLC A indisponível\nModelo: SCADA indisponível: HMI local independente\nModelo: Segmentação de visitantes\nModelo: DNS — resposta sem cache\nModelo: DNS — falha e restauração do serviço\nModelo: DHCP — concessões por relay\nModelo: MQTT — publicação QoS 1 e assinatura wildcard\nModelo: SNMP — identidade do SCADA\nModelo: NTP — sincronismo de gerenciamento\nModelo: Syslog — recepção no coletor\nModelo: MES — falha e restauração HTTP\nModelo: UPS-A — perda e restauração da alimentação\nModelo: UPS-B — perda e restauração da alimentação\nFormato dos cenários\nEditar por formulário\nDefinição do cenário\nSalvar cenário no laboratório\nExecutar cenário\nExecutar baseline\nExportar definição\nMQTT — publicação QoS 1 e assinatura wildcard · revisão 3 · Salvo\nSCADA-PLC baseline · revisão 2 · Salvo\nExportar resultados\nCenário / fluxo\tResultado\tPerda\tp95 / p99\tJitter p95\nMQTT — publicação QoS 1 e assinatura wildcard / Temperatura A\tAprovado\t0.0%\t224.14 / 224.14 ms\t0.00 ms\nSCADA-PLC baseline / SCADA-PLC\tAprovado\t0.0%\t24.15 / 24.15 ms\t8.04 ms",
+  "modbusText": "TIME-WAIT · Registradores: 725",
+  "coilsText": "TIME-WAIT · Bits: 1, 0, 1",
+  "inputRegistersText": "TIME-WAIT · Registradores: 65535, 32768",
+  "captureText": "Captura binária da simulação\n\n253 frames retidos em armazenamento independente do histórico visual. Início: 11000 ms virtuais. Ethernet/VLAN, ARP, IPv4/IPv6, TCP, UDP, ICMP/NDP, DNS/EDNS, DHCPv6/relay, RIP e RADIUS possuem codecs.\n\nCapturar também tráfego de controle a partir de agora\nIniciar nova captura\nEnlace da captura\nTodos os enlaces\nDIST-A ↔ SW-TI\nDIST-B ↔ SW-TI\nDIST-A ↔ SW-DMZ\nDIST-B ↔ SW-DMZ\nDIST-A ↔ SW-SCADA\nDIST-B ↔ SW-SCADA\nDIST-A ↔ SW-A\nDIST-B ↔ SW-A\nDIST-A ↔ SW-B\nDIST-B ↔ SW-B\nDIST-A ↔ SW-CCTV\nDIST-B ↔ SW-CCTV\nDIST-A ↔ SW-WIFI\nDIST-B ↔ SW-WIFI\nDIST-A ↔ SW-MGMT\nDIST-B ↔ SW-MGMT\nDIST-A ↔ DIST-B\nFW-A ↔ DIST-A\nFW-B ↔ DIST-B\nPC-ERP ↔ SW-TI\nPC-FINANCEIRO ↔ SW-TI\nIMP-EXPEDICAO ↔ SW-TI\nMES-DMZ ↔ SW-DMZ\nDNS-DMZ ↔ SW-DMZ\nDHCP-DMZ ↔ SW-DMZ\nENG-OT ↔ SW-SCADA\nBROKER-OT ↔ SW-SCADA\nPLC-A ↔ SW-A\nHMI-A ↔ SW-A\nSENSOR-A ↔ SW-A\nPLC-B ↔ SW-B\nHMI-B ↔ SW-B\nSENSOR-B ↔ SW-B\nNVR ↔ SW-CCTV\nCAM-01 ↔ SW-CCTV\nCAM-02 ↔ SW-CCTV\nAP-ARMAZEM ↔ SW-WIFI\nAP-ARMAZEM ↔ NOTEBOOK-VISITANTE\nNMS-SYSLOG ↔ SW-MGMT\nNTP-MGMT ↔ SW-MGMT\nADMIN-REDE ↔ SW-MGMT\nFW-A ↔ SW-WAN\nFW-B ↔ SW-WAN\nR-WAN-SIMULADA ↔ SW-WAN\nR-WAN-SIMULADA ↔ SUPORTE-EXTERNO\nSCADA ↔ PATCH-OT\nPATCH-OT ↔ SW-SCADA\n\n82 frames exportáveis · 171 omitidos.\n\nMotivos das omissões\n\nProtocolos sem formato binário, aplicações TCP com enquadramento didático, DNSSEC do modelo e fragmentos que transportam o envelope do simulador são omitidos.\n\nBaixar PCAP",
+  "realtime": {
+    "elapsedMs": 10505.5199,
+    "advancedMs": 53133.00000000001,
+    "ratio": 1.0115253791485372
+  },
+  "scenarioAccessibility": [],
+  "accessibility": [],
+  "mobile": {
+    "viewport": 390,
+    "bodyWidth": 390,
+    "visibleDevices": 43
+  },
+  "mobileReports": {
+    "width": 350,
+    "scrollWidth": 350
+  },
+  "errors": [],
+  "failures": []
+}

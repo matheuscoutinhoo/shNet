@@ -1,5 +1,7 @@
 import type { Snapshot } from './model';
 import { linkOperational } from './links/physical';
+import { networkDomains } from './network-domains';
+import { ipNumber } from './protocols/ipv4';
 export interface PreflightIssue {
   code: string;
   severity: 'error' | 'warning' | 'info';
@@ -17,11 +19,77 @@ export function preflight(s: Snapshot): PreflightIssue[] {
     recommendation: string
   ) => issues.push({ code, severity, devices, message, recommendation });
   const addresses = new Map<string, string[]>();
+  const domain = networkDomains(s);
   for (const d of s.devices) {
     for (const p of d.interfaces.filter((p) => p.ip)) {
-      const key = `${p.vrf ?? 'default'}:${p.ip}`;
+      const key = `${domain(d, p)}:${p.ip}`;
       addresses.set(key, [...(addresses.get(key) ?? []), d.id]);
+      const gateway = p.gateway ?? (!p.vrf ? d.gateway : undefined);
+      if (gateway) {
+        const available = s.devices.some((x) =>
+          x.interfaces.some(
+            (q) =>
+              domain(x, q) === domain(d, p) &&
+              (q.ip === gateway || x.vrrp?.groups.some((g) => g.port === q.id && g.vip === gateway))
+          )
+        );
+        if (!available)
+          add(
+            'GATEWAY_NOT_IN_DOMAIN',
+            'warning',
+            [d.id],
+            `${d.hostname}/${p.name}: gateway ${gateway} não encontrado no domínio Ethernet.`,
+            'Confira VLAN, máscara, associação Wi-Fi e gateway. A análise usa configuração potencial e associações presentes; não certifica alcance nem um gateway externo ao snapshot.'
+          );
+      }
     }
+    for (const p of d.interfaces.filter((p) => p.vxlan)) {
+      if (p.vxlan) {
+        const source = d.interfaces.find((q) => q.id === p.vxlan!.underlay),
+          carriers = source?.loopback
+            ? d.interfaces.filter(
+                (q) => q.mode === 'routed' && !q.loopback && !q.logical && !q.tunnel && !q.vxlan
+              )
+            : source
+              ? [source]
+              : [];
+        for (const q of carriers)
+          if (p.mtu + 50 > q.mtu)
+            add(
+              'VXLAN_UNDERLAY_MTU',
+              'warning',
+              [d.id],
+              `${d.hostname}: MTU VXLAN ${p.mtu} + 50 excede ${q.name} (${q.mtu}).`,
+              'Aumente a MTU dos caminhos de underlay ou reduza a MTU de tenant; teste pacotes DF e mensagens pequenas com padding Ethernet.'
+            );
+      }
+    }
+
+    if (d.interfaces.some((p) => p.ip) && !d.infrastructure) {
+      const supplies = s.devices.filter(
+        (x) => x.infrastructure?.kind === 'ups' && x.infrastructure.loads.some((l) => l.device === d.id)
+      );
+      if (supplies.length === 1)
+        add(
+          'SINGLE_POWER_SOURCE',
+          'warning',
+          [d.id, supplies[0].id],
+          `${d.hostname}: uma única UPS alimenta a carga.`,
+          'Se o SLA exige A/B, associe duas UPS independentes e teste a perda de cada uma e de ambas. Cada fonte reserva a potência nominal integral.'
+        );
+    }
+    if (
+      d.infrastructure?.kind === 'ups' &&
+      d.infrastructure.loads.filter((l) => l.requested).reduce((n, l) => n + l.watts, 0) >
+        d.infrastructure.maxWatts
+    )
+      add(
+        'UPS_OVERLOAD',
+        'error',
+        [d.id],
+        `${d.hostname}: cargas solicitadas excedem a potência máxima.`,
+        'Redimensione a UPS e valide a carga integral com a outra fonte indisponível.'
+      );
     if (
       !d.infrastructure &&
       d.interfaces.some((p) => p.ip) &&
@@ -81,6 +149,63 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           );
       }
     }
+    for (const p of d.interfaces.filter((p) => p.dhcpRelay?.length && p.ip)) {
+      const servers = s.devices.filter(
+        (x) => x.dhcpServer?.enabled && x.interfaces.some((q) => p.dhcpRelay!.includes(q.ip ?? ''))
+      );
+      if (servers.length < 2)
+        add(
+          'RELAY_SINGLE_SERVER',
+          'warning',
+          [d.id, ...servers.map((x) => x.id)],
+          `${d.hostname}/${p.name}: relay depende de ${servers.length} servidor(es) DHCP disponível(is) na configuração.`,
+          'Configure destinos e escopos redundantes; valide continuidade de leases, renovação e rebinding.'
+        );
+      for (const server of servers)
+        if (
+          !server.dhcpServer!.pools.some(
+            (pool) => pool.relayAddress === p.ip || (pool.relayAddresses ?? []).includes(p.ip!)
+          )
+        )
+          add(
+            'RELAY_SCOPE_MISSING',
+            'error',
+            [d.id, server.id],
+            `${d.hostname}/${p.name}: giaddr ${p.ip} sem pool em ${server.hostname}.`,
+            'Inclua o giaddr do backup em relayAddresses do mesmo pool; para pools separados, use intervalos sem sobreposição.'
+          );
+    }
+    for (const p of d.interfaces.filter((p) => p.vxlan?.enabled && p.vxlan.evpn)) {
+      const v = p.vxlan!;
+      if (v.peerPolicy !== 'evpn')
+        add(
+          'EVPN_STATIC_FLOODING',
+          'warning',
+          [d.id],
+          `${d.hostname}: VNI ${v.vni} usa flooding/learning estático; RT limita importação de controle.`,
+          'Use peerPolicy evpn para exigir membros IMET importados no plano de dados; valide isolamento também por VNI/VRF/ACL.'
+        );
+      for (const peer of s.devices.filter((x) => x.id !== d.id))
+        for (const q of peer.interfaces.filter(
+          (q) => q.vxlan?.vni === v.vni && q.vxlan.routeTarget !== v.routeTarget
+        ))
+          add(
+            'EVPN_RT_MISMATCH',
+            'warning',
+            [d.id, peer.id],
+            `VNI ${v.vni}: RT ${v.routeTarget}/${q.vxlan!.routeTarget} divergente.`,
+            'Confira importação/exportação e política de flooding. RIB vazia não comprova isolamento no modo estático.'
+          );
+      const carrier = d.interfaces.find((q) => q.id === v.underlay);
+      if (!carrier?.loopback)
+        add(
+          'VTEP_SINGLE_INTERFACE',
+          'warning',
+          [d.id],
+          `${d.hostname}: VTEP vinculado à interface física ${carrier?.name ?? v.underlay}.`,
+          'Use loopback /32 e rotas de retorno por caminhos operacionais independentes.'
+        );
+    }
     for (const rule of d.firewall?.zonePolicy?.rules ?? []) {
       if (
         d.firewall?.enabled &&
@@ -96,6 +221,14 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'Revise o acesso de visitantes a zonas sensíveis. Uma permissão por zona pode incluir MES e PLC; valide os destinos com cenários negativos.'
         );
     }
+    if (d.firewall?.enabled && d.firewall.application?.enabled && d.interfaces.some((p) => p.ipv6))
+      add(
+        'IPV6_APPLICATION_INSPECTION_UNSUPPORTED',
+        'warning',
+        [d.id],
+        `${d.hostname}: inspeção de aplicação usa somente IPv4; zonas de trânsito cobrem IPv4/IPv6.`,
+        'Configure ACL/zonas IPv6 equivalentes ou recuse o caso que depende de inspeção de aplicação em IPv6.'
+      );
     if (d.type === 'switch' && d.ipRouting && !d.firewall)
       add(
         'FIREWALL_CAPABILITY',
@@ -112,8 +245,31 @@ export function preflight(s: Snapshot): PreflightIssue[] {
         'warning',
         [...new Set(devices)],
         `Endereço IPv4 repetido no contexto ${ip}.`,
-        'Verifique se pertencem ao mesmo domínio L2; corrija conflitos ou documente redes isoladas.'
+        'Os endereços compartilham o domínio Ethernet inferido dos enlaces/VLANs/VNIs configurados; corrija a colisão.'
       );
+  const pools = s.devices.flatMap((d) =>
+    (d.dhcpServer?.enabled ? d.dhcpServer.pools : []).map((pool) => {
+      const relay = s.devices
+        .flatMap((x) => x.interfaces.map((p) => ({ d: x, p })))
+        .find((x) => x.p.ip === pool.relayAddress);
+      const p = d.interfaces.find((p) => p.id === pool.port)!;
+      return { d, pool, context: relay ? domain(relay.d, relay.p) : domain(d, p) };
+    })
+  );
+  for (const [i, a] of pools.entries())
+    for (const b of pools.slice(i + 1))
+      if (
+        a.context === b.context &&
+        ipNumber(a.pool.start) <= ipNumber(b.pool.end) &&
+        ipNumber(b.pool.start) <= ipNumber(a.pool.end)
+      )
+        add(
+          'DHCP_SCOPE_OVERLAP',
+          'error',
+          [a.d.id, b.d.id],
+          `Pools ${a.pool.name}/${b.pool.name}: intervalos sobrepostos no mesmo domínio.`,
+          'Use ranges distintos ou implemente replicação autoritativa de leases antes de habilitar ambos os servidores.'
+        );
   for (const l of s.links) {
     const a = s.devices.find((d) => d.id === l.a.device)?.interfaces.find((p) => p.id === l.a.port);
     const b = s.devices.find((d) => d.id === l.b.device)?.interfaces.find((p) => p.id === l.b.port);

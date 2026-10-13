@@ -22,6 +22,7 @@ export function availablePoolAddress(device: Device, pool: DhcpPool, address: st
     poolContains(pool, address) &&
     address !== pool.gateway &&
     address !== pool.relayAddress &&
+    !(pool.relayAddresses ?? []).includes(address) &&
     !pool.excluded.includes(address) &&
     !device.interfaces.some((port) => port.ip === address) &&
     (!reserved || reserved.clientMac === clientMac?.toLowerCase()) &&
@@ -48,6 +49,12 @@ export function validateDhcpPool(device: Device, pool: DhcpPool) {
     sameSubnet(address, pool.network, pool.prefix) &&
     address !== network.network &&
     address !== network.broadcast;
+  if (
+    (pool.relayAddresses?.length && !pool.relayAddress) ||
+    new Set(pool.relayAddresses ?? []).size !== (pool.relayAddresses ?? []).length ||
+    (pool.relayAddresses ?? []).some((ip) => !usable(ip) || ip === pool.relayAddress)
+  )
+    throw new Error('Relays adicionais exigem giaddr principal, endereços únicos e a mesma subnet remota.');
   if (!pool.relayAddress && (!usable(port.ip) || port.dhcpRelay?.length))
     throw new Error('O pool local requer IPv4 de host e não pode compartilhar a interface com relay.');
   if (pool.relayAddress) {

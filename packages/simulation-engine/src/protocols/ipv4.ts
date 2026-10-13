@@ -1,4 +1,4 @@
-import { ipv4Schema, type Device, type NetworkInterface, type Packet } from '../model';
+import { ipv4Schema, type Device, type NetworkInterface, type Packet, type Snapshot } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { permitIds } from './ids';
 import { receiveUdp } from './udp';
@@ -10,7 +10,7 @@ import { receiveOspf } from './ospf';
 import { ripRoutes } from './rip';
 import { sendIcmpError } from './icmp';
 import { receiveVrrp } from './vrrp';
-import { interfaceUp, routingEnabled } from './layer3';
+import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
   if (cached !== undefined) return cached;
@@ -90,12 +90,15 @@ export function resolveDefaultRoutes(device: Device, vrf?: string) {
 export function resolveRoute(
   device: Device,
   dst: string,
-  vrf?: string
+  vrf?: string,
+  snapshot?: Snapshot
 ): { port: NetworkInterface; nextHop: string; prefix: number } | undefined {
+  const usable = (p: NetworkInterface) =>
+    interfaceUp(device, p) && (!snapshot || interfaceOperational(snapshot, device, p));
   const connected = device.interfaces
     .filter(
       (i) =>
-        interfaceUp(device, i) &&
+        usable(i) &&
         i.vrf === vrf &&
         i.ip !== undefined &&
         i.prefix !== undefined &&
@@ -120,7 +123,7 @@ export function resolveRoute(
     for (const r of device.routes.filter((r) => r.vrf === vrf && sameSubnet(r.network, dst, r.prefix))) {
       const port = device.interfaces.find(
         (i) =>
-          interfaceUp(device, i) &&
+          usable(i) &&
           i.vrf === vrf &&
           i.ip &&
           i.prefix !== undefined &&
@@ -139,7 +142,7 @@ export function resolveRoute(
       const port = device.interfaces.find(
         (entry) =>
           entry.id === route.port &&
-          interfaceUp(device, entry) &&
+          usable(entry) &&
           entry.vrf === vrf &&
           entry.ip &&
           entry.prefix !== undefined &&
@@ -155,7 +158,9 @@ export function resolveRoute(
         });
     }
   }
-  return candidates.sort((a, b) => b.prefix - a.prefix || a.distance - b.distance || a.metric - b.metric)[0];
+  return candidates
+    .filter((c) => usable(c.port))
+    .sort((a, b) => b.prefix - a.prefix || a.distance - b.distance || a.metric - b.metric)[0];
 }
 export function receiveIp(
   e: SimulationEngine,

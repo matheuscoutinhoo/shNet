@@ -1,5 +1,7 @@
 # ADR-042 — Fábrica IP, Modbus e ensaios repetíveis
 
+> Registro histórico deste incremento. O [ADR-044](044-enterprise-integrity-fabric-binary-modbus.md) atualiza IMET/loopbacks, Modbus binário e funções adicionais, executor dual stack, checkpoints e verificação no servidor. Os limites descritos abaixo representam a versão original.
+
 Data: 2026-10-13. Estado: implementado com limites explícitos.
 
 ## Escopo e decisão

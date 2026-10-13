@@ -3,6 +3,7 @@ import type { Device } from './model';
 import type { Scenario } from './scenarios-model';
 import { configureModbus } from './protocols/modbus';
 import { validMqttFilter } from './protocols/mqtt-codec';
+import { requireVrf } from './protocols/layer3';
 
 type Flow = Scenario['flows'][number];
 type Fault = Scenario['faults'][number];
@@ -26,6 +27,9 @@ export const scenarioDevice = (e: SimulationEngine, ref: string) => {
 };
 export function validateProtocolFlow(e: SimulationEngine, f: Flow) {
   const d = scenarioDevice(e, f.source);
+  requireVrf(d, f.vrf);
+  if (f.scope && !d.interfaces.some((p) => p.id === f.scope && p.vrf === f.vrf && p.ipv6))
+    throw new Error('Interface IPv6 inexistente na VRF: ' + f.scope);
   if (f.dhcp && !d.interfaces.some((p) => p.id === f.dhcp!.interface || p.name === f.dhcp!.interface))
     throw new Error('Interface DHCP inexistente: ' + f.dhcp.interface);
   if (f.mqtt?.receiver) scenarioDevice(e, f.mqtt.receiver);

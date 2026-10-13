@@ -10,6 +10,8 @@ import type { Mail } from '../apps/api/src/mailer';
 import { createMailer } from '../apps/api/src/mailer';
 import nodemailer from 'nodemailer';
 import { api as browserApi, ApiError } from '../apps/web/src/api';
+import { databaseJson } from '../apps/api/src/database-json';
+import { configureModbus, modbusRequest } from '@shlab/engine';
 const origin = 'http://127.0.0.1:5173',
   password = 'Network-Lab-Test-123!';
 let app: FastifyInstance, db: Database;
@@ -348,6 +350,19 @@ describe('Ensaios persistidos por laboratório', () => {
     while (!runner.step(100));
     const report = runner.report();
     expect(report.passed).toBe(true);
+    const expiring = (
+      await request(endpoint, 'POST', { revision: 1, kind: 'scenario', scenario }, owner)
+    ).json();
+    await db.query("UPDATE scenario_runs SET created_at=now()-interval '20 minutes' WHERE id=$1", [
+      expiring.id,
+    ]);
+    expect((await request(endpoint + '/' + expiring.id, 'GET', undefined, owner)).json().status).toBe(
+      'expired'
+    );
+    expect((await request(endpoint + '/' + expiring.id, 'PUT', { report }, owner)).statusCode).toBe(200);
+    expect(
+      (await request(endpoint + '/' + expiring.id, 'GET', undefined, owner)).json().verification
+    ).toEqual({ execution: 'client', samples: 'samples-v2' });
     project.topology.devices[0].hostname = 'PC-ALTERADO';
     expect(
       (
@@ -368,9 +383,38 @@ describe('Ensaios persistidos por laboratório', () => {
     expect(complete.statusCode).toBe(200);
     expect(complete.json()).toMatchObject({ revision: 1, status: 'complete', report: { passed: true } });
     expect((await request(endpoint + '/' + row.id, 'PUT', { report }, owner)).statusCode).toBe(200);
+    expect((await request(endpoint + '/' + row.id + '/verify', 'POST', undefined, foreign)).statusCode).toBe(
+      404
+    );
+    expect(
+      (await request(endpoint + '/' + row.id + '/verify', 'POST', undefined, owner, { 'x-csrf-token': '' }))
+        .statusCode
+    ).toBe(403);
+    const verified = await request(endpoint + '/' + row.id + '/verify', 'POST', undefined, owner);
+    expect(verified.statusCode, verified.body).toBe(200);
+    expect(verified.json().verification.replay.status).toBe('matched');
+    // A self-consistent client report can still fabricate samples. Replay must detect it.
+    const forgedRun = (
+      await request(endpoint, 'POST', { revision: 2, kind: 'scenario', scenario }, owner)
+    ).json();
+    const genuine = new ScenarioRunner(forgedRun.topology, forgedRun.scenario);
+    while (!genuine.step(100));
+    const forged = structuredClone(genuine.report());
+    forged.samples[0].elapsedMs! += 1;
+    forged.flows[0].p95Ms! += 1;
+    forged.flows[0].p99Ms! += 1;
+    expect((await request(endpoint + '/' + forgedRun.id, 'PUT', { report: forged }, owner)).statusCode).toBe(
+      200
+    );
+    const checkedForgery = await request(endpoint + '/' + forgedRun.id + '/verify', 'POST', undefined, owner);
+    expect(checkedForgery.statusCode, checkedForgery.body).toBe(200);
+    expect(checkedForgery.json().verification.replay.status).toBe('mismatch');
     const fetched = (await request(endpoint + '/' + row.id, 'GET', undefined, owner)).json();
     expect(fetched.topology.devices[0].hostname).not.toBe(project.topology.devices[0].hostname);
-    expect((await request(endpoint, 'GET', undefined, owner)).json()[0].report).toEqual(report);
+    expect(
+      (await request(endpoint, 'GET', undefined, owner)).json().find((r: { id: string }) => r.id === row.id)
+        .report
+    ).toEqual(report);
     expect((await request(endpoint + '/' + row.id, 'GET', undefined, foreign)).statusCode).toBe(404);
     expect((await request(endpoint + '/' + row.id, 'PATCH', { status: 'cancelled' }, owner)).statusCode).toBe(
       409
@@ -432,6 +476,105 @@ afterAll(async () => {
   await db?.close();
 });
 describe('autenticação e API privada', () => {
+  it('JSONB preserva NUL, barras literais, Unicode e marcadores dentro de dados de aplicação', async () => {
+    const value = {
+      octets: String.fromCharCode(0, 1, 127, 128, 255),
+      literal: '\\u0000 \\0 \\n C:\\lab\\capture',
+      unicode: 'Fábrica 🏭',
+      nested: [{ __shlabJsonEncoding: 'shlab-json-utf8-base64-v1', data: 'ZmFrZQ==', deviceCount: null }],
+    };
+    expect(await db.query('SELECT $1::jsonb AS payload', [databaseJson(value)])).toEqual([
+      { payload: value },
+    ]);
+  });
+  it('salva, reabre e versiona captura Modbus binária e mantém origem imutável do ensaio', async () => {
+    const project = (
+      await request('/projects', 'POST', { name: 'Modbus binary persistence', template: 'routed' }, a)
+    ).json();
+    const engine = new SimulationEngine(project.topology),
+      client = engine.state.devices.find((d) => d.type === 'pc')!,
+      server = engine.state.devices.find((d) => d.type === 'server')!;
+    configureModbus(engine, server, { enabled: true, registers: [65535, 32768] });
+    modbusRequest(engine, client, server.interfaces[0].ip!, {
+      transaction: 0x80ff,
+      unit: 1,
+      function: 3,
+      address: 0,
+      quantity: 2,
+    });
+    engine.advanceTo(1000);
+    const topology = engine.snapshot();
+    expect(client.tcpConnections![0].received).toContain('\0');
+    const saved = await request(
+      '/projects/' + project.id,
+      'PUT',
+      { name: project.name, revision: project.revision, topology },
+      a
+    );
+    expect(saved.statusCode, saved.body).toBe(200);
+    expect(saved.json().topology).toEqual(topology);
+    expect((await request('/projects/' + project.id, 'GET', undefined, a)).json().topology).toEqual(topology);
+    expect(
+      (await request('/projects', 'GET', undefined, a))
+        .json()
+        .find((p: { id: string }) => p.id === project.id).device_count
+    ).toBe(topology.devices.length);
+    const snapshot = await request(
+      '/projects/' + project.id + '/snapshots',
+      'POST',
+      { label: 'Binary octets' },
+      a
+    );
+    expect(snapshot.statusCode, snapshot.body).toBe(201);
+    expect(
+      (
+        await request('/projects/' + project.id + '/snapshots/' + snapshot.json().id, 'GET', undefined, a)
+      ).json().topology
+    ).toEqual(topology);
+    const started = await request(
+      '/projects/' + project.id + '/scenario-runs',
+      'POST',
+      {
+        revision: saved.json().revision,
+        kind: 'scenario',
+        scenario: {
+          name: 'Binary origin',
+          durationMs: 1000,
+          intervalMs: 1000,
+          deadlineMs: 500,
+          flows: [
+            {
+              name: 'Read',
+              source: client.id,
+              target: server.interfaces[0].ip!,
+              protocol: 'modbus',
+              expect: 'allow',
+              modbus: { transaction: 1, unit: 1, function: 3, address: 0, quantity: 2 },
+              expectedRegisters: [65535, 32768],
+            },
+          ],
+          faults: [],
+        },
+      },
+      a
+    );
+    expect(started.statusCode, started.body).toBe(201);
+    expect(started.json().topology).toEqual(topology);
+    const runner = new ScenarioRunner(started.json().topology, started.json().scenario);
+    while (!runner.step(100));
+    expect(runner.report().passed).toBe(true);
+    expect(
+      (
+        await request(
+          '/projects/' + project.id + '/scenario-runs/' + started.json().id,
+          'PUT',
+          { report: runner.report() },
+          a
+        )
+      ).statusCode
+    ).toBe(200);
+    expect((await request('/projects/' + project.id, 'DELETE', undefined, a)).statusCode).toBe(200);
+  });
   it('persiste resposta DNS/TCP parcial e rejeita conexão de consulta adulterada', async () => {
     const created = await request('/projects', 'POST', { name: 'DNS TCP integration', template: 'dns' }, a);
     expect(created.statusCode).toBe(201);

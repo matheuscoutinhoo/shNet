@@ -1,0 +1,573 @@
+{
+  "date": "2026-10-13",
+  "engineContract": "2026.10.13.4",
+  "counts": {
+    "Concluída": 10,
+    "Parcial": 10,
+    "Pendente": 6,
+    "Validada localmente": 2,
+    "Condicional": 2
+  },
+  "items": [
+    {
+      "id": "R01",
+      "phase": 0,
+      "priority": "P0",
+      "references": [
+        "ED01",
+        "L10"
+      ],
+      "title": "Impedir falsa aprovação de segurança dual stack",
+      "implementation": "Expor o alcance IPv4 das zonas, emitir preflight para IPv6 sem política e aplicar políticas equivalentes de IPv6/IPv4 ou recusar cenário incompatível. Preservar NDP e erros necessários.",
+      "acceptance": "GUEST→ERP/PLC negado em ICMP/TCP nas duas famílias; retorno autorizado funciona; regra ausente não recebe selo de segurança.",
+      "dependencies": [],
+      "status": "Concluída",
+      "delivered": "Zonas stateful TCP/UDP/ICMP IPv4 e IPv6, retorno autorizado, NDP local e ACL IPv6 de saída.",
+      "remaining": "Inspeção de conteúdo IPv6 não é anunciada como disponível; essa limitação é explícita."
+    },
+    {
+      "id": "R02",
+      "phase": 0,
+      "priority": "P0",
+      "references": [
+        "ED02",
+        "U05"
+      ],
+      "title": "Validar recuperação com base nas amostras",
+      "implementation": "Recalcular recoveryMs, observedFailure e resolução no servidor; validar null, ausência de recuperação, múltiplas falhas e cada fluxo. Rotular resultados anteriores como não revalidados.",
+      "acceptance": "Relatório adulterado do ensaio recebe HTTP 400; relatório original e retry idêntico passam; métricas exibidas coincidem com as amostras.",
+      "dependencies": [],
+      "status": "Concluída",
+      "delivered": "Recuperação recalculada por amostra; adulteração rejeitada, original e retry aceitos.",
+      "remaining": "Nenhum saldo do bug reproduzido. Precisão causal adicional pertence a R14."
+    },
+    {
+      "id": "R03",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "ED03",
+        "U02"
+      ],
+      "title": "Corrigir contraste das topologias",
+      "implementation": "Usar cores de nós/rótulos conforme fundo do canvas; validar combinações de tema/fundo, semantic zoom e seleção.",
+      "acceptance": "Zero violações color-contrast no caso de 38 nós; legibilidade desktop/mobile em fundos claro/cinza/escuro.",
+      "dependencies": [],
+      "status": "Concluída",
+      "delivered": "Contraste do canvas corrigido; 12 combinações de fundos, zoom/seleção e mobile sem violação de contraste.",
+      "remaining": "Nenhum saldo do bug reproduzido. Novas telas precisam manter o mesmo aceite."
+    },
+    {
+      "id": "R04",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "ED14",
+        "B04"
+      ],
+      "title": "Editar RSTP sem reinicializar portas não afetadas",
+      "implementation": "Recalcular papel/custo/edge somente onde necessário; conservar informações válidas, timers e acordos das demais portas.",
+      "acceptance": "Editar edge em p3 desconectada mantém p20 forwarding e fluxo ERP; mudanças reais convergem sem loops; RSTP/LACP e snapshot continuam determinísticos.",
+      "dependencies": [],
+      "status": "Concluída",
+      "delivered": "Atualização incremental de porta RSTP conserva portas/timers não afetados.",
+      "remaining": "Nenhum saldo do bug reproduzido."
+    },
+    {
+      "id": "R05",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "ED06",
+        "D03",
+        "U04"
+      ],
+      "title": "Validar relay e pools no HA DHCP",
+      "implementation": "Relacionar giaddr/pools/escopos em todos os membros; alertar cobertura ausente, sobreposição e servidor único; revisar templates e renovação/rebinding.",
+      "acceptance": "Preflight identifica pool ausente de FW-B; novas concessões e renovação após failover funcionam sem IPs conflitantes.",
+      "dependencies": [
+        "R04"
+      ],
+      "status": "Concluída",
+      "delivered": "Pools com giaddr alternativos; backup relay, DORA, renovação T1 e rebind T2; template e preflight ajustados.",
+      "remaining": "Replicação entre dois servidores DHCP pertence a R08."
+    },
+    {
+      "id": "R06",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "ED04"
+      ],
+      "title": "Permitir failover real do underlay",
+      "implementation": "Introduzir endpoint VTEP estável/loopback e resolução por interfaces operacionais, desacoplar origem de egress/ingress, retirar nexthops sem carrier e testar caminhos alternativos.",
+      "acceptance": "D12 passa com SPINE-1 fora; restauração não quebra overlay; tráfego bidirecional, MTU e BGP reconvergem dentro do SLA por fluxo.",
+      "dependencies": [
+        "R04"
+      ],
+      "status": "Concluída",
+      "delivered": "Loopback /32, BGP updateSource e seleção operacional do underlay; tráfego após perda de SPINE-1 e restore determinístico.",
+      "remaining": "ECMP, BFD e underlay dinâmico são R18."
+    },
+    {
+      "id": "R07",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "ED05",
+        "U04"
+      ],
+      "title": "Validar isolamento EVPN nos planos de controle e dados",
+      "implementation": "Definir modo EVPN estrito e política de flooding/peers; alertar RT divergente no mesmo VNI. Validar isolamento por VNI/VRF/ACL com ensaios negativos.",
+      "acceptance": "Divergência RT é alertada; controle e dados têm comportamento explícito. Tenant B nunca recebe resposta de A; nenhuma aprovação baseada somente em RIB vazia.",
+      "dependencies": [
+        "R01"
+      ],
+      "status": "Concluída",
+      "delivered": "Política EVPN estrita baseada em IMET/RT/VNI e sessões estabelecidas, sem fallback estático; teste negativo após mudança de RT.",
+      "remaining": "Recursos adicionais de EVPN permanecem em R18/R19."
+    },
+    {
+      "id": "R08",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "D03",
+        "ED06",
+        "ED12"
+      ],
+      "title": "Implementar HA de serviços, WAN e alimentação",
+      "implementation": "Definir primário/backup e replicação de DNS, DHCP, MES, SCADA, broker, RADIUS, NTP, syslog, LB e banco quando aplicável; redundância DC-GW/WAN e alimentação A/B.",
+      "acceptance": "Desligar uma instância, gateway, WAN ou fonte prevista preserva cada fluxo crítico no SLA; dados/leases/sessões de serviço continuam consistentes.",
+      "dependencies": [
+        "R02",
+        "R05",
+        "R06"
+      ],
+      "status": "Parcial",
+      "delivered": "Alimentação A/B conserva carga enquanto existe uma saída válida.",
+      "remaining": "HA/replicação de serviços e dados; gateways/WAN redundantes; eliminar SPOFs dos modelos e validar por fluxo."
+    },
+    {
+      "id": "R09",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "D02",
+        "D03",
+        "ED12"
+      ],
+      "title": "Replicar estado de firewall/NAT",
+      "implementation": "Sincronizar sessões/tuplas, tradução NAT e expiração entre membros; distinguir continuidade de sessão existente de nova conexão.",
+      "acceptance": "P-HA-EXISTING-TCP recebe after| após failover; cenários PAT e retorno assimétrico não vazam nem bloqueiam fluxos legítimos.",
+      "dependencies": [
+        "R02",
+        "R08"
+      ],
+      "status": "Pendente",
+      "delivered": "O comportamento atual distingue novas conexões da interrupção de sessão existente.",
+      "remaining": "Replicar estado de firewall/NAT e expiração, incluindo PAT/retorno assimétrico; ensaio after| deve passar com a mesma sessão."
+    },
+    {
+      "id": "R10",
+      "phase": 1,
+      "priority": "P1",
+      "references": [
+        "D04",
+        "ED12"
+      ],
+      "title": "Eliminar domínios únicos de acesso e endpoint",
+      "implementation": "Modelar duas interfaces/caminhos de hosts e PLC/HMI, switches alternativos e bonding compatível; conferir destino de cada carga UPS e perdas de rack/célula.",
+      "acceptance": "Perda de um switch/NIC/caminho previsto mantém PLC/HMI e servidores críticos ou demonstra interrupção dentro do SLA declarado.",
+      "dependencies": [
+        "R06",
+        "R08"
+      ],
+      "status": "Pendente",
+      "delivered": "SPOFs de acesso e alimentação permanecem indicados.",
+      "remaining": "NICs/caminhos redundantes de hosts e PLC/HMI, bonding e perda de switch/rack/célula."
+    },
+    {
+      "id": "R11",
+      "phase": 2,
+      "priority": "P1",
+      "references": [
+        "ED08",
+        "U01"
+      ],
+      "title": "Ampliar executor para IPv6 e VRF",
+      "implementation": "Adicionar família, VRF e escopo; considerar referências de origem/target e interfaces; suportar ICMP/HTTP IPv6 e serviços compatíveis com limites explícitos.",
+      "acceptance": "U01/U02 passam; cenários dual stack e IPs sobrepostos executam sem cruzar tenants; API/Worker/report validam o mesmo contrato.",
+      "dependencies": [
+        "R01",
+        "R02"
+      ],
+      "status": "Concluída",
+      "delivered": "Executor ICMP/HTTP/Modbus com IPv6, VRF e escopo; IPs sobrepostos isolados; adaptadores incompatíveis recusados.",
+      "remaining": "Novos adaptadores IPv6/VRF exigem implementação e contrato próprios."
+    },
+    {
+      "id": "R12",
+      "phase": 2,
+      "priority": "P1",
+      "references": [
+        "U01",
+        "ED09"
+      ],
+      "title": "Entregar matriz completa na interface",
+      "implementation": "Migrar os 42 casos de fábrica; criar modelos enterprise/DC completos e presets dos 73 ensaios aplicáveis. Oferecer edição por formulário e assertions de rota, EAP, BGP/EVPN, LB, MTU e energia.",
+      "acceptance": "Matriz catalogada com caso, requisito e evidência; execução nativa dispensa scripts para os casos suportados; lacunas são recusadas ou indicadas.",
+      "dependencies": [
+        "R04",
+        "R05",
+        "R11"
+      ],
+      "status": "Parcial",
+      "delivered": "Template nativo de 38 dispositivos/46 enlaces, 30 presets enterprise/DC, formulário básico e assertions de estado.",
+      "remaining": "Migrar/mapear todos os 42 + 73 casos aplicáveis; formulários de serviços/ações/assertions e matriz requisito→evidência."
+    },
+    {
+      "id": "R13",
+      "phase": 2,
+      "priority": "P1",
+      "references": [
+        "U01"
+      ],
+      "title": "Adicionar ações de checkpoint e restauração",
+      "implementation": "Programar snapshot/restore no executor preservando timers, filas, captura, versão e revisão; implementar rollback de configuração com diff.",
+      "acceptance": "Restaurar durante DHCP/TCP/BGP/Modbus gera mesmo estado serializado e resultado; evidência liga antes/depois à origem correta.",
+      "dependencies": [
+        "R02",
+        "R11"
+      ],
+      "status": "Parcial",
+      "delivered": "Checkpoint/restore programado, hashes, épocas e limites; snapshot/timers/filas testados durante Modbus/TCP.",
+      "remaining": "Matriz de restore DHCP/BGP sob falhas; ação de patch/rollback de configuração com diff no executor."
+    },
+    {
+      "id": "R14",
+      "phase": 2,
+      "priority": "P1",
+      "references": [
+        "U05",
+        "ED05",
+        "ED10",
+        "ED13"
+      ],
+      "title": "Melhorar causalidade e métricas de SLA",
+      "implementation": "Correlacionar NAT, proxy/LB, overlay, retries e evidências descartadas; separar timeout de bloqueio de política. Usar timestamps de resposta/evento para recovery e declarar resolução/percentis/jitter. Ampliar a análise binária após R19.",
+      "acceptance": "Cada negação exigida por política mostra regra ou permanece inconclusiva; caminho intermediado é rastreável; recovery não promete precisão maior que a medição.",
+      "dependencies": [
+        "R02",
+        "R11"
+      ],
+      "status": "Parcial",
+      "delivered": "Negação por política exige causa; recuperação/resolução derivadas de amostras; épocas separam restaurações.",
+      "remaining": "Correlação completa NAT/LB/overlay/retries, cadeia de intermediários e precisão por evento."
+    },
+    {
+      "id": "R15",
+      "phase": 2,
+      "priority": "P1",
+      "references": [
+        "U05",
+        "ED02"
+      ],
+      "title": "Confiabilidade e ciclo de vida dos ensaios",
+      "implementation": "Identificar build/commit/schema do motor; marcar execução no cliente; validar resultado contra execução autoritativa quando exigido. Timeout/cancelamento recuperável de registros running e erro de persistência com retry durável.",
+      "acceptance": "Fechar navegador/Worker não deixa execução indefinidamente running; resultado não salvo reaparece para retry; relatórios não confundem hash da origem com atestado de execução.",
+      "dependencies": [
+        "R02",
+        "R13"
+      ],
+      "status": "Parcial",
+      "delivered": "Expiração de runs, IndexedDB com limites, retry após recarga e replay autoritativo; manifesto de código/assets.",
+      "remaining": "Associar a identidade exata do build a cada execução e distribuir/admitir verificações entre réplicas, quando houver."
+    },
+    {
+      "id": "R16",
+      "phase": 3,
+      "priority": "P1",
+      "references": [
+        "L01",
+        "L09"
+      ],
+      "title": "Transportar Modbus binário e exportar PCAP",
+      "implementation": "Substituir hex+newline por bytes MBAP/PDU no transporte; codec Ethernet/IP/TCP coerente, exceções e framing TCP segmentado.",
+      "acceptance": "Decodificador independente interpreta requests/responses 03/06/16 e exceções; snapshots e cenários existentes permanecem válidos.",
+      "dependencies": [
+        "R13",
+        "R19"
+      ],
+      "status": "Concluída",
+      "delivered": "TCP de octetos, MBAP/PDU binários, segmentação/coalescência, exceções e PCAP; Scapy valida 03/06/16.",
+      "remaining": "Conexões antigas hex/newline continuam legíveis, com exclusão de captura indicada."
+    },
+    {
+      "id": "R17",
+      "phase": 3,
+      "priority": "P1",
+      "references": [
+        "L01",
+        "L05"
+      ],
+      "title": "Ampliar o comportamento industrial contratado",
+      "implementation": "Coils/input registers e funções necessárias; ciclos PLC/HMI, alarmes e processo. Definir cargas MES/SCADA e vídeo se requerido.",
+      "acceptance": "Ciclos e falhas produzem estados verificáveis, com latência/carga/SLA por célula; substituir HTTP por comportamento contratado sem alegar firmware real.",
+      "dependencies": [
+        "R08",
+        "R10",
+        "R16"
+      ],
+      "status": "Parcial",
+      "delivered": "Bancos coils/discrete inputs/input/holding registers; funções 01/02/03/04/05/06/15/16 e amostragem cíclica verificável.",
+      "remaining": "Modelo de processo/ciclo PLC, alarmes e cargas MES/SCADA contratadas, com SLA por célula."
+    },
+    {
+      "id": "R18",
+      "phase": 3,
+      "priority": "P2",
+      "references": [
+        "ED04",
+        "ED11"
+      ],
+      "title": "Ampliar fabric e multitenancy de datacenter",
+      "implementation": "ECMP/BFD, underlay dinâmico, VRFs dinâmicas e IPv6 conforme contrato; RR EVPN, ESI/DF/multihoming, IMET, Type 5 e proxy ARP em etapas independentes.",
+      "acceptance": "Dois spines efetivamente ativos; retirada/mobilidade/partição de leaf/RR não provocam vazamento ou loop; versões e recursos suportados explícitos.",
+      "dependencies": [
+        "R06",
+        "R07",
+        "R11"
+      ],
+      "status": "Parcial",
+      "delivered": "IMET e VTEPs estáveis com caminho alternativo de spine.",
+      "remaining": "ECMP/BFD, underlay e VRFs dinâmicos/IPv6, RR, ESI/DF/multihoming, Type 5 e proxy ARP."
+    },
+    {
+      "id": "R19",
+      "phase": 3,
+      "priority": "P1",
+      "references": [
+        "L09",
+        "ED10"
+      ],
+      "title": "Adicionar codecs para captura interoperável",
+      "implementation": "Codecs VXLAN/UDP e controle BGP/EVPN, depois protocolos de gestão/aplicação prioritários; validar campos/tamanhos/checksums e preservar relatório de exclusões.",
+      "acceptance": "Tráfego selecionado é decodificado externamente; número de registros e omissões é consistente. Exportação incompleta continua explicitamente incompleta.",
+      "dependencies": [
+        "R14"
+      ],
+      "status": "Parcial",
+      "delivered": "Codec VXLAN com Ethernet interna/padding, checksums e PCAP Modbus binário; exclusões preservadas.",
+      "remaining": "Codec binário BGP/EVPN e demais protocolos de aplicação/gestão prioritários."
+    },
+    {
+      "id": "R20",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "L07"
+      ],
+      "title": "Concluir recursos MQTT necessários",
+      "implementation": "QoS 2, TLS, persistência de sessão, reconexão e assinaturas QoS>0; avaliar HA/replicação de broker com estado.",
+      "acceptance": "Perda/reconexão preserva semântica contratada de entrega; QoS 1 entregue não é tratado como QoS 2.",
+      "dependencies": [
+        "R08",
+        "R19"
+      ],
+      "status": "Pendente",
+      "delivered": "MQTT QoS 1 existente permanece disponível.",
+      "remaining": "QoS 2, TLS, sessão persistente/reconexão e HA de broker com estado."
+    },
+    {
+      "id": "R21",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "U02",
+        "U03",
+        "ED09"
+      ],
+      "title": "Operar e desenhar topologias maiores",
+      "implementation": "Autolayout, agrupamento de trunks/Port-channels, vistas física/lógica; clonagem de célula/rack com remapeamento IP/VLAN/MAC/referências; edição em lote de VLAN/rotas/políticas.",
+      "acceptance": "Criar e operar células/racks sem colisões ou referências órfãs, com diff/undo; seleção e enlaces legíveis desktop/mobile.",
+      "dependencies": [
+        "R03",
+        "R12"
+      ],
+      "status": "Pendente",
+      "delivered": "Diff/undo e bulk IPv4 existentes permanecem disponíveis.",
+      "remaining": "Autolayout, vistas física/lógica, trunks, clone com remapeamento e bulk VLAN/rota/política."
+    },
+    {
+      "id": "R22",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "U04",
+        "ED07"
+      ],
+      "title": "Preflight baseado em domínio de rede",
+      "implementation": "Reconstruir domínio L2/VLAN/VNI/VRF e papéis; analisar gateways, rotas, MTU de encapsulamento, políticas IPv4/IPv6, falhas de alimentação e peers.",
+      "acceptance": "Sobreposição entre VNIs isolados não gera conflito; duplicação real no mesmo domínio é detectada; recomendações indicam evidência e limite da análise.",
+      "dependencies": [
+        "R05",
+        "R07",
+        "R11"
+      ],
+      "status": "Parcial",
+      "delivered": "Domínios potenciais L2/VLAN/VNI, gateways, relay/pools, RT, MTU e alimentação; duplicação real distinguida de tenant isolado.",
+      "remaining": "Análise adicional de rotas/políticas IPv4/IPv6 e caminhos; configuração potencial não certifica alcance."
+    },
+    {
+      "id": "R23",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "Desempenho",
+        "ED13"
+      ],
+      "title": "Medir e otimizar escala e retenção",
+      "implementation": "Perfis integrados de campus/fabric/cargas concorrentes, p95 de UI/Worker, heap estável e atraso realtime; reduzir bundles e delta/snapshot. Captura incremental/streaming e políticas por ensaio.",
+      "acceptance": "Orçamentos definidos por perfil e regressão repetível; nenhum crescimento ilimitado; evidência truncada é sinalizada no resultado; descarte da captura distinto de perda de rede.",
+      "dependencies": [
+        "R12",
+        "R14"
+      ],
+      "status": "Parcial",
+      "delivered": "Resultados locais têm quotas; captura descartada permanece distinta de perda de rede; starvation de fatias curtas corrigida.",
+      "remaining": "Perfis/p95/heap repetíveis, lag realtime, bundles, delta e captura incremental. O build ainda avisa sobre chunks acima de 500 kB."
+    },
+    {
+      "id": "R24",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "U06"
+      ],
+      "title": "Colaboração com autorização e autoria",
+      "implementation": "RBAC de equipe no servidor, autoria/histórico de alterações e edição simultânea autoritativa; manter locks/revisões/diff existentes.",
+      "acceptance": "Papéis têm permissões verificadas por API; conflitos entre sessões são reproduzíveis e rastreáveis sem sobrescrita silenciosa.",
+      "dependencies": [
+        "R15"
+      ],
+      "status": "Pendente",
+      "delivered": "Ownership, revisão e locks existentes continuam aplicados pela API.",
+      "remaining": "RBAC de equipe, autoria/histórico e edição simultânea autoritativa."
+    },
+    {
+      "id": "R25",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "L08",
+        "L09"
+      ],
+      "title": "Ampliar gestão segura e integrações",
+      "implementation": "SNMPv3 authPriv, traps e codecs; autenticação/TLS de gestão e integrações externas em ambiente isolado conforme necessidade.",
+      "acceptance": "Ensaios de credenciais, integridade, eventos e transporte validam o protocolo contratado com decodificador independente.",
+      "dependencies": [
+        "R19"
+      ],
+      "status": "Pendente",
+      "delivered": "SNMP existente e limites documentados.",
+      "remaining": "SNMPv3 authPriv/traps/codecs, gestão com TLS e integração externa isolada."
+    },
+    {
+      "id": "R26",
+      "phase": 4,
+      "priority": "P2",
+      "references": [
+        "ED15",
+        "L10"
+      ],
+      "title": "Sincronizar documentação e fidelidade",
+      "implementation": "Atualizar SNMP/L2, IPv6/firewall, VRF, BGP/EVPN, underlay e codecs; indicar limites no painel de configuração, preflight e relatório.",
+      "acceptance": "Nenhuma descrição anuncia recurso ausente ou nega correção entregue; documentação liga cada capacidade ao teste e versão.",
+      "dependencies": [
+        "R01",
+        "R07",
+        "R11"
+      ],
+      "status": "Concluída",
+      "delivered": "ADR-044, fidelidade/preflight, documentação de protocolos/cobertura e status sincronizados; ADRs anteriores identificados como históricos.",
+      "remaining": "Atualizar os mesmos documentos quando forem entregues as parcelas abertas."
+    },
+    {
+      "id": "R27",
+      "phase": 5,
+      "priority": "P1",
+      "references": [
+        "Validação anterior"
+      ],
+      "title": "Qualificar PostgreSQL externo e backup/restauração",
+      "implementation": "Executar teste ignorado com TEST_DATABASE_URL isolado; validar migrações, backup consistente, restore, relatórios imutáveis e recuperação.",
+      "acceptance": "Teste externo passa; restore preserva projetos/revisões/runs/hashes e permissões; ensaio não usa banco de produção.",
+      "dependencies": [
+        "R02",
+        "R15"
+      ],
+      "status": "Validada localmente",
+      "delivered": "PostgreSQL nativo isolado, migrações e backup/restore autenticado de projetos/revisões/runs/hashes/verificação/autoria. Testes usam banco efêmero por rodada.",
+      "remaining": "Repetir no PostgreSQL do ambiente de homologação quando ele estiver disponível."
+    },
+    {
+      "id": "R28",
+      "phase": 5,
+      "priority": "P1",
+      "references": [
+        "Validação anterior"
+      ],
+      "title": "Qualificar implantação e integração",
+      "implementation": "Ambiente de homologação com artefato versionado, TLS/configuração, observabilidade, backup e smoke tests; ensaiar rollback antes de produção.",
+      "acceptance": "Deploy homologado reproduz fluxos e persistência, sem erros de inicialização; publicação Git não é usada como evidência de implantação.",
+      "dependencies": [
+        "R01",
+        "R02",
+        "R27"
+      ],
+      "status": "Validada localmente",
+      "delivered": "Manifesto, configuração de produção, static assets, readiness, Secure cookie/CSP/HSTS, persistência/replay e rollback de cópia do artefato.",
+      "remaining": "Deploy remoto, handshake TLS real e rollback operacional de aplicação/banco. A cópia restaurada localmente não representa esse rollback."
+    },
+    {
+      "id": "R29",
+      "phase": 5,
+      "priority": "Condicional",
+      "references": [
+        "L02",
+        "L03"
+      ],
+      "title": "Avaliar redundância e sincronismo industriais adicionais",
+      "implementation": "Confirmar requisito e escopo de MRP/DLR/PRP/HSR e PTP/TSN; implementar somente os protocolos contratados e seus modelos de tempo.",
+      "acceptance": "Ensaios específicos passam; RSTP não é anunciado como anel industrial nem NTP como PTP/TSN.",
+      "dependencies": [
+        "R17"
+      ],
+      "status": "Condicional",
+      "delivered": "Escopo confirmado: PLC/HMI Modbus TCP e rede IP.",
+      "remaining": "MRP/DLR/PRP/HSR/PTP/TSN somente com requisito específico."
+    },
+    {
+      "id": "R30",
+      "phase": 5,
+      "priority": "Condicional",
+      "references": [
+        "L04",
+        "L06",
+        "L05"
+      ],
+      "title": "Qualificar RF, hardware e cargas externas",
+      "implementation": "Se necessário, física RF com reflexão/difração, firmware/hardware real, RTSP/H.264 e interoperabilidade em laboratório separado.",
+      "acceptance": "Critérios de campo/laboratório definidos e medidos; modelo aproximado não certifica cobertura RF nem hardware.",
+      "dependencies": [
+        "R17",
+        "R19",
+        "R28"
+      ],
+      "status": "Condicional",
+      "delivered": "Simulação e seus limites permanecem explícitos.",
+      "remaining": "RF físico, firmware/hardware e RTSP/H.264 somente com requisito específico e laboratório apropriado."
+    }
+  ]
+}

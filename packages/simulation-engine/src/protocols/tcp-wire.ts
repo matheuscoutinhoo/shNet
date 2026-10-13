@@ -85,6 +85,7 @@ export function makeTcpPacket(
       dst: connection.remoteIp,
       ...(connection.localIp.includes(':') ? { family: 6 as const } : {}),
       protocol: 'TCP',
+      ...(connection.encoding ? { encoding: connection.encoding } : {}),
       ttl: 64,
       sourcePort: connection.localPort,
       destinationPort: connection.remotePort,
@@ -93,7 +94,7 @@ export function makeTcpPacket(
       flags: [...flags],
       window: tcpReceiveWindow(connection),
       data,
-      bytes: (connection.localIp.includes(':') ? 60 : 40) + tcpBytes(data),
+      bytes: (connection.localIp.includes(':') ? 60 : 40) + tcpBytes(data, connection.encoding),
       traceId: connection.id,
     },
     now
@@ -109,7 +110,7 @@ export function transmitTcp(
   engine.emit(
     'TCP_SENT',
     device.id,
-    `${packet.flags.join(',')} ${packet.src}:${packet.sourcePort} → ${packet.dst}:${packet.destinationPort}; seq=${packet.sequence} ack=${packet.acknowledgment} bytes=${tcpBytes(packet.data)}.`
+    `${packet.flags.join(',')} ${packet.src}:${packet.sourcePort} → ${packet.dst}:${packet.destinationPort}; seq=${packet.sequence} ack=${packet.acknowledgment} bytes=${tcpBytes(packet.data, packet.encoding)}.`
   );
   if (packet.family === 6)
     engine.sendIp6(
@@ -155,7 +156,7 @@ export function sendTcpSegment(
     if (connection.pending) tcpFlow(connection).flight.push(pending);
     else connection.pending = pending;
     connection.sendNext = tcpAdd(connection.sendNext, length);
-    connection.bytesSent += tcpBytes(data);
+    connection.bytesSent += tcpBytes(data, connection.encoding);
     if (connection.pending === pending) armTcpRetry(engine, device, connection);
   }
   transmitTcp(engine, device, packet, connection.vrf, connection.scope);
@@ -185,13 +186,17 @@ export function acknowledgeTcp(
       continue;
     }
     if (start < acknowledged) {
-      const prefix = takeTcpText(pending.packet.data, acknowledged - start);
-      if (tcpBytes(prefix) !== acknowledged - start || pending.packet.flags.includes('SYN')) return 0;
+      const prefix = takeTcpText(pending.packet.data, acknowledged - start, pending.packet.encoding);
+      if (
+        tcpBytes(prefix, pending.packet.encoding) !== acknowledged - start ||
+        pending.packet.flags.includes('SYN')
+      )
+        return 0;
       pending.packet = {
         ...pending.packet,
         sequence: acknowledgment,
         data: pending.packet.data.slice(prefix.length),
-        bytes: pending.packet.bytes - tcpBytes(prefix),
+        bytes: pending.packet.bytes - tcpBytes(prefix, pending.packet.encoding),
       };
     }
     remaining.push(pending);
@@ -227,6 +232,7 @@ export function sendTcpReset(
       dst: incoming.src,
       ...(incoming.family ? { family: incoming.family } : {}),
       protocol: 'TCP',
+      ...(incoming.encoding ? { encoding: incoming.encoding } : {}),
       ttl: 64,
       sourcePort: incoming.destinationPort,
       destinationPort: incoming.sourcePort,
@@ -243,7 +249,8 @@ export function sendTcpReset(
 }
 
 // Whole Unicode characters keep this text-only stream serializable without corrupting UTF-8.
-export function takeTcpText(data: string, limit: number) {
+export function takeTcpText(data: string, limit: number, encoding?: 'binary') {
+  if (encoding === 'binary') return data.slice(0, limit);
   let text = '',
     bytes = 0;
   for (const character of data) {

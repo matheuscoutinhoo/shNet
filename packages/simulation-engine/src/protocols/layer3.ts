@@ -115,6 +115,7 @@ export function sviOperational(snapshot: Snapshot, device: Device, port: Network
 }
 export function interfaceOperational(snapshot: Snapshot, device: Device, port: NetworkInterface): boolean {
   if (!device.power || !interfaceUp(device, port)) return false;
+  if (port.loopback) return true;
   if (port.capwapPeer)
     return (
       !!device.wlc?.enabled &&
@@ -165,6 +166,20 @@ export function validateLayer3(snapshot: Snapshot) {
     const keys = new Set<string>();
     const ips = new Set<string>();
     for (const port of device.interfaces) {
+      if (
+        port.loopback &&
+        (!['router', 'switch'].includes(device.type) ||
+          port.mode !== 'routed' ||
+          port.logical ||
+          port.tunnel ||
+          port.vxlan ||
+          port.aggregate ||
+          port.channel ||
+          port.dhcp ||
+          port.ipv4Mode === 'dhcp' ||
+          (port.ip && port.prefix !== 32))
+      )
+        throw new Error('Loopback exige interface routed estática /32 em roteador ou switch.');
       requireVrf(device, port.vrf);
       if (device.type === 'switch' && port.ip && port.mode !== 'routed')
         throw new Error('IPv4 no switch exige SVI ou porta routed.');
@@ -207,7 +222,9 @@ export function validateLayer3(snapshot: Snapshot) {
   for (const link of snapshot.links)
     for (const end of [link.a, link.b])
       if (
-        snapshot.devices.find((d) => d.id === end.device)?.interfaces.find((p) => p.id === end.port)?.logical
+        snapshot.devices
+          .find((d) => d.id === end.device)
+          ?.interfaces.some((p) => p.id === end.port && (p.logical || p.loopback))
       )
         throw new Error('Cabo só pode conectar interfaces físicas.');
   for (const probe of snapshot.probes) {

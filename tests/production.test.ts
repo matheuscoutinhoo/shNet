@@ -12,7 +12,16 @@ import {
 } from '../scripts/backup';
 import { createEmbedded, createPostgres, migrate, type Database } from '../apps/api/src/db';
 import { buildApp } from '../apps/api/src/app';
-import { makeTemplate } from '../packages/simulation-engine/src';
+import {
+  makeTemplate,
+  ScenarioRunner,
+  canonicalScenarioJson,
+  SimulationEngine,
+  configureModbus,
+  modbusRequest,
+} from '../packages/simulation-engine/src';
+import { databaseJson } from '../apps/api/src/database-json';
+import { createHash } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { publishBackupStatus } from '../scripts/backup-status';
 
@@ -175,6 +184,59 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('Backup/restauração em Postgre
         "INSERT INTO learning_progress(project_id,goal,revision,result,best_score,completed) VALUES($1,'challenge',1,$2,90,true)",
         [project, JSON.stringify({ score: 90 })]
       );
+      const binary = new SimulationEngine(makeTemplate('routed')),
+        origin = binary.state.devices.find((d) => d.type === 'pc')!,
+        destination = binary.state.devices.find((d) => d.type === 'server')!;
+      configureModbus(binary, destination, { enabled: true, registers: [65535, 32768] });
+      modbusRequest(binary, origin, destination.interfaces[0].ip!, {
+        transaction: 0x80ff,
+        unit: 1,
+        function: 3,
+        address: 0,
+        quantity: 2,
+      });
+      binary.advanceTo(1000);
+      const topology = binary.snapshot();
+      expect(origin.tcpConnections![0].received).toContain('\0');
+      await source.query('UPDATE projects SET topology=$1 WHERE id=$2', [databaseJson(topology), project]);
+      const runner = new ScenarioRunner(topology, {
+        name: 'Backup de ensaio',
+        durationMs: 1000,
+        intervalMs: 1000,
+        deadlineMs: 500,
+        flows: [
+          {
+            name: 'Ping',
+            source: origin.id,
+            target: destination.interfaces.find((p) => p.ip)!.ip,
+            protocol: 'icmp',
+            expect: 'allow',
+          },
+        ],
+        faults: [],
+      });
+      while (!runner.step(100));
+      const run = randomUUID(),
+        scenarioReport = runner.report(),
+        sourceHash = createHash('sha256').update(canonicalScenarioJson(topology)).digest('hex');
+      const verification = {
+        status: 'matched',
+        engineContract: scenarioReport.engineContract,
+        reportHash: createHash('sha256').update(canonicalScenarioJson(scenarioReport)).digest('hex'),
+        verifiedAt: '2026-10-13T12:00:00.000Z',
+      };
+      await source.query(
+        "INSERT INTO scenario_runs(id,project_id,revision,source_hash,topology,scenario,kind,status,report,finished_at,server_verification) VALUES($1,$2,1,$3,$4,$5,'scenario','complete',$6,now(),$7)",
+        [
+          run,
+          project,
+          sourceHash,
+          databaseJson(topology),
+          databaseJson(runner.scenario),
+          databaseJson(scenarioReport),
+          JSON.stringify(verification),
+        ]
+      );
       const report = await backupDatabase(sourceUrl, archive, key);
       expect(report.bytes).toBeGreaterThan(36);
       expect(report.sha256).toMatch(/^[a-f0-9]{64}$/);
@@ -200,7 +262,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('Backup/restauração em Postgre
       );
       await restoreDatabase(sourceUrl, targetUrl.href, name, archive, key);
       expect(await restored.query('SELECT name,topology FROM projects WHERE id=$1', [project])).toEqual([
-        { name: 'Restauração de rede', topology: makeTemplate('lan') },
+        { name: 'Restauração de rede', topology },
       ]);
       expect(await restored.query('SELECT * FROM project_activity WHERE user_id=$1', [user])).toHaveLength(1);
       expect(
@@ -211,6 +273,18 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('Backup/restauração em Postgre
       expect(await restored.query('SELECT version FROM schema_migrations ORDER BY version')).toEqual(
         await source.query('SELECT version FROM schema_migrations ORDER BY version')
       );
+      expect(
+        await restored.query(
+          'SELECT revision,source_hash,report,server_verification FROM scenario_runs WHERE id=$1',
+          [run]
+        )
+      ).toEqual([
+        { revision: 1, source_hash: sourceHash, report: scenarioReport, server_verification: verification },
+      ]);
+      expect(
+        (await restored.query<{ user_id: string }>('SELECT user_id FROM projects WHERE id=$1', [project]))[0]
+          .user_id
+      ).toBe(user);
       await expect(restoreDatabase(sourceUrl, targetUrl.href, name, archive, key)).rejects.toThrow('vazio');
       await expect(backupDatabase(sourceUrl, archive, key)).rejects.toThrow();
       expect((await readFile(archive)).equals(ciphertext)).toBe(true);

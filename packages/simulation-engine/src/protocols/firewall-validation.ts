@@ -1,6 +1,5 @@
 import type { Device, Snapshot } from '../model';
-import { firewallRule, firewallZone } from './firewall-policy';
-import { isUnicast } from './dhcp-config';
+import { firewallRule, firewallZone, firewallUnicast } from './firewall-policy';
 
 export function validateFirewallConfig(device: Device) {
   const config = device.firewall;
@@ -85,8 +84,9 @@ export function validateFirewall(snapshot: Snapshot) {
       if (
         !config.enabled ||
         !policyAllows ||
-        !isUnicast(session.clientIp) ||
-        !isUnicast(session.serverIp) ||
+        !firewallUnicast(session.clientIp) ||
+        !firewallUnicast(session.serverIp) ||
+        session.clientIp.includes(':') !== session.serverIp.includes(':') ||
         tuples.has(key) ||
         ids.has(session.id) ||
         !device.interfaces.some((port) => port.id === session.outside && port.mode === 'routed') ||

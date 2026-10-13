@@ -1,0 +1,1258 @@
+[
+  {
+    "name": "Enterprise/DC — baseline de aplicações",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "GUEST → ERP — prova de política",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Visitante → ERP",
+        "source": "GUEST-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "deny",
+        "denyEvidence": "policy",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "Perda de CORE-A",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de CORE-B",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-4",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de FW-A",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-7",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de FW-B",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-11",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de ACCESS-USERS",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-15",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de ACCESS-GUEST",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-86",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de ACCESS-DMZ",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-157",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de ACCESS-CORP",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-228",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de ACCESS-MGMT",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-299",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de DHCP-PC",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-862",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de DNS",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-948",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de DHCP",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-981",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de EDGE-WAN",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1305",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de SPINE-1",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1332",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de SPINE-2",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1334",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de LEAF-1",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1336",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de LEAF-2",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1339",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de LEAF-3",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1342",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de DC-GW",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1372",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de APP-1",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1382",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de APP-2",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1389",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "Perda de LB",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-1407",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  {
+    "name": "DNS ERP",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "DNS ERP",
+        "source": "USER-PC",
+        "target": "10.60.30.53",
+        "protocol": "dns",
+        "dns": {
+          "name": "erp.enterprise.test",
+          "type": "A",
+          "clearCache": true,
+          "expectedAnswers": [
+            "10.60.40.10"
+          ]
+        },
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "DHCP USERS",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "DHCP USERS",
+        "source": "USER-PC",
+        "target": "10.60.30.67",
+        "protocol": "dhcp",
+        "dhcp": {
+          "interface": "p0",
+          "fresh": true,
+          "expectedServer": "10.60.30.67"
+        },
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "SNMP firewall",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "SNMP firewall",
+        "source": "ADMIN",
+        "target": "172.31.0.2",
+        "protocol": "snmp",
+        "snmp": {
+          "community": "enterprise-test",
+          "oids": [
+            "1.3.6.1.2.1.1.5.0"
+          ],
+          "operation": "get"
+        },
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "NTP gestão",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "NTP gestão",
+        "source": "ADMIN",
+        "target": "10.60.99.123",
+        "protocol": "ntp",
+        "ntp": {
+          "maxOffsetMs": 1
+        },
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "Syslog gestão",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "flows": [
+      {
+        "name": "Syslog gestão",
+        "source": "ADMIN",
+        "target": "10.60.99.11",
+        "protocol": "syslog",
+        "syslog": {
+          "text": "Ensaio enterprise/DC",
+          "severity": 6
+        },
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  },
+  {
+    "name": "Estado convergido da fabric e Wi-Fi",
+    "durationMs": 10000,
+    "intervalMs": 1000,
+    "deadlineMs": 1000,
+    "warmupMs": 35000,
+    "assertions": [
+      {
+        "name": "BGP 192.0.2.2",
+        "atMs": 9000,
+        "target": "device-1336",
+        "kind": "bgp",
+        "peer": "192.0.2.2",
+        "expected": "Established"
+      },
+      {
+        "name": "BGP 192.0.2.3",
+        "atMs": 9000,
+        "target": "device-1336",
+        "kind": "bgp",
+        "peer": "192.0.2.3",
+        "expected": "Established"
+      },
+      {
+        "name": "IMET 10100",
+        "atMs": 9000,
+        "target": "device-1336",
+        "kind": "evpn-members",
+        "vni": 10100,
+        "expected": 2
+      },
+      {
+        "name": "MTU vx10100",
+        "atMs": 9000,
+        "target": "device-1336",
+        "kind": "mtu",
+        "port": "vx10100",
+        "expected": 1450
+      },
+      {
+        "name": "IMET 10200",
+        "atMs": 9000,
+        "target": "device-1336",
+        "kind": "evpn-members",
+        "vni": 10200,
+        "expected": 2
+      },
+      {
+        "name": "MTU vx10200",
+        "atMs": 9000,
+        "target": "device-1336",
+        "kind": "mtu",
+        "port": "vx10200",
+        "expected": 1450
+      },
+      {
+        "name": "EAP-TLS autorizado",
+        "atMs": 9000,
+        "target": "WIFI-EMPLOYEE",
+        "kind": "eap",
+        "expected": "authorized"
+      },
+      {
+        "name": "LB alimentado",
+        "atMs": 9000,
+        "target": "LB",
+        "kind": "power",
+        "expected": true
+      },
+      {
+        "name": "APP-1 saudável",
+        "atMs": 9000,
+        "target": "LB",
+        "kind": "proxy-backend",
+        "backend": "10.80.100.11",
+        "expected": "up"
+      }
+    ],
+    "flows": [
+      {
+        "name": "Usuário → ERP",
+        "source": "USER-PC",
+        "target": "10.60.40.10",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      },
+      {
+        "name": "Tenant A → LB",
+        "source": "TENANT-A-CLIENT",
+        "target": "10.80.100.100",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      },
+      {
+        "name": "Tenant B isolado",
+        "source": "TENANT-B-CLIENT",
+        "target": "10.80.100.11",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 0,
+        "requireFinalSuccess": false
+      }
+    ],
+    "faults": []
+  }
+]

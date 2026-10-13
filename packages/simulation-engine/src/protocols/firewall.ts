@@ -1,12 +1,18 @@
 import { sipRelated } from './nat-sip';
 import { inspectApplication, validateRules } from './inspection';
 import type { SimulationEngine } from '../core/engine';
-import type { Device, NetworkInterface, Packet } from '../model';
+import type { Device, NetworkInterface, Packet, Packet6, IcmpPacket } from '../model';
 import { firewallSchema, type FirewallSession } from './firewall-model';
 import { tcpAdd } from './tcp-model';
 import { trackTcpPacket } from './firewall-tcp';
 import { isIcmpError } from './icmp';
-import { firewallRule, firewallZone, relatedSession, sessionDirection } from './firewall-policy';
+import {
+  firewallRule,
+  firewallZone,
+  relatedSession,
+  sessionDirection,
+  type FirewallPacket,
+} from './firewall-policy';
 export { validateFirewall } from './firewall-validation';
 import { validateFirewallConfig } from './firewall-validation';
 
@@ -77,14 +83,18 @@ export function permitFirewall(
   device: Device,
   input: NetworkInterface,
   output: NetworkInterface,
-  packet: Packet
+  packet: FirewallPacket,
+  original6?: Packet6
 ) {
   const config = device.firewall;
   if (!config?.enabled || packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return true;
   const zoned = !!config.zonePolicy;
-  const trackedProtocol = isIcmpError(packet) ? (packet.error?.quote.protocol ?? 'ICMP') : packet.protocol;
-  if (!zoned && !firewallProtocols(config).includes(trackedProtocol))
-    return inspectApplication(engine, device, input, output, packet);
+  const isError = (p: FirewallPacket): p is IcmpPacket & { kind: 'unreachable' | 'time-exceeded' } =>
+    isIcmpError(p as Packet);
+  const inspect = () =>
+    original6 ? true : inspectApplication(engine, device, input, output, packet as Packet);
+  const trackedProtocol = isError(packet) ? (packet.error?.quote.protocol ?? 'ICMP') : packet.protocol;
+  if (!zoned && !firewallProtocols(config).includes(trackedProtocol)) return inspect();
   const trustedIn = config.trustedPorts.includes(input.id),
     trustedOut = config.trustedPorts.includes(output.id);
   const deny = (reason: string) => {
@@ -101,7 +111,17 @@ export function permitFirewall(
       ' → ' +
       packet.dst +
       '.';
-    engine.emit('FIREWALL_DENY', device.id, message, { port: input.id, packet });
+    engine.emit(
+      'FIREWALL_DENY',
+      device.id,
+      message,
+      original6
+        ? {
+            port: input.id,
+            frame: { src: input.mac, dst: output.mac, etherType: 'IPv6', ipv6: original6, hops: 1 },
+          }
+        : { port: input.id, packet: packet as Packet }
+    );
     engine.drop(device, message, input.id);
     return false;
   };
@@ -127,13 +147,13 @@ export function permitFirewall(
         : 'Trânsito dentro da mesma zona confiável.',
       { port: input.id }
     );
-    return inspectApplication(engine, device, input, output, packet);
+    return inspect();
   }
-  if (sipRelated(device, input, output, packet, engine.state.clock)) {
+  if (!original6 && sipRelated(device, input, output, packet as Packet, engine.state.clock)) {
     engine.emit('FIREWALL_PERMIT', device.id, 'RTP RELATED ao diálogo SIP autorizado.');
-    return inspectApplication(engine, device, input, output, packet);
+    return inspect();
   }
-  if (isIcmpError(packet)) {
+  if (isError(packet)) {
     const related = relatedSession(device, input.id, output.id, packet, engine.state.clock);
     if (!related) return deny('erro ICMP sem sessão e citação correspondentes');
     engine.emit(
@@ -226,7 +246,7 @@ export function permitFirewall(
     };
     if (!outbound && session.protocol === 'ICMP') session.state = 'REPLIED';
   }
-  if (!inspectApplication(engine, device, input, output, packet)) return false;
+  if (!inspect()) return false;
   const index = config.sessions.findIndex((entry) => entry.id === session.id);
   if (index >= 0) config.sessions[index] = session;
   else config.sessions.push(session);

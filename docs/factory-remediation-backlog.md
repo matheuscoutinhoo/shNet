@@ -1,5 +1,7 @@
 # Pendências da fábrica PLC/HMI com Modbus TCP e rede IP
 
+> Estado atual por frente: [plano consolidado](consolidated-remediation-plan.md). Este registro mantém o histórico das entregas e pendências anteriores; o [ADR-044](adr/044-enterprise-integrity-fabric-binary-modbus.md) atualiza Modbus binário, funções adicionais, dual stack, checkpoints e verificação no servidor.
+
 As prioridades atuais estão no [plano consolidado de fábrica, enterprise e datacenter](consolidated-remediation-plan.md). O documento abaixo preserva o histórico da entrega industrial; suas pendências foram incorporadas às 30 frentes do plano, com os novos achados e critérios de aceite.
 
 Atualizado em 13/10/2026, após a ampliação do executor e persistência dos ensaios. Este documento distingue correções entregues de recursos ainda parciais. A identificação dos achados corresponde ao [relatório original](../artifacts/factory-audit/RELATORIO.md); o [status por achado](../artifacts/factory-audit/remediation/remediation-status.json) mantém a rastreabilidade.

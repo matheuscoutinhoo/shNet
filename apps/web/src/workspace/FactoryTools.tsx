@@ -4,6 +4,7 @@ import {
   fidelityMatrix,
   scenarioSchema,
   factoryScenarios,
+  enterpriseScenarios,
   type ScenarioRunner,
   type Snapshot,
 } from '@shlab/engine';
@@ -12,13 +13,25 @@ import { api, download } from '../api';
 import type { LabController } from './useLab';
 import { IndustrialPanel } from './IndustrialPanel';
 import { ConfigurationReview } from './ConfigurationReview';
+import { pendingResults, storePendingResult, removePendingResult } from './pending-scenario-results';
+import { ScenarioForm } from './ScenarioForm';
 type Report = ReturnType<ScenarioRunner['report']>;
 interface ScenarioRun {
   id: string;
   revision: number;
   source_hash: string;
   kind: 'scenario' | 'baseline';
-  status: 'running' | 'complete' | 'cancelled';
+  status: 'running' | 'complete' | 'cancelled' | 'expired';
+  verification?: {
+    execution: 'client';
+    samples: 'samples-v2' | 'legacy-unverified';
+    replay?: {
+      status: 'matched' | 'mismatch';
+      engineContract: string;
+      verifiedAt: string;
+      reportHash: string;
+    };
+  };
   created_at: string;
   scenario: Report['scenario'];
   report: Report | null;
@@ -34,6 +47,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
     [running, setRunning] = useState(false),
     [progress, setProgress] = useState(0);
   const [runs, setRuns] = useState<ScenarioRun[]>([]);
+  const [verifying, setVerifying] = useState('');
   const reports = runs.flatMap((r) => (r.report ? [r.report] : []));
   const [text, setText] = useState(() =>
     JSON.stringify(
@@ -59,7 +73,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
       2
     )
   );
-  const presets = factoryScenarios(lab.engine.state);
+  const presets = [...factoryScenarios(lab.engine.state), ...enterpriseScenarios(lab.engine.state)];
   const saved = lab.engine.state.scenarios ?? [];
   const worker = useRef<Worker | null>(null);
   const active = useRef<ScenarioRun | null>(null),
@@ -72,7 +86,15 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
   useEffect(() => {
     let mounted = true;
     void api<ScenarioRun[]>(endpoint + '?limit=50')
-      .then((rows) => {
+      .then(async (rows) => {
+        const pending = await pendingResults<ScenarioRun>(lab.projectId).catch(() => []);
+        rows = rows.map((row) =>
+          row.status === 'complete' || row.status === 'cancelled'
+            ? row
+            : (pending.find((x) => x.id === row.id) ?? row)
+        );
+        for (const row of rows.filter((row) => row.status === 'complete' || row.status === 'cancelled'))
+          void removePendingResult(lab.projectId, row.id).catch(() => {});
         if (mounted)
           setRuns((previous) => [...previous, ...rows.filter((r) => !previous.some((p) => p.id === r.id))]);
       })
@@ -91,16 +113,23 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
     };
   }, [endpoint]);
   const issues = preflight(lab.engine.state);
-  const persist = async (row: ScenarioRun) => {
+  const persist = async (row: ScenarioRun, localError = '') => {
     try {
       const saved = await api<ScenarioRun>(endpoint + '/' + row.id, {
         method: 'PUT',
         body: { report: row.report },
       });
       upsert(saved);
+      await removePendingResult(lab.projectId, row.id).catch(() => {});
       setError('');
     } catch (e) {
-      setError('Resultado calculado, mas não salvo: ' + (e as Error).message);
+      setError(
+        'Resultado calculado, mas não salvo: ' +
+          (e as Error).message +
+          (localError
+            ? '. Armazenamento local indisponível: ' + localError + '. Exporte o ensaio antes de fechar.'
+            : '')
+      );
     }
   };
   const run = async (baseline = false) => {
@@ -144,7 +173,12 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
             active.current = null;
             const result = { ...row, topology: undefined, report: event.data.report };
             upsert(result);
-            void persist(result);
+            void storePendingResult(lab.projectId, result)
+              .then(
+                () => '',
+                (e) => (e as Error).message
+              )
+              .then((localError) => persist(result, localError));
           } else {
             active.current = null;
             setError(event.data.message);
@@ -171,7 +205,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
     }
   };
   return (
-    <Modal wide title="Validação da fábrica" onClose={onClose}>
+    <Modal wide title="Validação de redes e cenários" onClose={onClose}>
       <div className="factory-tools">
         {lab.error && <p role="alert">{lab.error}</p>}
         <div className="button-row">
@@ -275,20 +309,25 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
             <details>
               <summary>Formato dos cenários</summary>
               <p>
-                Fluxos: origem por nome/ID, destino IPv4, protocolo
-                icmp/http/modbus/dns/dhcp/mqtt/snmp/ntp/syslog, expectativa allow/deny, perda e latência
-                máximas. Falhas: atMs, kind device/link/port/service/power, target por nome/ID de equipamento
-                ou ID de enlace, up false/true. Porta exige port; serviço exige service
+                Fluxos: origem por nome/ID, destino IPv4/IPv6, vrf e scope opcionais em ICMP/HTTP/Modbus;
+                protocolo icmp/http/modbus/dns/dhcp/mqtt/snmp/ntp/syslog, expectativa allow/deny, perda e
+                latência máximas. Falhas: atMs, kind device/link/port/service/power, target por nome/ID de
+                equipamento ou ID de enlace, up false/true. Porta exige port; serviço exige service
                 (dns/dhcp/http/modbus/mqtt/snmp/ntp/syslog); power corta rede e bateria de uma UPS. A
-                expectativa deny verifica ausência de resposta dentro do deadline; investigue a causa no
-                relatório. Modbus exige transaction, unit, function (3/6/16), address, quantity e values para
-                escrita; expectedRegisters valida os valores lidos. requireFinalSuccess exige sucesso na
-                última amostra. DNS exige name e aceita expectedAnswers; DHCP exige interface e aceita
-                expectedServer/expectedAddress. MQTT exige operation connect/publish; publicações usam QoS 1,
-                topic e payload, com receiver/filter opcionais para validar recepção. SNMP exige
-                community/oids e aceita expectedVarbinds. NTP exige maxOffsetMs; syslog exige text e aceita
-                severity. DHCP/MQTT/NTP usam equipamentos exclusivos e intervalo maior ou igual ao deadline.
+                expectativa deny verifica ausência de resposta dentro do deadline; denyEvidence policy exige
+                regra correlacionada. Investigue a causa no relatório. Modbus exige transaction, unit,
+                function (3/6/16), address, quantity e values para escrita; expectedRegisters valida os
+                valores lidos. requireFinalSuccess exige sucesso na última amostra. DNS exige name e aceita
+                expectedAnswers; DHCP exige interface e aceita expectedServer/expectedAddress. MQTT exige
+                operation connect/publish; publicações usam QoS 1, topic e payload, com receiver/filter
+                opcionais para validar recepção. SNMP exige community/oids e aceita expectedVarbinds. NTP
+                exige maxOffsetMs; syslog exige text e aceita severity. DHCP/MQTT/NTP usam equipamentos
+                exclusivos e intervalo maior ou igual ao deadline.
               </p>
+            </details>
+            <details>
+              <summary>Editar por formulário</summary>
+              <ScenarioForm text={text} setText={setText} snapshot={lab.engine.state} />
             </details>
             <label>
               Definição do cenário
@@ -375,13 +414,48 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                       ? 'Resultado não salvo'
                       : row.status === 'cancelled'
                         ? 'Cancelado'
-                        : 'Em execução'}
+                        : row.status === 'expired'
+                          ? 'Expirado; resultado pode ser recuperado'
+                          : 'Em execução'}
                 </summary>
                 <p>
                   {row.kind === 'baseline' ? 'Baseline' : 'Cenário'} ·{' '}
                   {new Date(row.created_at).toLocaleString()} · SHA-256: {row.source_hash}
                 </p>
+                <p>
+                  Execução no cliente ·{' '}
+                  {row.verification?.samples === 'samples-v2'
+                    ? 'Métricas recalculadas pela API'
+                    : 'Resultado anterior ou local ainda não revalidado'}
+                  . O hash identifica a origem; não atesta execução autoritativa.
+                </p>
+                {row.verification?.replay && (
+                  <p role="status">
+                    Reexecução no servidor:{' '}
+                    {row.verification.replay.status === 'matched'
+                      ? 'resultado confirmado'
+                      : 'resultado divergente'}
+                    . Contrato {row.verification.replay.engineContract} ·{' '}
+                    {new Date(row.verification.replay.verifiedAt).toLocaleString()}.
+                  </p>
+                )}
                 <div className="button-row">
+                  {row.report && row.status === 'complete' && (
+                    <button
+                      className="button"
+                      disabled={!!verifying}
+                      onClick={() => {
+                        setVerifying(row.id);
+                        setError('');
+                        void api<ScenarioRun>(endpoint + '/' + row.id + '/verify', { method: 'POST' })
+                          .then(upsert)
+                          .catch((e) => setError(e.message))
+                          .finally(() => setVerifying(''));
+                      }}
+                    >
+                      {verifying === row.id ? 'Verificando…' : 'Verificar no servidor'}
+                    </button>
+                  )}
                   {row.report && (
                     <button
                       className="button"
@@ -410,7 +484,10 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                     disabled={running}
                     onClick={() =>
                       void api(endpoint + '/' + row.id, { method: 'DELETE' })
-                        .then(() => setRuns((previous) => previous.filter((r) => r.id !== row.id)))
+                        .then(async () => {
+                          await removePendingResult(lab.projectId, row.id).catch(() => {});
+                          setRuns((previous) => previous.filter((r) => r.id !== row.id));
+                        })
                         .catch((e) => setError(e.message))
                     }
                   >
@@ -423,6 +500,26 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                       {row.report.samples.filter((s) => s.status === 'failed').length} amostras sem sucesso.
                       Recuperação observada com resolução de {row.scenario.intervalMs} ms.
                     </p>
+                    {row.report.actions && (
+                      <ul>
+                        {row.report.actions.map((a, i) => (
+                          <li key={i}>
+                            {a.atMs} ms · {a.kind} {a.checkpoint} · época {a.epoch} · relógio {a.beforeClock}{' '}
+                            → {a.afterClock} ms · SHA-256 {a.snapshotHash}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {row.report.assertions && (
+                      <ul>
+                        {row.report.assertions.map((a) => (
+                          <li key={a.name}>
+                            {a.atMs} ms · {a.name}: {a.passed ? 'Aprovado' : 'Falhou'} · observado{' '}
+                            {a.observed} · época {a.epoch}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <ul>
                       {row.report.samples
                         .filter((s) => s.status === 'failed')

@@ -18,12 +18,21 @@ export function exportPcap(s: Snapshot, link?: string) {
               : undefined,
         connection = tcp?.traceId ? connections.get(tcp.traceId) : undefined;
       const application = event.application ?? connection?.service;
+      if (application === 'modbus' && tcp?.encoding !== 'binary')
+        throw new Error('Modbus legado usa hex/newline; captura preservada sem conversão inventada.');
       if (tcp?.data && !application) throw new Error('Aplicação TCP ausente do estado retido.');
       if (
         application &&
-        !['manual', 'echo', 'http', 'database', 'proxy', 'proxy-upstream', 'load-balancer'].includes(
-          application
-        )
+        ![
+          'manual',
+          'echo',
+          'http',
+          'database',
+          'proxy',
+          'proxy-upstream',
+          'load-balancer',
+          'modbus',
+        ].includes(application)
       )
         throw new Error('Aplicação TCP ' + application + ' usa enquadramento didático.');
       frames.push({ at: event.time, bytes: encodeEthernet(event.frame) });

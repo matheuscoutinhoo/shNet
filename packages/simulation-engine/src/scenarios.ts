@@ -1,9 +1,15 @@
 import { SimulationEngine } from './core/engine';
+import { ENGINE_CONTRACT_VERSION } from './version';
+import { observeAssertion } from './scenario-assertions';
+import { canonicalScenarioJson } from './canonical-json';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex } from '@noble/hashes/utils.js';
 import type { Snapshot } from './model';
 import { scenarioSchema, type Scenario } from './scenarios-model';
-import { modbusRequest, decodeModbus } from './protocols/modbus';
+import { modbusRequest, decodeModbus, modbusFrameLength } from './protocols/modbus';
 export { scenarioSchema, type Scenario } from './scenarios-model';
 import { preflight } from './preflight';
+import { scenarioRecovery } from './scenario-metrics';
 import { scenarioEvidence, type ScenarioEvidence } from './scenario-evidence';
 import {
   applyScenarioFault,
@@ -23,6 +29,7 @@ export interface ScenarioSample {
   reason?: string;
   responseReceived?: boolean;
   evidence?: ScenarioEvidence;
+  epoch?: number;
 }
 const percentile = (values: number[], p: number) =>
   values.length ? [...values].sort((a, b) => a - b)[Math.max(0, Math.ceil(values.length * p) - 1)] : null;
@@ -32,15 +39,36 @@ export class ScenarioRunner {
   readonly samples: ScenarioSample[] = [];
   readonly warnings: ReturnType<typeof preflight>;
   private started: number;
-  private tasks: { at: number; flow?: number; fault?: number }[] = [];
+  private tasks: { at: number; flow?: number; fault?: number; action?: number; assertion?: number }[] = [];
+  private epoch = 0;
+  private advanceTarget?: number;
+  private restoredCaptureDrops = 0;
+  private checkpoints = new Map<string, { snapshot: Snapshot; hash: string; bytes: number }>();
+  private actionResults: {
+    atMs: number;
+    kind: 'checkpoint' | 'restore';
+    checkpoint: string;
+    epoch: number;
+    beforeClock: number;
+    afterClock: number;
+    snapshotHash: string;
+  }[] = [];
+  private assertionResults: {
+    name: string;
+    atMs: number;
+    epoch: number;
+    observed: string;
+    passed: boolean;
+  }[] = [];
   private resolved = new Map<string, string>();
   private attempts = new Map<ScenarioSample, ProtocolAttempt>();
   constructor(snapshot: Snapshot, input: unknown) {
     this.scenario = scenarioSchema.parse(input);
     this.engine = new SimulationEngine(snapshot);
     this.engine.state.probes = [];
+    this.engine.state.probes6 = [];
     this.warnings = preflight(this.engine.state);
-    this.started = this.engine.state.clock;
+    this.started = this.engine.state.clock + (this.scenario.warmupMs ?? 0);
     for (const f of this.scenario.flows) {
       const d = this.engine.state.devices.find((d) => d.id === f.source || d.hostname === f.source);
       if (!d) throw new Error('Origem inexistente: ' + f.source);
@@ -59,12 +87,19 @@ export class ScenarioRunner {
       validateScenarioFault(this.engine, f);
       this.tasks.push({ at: f.atMs, fault: i });
     });
+    this.scenario.actions?.forEach((a, i) => this.tasks.push({ at: a.atMs, action: i }));
+    this.scenario.assertions?.forEach((a, i) => {
+      observeAssertion(this.engine, a);
+      this.tasks.push({ at: a.atMs, assertion: i });
+    });
     for (let at = 0; at < this.scenario.durationMs; at += this.scenario.intervalMs)
       this.scenario.flows.forEach((_, i) => this.tasks.push({ at, flow: i }));
     this.tasks.sort(
       (a, b) =>
         a.at - b.at ||
+        Number(b.action !== undefined) - Number(a.action !== undefined) ||
         Number(b.fault !== undefined) - Number(a.fault !== undefined) ||
+        Number(b.assertion !== undefined) - Number(a.assertion !== undefined) ||
         (a.flow ?? a.fault ?? 0) - (b.flow ?? b.fault ?? 0)
     );
   }
@@ -73,7 +108,9 @@ export class ScenarioRunner {
       const flow = this.scenario.flows.find((f) => f.name === s.flow)!;
       const d = this.engine.device(this.resolved.get(flow.source)!);
       if (flow.protocol === 'icmp') {
-        const p = this.engine.state.probes.find((p) => p.id === s.id);
+        const p = (flow.target.includes(':') ? this.engine.state.probes6 : this.engine.state.probes)?.find(
+          (p) => p.id === s.id
+        );
         if (p?.status === 'success') {
           s.responseReceived = true;
           s.elapsedMs = p.rtt;
@@ -86,29 +123,47 @@ export class ScenarioRunner {
         }
       } else if (flow.protocol === 'modbus') {
         const c = d.tcpConnections?.find((c) => c.id === s.id);
-        if (c?.received.includes('\n')) {
+        if (c?.responseAt !== undefined) {
           s.responseReceived = true;
           try {
-            const response = decodeModbus(c.received.split('\n')[0]);
+            const response = decodeModbus(c.received.slice(0, modbusFrameLength(c.received, c.encoding)));
             const request = flow.modbus!;
             const p = response.pdu;
             const registers =
-              request.function === 3 && p.length === 2 + request.quantity * 2 && p[1] === request.quantity * 2
+              [3, 4].includes(request.function) &&
+              p.length === 2 + request.quantity * 2 &&
+              p[1] === request.quantity * 2
                 ? Array.from({ length: request.quantity }, (_, i) => (p[2 + i * 2] << 8) | p[3 + i * 2])
                 : undefined;
-            const written = request.function === 6 ? request.values[0] : request.quantity;
+            const bits =
+              [1, 2].includes(request.function) &&
+              p.length === 2 + Math.ceil(request.quantity / 8) &&
+              p[1] === Math.ceil(request.quantity / 8)
+                ? Array.from({ length: request.quantity }, (_, i) => !!(p[2 + (i >> 3)] & (1 << (i % 8))))
+                : undefined;
+            const written =
+              request.function === 6
+                ? request.values[0]
+                : request.function === 5
+                  ? request.values[0]
+                    ? 0xff00
+                    : 0
+                  : request.quantity;
             const valid =
               response.transaction === request.transaction &&
               response.unit === request.unit &&
               response.function === request.function &&
               !response.exception &&
-              (request.function === 3
+              ([3, 4].includes(request.function)
                 ? Boolean(registers)
-                : p.length === 5 &&
-                  ((p[1] << 8) | p[2]) === request.address &&
-                  ((p[3] << 8) | p[4]) === written) &&
+                : [1, 2].includes(request.function)
+                  ? Boolean(bits)
+                  : p.length === 5 &&
+                    ((p[1] << 8) | p[2]) === request.address &&
+                    ((p[3] << 8) | p[4]) === written) &&
               (!flow.expectedRegisters ||
-                JSON.stringify(registers) === JSON.stringify(flow.expectedRegisters));
+                JSON.stringify(registers) === JSON.stringify(flow.expectedRegisters)) &&
+              (!flow.expectedBits || JSON.stringify(bits) === JSON.stringify(flow.expectedBits));
             s.elapsedMs = (c.responseAt ?? c.updatedAt) - (this.started + s.atMs);
             s.status = valid && s.elapsedMs <= this.scenario.deadlineMs ? 'success' : 'failed';
             s.reason = response.exception
@@ -177,8 +232,8 @@ export class ScenarioRunner {
   }
   step(wallMs = 20) {
     const start = performance.now();
-    const end = this.started + this.scenario.durationMs + this.scenario.deadlineMs;
     while (performance.now() - start < wallMs) {
+      const end = this.started + this.scenario.durationMs + this.scenario.deadlineMs;
       const task = this.tasks[0];
       const taskTime = task ? this.started + task.at : end;
       const deadline = Math.min(
@@ -186,34 +241,103 @@ export class ScenarioRunner {
           .filter((s) => s.status === 'pending')
           .map((s) => this.started + s.atMs + this.scenario.deadlineMs)
       );
-      const target = Math.min(taskTime, this.engine.state.clock + 100, deadline);
-      this.engine.advanceTo(target, 20000, Math.max(1, Math.min(100, wallMs - (performance.now() - start))));
+      // Preserve the virtual boundary across incomplete wall-time slices.
+      const refreshState = this.advanceTarget === undefined;
+      const target = this.advanceTarget ?? Math.min(taskTime, this.engine.state.clock + 100, deadline);
+      this.advanceTarget = target;
+      this.engine.advanceTo(
+        target,
+        20000,
+        Math.max(1, Math.min(100, wallMs - (performance.now() - start))),
+        refreshState
+      );
+      if (this.engine.state.clock < target || (this.engine.state.queue[0]?.at ?? Infinity) <= target) break;
+      this.advanceTarget = undefined;
       this.observe();
-      if (this.engine.state.clock < target) break;
       if (this.engine.state.clock < taskTime) continue;
       if (!task) return true;
       this.tasks.shift();
-      if (task.fault !== undefined) {
+      if (task.action !== undefined) {
+        const action = this.scenario.actions![task.action],
+          beforeClock = this.engine.state.clock;
+        if (action.kind === 'checkpoint') {
+          const snapshot = this.engine.snapshot(),
+            encoded = new TextEncoder().encode(canonicalScenarioJson(snapshot));
+          if (
+            encoded.length + [...this.checkpoints.values()].reduce((n, c) => n + c.bytes, 0) >
+            32 * 1024 * 1024
+          )
+            throw new Error('Checkpoints excedem 32 MiB. Reduza a captura ou divida o ensaio.');
+          this.checkpoints.set(action.checkpoint, {
+            snapshot,
+            bytes: encoded.length,
+            hash: bytesToHex(sha256(encoded)),
+          });
+        } else {
+          for (const sample of this.samples.filter((s) => s.status === 'pending')) {
+            sample.status = 'failed';
+            sample.reason = 'Tentativa interrompida por restauração de checkpoint.';
+            sample.elapsedMs = beforeClock - (this.started + sample.atMs);
+            sample.responseReceived = false;
+          }
+          this.attempts.clear();
+          const priorDrops = this.engine.state.capture?.dropped ?? 0;
+          this.engine.state = new SimulationEngine(this.checkpoints.get(action.checkpoint)!.snapshot).state;
+          this.restoredCaptureDrops += Math.max(0, priorDrops - (this.engine.state.capture?.dropped ?? 0));
+          this.started = this.engine.state.clock - task.at;
+          this.epoch++;
+        }
+        this.actionResults.push({
+          ...action,
+          epoch: this.epoch,
+          beforeClock,
+          afterClock: this.engine.state.clock,
+          snapshotHash: this.checkpoints.get(action.checkpoint)!.hash,
+        });
+      } else if (task.fault !== undefined) {
         const f = this.scenario.faults[task.fault];
         applyScenarioFault(this.engine, f);
+      } else if (task.assertion !== undefined) {
+        const assertion = this.scenario.assertions![task.assertion],
+          observed = observeAssertion(this.engine, assertion);
+        this.assertionResults.push({
+          name: assertion.name,
+          atMs: assertion.atMs,
+          epoch: this.epoch,
+          observed,
+          passed: observed === String(assertion.expected),
+        });
       } else if (task.flow !== undefined) {
         const flow = this.scenario.flows[task.flow],
           sample: ScenarioSample = { flow: flow.name, atMs: task.at, status: 'pending' };
+        if (this.scenario.actions) sample.epoch = this.epoch;
         this.samples.push(sample);
         try {
           sample.id =
             flow.protocol === 'icmp'
-              ? this.engine.ping(this.resolved.get(flow.source)!, flow.target)
+              ? flow.target.includes(':')
+                ? this.engine.ping6(this.resolved.get(flow.source)!, flow.target, 64, flow.vrf, flow.scope)
+                : this.engine.ping(this.resolved.get(flow.source)!, flow.target, 64, flow.vrf)
               : flow.protocol === 'modbus'
                 ? modbusRequest(
                     this.engine,
                     this.engine.device(this.resolved.get(flow.source)!),
                     flow.target,
                     flow.modbus!,
-                    flow.port ?? 502
+                    flow.port ?? 502,
+                    flow.vrf,
+                    flow.scope
                   )
                 : flow.protocol === 'http'
-                  ? this.engine.httpGet(this.resolved.get(flow.source)!, flow.target, flow.port ?? 80)
+                  ? this.engine.httpGet(
+                      this.resolved.get(flow.source)!,
+                      flow.target,
+                      flow.port ?? 80,
+                      '/',
+                      flow.vrf,
+                      undefined,
+                      flow.scope
+                    )
                   : (() => {
                       const attempt = startProtocol(
                         this.engine,
@@ -232,9 +356,12 @@ export class ScenarioRunner {
     return false;
   }
   get progress() {
-    return Math.min(
-      1,
-      (this.engine.state.clock - this.started) / (this.scenario.durationMs + this.scenario.deadlineMs)
+    return Math.max(
+      0,
+      Math.min(
+        1,
+        (this.engine.state.clock - this.started) / (this.scenario.durationMs + this.scenario.deadlineMs)
+      )
     );
   }
   report() {
@@ -260,7 +387,13 @@ export class ScenarioRunner {
           !samples.some((s) => s.status === 'pending') &&
           (!f.requireFinalSuccess || samples.at(-1)?.status === 'success') &&
           (f.expect === 'deny'
-            ? successful.length === 0 && samples.every((s) => s.id && !s.responseReceived)
+            ? successful.length === 0 &&
+              samples.every(
+                (s) =>
+                  s.id &&
+                  !s.responseReceived &&
+                  (f.denyEvidence !== 'policy' || s.evidence?.cause === 'policy')
+              )
             : lossPercent <= f.maxLossPercent &&
               (f.maxLatencyMs === undefined || latencies.every((n) => n <= f.maxLatencyMs!))),
       };
@@ -268,31 +401,25 @@ export class ScenarioRunner {
     return {
       format: 'shlab-scenario-v1',
       engineVersion: '0.1.0',
+      engineContract: ENGINE_CONTRACT_VERSION,
+      integrityVersion: 2 as const,
       name: this.scenario.name,
       clock: 'virtual-ms',
       complete: this.progress === 1,
-      passed: this.progress === 1 && flows.every((f) => f.passed),
+      passed:
+        this.progress === 1 && flows.every((f) => f.passed) && this.assertionResults.every((a) => a.passed),
       scenario: this.scenario,
       flows,
       samples: this.samples,
       warnings: this.warnings,
       faults: this.scenario.faults.map((f) => ({
         ...f,
-        recovery: this.scenario.flows.map((flow) => {
-          const samples = this.samples.filter((s) => s.flow === flow.name && s.atMs >= f.atMs);
-          const failed = samples.findIndex((s) => s.status === 'failed');
-          const recovered =
-            failed >= 0 ? samples.slice(failed + 1).find((s) => s.status === 'success') : undefined;
-          return {
-            flow: flow.name,
-            recoveryMs: recovered ? recovered.atMs + recovered.elapsedMs! - f.atMs : null,
-            observedFailure: failed >= 0,
-            resolutionMs: this.scenario.intervalMs,
-          };
-        }),
+        recovery: scenarioRecovery(this.scenario, this.samples, f.atMs),
       })),
       diagnostics: this.engine.state.diagnostics ?? [],
-      captureDropped: this.engine.state.capture?.dropped ?? 0,
+      captureDropped: (this.engine.state.capture?.dropped ?? 0) + this.restoredCaptureDrops,
+      ...(this.scenario.actions ? { actions: this.actionResults } : {}),
+      ...(this.scenario.assertions ? { assertions: this.assertionResults } : {}),
     };
   }
 }

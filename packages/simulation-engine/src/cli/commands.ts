@@ -126,6 +126,7 @@ export function makeRegistry() {
       const name = m[1].replace(/\s/g, '').replace(/^gigabitEthernet/i, 'Gi');
       let p = d.interfaces.find((p) => p.name.toLowerCase() === name.toLowerCase());
       if (!p && /^Vlan\d+$/i.test(name)) p = e.addSvi(d.id, Number(name.slice(4)));
+      if (!p && /^Loopback\d+$/i.test(name)) p = e.addLoopback(d.id, Number(name.slice(8)));
       if (!p && /^.+\.\d+$/.test(name)) {
         const [parentName, vlan] = name.split('.');
         const parent = d.interfaces.find((p) => p.name.toLowerCase() === parentName.toLowerCase());

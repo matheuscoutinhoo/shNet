@@ -459,6 +459,7 @@ export const dhcpPoolSchema = z
     leaseMs: z.number().int().min(8000).max(604800000),
     excluded: z.array(ipv4Schema).max(256),
     relayAddress: ipv4Schema.optional(),
+    relayAddresses: z.array(ipv4Schema).max(8).optional(),
     reservations: z
       .array(
         z.object({ clientMac: mac.transform((value) => value.toLowerCase()), address: ipv4Schema }).strict()
@@ -511,6 +512,7 @@ export const interfaceSchema = z
     aggregate: aggregateSchema.optional(),
     tunnel: tunnelStateSchema.optional(),
     vxlan: vxlanStateSchema.optional(),
+    loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),
     dot1x: dot1xStateSchema.optional(),
     supplicant: supplicantStateSchema.optional(),

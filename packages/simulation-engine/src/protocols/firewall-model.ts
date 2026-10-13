@@ -1,13 +1,14 @@
 import { inspectionConfigSchema } from './inspection-model';
 import { z } from 'zod';
-import { idSchema, ipv4Schema, portNumberSchema, timeSchema, uint32Schema } from '../schemas';
+import { idSchema, portNumberSchema, timeSchema, uint32Schema } from '../schemas';
+import { transportAddressSchema } from './tcp-model';
 
 const sessionFields = {
   id: idSchema,
   inside: idSchema,
   outside: idSchema,
-  clientIp: ipv4Schema,
-  serverIp: ipv4Schema,
+  clientIp: transportAddressSchema,
+  serverIp: transportAddressSchema,
   expiresAt: timeSchema,
 };
 const tcpFirewallSessionSchema = z

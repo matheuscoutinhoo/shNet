@@ -37,8 +37,15 @@ export function configureTcpService(engine: SimulationEngine, device: Device, in
   return service;
 }
 export function queueTcpText(connection: TcpConnection, input: string) {
-  const data = tcpTextSchema.parse(input);
-  if (connection.bytesSent + tcpBytes(connection.sendBuffer) + tcpBytes(data) > TCP.buffer)
+  const data = connection.encoding === 'binary' ? input : tcpTextSchema.parse(input);
+  if (connection.encoding === 'binary' && Array.from(data).some((c) => c.charCodeAt(0) > 255))
+    throw new Error('Buffer TCP bin?rio exige octetos.');
+  if (
+    connection.bytesSent +
+      tcpBytes(connection.sendBuffer, connection.encoding) +
+      tcpBytes(data, connection.encoding) >
+    TCP.buffer
+  )
     throw new Error('Limite de 16384 bytes enviados por conexão TCP.');
   connection.sendBuffer += data;
 }
@@ -51,7 +58,7 @@ export function receiveTcpApplication(
   engine.emit(
     'APPLICATION_DATA',
     device.id,
-    `${connection.id}: ${tcpBytes(data)} bytes recebidos por ${connection.service}.`
+    `${connection.id}: ${tcpBytes(data, connection.encoding)} bytes recebidos por ${connection.service}.`
   );
   if (connection.service === 'database') {
     receiveDatabase(engine, device, connection);

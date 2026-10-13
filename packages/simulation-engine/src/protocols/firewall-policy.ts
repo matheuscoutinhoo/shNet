@@ -1,6 +1,9 @@
-import type { Device, FirewallSession, Packet } from '../model';
+import type { Device, FirewallSession, Packet, UdpPacket } from '../model';
 import { isIcmpError } from './icmp';
 import { isUnicast } from './dhcp-config';
+import { unicast6 } from './ipv6-address';
+export type FirewallPacket = Packet | Omit<UdpPacket, 'payload'>;
+export const firewallUnicast = (ip: string) => (ip.includes(':') ? unicast6(ip) : isUnicast(ip));
 
 export function firewallZone(device: Device, port: string) {
   return device.firewall?.zonePolicy?.zones.find((zone) => zone.ports.includes(port))?.name;
@@ -30,12 +33,12 @@ export function sessionDirection(
   session: FirewallSession,
   input: string,
   output: string,
-  packet: Packet
+  packet: FirewallPacket
 ): boolean | undefined {
   if (
     packet.protocol === 'OSPF' ||
     packet.protocol === 'VRRP' ||
-    isIcmpError(packet) ||
+    isIcmpError(packet as Packet) ||
     session.protocol !== packet.protocol
   )
     return;
@@ -59,7 +62,7 @@ export function relatedSession(device: Device, input: string, output: string, pa
   if (
     !isIcmpError(packet) ||
     !packet.error ||
-    !isUnicast(packet.src) ||
+    !firewallUnicast(packet.src) ||
     packet.dst !== packet.error.quote.src
   )
     return;

@@ -48,14 +48,15 @@ export function receiveTcpMtu(
       mtu - (item.packet.family ? 60 : 40) - tcpOptionBytes(item.packet.options)
     );
     while (remaining) {
-      const data = takeTcpText(remaining, payloadLimit);
+      const data = takeTcpText(remaining, payloadLimit, item.packet.encoding);
       if (!data) return false;
       remaining = remaining.slice(data.length);
       const packet = { ...structuredClone(item.packet), sequence, data };
-      packet.bytes = (packet.family ? 60 : 40) + tcpOptionBytes(packet.options) + tcpBytes(data);
+      packet.bytes =
+        (packet.family ? 60 : 40) + tcpOptionBytes(packet.options) + tcpBytes(data, packet.encoding);
       if (packet.options?.timestamp) packet.options.timestamp.value = Math.floor(e.state.clock) >>> 0;
       next.push({ ...item, packet, sentAt: e.state.clock, retransmitted: true });
-      sequence = tcpAdd(sequence, tcpBytes(data));
+      sequence = tcpAdd(sequence, tcpBytes(data, packet.encoding));
     }
   }
   if (next.length > 64) return false;

@@ -59,6 +59,7 @@ export function withdrawEvpnPeer(e: SimulationEngine, d: Device, ip: string) {
     if (!v) continue;
     const removed = v.routes.filter((r) => r.peer === ip);
     v.routes = v.routes.filter((r) => r.peer !== ip);
+    if (v.members) v.members = v.members.filter((r) => r.peer !== ip);
     for (const r of removed)
       e.emit('EVPN_WITHDRAW', d.id, 'MAC ' + r.mac + ' / VNI ' + r.vni + ': sessão BGP indisponível.', {
         port: p.id,
@@ -111,6 +112,34 @@ export function advertiseEvpn(
 ) {
   const c = d.bgp!.neighbors.find((n) => n.ip === peer.ip)!,
     external = c.remoteAs !== d.bgp!.asn;
+  const members = d.interfaces.flatMap((p) => {
+    const v = p.vxlan,
+      ip = v && d.interfaces.find((x) => x.id === v.underlay)?.ip;
+    return v?.enabled && v.evpn && ip
+      ? [{ vni: v.vni, routeTarget: v.routeTarget, nextHop: ip, asPath: external ? [d.bgp!.asn] : [] }]
+      : [];
+  });
+  const oldMembers = peer.evpnImetAdvertised ?? [],
+    memberKey = (m: (typeof members)[number]) => JSON.stringify(m);
+  const imet = members.filter((m) => !oldMembers.some((o) => memberKey(o) === memberKey(m)));
+  const removedMembers = oldMembers.filter((m) => !members.some((o) => memberKey(o) === memberKey(m)));
+  for (let i = 0; i < Math.max(imet.length, removedMembers.length); i += 16) {
+    const added = imet.slice(i, i + 16),
+      removed = removedMembers.slice(i, i + 16);
+    if (
+      !send({ type: 'UPDATE', announcements: [], withdrawn: [], evpnImet: added, evpnImetWithdrawn: removed })
+    )
+      return;
+    peer.evpnImetAdvertised = [
+      ...(peer.evpnImetAdvertised ?? []).filter((m) => !removed.some((r) => memberKey(r) === memberKey(m))),
+      ...added,
+    ];
+    e.emit(
+      'EVPN_ADVERTISE',
+      d.id,
+      'IMET: ' + added.length + ' membros anunciados, ' + removed.length + ' retirados para ' + peer.ip + '.'
+    );
+  }
   const exported = localRoutes(d).map((r) => ({ ...r, asPath: external ? [d.bgp!.asn] : [] }));
   const old = peer.evpnAdvertised ?? [],
     withdrawn = old.filter((r) => !exported.some((n) => key(n) === key(r))),
@@ -145,6 +174,37 @@ export function receiveEvpn(
   message: Extract<BgpMessage, { type: 'UPDATE' }>
 ) {
   const config = d.bgp!.neighbors.find((n) => n.ip === peer.ip)!;
+  for (const p of d.interfaces) {
+    const v = p.vxlan;
+    if (!v?.enabled || !v.evpn) continue;
+    for (const m of message.evpnImetWithdrawn ?? [])
+      v.members = (v.members ?? []).filter(
+        (r) =>
+          !(
+            r.peer === peer.ip &&
+            r.vni === m.vni &&
+            r.nextHop === m.nextHop &&
+            r.routeTarget === m.routeTarget
+          )
+      );
+    for (const m of message.evpnImet ?? []) {
+      if (
+        m.vni !== v.vni ||
+        m.routeTarget !== v.routeTarget ||
+        !isUnicast(m.nextHop) ||
+        d.interfaces.some((p) => p.ip === m.nextHop) ||
+        m.asPath.includes(d.bgp!.asn) ||
+        (config.remoteAs !== d.bgp!.asn && m.asPath[0] !== config.remoteAs)
+      )
+        continue;
+      const others = (v.members ?? []).filter((r) => !(r.peer === peer.ip && r.nextHop === m.nextHop));
+      if (others.length >= 512) continue;
+      v.members = [...others, { ...m, peer: peer.ip, learnedAt: e.state.clock }];
+      e.emit('EVPN_INSTALL', d.id, 'IMET VNI ' + m.vni + ' → ' + m.nextHop + ' RT ' + m.routeTarget + '.', {
+        port: p.id,
+      });
+    }
+  }
   for (const prefix of message.evpnWithdrawn ?? [])
     for (const p of d.interfaces) {
       const v = p.vxlan;
@@ -193,6 +253,15 @@ export function validateEvpn(s: Snapshot) {
       const v = p.vxlan;
       if (!v) continue;
       if (
+        (v.members ?? []).some(
+          (r) =>
+            r.vni !== v.vni ||
+            r.routeTarget !== v.routeTarget ||
+            r.learnedAt > s.clock ||
+            !isUnicast(r.nextHop) ||
+            !d.bgp?.peers.some((n) => n.ip === r.peer && n.state === 'Established')
+        ) ||
+        new Set((v.members ?? []).map((m) => m.peer + '/' + m.nextHop)).size !== (v.members ?? []).length ||
         new Set(v.routes.map((r) => r.peer + '/' + key(r))).size !== v.routes.length ||
         new Set(v.local.map((r) => r.mac)).size !== v.local.length ||
         v.local.some((r) => !d.interfaces.some((p) => p.id === r.port && !p.vxlan)) ||

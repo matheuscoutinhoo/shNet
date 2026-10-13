@@ -4,7 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 import console from 'node:console';
 import process from 'node:process';
 import { performance } from 'node:perf_hooks';
-const out = 'artifacts/factory-audit/remediation';
+const out = process.env.SHLAB_AUDIT_OUTPUT ?? 'artifacts/factory-audit/remediation';
 await mkdir(out, { recursive: true });
 const reference = await chromium.connectOverCDP('http://127.0.0.1:9223');
 const session = await reference.contexts()[0].storageState();
@@ -15,15 +15,30 @@ await page.setViewportSize({ width: 1600, height: 1100 });
 await page.goto('http://127.0.0.1:5173');
 await page.waitForTimeout(1500);
 const errors = [];
+const failures = [];
 const projectName = 'Fábrica corrigida — validação ' + Date.now();
-page.on('pageerror', (error) => errors.push(error.message));
+page.on('pageerror', (error) => {
+  errors.push(error.stack ?? error.message);
+  console.error(error.stack ?? error.message);
+});
+page.on('response', async (response) => {
+  if (response.status() >= 400 && response.url().includes('/api/projects')) {
+    const message = (await response.text()).slice(0, 2000);
+    failures.push({ status: response.status(), message });
+    console.error(JSON.stringify(failures.at(-1)));
+    if (response.request().method() === 'PUT') {
+      const body = response.request().postDataJSON();
+      if (body?.topology) await writeFile('.data/factory-ui-failure.json', JSON.stringify(body.topology));
+    }
+  }
+});
 await page.getByRole('button', { name: 'Templates', exact: true }).click();
 await page.getByRole('button', { name: /Fábrica segmentada e redundância IP/ }).click();
 await page.getByLabel('Nome do laboratório').fill(projectName);
 await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
 await expect(page.locator('.react-flow__node-device')).toHaveCount(43);
 await page.getByRole('button', { name: 'Opções do laboratório' }).click();
-await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
+await page.getByRole('button', { name: 'Validar rede e cenários' }).click();
 await expect(page.getByRole('dialog')).toContainText('única instância');
 await page.screenshot({ path: out + '/preflight.png' });
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
@@ -85,6 +100,28 @@ await expect(page.getByRole('dialog').getByRole('status')).toContainText('Regist
   timeout: 15000,
 });
 const modbusText = await page.getByRole('dialog').getByRole('status').innerText();
+await page.getByLabel('Coils (0/1) separados por vírgula', { exact: true }).fill('1,0,1');
+await page.getByLabel('Entradas discretas (0/1) separadas por vírgula', { exact: true }).fill('0,1,0');
+await page.getByLabel('Input registers separados por vírgula', { exact: true }).fill('65535,32768');
+await page.getByRole('button', { name: 'Aplicar configuração PLC' }).click();
+await page.waitForTimeout(250);
+if (!(await page.getByRole('combobox', { name: /^Operação/ }).count())) {
+  console.error(JSON.stringify({ errors, page: (await page.locator('body').innerText()).slice(0, 3000) }));
+  await page.screenshot({ path: out + '/failure.png' });
+  throw new Error('Painel industrial fechou após aplicar configuração.');
+}
+await page.getByRole('combobox', { name: /^Operação/ }).selectOption('1');
+await page.getByLabel('Quantidade', { exact: true }).fill('3');
+await page.getByRole('button', { name: 'Executar transação' }).click();
+await expect(page.getByRole('dialog').getByRole('status')).toContainText('Bits: 1, 0, 1', { timeout: 15000 });
+const coilsText = await page.getByRole('dialog').getByRole('status').innerText();
+await page.getByRole('combobox', { name: /^Operação/ }).selectOption('4');
+await page.getByLabel('Quantidade', { exact: true }).fill('2');
+await page.getByRole('button', { name: 'Executar transação' }).click();
+await expect(page.getByRole('dialog').getByRole('status')).toContainText('Registradores: 65535, 32768', {
+  timeout: 15000,
+});
+const inputRegistersText = await page.getByRole('dialog').getByRole('status').innerText();
 await page.screenshot({ path: out + '/modbus.png' });
 await page.getByRole('button', { name: 'Fechar', exact: true }).click();
 if (await page.getByRole('button', { name: 'Pausar simulação' }).count())
@@ -114,7 +151,7 @@ await expect(page.locator('.project-title')).toContainText('Salvo', { timeout: 1
 await page.reload();
 await page.getByRole('heading', { name: projectName, exact: true }).click();
 await page.getByRole('button', { name: 'Opções do laboratório' }).click();
-await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
+await page.getByRole('button', { name: 'Validar rede e cenários' }).click();
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
 await expect(page.getByLabel('Carregar cenário')).toContainText('Salvo: SCADA-PLC baseline');
 await expect(page.getByRole('cell', { name: 'Aprovado', exact: true })).toHaveCount(2);
@@ -142,7 +179,7 @@ const mobile = await page.evaluate(() => ({
 }));
 expect(mobile.bodyWidth).toBeLessThanOrEqual(mobile.viewport);
 await page.getByRole('button', { name: 'Opções do laboratório' }).click();
-await page.getByRole('button', { name: 'Validar fábrica e cenários' }).click();
+await page.getByRole('button', { name: 'Validar rede e cenários' }).click();
 await page.getByRole('button', { name: 'Cenários e SLA' }).click();
 await page
   .getByRole('dialog')
@@ -161,6 +198,8 @@ await writeFile(
     {
       scenarioText,
       modbusText,
+      coilsText,
+      inputRegistersText,
       captureText,
       realtime: { elapsedMs: elapsed, advancedMs: advanced, ratio: advanced / (elapsed * 5) },
       scenarioAccessibility: scenarioAxe.violations.map((v) => ({
@@ -172,6 +211,7 @@ await writeFile(
       mobile: { ...mobile, visibleDevices },
       mobileReports,
       errors,
+      failures,
     },
     null,
     2

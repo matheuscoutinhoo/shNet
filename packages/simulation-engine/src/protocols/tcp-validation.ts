@@ -48,8 +48,8 @@ export function validateTcp(snapshot: Snapshot) {
         connection.updatedAt > snapshot.clock ||
         (connection.responseAt !== undefined &&
           (connection.responseAt < connection.startedAt || connection.responseAt > connection.updatedAt)) ||
-        connection.bytesReceived !== tcpBytes(connection.received) ||
-        connection.bytesSent + tcpBytes(connection.sendBuffer) > TCP.buffer
+        connection.bytesReceived !== tcpBytes(connection.received, connection.encoding) ||
+        connection.bytesSent + tcpBytes(connection.sendBuffer, connection.encoding) > TCP.buffer
       )
         throw new Error('Contadores ou relógio TCP inválidos.');
       const timers = snapshot.queue.filter(
@@ -106,7 +106,8 @@ export function validateTcp(snapshot: Snapshot) {
         if (
           (flow.srtt === undefined) !== (flow.rttvar === undefined) ||
           (!pending && flow.flight.length) ||
-          connection.bytesReceived + flow.receiveQueue.reduce((n, p) => n + tcpBytes(p.data), 0) > TCP.buffer
+          connection.bytesReceived + flow.receiveQueue.reduce((n, p) => n + tcpBytes(p.data, p.encoding), 0) >
+            TCP.buffer
         )
           throw new Error('Janela/estimativa RTT TCP inválida.');
         const ranges = flow.receiveQueue
@@ -125,6 +126,7 @@ export function validateTcp(snapshot: Snapshot) {
               (i > 0 && ranges[i - 1].start + ranges[i - 1].length > r.start) ||
               r.packet.src !== connection.remoteIp ||
               r.packet.dst !== connection.localIp ||
+              r.packet.encoding !== connection.encoding ||
               r.packet.sourcePort !== connection.remotePort ||
               r.packet.destinationPort !== connection.localPort
           )
@@ -146,7 +148,8 @@ export function validateTcp(snapshot: Snapshot) {
             packet.destinationPort !== connection.remotePort ||
             packet.sequence !== next ||
             packet.traceId !== connection.id ||
-            tcpBytes(packet.data) > (connection.extensions?.local.mss ?? TCP.mss) ||
+            packet.encoding !== connection.encoding ||
+            tcpBytes(packet.data, packet.encoding) > (connection.extensions?.local.mss ?? TCP.mss) ||
             packet.bytes > TCP.maxMss + (packet.family ? 60 : 40) + tcpOptionBytes(packet.options) ||
             (segment.sentAt !== undefined && segment.sentAt > snapshot.clock)
           )

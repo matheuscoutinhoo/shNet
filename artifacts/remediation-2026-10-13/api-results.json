@@ -1,0 +1,32 @@
+{
+  "createStatus": 201,
+  "importStatus": 200,
+  "provenance": {
+    "sourceClock": 35000,
+    "sourceHash": "804acd044a407793b3e5b4394e6795e9177fe4e219c0dc1b18c00bad824cef43",
+    "revision": 2
+  },
+  "recoveryTampering": {
+    "expectedStatus": 400,
+    "observedStatus": 400,
+    "persisted": false
+  },
+  "validCompletionStatus": 200,
+  "authoritativeReplay": {
+    "status": 200,
+    "result": "matched"
+  },
+  "revisionConflict": {
+    "expectedStatus": 409,
+    "observedStatus": 409
+  },
+  "identicalCompletionRetry": {
+    "expectedStatus": 200,
+    "observedStatus": 200
+  },
+  "missingCsrf": {
+    "expectedStatus": 403,
+    "observedStatus": 403
+  },
+  "cleanupStatus": 200
+}

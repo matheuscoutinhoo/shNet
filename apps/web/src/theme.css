@@ -53,6 +53,7 @@
 }
 /* Canvas appearance is owned by the lab, independently of the dark platform. */
 .canvas-container {
+  color: var(--text);
   --xy-background-color: transparent;
   --xy-minimap-background-color: var(--canvas-stroke);
   color-scheme: light;
@@ -80,6 +81,9 @@
   --shadow: #102b401a;
   --canvas-text: #536777;
   --canvas-stroke: #fbfdff;
+}
+.canvas-container .overview-device strong {
+  color: var(--text);
 }
 .canvas-container.theme-gray {
   --canvas-stroke: #e7edf1;

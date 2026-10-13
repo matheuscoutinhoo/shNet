@@ -1,4 +1,4 @@
-import { evpnMacSchema, evpnWithdrawSchema } from './vxlan-model';
+import { evpnMacSchema, evpnWithdrawSchema, evpnImetSchema } from './vxlan-model';
 import { z } from 'zod';
 import { idSchema, ipv4Schema, timeSchema } from '../schemas';
 
@@ -17,6 +17,7 @@ export const bgpNeighborSchema = z
   .object({
     ip: ipv4Schema,
     remoteAs: asn,
+    updateSource: idSchema.optional(),
     passive: z.boolean().default(false),
     nextHopSelf: z.boolean().default(false),
     reflectorClient: z.boolean().default(false),
@@ -66,6 +67,8 @@ export const bgpMessageSchema = z.discriminatedUnion('type', [
       withdrawn: z.array(prefix).max(32),
       evpnAnnouncements: z.array(evpnMacSchema).max(16).optional(),
       evpnWithdrawn: z.array(evpnWithdrawSchema).max(16).optional(),
+      evpnImet: z.array(evpnImetSchema).max(16).optional(),
+      evpnImetWithdrawn: z.array(evpnImetSchema).max(16).optional(),
     })
     .strict(),
   z
@@ -93,6 +96,7 @@ export const bgpPeerSchema = z
     received: z.number().int().nonnegative(),
     advertised: z.array(bgpPathSchema).max(BGP.maxRoutes),
     evpnAdvertised: z.array(evpnMacSchema).max(512).optional(),
+    evpnImetAdvertised: z.array(evpnImetSchema).max(48).optional(),
   })
   .strict();
 export const bgpStateSchema = z

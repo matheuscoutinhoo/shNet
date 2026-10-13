@@ -510,7 +510,7 @@ export function Workspace({
                     setMore(false);
                   }}
                 >
-                  <Check size={16} /> Validar fábrica e cenários
+                  <Check size={16} /> Validar rede e cenários
                 </button>
                 <button
                   onClick={() => {

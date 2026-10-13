@@ -21,6 +21,10 @@ export function validateBgpConfig(device: Device, config: BgpConfig) {
     if (
       !isUnicast(peer.ip) ||
       device.interfaces.some((port) => port.ip === peer.ip) ||
+      (peer.updateSource !== undefined &&
+        !device.interfaces.some(
+          (p) => p.id === peer.updateSource && p.ip && p.mode === 'routed' && !p.vrf && !p.tunnel
+        )) ||
       (peer.reflectorClient && peer.remoteAs !== config.asn)
     )
       throw new Error('Vizinho BGP inválido; cliente de reflexão exige iBGP.');

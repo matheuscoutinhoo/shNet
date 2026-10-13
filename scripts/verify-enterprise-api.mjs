@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import console from 'node:console';
 import process from 'node:process';
-const out = 'artifacts/enterprise-datacenter-audit';
+const out = process.env.SHLAB_AUDIT_OUTPUT ?? 'artifacts/enterprise-datacenter-audit';
 const reference = await chromium.connectOverCDP('http://127.0.0.1:9223');
 const state = await reference.contexts()[0].storageState();
 const context = await chromium.launch({ channel: 'msedge', headless: true });
@@ -24,6 +24,7 @@ const save = await request.put(root + '/projects/' + project.id, {
 });
 const saved = await save.json();
 if (!save.ok()) throw new Error('Save: ' + save.status());
+const original = JSON.parse(await readFile(out + '/recovery-report-original.json', 'utf8'));
 const tampered = JSON.parse(await readFile(out + '/recovery-report-tampered.json', 'utf8'));
 const endpoint = root + '/projects/' + project.id + '/scenario-runs';
 const start = await request.post(endpoint, {
@@ -39,9 +40,11 @@ const conflict = await request.put(root + '/projects/' + project.id, {
   headers,
   data: { name: project.name, revision: saved.revision + 999, topology },
 });
+const validCompletion = await request.put(endpoint + '/' + run.id, { headers, data: { report: original } });
+const verified = await request.post(endpoint + '/' + run.id + '/verify', { headers });
 const duplicateCompletion = await request.put(endpoint + '/' + run.id, {
   headers,
-  data: { report: tampered },
+  data: { report: original },
 });
 const csrf = await request.post(endpoint, {
   headers: { Origin: 'http://127.0.0.1:5173' },
@@ -57,6 +60,11 @@ const results = {
     persisted: read.status === 'complete',
     recovery: completed.report?.faults[0]?.recovery[0],
   },
+  validCompletionStatus: validCompletion.status(),
+  authoritativeReplay: {
+    status: verified.status(),
+    result: (await verified.json()).verification?.replay?.status,
+  },
   revisionConflict: { expectedStatus: 409, observedStatus: conflict.status() },
   identicalCompletionRetry: { expectedStatus: 200, observedStatus: duplicateCompletion.status() },
   missingCsrf: { expectedStatus: 403, observedStatus: csrf.status() },
@@ -67,4 +75,15 @@ results.cleanupStatus = cleanup.status();
 await writeFile(out + '/api-results.json', JSON.stringify(results, null, 2));
 console.log(JSON.stringify(results));
 await context.close();
+if (
+  results.recoveryTampering.observedStatus !== 400 ||
+  results.recoveryTampering.persisted ||
+  results.validCompletionStatus !== 200 ||
+  results.authoritativeReplay.result !== 'matched' ||
+  results.identicalCompletionRetry.observedStatus !== 200 ||
+  results.revisionConflict.observedStatus !== 409 ||
+  results.missingCsrf.observedStatus !== 403 ||
+  cleanup.status() !== 200
+)
+  throw new Error('Falha na validação da API; consulte api-results.json.');
 process.exit(0);

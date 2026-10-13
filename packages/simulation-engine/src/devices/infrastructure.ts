@@ -68,6 +68,7 @@ export function processingDelay(e: SimulationEngine, d: Device) {
 }
 export function refreshInfrastructure(e: SimulationEngine, metrics = false) {
   const s = e.state;
+  const poweredLoads = new Map<string, boolean>();
   for (const d of s.devices) {
     const ups = d.infrastructure;
     if (ups?.kind !== 'ups') continue;
@@ -83,18 +84,22 @@ export function refreshInfrastructure(e: SimulationEngine, metrics = false) {
       const target = s.devices.find((p) => p.id === entry.device);
       if (!target) continue;
       const on = entry.requested && ups.output;
-      if (target.power !== on) {
-        target.power = on;
-        if (!on) {
-          target.arpTable = [];
-          target.macTable = [];
-        }
-        e.emit(
-          on ? 'LINK_UP' : 'LINK_DOWN',
-          target.id,
-          on ? 'UPS: alimentação disponível.' : 'UPS: bateria esgotada, sobrecarga ou saída desligada.'
-        );
+      poweredLoads.set(target.id, (poweredLoads.get(target.id) ?? false) || on);
+    }
+  }
+  for (const [id, on] of poweredLoads) {
+    const target = s.devices.find((d) => d.id === id)!;
+    if (target.power !== on) {
+      target.power = on;
+      if (!on) {
+        target.arpTable = [];
+        target.macTable = [];
       }
+      e.emit(
+        on ? 'LINK_UP' : 'LINK_DOWN',
+        target.id,
+        on ? 'UPS: alimentação disponível.' : 'UPS: bateria esgotada, sobrecarga ou saída desligada.'
+      );
     }
   }
   if (metrics) for (const d of s.devices) updateSystem(s, d);
@@ -119,8 +124,7 @@ export function passiveForward(e: SimulationEngine, d: Device, port: string, fra
   return true;
 }
 export function validateInfrastructure(s: Snapshot) {
-  const mounted = new Set<string>(),
-    powered = new Set<string>();
+  const mounted = new Set<string>();
   for (const d of s.devices) {
     const c = d.infrastructure;
     if (c?.kind === 'rack') {
@@ -164,6 +168,7 @@ export function validateInfrastructure(s: Snapshot) {
       }
     }
     if (c?.kind === 'ups') {
+      const localLoads = new Set<string>();
       if (c.lastAt > s.clock || c.remainingWh > c.capacityWh)
         throw new Error('UPS: capacidade/relógio inválidos.');
       for (const load of c.loads) {
@@ -173,10 +178,10 @@ export function validateInfrastructure(s: Snapshot) {
           target.id === d.id ||
           target.infrastructure?.kind === 'ups' ||
           target.poeDevice?.required ||
-          powered.has(target.id)
+          localLoads.has(target.id)
         )
-          throw new Error('UPS: carga inexistente, duplicada ou com outra alimentação.');
-        powered.add(target.id);
+          throw new Error('UPS: carga inexistente, duplicada na fonte ou incompatível com UPS.');
+        localLoads.add(target.id);
       }
     }
     if (d.system && (d.system.lastAt > s.clock || d.system.windowAt > s.clock))

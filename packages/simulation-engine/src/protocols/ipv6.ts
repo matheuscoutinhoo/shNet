@@ -11,6 +11,7 @@ import { receiveTcp } from './tcp';
 import { receiveTcpMtu } from './tcp-pmtud';
 import { permitIds } from './ids';
 import { receiveUdp6 } from './udp6';
+import { permitFirewall6 } from './firewall6';
 
 export function configureRoute6(e: SimulationEngine, d: Device, input: unknown, remove = false) {
   const r = route6Schema.parse(input),
@@ -87,6 +88,8 @@ export function sendIp6(
     'Longest prefix match IPv6 /' + route.prefix + ' (' + route.origin + ') via ' + route.nextHop + '.',
     { port: route.port.id }
   );
+  if (ingress && !permitFirewall6(e, d, ingress, route.port, packet)) return;
+  if (!permit6(e, d, route.port, 'out', packet)) return;
   if (packet.bytes > route.port.mtu) {
     e.drop(d, 'IPv6: pacote excede MTU ' + route.port.mtu + '; roteador não fragmenta.', route.port.id);
     if (ingress) error6(e, d, ingress, packet, 'packet-too-big', route.port.mtu);

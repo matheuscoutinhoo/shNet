@@ -12,6 +12,7 @@ import {
   type Snapshot,
 } from '@shlab/engine';
 import type { Database } from './db';
+import { databaseJson } from './database-json';
 import { checkCsrf, currentUser, error } from './security';
 type StoredChallenge = ChallengeRecord & { baseline: Snapshot };
 type Project = { id: string; topology: Snapshot; revision: number };
@@ -93,7 +94,7 @@ export async function registerLearning(
       const row = (
         await tx.query<StoredChallenge>(
           'INSERT INTO project_challenges(project_id,definition,baseline) VALUES($1,$2,$3) ON CONFLICT(project_id) DO UPDATE SET definition=EXCLUDED.definition,baseline=EXCLUDED.baseline,revision=project_challenges.revision+1,updated_at=now() RETURNING *',
-          [p.id, JSON.stringify(definition), JSON.stringify(p.topology)]
+          [p.id, databaseJson(definition), databaseJson(p.topology)]
         )
       )[0];
       // Editing the goal invalidates previous evidence and its points; revisions cannot farm points.
@@ -117,7 +118,7 @@ export async function registerLearning(
       return (
         await tx.query<Project>(
           'UPDATE projects SET topology=$1,revision=revision+1,updated_at=now() WHERE id=$2 RETURNING *',
-          [JSON.stringify(c.baseline), p.id]
+          [databaseJson(c.baseline), p.id]
         )
       )[0];
     });
@@ -146,7 +147,7 @@ export async function registerLearning(
         return (
           await tx.query<ProgressRow>(
             "INSERT INTO learning_progress(project_id,goal,revision,definition_revision,result,best_score,completed) VALUES($1,'challenge',$2,$3,$4,$5,$6) ON CONFLICT(project_id,goal) DO UPDATE SET revision=EXCLUDED.revision,definition_revision=EXCLUDED.definition_revision,result=EXCLUDED.result,best_score=greatest(learning_progress.best_score,EXCLUDED.best_score),completed=learning_progress.completed OR EXCLUDED.completed,checked_at=now() RETURNING *",
-            [p.id, p.revision, c.revision, JSON.stringify(result), result.score, result.complete]
+            [p.id, p.revision, c.revision, databaseJson(result), result.score, result.complete]
           )
         )[0];
       });
@@ -205,7 +206,7 @@ export async function registerLearning(
         const stored = (
           await tx.query<ProgressRow>(
             "INSERT INTO learning_progress(project_id,goal,revision,result,best_score,completed,tutorial_step) VALUES($1,'tutorial',$2,$3,$4,$5,$6) ON CONFLICT(project_id,goal) DO UPDATE SET revision=EXCLUDED.revision,result=EXCLUDED.result,best_score=greatest(learning_progress.best_score,EXCLUDED.best_score),completed=EXCLUDED.completed,tutorial_step=EXCLUDED.tutorial_step,checked_at=now() RETURNING *",
-            [p.id, p.revision, JSON.stringify(result), score, complete, step]
+            [p.id, p.revision, databaseJson(result), score, complete, step]
           )
         )[0];
         return {

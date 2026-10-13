@@ -73,4 +73,8 @@ Wireless entrega AP/cliente, SSID, associação/negociação de credencial, cana
 
 O executor foi ampliado para nove protocolos e 17 modelos com falhas de porta/serviço/UPS, assertions de aplicações e ensaios persistidos com origem imutável. [ADR-043](adr/043-scenario-protocols-persistent-reports.md).
 
-O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).
+O template de fábrica e o menu **Validar rede e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).
+
+## Correções enterprise/datacenter e contrato atual
+
+O [ADR-044](adr/044-enterprise-integrity-fabric-binary-modbus.md) documenta zonas IPv4/IPv6, loopbacks e IMET estrito, DHCP T1/T2, UPS A/B, Modbus binário 01/02/03/04/05/06/15/16, PCAP VXLAN, executor dual stack, assertions, checkpoints e reexecução no servidor. A cobertura completa e as funcionalidades adicionais permanecem acompanhadas no [plano consolidado](consolidated-remediation-plan.md); as descrições de incrementos anteriores acima são históricas.

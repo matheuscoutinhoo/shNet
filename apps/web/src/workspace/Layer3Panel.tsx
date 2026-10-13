@@ -23,6 +23,30 @@ export function Layer3Panel({ lab, device }: { lab: LabController; device: Devic
         </label>
       )}
       <section>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const f = new FormData(event.currentTarget);
+            lab.change((e) => e.addLoopback(device.id, Number(f.get('index'))));
+          }}
+        >
+          <label>
+            Índice da loopback{' '}
+            <input name="index" type="number" min={0} max={999} defaultValue={0} required />
+          </label>
+          <button className="button small">Criar loopback /32</button>
+        </form>
+        <p className="muted">
+          Configure o IPv4 /32 na aba Portas e anuncie rotas de retorno por ambos os caminhos. Use a loopback
+          como underlay do VTEP.
+        </p>
+        {device.interfaces
+          .filter((p) => p.loopback)
+          .map((p) => (
+            <p key={p.id}>
+              {p.name} · {p.ip ?? 'IPv4 pendente'}
+            </p>
+          ))}
         <h4>Criar interface {device.type === 'switch' ? 'VLAN (SVI)' : '802.1Q'}</h4>
         <form
           onSubmit={(event) => {

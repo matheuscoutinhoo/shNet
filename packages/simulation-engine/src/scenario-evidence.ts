@@ -1,5 +1,5 @@
 import type { SimulationEngine } from './core/engine';
-import type { Device, NetworkEvent, Packet } from './model';
+import type { Device, NetworkEvent, Packet, Packet6 } from './model';
 import type { Scenario } from './scenarios-model';
 export interface ScenarioEvidence {
   cause: 'policy' | 'link' | 'transport' | 'response' | 'timeout' | 'unknown';
@@ -34,6 +34,10 @@ export function scenarioEvidence(
       );
     return false;
   };
+  const packet6Matches = (p: Packet6) =>
+    Boolean(
+      id && (p.protocol === 'ICMPv6' ? p.probeId === id : p.protocol === 'TCP' && p.segment.traceId === id)
+    );
   const events = [
     ...new Map(
       [...(e.state.diagnostics ?? []), ...e.state.events, ...(e.state.capture?.frames ?? [])].map((event) => [
@@ -48,7 +52,8 @@ export function scenarioEvidence(
       event.time <= until &&
       Boolean(
         (event.packet && packetMatches(event.packet)) ||
-        (event.frame?.packet && packetMatches(event.frame.packet))
+        (event.frame?.packet && packetMatches(event.frame.packet)) ||
+        (event.frame?.ipv6 && packet6Matches(event.frame.ipv6))
       )
   );
   const failures = related.filter((event) =>

@@ -15,7 +15,9 @@ export function VxlanPanel({ lab, device }: { lab: LabController; device: Device
       </p>
       <p className="muted">
         Configure a WAN como routed com IPv4 e rotas de retorno. Para EVPN, habilite roteamento no switch e
-        configure vizinhos na aba BGP. A replicação de broadcast usa a lista de peers.
+        configure vizinhos na aba BGP. peerPolicy static usa peers e aprendizado de dados; peerPolicy evpn
+        exige membros IMET importados por RT para tráfego e flooding. Uma loopback /32 desacopla o VTEP da
+        interface de saída.
       </p>
       {device.interfaces
         .filter((p) => p.vxlan)
@@ -73,6 +75,7 @@ export function VxlanPanel({ lab, device }: { lab: LabController; device: Device
                   underlay: 'p1',
                   peers: ['198.51.100.2'],
                   evpn: true,
+                  peerPolicy: 'evpn',
                   routeTarget: '65000:10010',
                   mtu: 1450,
                 },
@@ -122,7 +125,8 @@ export function VxlanPanel({ lab, device }: { lab: LabController; device: Device
       </div>
       <p className="muted">
         Modelo limitado a anúncios locais MAC/IP, importação por RT e mobilidade por sequência. Não há
-        multihoming/ESI, eleição DF, IMET dinâmico, rotas Type 5, proxy ARP ou codec MP-BGP binário.
+        multihoming/ESI, eleição DF, rotas Type 5, proxy ARP ou codec MP-BGP binário. IMET oferece membros
+        dinâmicos para replicação ingress no modelo.
       </p>
     </div>
   );

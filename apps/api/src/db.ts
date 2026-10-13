@@ -2,6 +2,7 @@ import { Pool, type PoolClient } from 'pg';
 import { PGlite } from '@electric-sql/pglite';
 import { readFile, readdir, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { decodeDatabaseRows } from './database-json';
 export interface Database {
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
   transaction<T>(fn: (db: Database) => Promise<T>): Promise<T>;
@@ -15,7 +16,7 @@ export interface Database {
 function pgConnection(client: Pool | PoolClient): Database {
   return {
     async query<T>(sql: string, params: unknown[] = []) {
-      return (await client.query(sql, params)).rows as T[];
+      return decodeDatabaseRows((await client.query(sql, params)).rows as T[]);
     },
     async transaction<T>(fn: (db: Database) => Promise<T>) {
       const connection = client instanceof Pool ? await client.connect() : client;
@@ -109,7 +110,7 @@ export async function createEmbedded(path?: string): Promise<Database> {
   const pg = new PGlite(path);
   const wrap = (db: Pick<PGlite, 'query' | 'transaction'>): Database => ({
     async query<T>(sql: string, params: unknown[] = []) {
-      return (await db.query<T>(sql, params)).rows;
+      return decodeDatabaseRows((await db.query<T>(sql, params)).rows);
     },
     async transaction<T>(fn: (db: Database) => Promise<T>) {
       return db.transaction((tx) => fn(wrap(tx as unknown as PGlite)));

@@ -13,7 +13,20 @@ export const TCP = {
   idleMs: 120000,
   timeWaitMs: 120000,
 } as const;
-export const tcpBytes = (data: string) => new TextEncoder().encode(data).length;
+export type TcpEncoding = 'binary' | undefined;
+// Binary buffers are byte strings (one code unit per octet), so JSON snapshots
+// remain portable without converting arbitrary protocol bytes through UTF-8.
+export const tcpBytes = (data: string, encoding?: TcpEncoding) =>
+  encoding === 'binary' ? data.length : new TextEncoder().encode(data).length;
+export const tcpOctets = (data: string, encoding?: TcpEncoding) =>
+  encoding === 'binary' ? Uint8Array.from(data, (c) => c.charCodeAt(0)) : new TextEncoder().encode(data);
+const tcpBufferSchema = z
+  .string()
+  .max(TCP.buffer)
+  .refine((s) => !/[\uD800-\uDFFF]/u.test(s));
+const validBuffer = (data: string, encoding?: TcpEncoding) =>
+  tcpBytes(data, encoding) <= TCP.buffer &&
+  (encoding !== 'binary' || Array.from(data).every((c) => c.charCodeAt(0) <= 255));
 export const tcpAdd = (sequence: number, bytes: number) => (sequence + bytes) >>> 0;
 export const tcpDistance = (from: number, to: number) => (to - from) >>> 0;
 export const tcpTextSchema = z
@@ -70,6 +83,7 @@ export const tcpPacketSchema = z
     ecn: z.number().int().min(0).max(3).optional(),
     options: tcpOptionsSchema.optional(),
     protocol: z.literal('TCP'),
+    encoding: z.literal('binary').optional(),
     sourcePort: portNumberSchema,
     destinationPort: portNumberSchema,
     sequence: uint32Schema,
@@ -79,16 +93,19 @@ export const tcpPacketSchema = z
       .min(1)
       .max(7),
     window: z.number().int().min(0).max(65535),
-    data: tcpTextSchema,
+    data: tcpBufferSchema,
     traceId: idSchema.optional(),
     bytes: z.number().int().min(40).max(65535),
   })
   .strict()
   .refine(
     (packet) =>
+      validBuffer(packet.data, packet.encoding) &&
       new Set(packet.flags).size === packet.flags.length &&
       packet.bytes ===
-        (packet.family === 6 ? 60 : 40) + tcpOptionBytes(packet.options) + tcpBytes(packet.data) &&
+        (packet.family === 6 ? 60 : 40) +
+          tcpOptionBytes(packet.options) +
+          tcpBytes(packet.data, packet.encoding) &&
       tcpOptionBytes(packet.options) <= 40 &&
       (!(packet.options?.mss || packet.options?.sackPermitted) || packet.flags.includes('SYN')) &&
       (!packet.options?.sack || (!packet.flags.includes('SYN') && packet.flags.includes('ACK'))) &&
@@ -106,7 +123,9 @@ export const tcpPacketSchema = z
   );
 export type TcpPacket = z.infer<typeof tcpPacketSchema>;
 export const tcpLength = (packet: TcpPacket) =>
-  tcpBytes(packet.data) + Number(packet.flags.includes('SYN')) + Number(packet.flags.includes('FIN'));
+  tcpBytes(packet.data, packet.encoding) +
+  Number(packet.flags.includes('SYN')) +
+  Number(packet.flags.includes('FIN'));
 
 export const tcpServiceSchema = z
   .object({
@@ -163,6 +182,7 @@ export const tcpConnectionSchema = z
   .object({
     id: idSchema,
     role: z.enum(['client', 'server']),
+    encoding: z.literal('binary').optional(),
     vrf: z
       .string()
       .regex(/^[a-zA-Z0-9_-]{1,32}$/)
@@ -214,8 +234,8 @@ export const tcpConnectionSchema = z
     sendNext: uint32Schema,
     receiveNext: uint32Schema,
     peerWindow: z.number().int().min(0).max(65535),
-    sendBuffer: tcpTextSchema,
-    received: tcpTextSchema,
+    sendBuffer: tcpBufferSchema,
+    received: tcpBufferSchema,
     closeRequested: z.boolean(),
     peerClosed: z.boolean(),
     httpHandled: z.boolean(),
@@ -250,7 +270,11 @@ export const tcpConnectionSchema = z
     expiresAt: timeSchema.optional(),
     pending: tcpOutstandingSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (c) => validBuffer(c.sendBuffer, c.encoding) && validBuffer(c.received, c.encoding),
+    'Buffer TCP inválido.'
+  );
 export type TcpConnection = z.infer<typeof tcpConnectionSchema>;
 export const tcpFinished = (connection: TcpConnection) =>
   ['CLOSED', 'RESET', 'TIMED-OUT'].includes(connection.state);

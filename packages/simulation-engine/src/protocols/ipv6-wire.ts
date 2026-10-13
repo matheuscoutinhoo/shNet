@@ -27,7 +27,10 @@ export function permit6(
   );
   if (rule) rule.hits++;
   if (rule?.action === 'permit') return true;
-  e.drop(d, 'ACL IPv6 ' + direction + ': ' + (rule ? rule.action : 'deny implícito') + '.', p.id);
+  const frame: Frame = { src: p.mac, dst: p.mac, etherType: 'IPv6', ipv6: packet, hops: 1 };
+  const reason = 'ACL IPv6 ' + direction + ': ' + (rule ? rule.action : 'deny implícito') + '.';
+  e.emit('ACL_DENY', d.id, reason, { port: p.id, frame });
+  e.drop(d, reason, p.id, frame);
   return false;
 }
 export function frame6(e: SimulationEngine, d: Device, p: NetworkInterface, packet: Packet6, mac?: string) {

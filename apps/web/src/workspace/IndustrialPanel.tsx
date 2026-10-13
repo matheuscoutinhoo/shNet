@@ -11,23 +11,30 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
   );
   const [request, setRequest] = useState(''),
     [requestSource, setRequestSource] = useState('');
+  const [operation, setOperation] = useState(3),
+    [requestQuantity, setRequestQuantity] = useState(1);
   const target = lab.engine.state.devices.find((d) => d.id === plc);
   const connection = lab.engine.state.devices
     .find((d) => d.id === requestSource)
     ?.tcpConnections?.find((c) => c.id === request);
   let response = 'Aguardando resposta';
-  if (connection?.received.includes('\n')) {
+  if (connection?.responseAt !== undefined) {
     try {
-      const decoded = decodeModbus(connection.received.split('\n')[0]);
+      const decoded = decodeModbus(connection.received);
       response = decoded.exception
         ? `Exceção Modbus ${decoded.exception}`
-        : decoded.function === 3
+        : [3, 4].includes(decoded.function)
           ? 'Registradores: ' +
             Array.from(
               { length: decoded.pdu[1] / 2 },
               (_, i) => decoded.pdu[2 + i * 2] * 256 + decoded.pdu[3 + i * 2]
             ).join(', ')
-          : 'Escrita confirmada';
+          : [1, 2].includes(decoded.function)
+            ? 'Bits: ' +
+              Array.from({ length: Math.min(requestQuantity, Number(decoded.pdu[1]) * 8) }, (_, i) =>
+                Number(!!(decoded.pdu[2 + (i >> 3)] & (1 << (i % 8))))
+              ).join(', ')
+            : 'Escrita confirmada';
     } catch (e) {
       response = (e as Error).message;
     }
@@ -35,8 +42,8 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
   return (
     <>
       <p>
-        Modbus funções 03, 06 e 16 com registradores de 16 bits. Os endereços começam em zero. A aplicação
-        simula a comunicação; não executa firmware ou lógica de processo do PLC.
+        Modbus TCP binário: funções 01/02/03/04/05/06/15/16, coils e registradores de 16 bits. Os endereços
+        começam em zero. A aplicação simula a comunicação; não executa firmware ou lógica de processo do PLC.
       </p>
       <label>
         PLC / servidor
@@ -67,12 +74,32 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
                 e,
                 e.device(plc),
                 modbusConfigSchema.parse({
+                  ...target.modbus,
                   enabled: f.get('enabled') === 'on',
                   port: Number(f.get('port')),
                   unit: Number(f.get('unit')),
                   registers: String(f.get('registers'))
                     .split(',')
                     .map((x) => Number(x.trim())),
+                  inputRegisters: String(f.get('inputRegisters')).trim()
+                    ? String(f.get('inputRegisters')).split(',').map(Number)
+                    : [],
+                  coils: String(f.get('coils')).trim()
+                    ? String(f.get('coils'))
+                        .split(',')
+                        .map((v) => {
+                          if (!/^[01]$/.test(v.trim())) throw new Error('Coils exigem 0 ou 1.');
+                          return v.trim() === '1';
+                        })
+                    : [],
+                  discreteInputs: String(f.get('discreteInputs')).trim()
+                    ? String(f.get('discreteInputs'))
+                        .split(',')
+                        .map((v) => {
+                          if (!/^[01]$/.test(v.trim())) throw new Error('Entradas exigem 0 ou 1.');
+                          return v.trim() === '1';
+                        })
+                    : [],
                 })
               )
             );
@@ -113,10 +140,35 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
               required
             />
           </label>
+          <label>
+            Input registers separados por vírgula
+            <textarea
+              name="inputRegisters"
+              rows={2}
+              defaultValue={target.modbus?.inputRegisters?.join(',') ?? ''}
+            />
+          </label>
+          <label>
+            Coils (0/1) separados por vírgula
+            <textarea
+              name="coils"
+              rows={2}
+              defaultValue={target.modbus?.coils?.map(Number).join(',') ?? ''}
+            />
+          </label>
+          <label>
+            Entradas discretas (0/1) separadas por vírgula
+            <textarea
+              name="discreteInputs"
+              rows={2}
+              defaultValue={target.modbus?.discreteInputs?.map(Number).join(',') ?? ''}
+            />
+          </label>
           <button className="button">Aplicar configuração PLC</button>
         </form>
       )}
       <form
+        key={'request-' + plc}
         onSubmit={(event) => {
           event.preventDefault();
           const f = new FormData(event.currentTarget),
@@ -133,12 +185,11 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
                   function: func,
                   address: Number(f.get('address')),
                   quantity: Number(f.get('quantity')),
-                  values:
-                    func === 3
-                      ? []
-                      : String(f.get('values'))
-                          .split(',')
-                          .map((x) => Number(x.trim())),
+                  values: [1, 2, 3, 4].includes(func)
+                    ? []
+                    : String(f.get('values'))
+                        .split(',')
+                        .map((x) => Number(x.trim())),
                 },
                 target?.modbus?.port ?? 502
               ),
@@ -147,6 +198,7 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
           if (id) {
             setRequest(id);
             setRequestSource(source);
+            setRequestQuantity(Number(f.get('quantity')));
             lab.setPlaybackMode('realtime');
             lab.setPlaying(true);
           }
@@ -164,7 +216,12 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
         </label>
         <label>
           Operação
-          <select name="function">
+          <select name="function" value={operation} onChange={(e) => setOperation(Number(e.target.value))}>
+            <option value="1">01 · Ler coils</option>
+            <option value="2">02 · Ler entradas discretas</option>
+            <option value="4">04 · Ler input registers</option>
+            <option value="5">05 · Escrever coil (0/1)</option>
+            <option value="15">15 · Escrever coils (0/1)</option>
             <option value="3">03 — Ler holding registers</option>
             <option value="6">06 — Escrever um registro</option>
             <option value="16">16 — Escrever múltiplos</option>
@@ -172,7 +229,14 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
         </label>
         <label>
           Unit ID
-          <input name="unit" type="number" min={1} max={247} defaultValue={1} required />
+          <input
+            name="unit"
+            type="number"
+            min={1}
+            max={247}
+            defaultValue={target?.modbus?.unit ?? 1}
+            required
+          />
         </label>
         <label>
           Endereço inicial
@@ -180,7 +244,24 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
         </label>
         <label>
           Quantidade
-          <input name="quantity" type="number" min={1} max={125} defaultValue={1} required />
+          <input
+            name="quantity"
+            type="number"
+            min={1}
+            max={
+              [1, 2].includes(operation)
+                ? 2000
+                : operation === 15
+                  ? 1968
+                  : [5, 6].includes(operation)
+                    ? 1
+                    : operation === 16
+                      ? 123
+                      : 125
+            }
+            defaultValue={1}
+            required
+          />
         </label>
         <label>
           Valores para escrita

@@ -1,0 +1,77 @@
+{
+  "contrast": [
+    {
+      "background": "light",
+      "mode": "overview",
+      "violations": []
+    },
+    {
+      "background": "light",
+      "mode": "detail",
+      "violations": []
+    },
+    {
+      "background": "light",
+      "mode": "selected",
+      "violations": []
+    },
+    {
+      "background": "light",
+      "mode": "mobile",
+      "violations": []
+    },
+    {
+      "background": "gray",
+      "mode": "overview",
+      "violations": []
+    },
+    {
+      "background": "gray",
+      "mode": "detail",
+      "violations": []
+    },
+    {
+      "background": "gray",
+      "mode": "selected",
+      "violations": []
+    },
+    {
+      "background": "gray",
+      "mode": "mobile",
+      "violations": []
+    },
+    {
+      "background": "dark",
+      "mode": "overview",
+      "violations": []
+    },
+    {
+      "background": "dark",
+      "mode": "detail",
+      "violations": []
+    },
+    {
+      "background": "dark",
+      "mode": "selected",
+      "violations": []
+    },
+    {
+      "background": "dark",
+      "mode": "mobile",
+      "violations": []
+    }
+  ],
+  "durableRetry": {
+    "failureRetained": true,
+    "reloadRecovered": true,
+    "retrySaved": true,
+    "localCopyRemoved": true,
+    "authoritativeReplay": "matched",
+    "doubleFailureExplained": true
+  },
+  "errors": [],
+  "form": {
+    "hostnameMapped": true,
+    "durationMs": 2000
+  }
+}

@@ -182,7 +182,8 @@ export function receiveDhcpServer(
     const listener = device.interfaces.find((entry) => entry.id === pool.port);
     if (!listener?.adminUp || !listener.ip || (packet.dst !== DHCP.broadcastIp && packet.dst !== listener.ip))
       return false;
-    if (relayed) return pool.relayAddress === message.giaddr;
+    if (relayed)
+      return pool.relayAddress === message.giaddr || (pool.relayAddresses ?? []).includes(message.giaddr!);
     if (renewal) return sameSubnet(message.clientIp, pool.network, pool.prefix);
     return !pool.relayAddress && pool.port === port.id;
   });

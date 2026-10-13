@@ -1,5 +1,7 @@
 # ADR-043 — Protocolos e relatórios persistidos dos ensaios industriais
 
+> Registro histórico deste incremento. O [ADR-044](044-enterprise-integrity-fabric-binary-modbus.md) atualiza IMET/loopbacks, Modbus binário e funções adicionais, executor dual stack, checkpoints e verificação no servidor. Os limites descritos abaixo representam a versão original.
+
 Data: 2026-10-13. Escopo: fábrica PLC/HMI com Modbus TCP e rede IP. Complementa o [ADR-042](042-factory-modbus-scenarios-remediation.md).
 
 ## Problema e comportamento entregue

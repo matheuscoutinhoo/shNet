@@ -6,6 +6,7 @@ import { labs, makeLab, evaluateLab, type LabId } from '@shlab/engine';
 import { recordActivity } from './activity';
 import { checkCsrf, currentUser, error } from './security';
 import type { Database } from './db';
+import { databaseJson } from './database-json';
 interface Project {
   id: string;
   user_id: string;
@@ -32,7 +33,7 @@ export async function registerProjects(
   app.get('/api/projects', async (req) => {
     const user = await owner(req);
     return db.query(
-      "SELECT p.id,p.name,p.revision,p.favorite,p.updated_at,p.mode,p.lab_id,jsonb_array_length(p.topology->'devices') AS device_count,l.passed,l.total,l.completed FROM projects p LEFT JOIN lab_progress l ON l.project_id=p.id WHERE p.user_id=$1 ORDER BY p.favorite DESC,p.updated_at DESC",
+      "SELECT p.id,p.name,p.revision,p.favorite,p.updated_at,p.mode,p.lab_id,CASE WHEN p.topology->>'__shlabJsonEncoding'='shlab-json-utf8-base64-v1' THEN (p.topology->>'deviceCount')::integer ELSE jsonb_array_length(p.topology->'devices') END AS device_count,l.passed,l.total,l.completed FROM projects p LEFT JOIN lab_progress l ON l.project_id=p.id WHERE p.user_id=$1 ORDER BY p.favorite DESC,p.updated_at DESC",
       [user]
     );
   });
@@ -63,7 +64,7 @@ export async function registerProjects(
       const created = (
         await tx.query<Project>(
           'INSERT INTO projects(id,user_id,name,topology,mode,lab_id) VALUES($1,$2,$3,$4,$5,$6) RETURNING *',
-          [randomUUID(), user, body.name, JSON.stringify(topology), body.mode, body.labId ?? null]
+          [randomUUID(), user, body.name, databaseJson(topology), body.mode, body.labId ?? null]
         )
       )[0];
       await recordActivity(tx, user, created.id, 'created', created.name, created.revision);
@@ -123,7 +124,7 @@ export async function registerProjects(
               project.revision,
               result.passed,
               result.total,
-              JSON.stringify(result),
+              databaseJson(result),
               result.complete,
               Math.floor((100 * result.passed) / Math.max(1, result.total)),
             ]
@@ -153,7 +154,7 @@ export async function registerProjects(
       const project = (
         await tx.query<Project>(
           'UPDATE projects SET name=$1,topology=$2,revision=revision+1,updated_at=now() WHERE id=$3 AND user_id=$4 AND revision=$5 RETURNING *',
-          [body.name, JSON.stringify(topology), id, user, body.revision]
+          [body.name, databaseJson(topology), id, user, body.revision]
         )
       )[0];
       if (project) await recordActivity(tx, user, id, 'updated', project.name, project.revision);
@@ -236,7 +237,7 @@ export async function registerProjects(
       const version = (
         await tx.query(
           'INSERT INTO topology_versions(id,project_id,label,topology) VALUES($1,$2,$3,$4) RETURNING id,label,created_at',
-          [randomUUID(), id, body.label, JSON.stringify(project.topology)]
+          [randomUUID(), id, body.label, databaseJson(project.topology)]
         )
       )[0];
       await recordActivity(tx, user, id, 'snapshot', project.name, project.revision);

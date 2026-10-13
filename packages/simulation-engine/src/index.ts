@@ -97,3 +97,6 @@ export * from './wire/dns-codec';
 export * from './wire/pcap';
 
 export * from './factory-scenarios';
+export * from './enterprise-scenarios';
+export * from './version';
+export * from './scenario-assertions';

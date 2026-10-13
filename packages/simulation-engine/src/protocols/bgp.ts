@@ -161,6 +161,7 @@ function resetPeer(engine: SimulationEngine, device: Device, peer: BgpPeer, reas
   device.bgp!.rib = device.bgp!.rib.filter((route) => route.peer !== peer.ip);
   peer.advertised = [];
   delete peer.evpnAdvertised;
+  delete peer.evpnImetAdvertised;
   withdrawEvpnPeer(engine, device, peer.ip);
   delete peer.connection;
   delete peer.remoteId;
@@ -243,7 +244,7 @@ export function refreshBgp(engine: SimulationEngine) {
     if (!device.bgp?.enabled) continue;
     for (const peer of device.bgp.peers) {
       const connection = device.tcpConnections?.find((entry) => entry.id === peer.connection);
-      const route = bgpNextHop(device, peer.ip);
+      const route = bgpNextHop(device, peer.ip, engine.state);
       const usable = route && interfaceOperational(engine.state, device, route.port);
       if (
         (!device.power || (connection && !connectionOpen(connection)) || (connection && !usable)) &&
@@ -295,7 +296,13 @@ export function handleBgpTick(engine: SimulationEngine, action: BgpTimer) {
     } else if (!active.length && !config.passive && peer.retryAt <= engine.state.clock) {
       peer.retryAt = engine.state.clock + BGP.retryMs;
       try {
-        const id = openTcp(engine, device, peer.ip, BGP.port, '', false, setup);
+        const source = config.updateSource && device.interfaces.find((p) => p.id === config.updateSource);
+        if (source && !interfaceOperational(engine.state, device, source))
+          throw new Error('Update source indisponível.');
+        const id = openTcp(engine, device, peer.ip, BGP.port, '', false, (c) => {
+          setup(c);
+          if (source) c.localIp = source.ip!;
+        });
         peer.connection = id;
         peerState(engine, device, peer, 'Connect');
       } catch {
@@ -395,7 +402,10 @@ function receiveMessage(
     return;
   }
   if (
-    (message.evpnAnnouncements?.length || message.evpnWithdrawn?.length) &&
+    (message.evpnAnnouncements?.length ||
+      message.evpnWithdrawn?.length ||
+      message.evpnImet?.length ||
+      message.evpnImetWithdrawn?.length) &&
     (!connection.bgpOpen?.evpn || !evpnEnabled(device))
   ) {
     fail('EVPN não negociado no OPEN', 3);

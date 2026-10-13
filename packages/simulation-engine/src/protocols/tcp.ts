@@ -11,7 +11,6 @@ import {
   tcpDistance,
   tcpFinished,
   tcpLength,
-  tcpTextSchema,
   tcpOptionBytes,
   type TcpConnection,
   type TcpPacket,
@@ -107,7 +106,6 @@ export function openTcp(
   const ipv6 = target.includes(':');
   if (ipv6) target = normalize6(target);
   portNumberSchema.parse(port);
-  tcpTextSchema.parse(data);
   requireVrf(device, vrf);
   if (
     (device.type === 'switch' &&
@@ -159,6 +157,7 @@ export function openTcp(
     'client',
     'manual'
   );
+  onCreated?.(connection);
   queueTcpText(connection, data);
   if (connection.extensions?.local.pmtud) {
     const mtu = ipv6 ? route6?.port.mtu : resolveRoute(device, target, vrf)?.port.mtu;
@@ -171,7 +170,6 @@ export function openTcp(
     }
   }
   connection.closeRequested = autoClose;
-  onCreated?.(connection);
   engine.emit(
     'TCP_STATE_CHANGED',
     device.id,
@@ -198,7 +196,11 @@ export function flushTcp(engine: SimulationEngine, device: Device, connection: T
         : connection.extensions.pathMtu -
           (connection.localIp.includes(':') ? 60 : 40) -
           tcpOptionBytes(makeTcpPacket(connection, ['ACK'], '', engine.state.clock).options);
-    const data = takeTcpText(connection.sendBuffer, Math.min(f.mss, available, mtuLimit));
+    const data = takeTcpText(
+      connection.sendBuffer,
+      Math.min(f.mss, available, mtuLimit),
+      connection.encoding
+    );
     if (!data) break;
     connection.sendBuffer = connection.sendBuffer.slice(data.length);
     sendTcpSegment(engine, device, connection, ['ACK', 'PSH'], data);
@@ -296,6 +298,7 @@ export function receiveTcp(
       'server',
       service.kind
     );
+    connection.encoding = packet.encoding;
     connection.receiveNext = tcpAdd(packet.sequence, 1);
     negotiateTcpExtensions(connection, packet, engine.state.clock);
     connection.peerWindow = packet.window;
@@ -304,6 +307,10 @@ export function receiveTcp(
     return;
   }
   const c = connection;
+  if (packet.data && packet.encoding !== c.encoding) {
+    engine.drop(device, 'Representação dos octetos TCP incompatível com a conexão.');
+    return;
+  }
   if (packet.flags.includes('RST')) {
     const valid =
       c.state === 'SYN-SENT'
@@ -360,7 +367,7 @@ export function receiveTcp(
     length = tcpLength(packet),
     old = tcpDistance(packet.sequence, c.receiveNext);
   if (
-    !tcpInReceiveWindow(c, packet.sequence, tcpBytes(packet.data)) &&
+    !tcpInReceiveWindow(c, packet.sequence, tcpBytes(packet.data, packet.encoding)) &&
     !(length && old < 0x80000000 && old <= length)
   ) {
     if (length) sendTcpSegment(engine, device, c, ['ACK']);
@@ -424,8 +431,8 @@ export function receiveTcp(
         if (c.extensions) c.extensions.lastOutOfOrder = packet.sequence;
       }
     } else if (old < length) {
-      const prefix = takeTcpText(packet.data, old);
-      if (tcpBytes(prefix) === old) {
+      const prefix = takeTcpText(packet.data, old, packet.encoding);
+      if (tcpBytes(prefix, packet.encoding) === old) {
         packet = {
           ...packet,
           sequence: c.receiveNext,
@@ -452,14 +459,14 @@ export function receiveTcp(
 }
 function acceptTcpPayload(engine: SimulationEngine, device: Device, c: TcpConnection, packet: TcpPacket) {
   if (packet.data) {
-    if (c.peerClosed || c.bytesReceived + tcpBytes(packet.data) > TCP.buffer) {
+    if (c.peerClosed || c.bytesReceived + tcpBytes(packet.data, packet.encoding) > TCP.buffer) {
       engine.drop(device, 'Dados TCP após FIN ou janela de recepção esgotada.');
       sendTcpSegment(engine, device, c, ['ACK']);
       return;
     }
     c.received += packet.data;
-    c.bytesReceived += tcpBytes(packet.data);
-    c.receiveNext = tcpAdd(c.receiveNext, tcpBytes(packet.data));
+    c.bytesReceived += tcpBytes(packet.data, packet.encoding);
+    c.receiveNext = tcpAdd(c.receiveNext, tcpBytes(packet.data, packet.encoding));
     receiveTcpApplication(engine, device, c, packet.data);
     if (tcpFinished(c)) return;
   }

@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-13",
+  "engineContract": "2026.10.13.4",
+  "regression": {
+    "passed": 700,
+    "failed": 0,
+    "skipped": 1,
+    "files": 73
+  },
+  "nativePostgresql": {
+    "passed": 56,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "cases": 12,
+    "contrastViolations": 0,
+    "accessibilityViolations": 0,
+    "errors": [],
+    "durableRetry": {
+      "failureRetained": true,
+      "reloadRecovered": true,
+      "retrySaved": true,
+      "localCopyRemoved": true,
+      "authoritativeReplay": "matched",
+      "doubleFailureExplained": true
+    }
+  },
+  "api": {
+    "createStatus": 201,
+    "importStatus": 200,
+    "provenance": {
+      "sourceClock": 35000,
+      "sourceHash": "804acd044a407793b3e5b4394e6795e9177fe4e219c0dc1b18c00bad824cef43",
+      "revision": 2
+    },
+    "recoveryTampering": {
+      "expectedStatus": 400,
+      "observedStatus": 400,
+      "persisted": false
+    },
+    "validCompletionStatus": 200,
+    "authoritativeReplay": {
+      "status": 200,
+      "result": "matched"
+    },
+    "revisionConflict": {
+      "expectedStatus": 409,
+      "observedStatus": 409
+    },
+    "identicalCompletionRetry": {
+      "expectedStatus": 200,
+      "observedStatus": 200
+    },
+    "missingCsrf": {
+      "expectedStatus": 403,
+      "observedStatus": 403
+    },
+    "cleanupStatus": 200
+  },
+  "captures": {
+    "checksums": {
+      "ipv4": 51,
+      "tcp": 35,
+      "udp": 8
+    },
+    "modbusADUs": 8,
+    "vxlanEnvelopes": 8
+  },
+  "qualification": {
+    "login": true,
+    "secureCookie": true,
+    "csp": true,
+    "hsts": true,
+    "readiness": true,
+    "staticAssets": 16,
+    "immutableScenario": true,
+    "authoritativeReplay": "matched",
+    "localArtifactRollback": true
+  },
+  "status": {
+    "Concluída": 10,
+    "Parcial": 10,
+    "Pendente": 6,
+    "Validada localmente": 2,
+    "Condicional": 2
+  },
+  "sourceHash": "0480ee4fd5042c5baa57baebb92f2cb91bcd070f70792cdf0ce4c8200a157cf1",
+  "assetHash": "831d48f42fbd35360e8d927361654457b58c914988fd5e9075c104ff04f68d6a"
+}

@@ -626,7 +626,10 @@ writeFileSync(
     ].join('\n')
 );
 writeFileSync(out + '/RELATORIO.md', report);
-writeFileSync('docs/consolidated-remediation-plan.md', planDoc);
+// A historical audit must not reset an implementation status already reviewed.
+const currentPlan = readFileSync('docs/consolidated-remediation-plan.md', 'utf8');
+if (!currentPlan.includes('## Status após a implementação'))
+  writeFileSync('docs/consolidated-remediation-plan.md', planDoc);
 writeFileSync(
   out + '/audit-summary.json',
   JSON.stringify(

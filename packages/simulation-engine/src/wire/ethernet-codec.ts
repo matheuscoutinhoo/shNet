@@ -1,6 +1,6 @@
 import { frameSchema, type Frame, type Packet, type Packet6, type TcpPacket } from '../model';
 import { encodeRip } from '../protocols/rip-codec';
-import { tcpPacketSchema } from '../protocols/tcp-model';
+import { tcpPacketSchema, tcpOctets } from '../protocols/tcp-model';
 import { encodeDhcp6, decodeDhcp6 } from './dhcp6-codec';
 import { encodeDns } from './dns-codec';
 import { concat, checksum, hex, ip4, ip6, need, pseudo, readIp6, text, u16, u32, view } from './binary';
@@ -29,7 +29,7 @@ function tcp(input: TcpPacket) {
       u16(p.window),
       new Uint8Array(4),
       padded,
-      text(p.data)
+      tcpOctets(p.data, p.encoding)
     );
   view(header).setUint16(16, checksum(concat(pseudo(p.src, p.dst, 6, header.length), header)));
   return header;
@@ -176,7 +176,8 @@ function icmp6(p: Extract<Packet6, { protocol: 'ICMPv6' }>) {
   view(body).setUint16(2, checksum(concat(pseudo(p.src, p.dst, 58, body.length), body)));
   return body;
 }
-export function encodeEthernet(input: Frame): Uint8Array {
+export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
+  if (depth > 4) throw new Error('Limite de encapsulamentos Ethernet/VXLAN.');
   const f = frameSchema.parse(input);
   let body: Uint8Array, type: number;
   if (f.wan || f.secure || f.wifi || f.mpls || f.bpdu || f.lacp || f.eapol || f.meshHello || f.fragment)
@@ -212,7 +213,22 @@ export function encodeEthernet(input: Frame): Uint8Array {
       else if (v.protocol === 'RIP') payload = encodeRip(v.message);
       else if (v.protocol === 'RADIUS') payload = hex(v.message.wire);
       else if (v.protocol === 'EAP-RADIUS') payload = hex(v.wire);
-      else throw new Error('Payload UDP ' + v.protocol + ' sem codec binário.');
+      else if (v.protocol === 'VXLAN') {
+        const inner = encodeEthernet(frameSchema.parse(JSON.parse(v.message.frame)), depth + 1);
+        const header = new Uint8Array([
+          8,
+          0,
+          0,
+          0,
+          v.message.vni >>> 16,
+          (v.message.vni >>> 8) & 255,
+          v.message.vni & 255,
+          0,
+        ]);
+        payload = concat(header, inner);
+        if (p.bytes !== payload.length + 28)
+          throw new Error('VXLAN: tamanho legado sem padding; captura histórica não interoperável.');
+      } else throw new Error('Payload UDP ' + v.protocol + ' sem codec binário.');
       transport = udp(p.src, p.dst, p.sourcePort, p.destinationPort, payload);
     } else throw new Error('Protocolo IP ' + p.protocol + ' sem codec binário.');
     body = ipv4(
@@ -281,9 +297,11 @@ export interface DecodedEthernet {
     options?: { kind: number; data: number[] }[];
     payload: Uint8Array;
     dhcp6?: ReturnType<typeof decodeDhcp6>;
+    vxlan?: { vni: number; inner: DecodedEthernet };
   };
 }
-export function decodeEthernet(bytes: Uint8Array): DecodedEthernet {
+export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
+  if (depth > 4) throw new Error('Limite de encapsulamentos Ethernet/VXLAN.');
   if (bytes.length > 65600) throw new Error('Frame excede limite.');
   need(bytes, 0, 14);
   const dv = view(bytes),
@@ -397,6 +415,14 @@ export function decodeEthernet(bytes: Uint8Array): DecodedEthernet {
     r.transport = { sourcePort: v.getUint16(0), destinationPort: v.getUint16(2), payload: body.subarray(8) };
     if (r.family === 6 && [546, 547].includes(r.transport.destinationPort!))
       r.transport.dhcp6 = decodeDhcp6(r.transport.payload);
+    if (r.transport.destinationPort === 4789) {
+      const p = r.transport.payload;
+      need(p, 0, 22);
+      if (p[0] !== 8 || p[1] || p[2] || p[3] || p[7]) throw new Error('Cabeçalho VXLAN inválido.');
+      const vni = (p[4] << 16) | (p[5] << 8) | p[6];
+      if (!vni) throw new Error('VNI zero.');
+      r.transport.vxlan = { vni, inner: decodeEthernet(p.subarray(8), depth + 1) };
+    }
   } else if (r.protocol === 1 || r.protocol === 58) {
     need(body, 0, 8);
     if (checksum(r.protocol === 58 ? concat(pseudo(r.src!, r.dst!, 58, body.length), body) : body))

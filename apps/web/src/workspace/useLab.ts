@@ -10,6 +10,7 @@ import { api, ApiError, type Project } from '../api';
 export function useLab(project: Project, onExpired: () => void) {
   const [engine] = useState(() => new SimulationEngine(project.topology));
   const [tick, setTick] = useState(0),
+    [simulationRevision, setSimulationRevision] = useState(0),
     [name, setNameState] = useState(project.name),
     [error, setError] = useState(''),
     [saveStatus, setSaveStatus] = useState('Salvo'),
@@ -36,6 +37,7 @@ export function useLab(project: Project, onExpired: () => void) {
     <T>(action: (e: SimulationEngine) => T, checkpoint = true, simulationMutation = true): T | undefined => {
       if (simulationMutation) {
         workerGeneration.current++;
+        setSimulationRevision((value) => value + 1);
         setPlaying(false);
       }
       const before = checkpoint ? engine.snapshot() : null;
@@ -202,7 +204,7 @@ export function useLab(project: Project, onExpired: () => void) {
       clearInterval(timer);
       worker.terminate();
     };
-  }, [playing, speed, playbackMode, engine, refresh]);
+  }, [playing, speed, playbackMode, engine, refresh, simulationRevision]);
   useEffect(() => {
     const socket = new WebSocket(location.origin.replace(/^http/, 'ws') + '/api/events');
     socket.onmessage = (event) => {

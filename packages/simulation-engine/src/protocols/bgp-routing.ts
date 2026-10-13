@@ -1,4 +1,4 @@
-import type { Device } from '../model';
+import type { Device, Snapshot } from '../model';
 import { ipNumber, sameSubnet, subnet, resolveRoute } from './ipv4';
 import { BGP, bgpPrefixKey, type BgpNeighbor, type BgpPath, type BgpState } from './bgp-model';
 
@@ -19,9 +19,9 @@ export function bgpPermits(filter: BgpNeighbor['importFilter'], path: BgpPath) {
   );
 }
 // NEXT_HOP must resolve through the IGP/static underlay, never through its own BGP route.
-export function bgpNextHop(device: Device, nextHop: string) {
+export function bgpNextHop(device: Device, nextHop: string, snapshot?: Snapshot) {
   if (device.interfaces.some((port) => !port.vrf && port.ip === nextHop)) return;
-  return resolveRoute({ ...device, bgp: undefined }, nextHop);
+  return resolveRoute({ ...device, bgp: undefined }, nextHop, undefined, snapshot);
 }
 function isOriginated(device: Device, prefix: { network: string; prefix: number }) {
   return (

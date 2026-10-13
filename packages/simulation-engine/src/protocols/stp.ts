@@ -484,6 +484,36 @@ export function rebuildSpanningTree(e: SimulationEngine, d: Device) {
   if (c) configureMultiSpanningTree(e, d, c);
   else if (d.spanningTree?.enabled) configureSpanningTree(e, d, d.spanningTree.mode, d.spanningTree.priority);
 }
+export function updateSpanningTreePort(
+  e: SimulationEngine,
+  d: Device,
+  p: NetworkInterface,
+  edgeChanged = false
+) {
+  for (const id of stpInstances(d))
+    withStpInstance(d, id, () => {
+      if (!d.spanningTree?.enabled || !p.spanningTree || !instancePort(d, p)) return;
+      refreshDevice(e, d);
+      // Election consumes the new cost. Unchanged roles retain their agreements/timers.
+      const changed = recompute(e, d);
+      if (
+        p.spanningTree.operational &&
+        !p.spanningTree.received &&
+        p.stpEdge &&
+        p.spanningTree.state !== 'forwarding'
+      )
+        beginTransition(e, d, p);
+      else if (
+        edgeChanged &&
+        p.spanningTree.operational &&
+        !p.stpEdge &&
+        !p.spanningTree.received &&
+        p.spanningTree.state === 'forwarding'
+      )
+        beginTransition(e, d, p);
+      if (changed || p.spanningTree.operational) advertise(e, d);
+    });
+}
 export function configureSpanningTree(
   e: SimulationEngine,
   d: Device,

@@ -1,0 +1,34 @@
+{
+  "project": {
+    "id": "994e4d54-6d4d-499e-89b9-7575913b1cb3",
+    "revision": 2
+  },
+  "name": "Enterprise + datacenter — auditoria 1791912726166",
+  "devices": 38,
+  "links": 46,
+  "realtime": {
+    "elapsedMs": 11733.8727,
+    "advancedMs": 36418.203,
+    "ratio": 0.6207362893923334
+  },
+  "nativePresets": 30,
+  "preflightText": "Validação de redes e cenários\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\n0 erros · 26 avisos. A verificação estática não comprova disponibilidade ou bloqueio de tráfego.\n\nExportar revisão\nINFO · CORE-A: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · CORE-B: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nWARNING · FW-A/Gi0/1.10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.\nWARNING · FW-B/Gi0/1.10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.\nINFO · ACCESS-USERS: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-GUEST: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-DMZ: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-CORP: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-MGMT: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · USER-PC: apenas um caminho físico de acesso.\nWARNING · DHCP-PC: apenas um caminho físico de acesso.\nWARNING · GUEST-PC: apenas um caminho físico de acesso.\nWARNING · PORTAL-DMZ: apenas um caminho físico de acesso.\nWARNING · DNS: apenas um caminho físico de acesso.\nWARNING · DHCP: apenas um caminho físico de acesso.\nWARNING · RADIUS: apenas um caminho físico de acesso.\nWARNING · ERP: apenas um caminho físico de acesso.\nWARNING · ADMIN: apenas um caminho físico de acesso.\nWARNING · NTP: apenas um caminho físico de acesso.\nWARNING · SYSLOG: apenas um caminho físico de acesso.\nINFO · AP-ENTERPRISE: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · WIFI-EMPLOYEE: apenas um caminho físico de acesso.\nINFO · TRANSIT-WAN: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · EXTERNAL-WEB: apenas um caminho físico de acesso.\nINFO · LEAF-1: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-1: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · LEAF-2: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-2: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · LEAF-3: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-3: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nWARNING · TENANT-A-CLIENT: apenas um caminho físico de acesso.\nWARNING · APP-1: apenas um caminho físico de acesso.\nWARNING · APP-2: apenas um caminho físico de acesso.\nWARNING · TENANT-B-CLIENT: apenas um caminho físico de acesso.\nWARNING · TENANT-B-SERVER: apenas um caminho físico de acesso.\nWARNING · LB: uma única UPS alimenta a carga.\nWARNING · LB: apenas um caminho físico de acesso.\nWARNING · DNS: única instância habilitada de dnsServer.\nWARNING · DHCP: única instância habilitada de dhcpServer.\nWARNING · LB: única instância habilitada de proxy.\nWARNING · SYSLOG: única instância habilitada de syslogServer.",
+  "scenarioText": "Validação de redes e cenários\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\nExecute em uma cópia isolada da topologia. Compare baseline e falhas; tempos e SLAs são virtuais. Até 180 amostras por cenário. Os ensaios guardam a revisão e a topologia de origem no laboratório.\n\nCarregar cenário\nSelecione um cenário\nSalvo: Enterprise e DC — ensaio integrado\nModelo: Enterprise/DC — baseline de aplicações\nModelo: GUEST → ERP — prova de política\nModelo: Perda de CORE-A\nModelo: Perda de CORE-B\nModelo: Perda de FW-A\nModelo: Perda de FW-B\nModelo: Perda de ACCESS-USERS\nModelo: Perda de ACCESS-GUEST\nModelo: Perda de ACCESS-DMZ\nModelo: Perda de ACCESS-CORP\nModelo: Perda de ACCESS-MGMT\nModelo: Perda de DHCP-PC\nModelo: Perda de DNS\nModelo: Perda de DHCP\nModelo: Perda de EDGE-WAN\nModelo: Perda de SPINE-1\nModelo: Perda de SPINE-2\nModelo: Perda de LEAF-1\nModelo: Perda de LEAF-2\nModelo: Perda de LEAF-3\nModelo: Perda de DC-GW\nModelo: Perda de APP-1\nModelo: Perda de APP-2\nModelo: Perda de LB\nModelo: DNS ERP\nModelo: DHCP USERS\nModelo: SNMP firewall\nModelo: NTP gestão\nModelo: Syslog gestão\nModelo: Estado convergido da fabric e Wi-Fi\nFormato dos cenários\nEditar por formulário\nDefinição do cenário\nSalvar cenário no laboratório\nExecutar cenário\nExecutar baseline\nExportar definição\nEnterprise e DC — ensaio integrado · revisão 4 · Salvo\nExportar resultados\nCenário / fluxo\tResultado\tPerda\tp95 / p99\tJitter p95\nEnterprise e DC — ensaio integrado / ERP autorizado\tAprovado\t0.0%\t84.67 / 84.67 ms\t12.24 ms\nEnterprise e DC — ensaio integrado / Visitante bloqueado\tAprovado\t100.0%\t— / — ms\t— ms\nEnterprise e DC — ensaio integrado / Tenant A para APP-1\tAprovado\t0.0%\t64.39 / 64.39 ms\t16.10 ms\nEnterprise e DC — ensaio integrado / Campus para VIP DC\tAprovado\t0.0%\t169.06 / 169.06 ms\t72.47 ms\nEnterprise e DC — ensaio integrado / Wi-Fi empresarial para ERP\tAprovado\t0.0%\t90.69 / 90.69 ms\t6.22 ms",
+  "persisted": true,
+  "mobile": {
+    "viewport": 390,
+    "bodyWidth": 390,
+    "visibleDevices": 32
+  },
+  "mobileReports": {
+    "width": 350,
+    "scrollWidth": 350
+  },
+  "accessibility": {
+    "desktop": [],
+    "report": [],
+    "mobile": []
+  },
+  "errors": [],
+  "failures": []
+}

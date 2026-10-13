@@ -1,0 +1,36 @@
+{
+  "environment": "isolated-native-postgresql-local",
+  "productionConfig": {
+    "production": true,
+    "embedded": false,
+    "httpsOrigin": "https://local.shlab.test"
+  },
+  "tlsHandshake": "not-executed: production TLS termination requires qualification in the deployment environment",
+  "migrations": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "checks": {
+    "login": true,
+    "secureCookie": true,
+    "csp": true,
+    "hsts": true,
+    "readiness": true,
+    "staticAssets": 16,
+    "immutableScenario": true,
+    "authoritativeReplay": "matched",
+    "localArtifactRollback": true
+  },
+  "sourceHash": "0480ee4fd5042c5baa57baebb92f2cb91bcd070f70792cdf0ce4c8200a157cf1",
+  "assetHash": "831d48f42fbd35360e8d927361654457b58c914988fd5e9075c104ff04f68d6a",
+  "backupRestoreEvidence": "tests/production.test.ts via npm run test:postgres",
+  "remoteDeployment": "not-requested: local-only qualification"
+}

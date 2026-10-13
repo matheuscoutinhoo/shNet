@@ -12,7 +12,8 @@ export const fidelityMatrix = [
   {
     feature: 'Firewall stateful',
     status: 'Simulado',
-    limit: 'Trânsito em roteadores. Switch L3 oferece ACL; VRRP não replica sessões.',
+    limit:
+      'Zonas ip/TCP/UDP/ICMP e sessões de trânsito aplicam-se a IPv4 e IPv6 em roteadores. Inspeção de aplicação/SIP ALG usa IPv4. Switch L3 oferece ACL; VRRP não replica sessões.',
   },
   {
     feature: 'Wi-Fi/RF',
@@ -34,7 +35,7 @@ export const fidelityMatrix = [
     feature: 'Modbus TCP',
     status: 'Parcial',
     limit:
-      'Leitura/escrita de holding registers no modelo. Enquadramento hexadecimal sobre TCP didático; não representa processo físico ou firmware PLC.',
+      'MBAP/PDU binários sobre TCP e PCAP: funções 01/02/03/04/05/06/15/16. Coils, entradas discretas, holding/input registers e amostragem periódica por cenário. Sem ladder, processo físico ou firmware PLC. Conexões antigas hex/newline continuam legadas e são excluídas do PCAP.',
   },
   {
     feature: 'PROFINET, EtherNet/IP, OPC UA',
@@ -57,8 +58,27 @@ export const fidelityMatrix = [
     limit: 'Serviços e cargas de rede substitutos; lógica de processo e codecs de vídeo não executados.',
   },
   {
+    feature: 'VXLAN / EVPN / underlay',
+    status: 'Parcial',
+    limit:
+      'VTEP em loopback /32 e BGP updateSource permitem caminhos alternativos operacionais. MAC/IP e membros IMET por RT; peerPolicy evpn exige membros no plano de dados. Modo static admite flooding/learning por peers. Sem ESI/DF, Type 5, proxy ARP ou MP-BGP binário.',
+  },
+  {
+    feature: 'VRF e executor dual stack',
+    status: 'Parcial',
+    limit:
+      'ICMP/HTTP/Modbus aceitam IPv6, VRF e escopo link-local. Outros adaptadores de cenário usam IPv4 na tabela padrão. Protocolos dinâmicos de VRF não implementados.',
+  },
+  {
+    feature: 'Alimentação A/B',
+    status: 'Simulado',
+    limit:
+      'Uma carga pode ter múltiplas UPS: mantém energia enquanto uma fonte solicitada tem saída. Cada UPS reserva a potência nominal completa; não representa chaveamento elétrico real.',
+  },
+  {
     feature: 'PCAP',
     status: 'Parcial',
-    limit: 'Somente codecs suportados. Omissões e truncamento são informados na exportação.',
+    limit:
+      'Ethernet/IP/TCP, Modbus binário, DNS, DHCPv6 e VXLAN/UDP com checksums. BGP e aplicações didáticas sem codec permanecem excluídos. Capturas antigas hex/newline ou VXLAN sem padding podem ser excluídas; omissões e truncamento são informados.',
   },
 ];

@@ -17,6 +17,14 @@ export const evpnMacSchema = z
   })
   .strict();
 export const evpnWithdrawSchema = z.object({ vni, mac }).strict();
+export const evpnImetSchema = z
+  .object({
+    vni,
+    routeTarget: rt,
+    nextHop: ipv4Schema,
+    asPath: z.array(z.number().int().min(1).max(4294967294)).max(32),
+  })
+  .strict();
 export const vxlanConfigSchema = z
   .object({
     vni,
@@ -25,6 +33,7 @@ export const vxlanConfigSchema = z
     underlay: id,
     peers: z.array(ipv4Schema).max(32),
     evpn: z.boolean(),
+    peerPolicy: z.enum(['static', 'evpn']).optional(),
     routeTarget: rt,
     mtu: z.number().int().min(576).max(9000).default(1450),
   })
@@ -40,6 +49,10 @@ export const vxlanStateSchema = vxlanConfigSchema
       )
       .max(512),
     routes: z.array(evpnMacSchema.extend({ peer: ipv4Schema, learnedAt: time }).strict()).max(512),
+    members: z
+      .array(evpnImetSchema.extend({ peer: ipv4Schema, learnedAt: time }).strict())
+      .max(512)
+      .optional(),
     sent: z.number().int().nonnegative(),
     received: z.number().int().nonnegative(),
   })
@@ -50,5 +63,6 @@ export const vxlanMessageSchema = z
     iFlag: z.literal(true),
     frame: z.string().max(100000),
     innerBytes: z.number().int().min(28).max(9000),
+    wireVersion: z.literal(2).optional(),
   })
   .strict();
