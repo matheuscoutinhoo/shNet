@@ -8,6 +8,7 @@ import { eventTone } from './canvasActivity';
 import { NetworkText } from '../components/NetworkText';
 import { explainEvent, eventLayers, wifiMessages, ipv6Messages } from './eventEducation';
 import { PacketFields } from './PacketFields';
+import { ResizableTimeline } from './ResizableTimeline';
 export function Timeline({
   lab,
   selected,
@@ -132,7 +133,7 @@ export function Timeline({
     eventLink?.cable === 'mesh'
   );
   return (
-    <section className="timeline">
+    <ResizableTimeline>
       <div className="timeline-header">
         <div className="timeline-tabs">
           <button
@@ -1017,6 +1018,6 @@ export function Timeline({
           </div>
         </Modal>
       )}
-    </section>
+    </ResizableTimeline>
   );
 }

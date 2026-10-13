@@ -169,6 +169,110 @@ test('Aprendizado: finder centraliza equipamento presente e terminais respeitam 
   expect(errors).toEqual([]);
 });
 
+test('Painel inferior: expansão por mouse, teclado e toque, limites responsivos e rolagem', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'timeline-resize-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Painel redimensionável');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const e = new SimulationEngine(),
+    host = e.addProfile('desktop');
+  for (let i = 0; i < 60; i++) e.emit('CONFIG_CHANGED', host.id, 'Verificação de rolagem ' + i);
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'resize.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  const panel = page.locator('.timeline'),
+    handle = page.getByRole('separator', { name: 'Redimensionar painel de eventos e tráfego' }),
+    height = async () => (await panel.boundingBox())!.height;
+  const initial = await height();
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 - 150, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(height).toBeGreaterThan(initial + 100);
+  await expect(panel).not.toHaveClass(/resizing/);
+  await handle.focus();
+  const expanded = await height();
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(height).toBeLessThan(expanded - 20);
+  await page.keyboard.press('End');
+  await expect.poll(height).toBeCloseTo(Number(await handle.getAttribute('aria-valuemax')), 0);
+  const canvas = page.locator('.canvas-area');
+  expect((await canvas.boundingBox())!.height).toBeGreaterThanOrEqual(159);
+  const scrolling = panel.locator('.event-table-wrap');
+  expect(await scrolling.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  await scrolling.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  expect(await scrolling.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  const remembered = await height();
+  await panel.getByRole('button', { name: /^Tráfego/ }).click();
+  await expect.poll(height).toBeCloseTo(remembered, 0);
+  await panel.getByRole('button', { name: 'Notas do laboratório', exact: true }).click();
+  await panel
+    .getByRole('textbox', { name: 'Notas do laboratório' })
+    .fill('Notas mantidas durante a expansão');
+  await panel.getByRole('button', { name: /^Eventos/ }).click();
+  await expect(
+    panel.locator('.event-table tbody tr').filter({ hasText: 'Verificação de rolagem' })
+  ).toHaveCount(60);
+  await expect(new AxeBuilder({ page }).include('.timeline').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  await page.screenshot({ path: testInfo.outputPath('timeline-expanded-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await handle.focus();
+  await page.keyboard.press('Home');
+  const mobileInitial = await height();
+  const touchBox = (await handle.boundingBox())!;
+  expect(touchBox.height).toBeGreaterThanOrEqual(24);
+  const cdp = await page.context().newCDPSession(page);
+  const x = touchBox.x + touchBox.width / 2,
+    y = touchBox.y + touchBox.height / 2;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 130 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await cdp.detach();
+  await expect.poll(height).toBeGreaterThan(mobileInitial + 90);
+  await expect(panel).not.toHaveClass(/resizing/);
+  const filters = panel.locator('.event-filters');
+  expect(await filters.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  await filters.getByRole('button', { name: 'Descartes', exact: true }).click();
+  await expect(filters.getByRole('button', { name: 'Descartes', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+  await filters.getByRole('button', { name: 'Todos', exact: true }).click();
+  await expect(new AxeBuilder({ page }).include('.timeline').analyze()).resolves.toMatchObject({
+    violations: [],
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('timeline-expanded-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect.poll(height).toBeLessThanOrEqual(Number(await handle.getAttribute('aria-valuemax')) + 1);
+  expect((await panel.boundingBox())!.y).toBeGreaterThanOrEqual(
+    (await page.locator('.canvas-and-timeline').boundingBox())!.y
+  );
+  expect((await panel.boundingBox())!.y + (await height())).toBeLessThanOrEqual(390);
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await handle.focus();
+  await page.keyboard.press('Home');
+  await expect.poll(height).toBeCloseTo(Number(await handle.getAttribute('aria-valuemin')), 0);
+  await panel.getByRole('button', { name: 'Notas do laboratório', exact: true }).click();
+  await expect(panel.getByRole('textbox', { name: 'Notas do laboratório' })).toHaveValue(
+    'Notas mantidas durante a expansão'
+  );
+  expect(errors).toEqual([]);
+});
+
 test('Painel inferior: eventos e tráfego acompanham a seleção e preservam a visão da rede', async ({
   page,
 }) => {

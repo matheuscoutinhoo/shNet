@@ -376,6 +376,54 @@ body .modal {
 .workspace .timeline {
   background: #0d2230;
   border-top: 1px solid #437277;
+  min-height: 0;
+  max-height: none;
+  resize: none;
+}
+.workspace .canvas-area {
+  min-height: 0;
+}
+.timeline-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 14px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.timeline-resize-handle > span {
+  width: 48px;
+  height: 3px;
+  border-radius: 4px;
+  background: #437277;
+}
+.timeline-resize-handle:hover,
+.timeline-resize-handle:focus-visible {
+  background: var(--accent-bg);
+}
+.timeline-resize-handle:hover > span,
+.timeline-resize-handle:focus-visible > span {
+  background: var(--teal);
+}
+.timeline.resizing {
+  user-select: none;
+}
+.workspace .event-table-wrap,
+.workspace .traffic-table,
+.workspace .lab-notes {
+  min-height: 0;
+}
+@media (max-width: 700px) {
+  .timeline-resize-handle {
+    height: 24px;
+  }
+  .workspace .event-filters {
+    flex-wrap: nowrap;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
 }
 .workspace .timeline-header {
   background: #122d3a;

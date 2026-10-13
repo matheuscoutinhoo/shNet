@@ -41,6 +41,7 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 ## O que funciona
 
 - Eventos com explicação do acontecimento, próxima verificação sugerida e campos técnicos acompanhados de significado. As camadas exibidas correspondem ao pacote observado; anúncios Wi-Fi não são apresentados como tráfego IPv4 ou Ethernet II. O painel inferior filtra os registros e testes de ping pela seleção atual; limpar a seleção restaura a visão da rede inteira.
+- Painel inferior expansível pela alça superior com mouse, toque ou teclado (↑/↓, Home e End). A altura acompanha o espaço disponível, preserva uma área do canvas e mantém a rolagem dos registros e as notas ao trocar de aba.
 - Orientações nos painéis de equipamentos e no inspetor da rede explicam campos, pré-requisitos e experiências. Recursos específicos, como telefonia, MQTT, CAPWAP e IDS/IPS, recebem explicações conforme o perfil.
 - Busca do canvas por nome, IPv4, IPv6 ou MAC. Um resultado único ou nome exato é centralizado; resultados ambíguos oferecem seleção e Enter centraliza o primeiro.
 - Terminais HostShell, ServiceShell e NetOS por função, com ajuda, exemplos e execução limitada pelas mesmas capacidades dos menus. Hosts usam `ipconfig`, `ip addr`, `ip route`, `ip link` e, quando possuem rádio, `wifi`; switches oferecem VLAN/MAC/STP/LACP. Serviços de telefone, impressora, broker e banco têm seus próprios comandos. [Decisões e limites](docs/adr/041-educational-events-device-terminals.md).
