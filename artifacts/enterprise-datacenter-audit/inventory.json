@@ -1,0 +1,525 @@
+{
+  "devices": 38,
+  "links": 46,
+  "vlans": [
+    {
+      "vlan": 10,
+      "name": "USERS"
+    },
+    {
+      "vlan": 20,
+      "name": "GUEST"
+    },
+    {
+      "vlan": 30,
+      "name": "DMZ"
+    },
+    {
+      "vlan": 40,
+      "name": "CORP"
+    },
+    {
+      "vlan": 99,
+      "name": "MGMT"
+    }
+  ],
+  "vnis": [
+    10100,
+    10200
+  ],
+  "items": [
+    {
+      "name": "CORE-A",
+      "profile": "distribution",
+      "id": "device-1",
+      "interfaces": [
+        {
+          "id": "po1",
+          "aggregate": [
+            "p17",
+            "p18"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CORE-B",
+      "profile": "distribution",
+      "id": "device-4",
+      "interfaces": [
+        {
+          "id": "po1",
+          "aggregate": [
+            "p17",
+            "p18"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FW-A",
+      "profile": "firewall",
+      "id": "device-7",
+      "interfaces": [
+        {
+          "id": "p1",
+          "ip": "172.31.0.2"
+        },
+        {
+          "id": "interface-534",
+          "ip": "10.60.10.2"
+        },
+        {
+          "id": "interface-536",
+          "ip": "10.60.20.2"
+        },
+        {
+          "id": "interface-538",
+          "ip": "10.60.30.2"
+        },
+        {
+          "id": "interface-540",
+          "ip": "10.60.40.2"
+        },
+        {
+          "id": "interface-542",
+          "ip": "10.60.99.2"
+        }
+      ]
+    },
+    {
+      "name": "FW-B",
+      "profile": "firewall",
+      "id": "device-11",
+      "interfaces": [
+        {
+          "id": "p1",
+          "ip": "172.31.0.3"
+        },
+        {
+          "id": "interface-724",
+          "ip": "10.60.10.3"
+        },
+        {
+          "id": "interface-726",
+          "ip": "10.60.20.3"
+        },
+        {
+          "id": "interface-728",
+          "ip": "10.60.30.3"
+        },
+        {
+          "id": "interface-730",
+          "ip": "10.60.40.3"
+        },
+        {
+          "id": "interface-732",
+          "ip": "10.60.99.3"
+        }
+      ]
+    },
+    {
+      "name": "ACCESS-USERS",
+      "profile": "access",
+      "id": "device-15",
+      "interfaces": []
+    },
+    {
+      "name": "ACCESS-GUEST",
+      "profile": "access",
+      "id": "device-86",
+      "interfaces": []
+    },
+    {
+      "name": "ACCESS-DMZ",
+      "profile": "access",
+      "id": "device-157",
+      "interfaces": []
+    },
+    {
+      "name": "ACCESS-CORP",
+      "profile": "access",
+      "id": "device-228",
+      "interfaces": []
+    },
+    {
+      "name": "ACCESS-MGMT",
+      "profile": "access",
+      "id": "device-299",
+      "interfaces": []
+    },
+    {
+      "name": "USER-PC",
+      "profile": "desktop",
+      "id": "device-922",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.10.10"
+        }
+      ]
+    },
+    {
+      "name": "DHCP-PC",
+      "profile": "desktop",
+      "id": "device-993",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.10.11"
+        }
+      ]
+    },
+    {
+      "name": "GUEST-PC",
+      "profile": "desktop",
+      "id": "device-1068",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.20.10"
+        }
+      ]
+    },
+    {
+      "name": "PORTAL-DMZ",
+      "profile": "web",
+      "id": "device-1139",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.30.10"
+        }
+      ]
+    },
+    {
+      "name": "DNS",
+      "profile": "dns",
+      "id": "device-1212",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.30.53"
+        }
+      ]
+    },
+    {
+      "name": "DHCP",
+      "profile": "dhcp",
+      "id": "device-1288",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.30.67"
+        }
+      ]
+    },
+    {
+      "name": "RADIUS",
+      "profile": "server",
+      "id": "device-1368",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.30.181"
+        }
+      ]
+    },
+    {
+      "name": "ERP",
+      "profile": "web",
+      "id": "device-1451",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.40.10"
+        }
+      ]
+    },
+    {
+      "name": "ADMIN",
+      "profile": "desktop",
+      "id": "device-1524",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.99.10"
+        }
+      ]
+    },
+    {
+      "name": "NTP",
+      "profile": "ntp",
+      "id": "device-1595",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.99.123"
+        }
+      ]
+    },
+    {
+      "name": "SYSLOG",
+      "profile": "syslog",
+      "id": "device-1672",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.99.11"
+        }
+      ]
+    },
+    {
+      "name": "AP-ENTERPRISE",
+      "profile": "ap",
+      "id": "device-1753",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.60.99.20"
+        }
+      ]
+    },
+    {
+      "name": "WIFI-EMPLOYEE",
+      "profile": "laptop",
+      "id": "device-1759",
+      "interfaces": [
+        {
+          "id": "wlan0",
+          "ip": "10.60.10.12"
+        }
+      ]
+    },
+    {
+      "name": "EDGE-WAN",
+      "profile": "edge",
+      "id": "device-1946",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "172.31.0.1"
+        },
+        {
+          "id": "p1",
+          "ip": "198.51.100.1"
+        },
+        {
+          "id": "p2",
+          "ip": "172.31.10.1"
+        }
+      ]
+    },
+    {
+      "name": "TRANSIT-WAN",
+      "profile": "switch-l2",
+      "id": "device-1948",
+      "interfaces": []
+    },
+    {
+      "name": "EXTERNAL-WEB",
+      "profile": "web",
+      "id": "device-1950",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "198.51.100.10"
+        }
+      ]
+    },
+    {
+      "name": "SPINE-1",
+      "profile": "edge",
+      "id": "device-1973",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "172.16.1.2"
+        },
+        {
+          "id": "p1",
+          "ip": "172.16.1.6"
+        },
+        {
+          "id": "p2",
+          "ip": "172.16.1.10"
+        }
+      ]
+    },
+    {
+      "name": "SPINE-2",
+      "profile": "edge",
+      "id": "device-1975",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "172.16.2.2"
+        },
+        {
+          "id": "p1",
+          "ip": "172.16.2.6"
+        },
+        {
+          "id": "p2",
+          "ip": "172.16.2.10"
+        }
+      ]
+    },
+    {
+      "name": "LEAF-1",
+      "profile": "distribution",
+      "id": "device-1977",
+      "interfaces": [
+        {
+          "id": "p1",
+          "ip": "172.16.1.1"
+        },
+        {
+          "id": "p2",
+          "ip": "172.16.2.1"
+        },
+        {
+          "id": "vx10100",
+          "vni": 10100
+        },
+        {
+          "id": "vx10200",
+          "vni": 10200
+        }
+      ]
+    },
+    {
+      "name": "LEAF-2",
+      "profile": "distribution",
+      "id": "device-1980",
+      "interfaces": [
+        {
+          "id": "p1",
+          "ip": "172.16.1.5"
+        },
+        {
+          "id": "p2",
+          "ip": "172.16.2.5"
+        },
+        {
+          "id": "vx10100",
+          "vni": 10100
+        },
+        {
+          "id": "vx10200",
+          "vni": 10200
+        }
+      ]
+    },
+    {
+      "name": "LEAF-3",
+      "profile": "distribution",
+      "id": "device-1983",
+      "interfaces": [
+        {
+          "id": "p1",
+          "ip": "172.16.1.9"
+        },
+        {
+          "id": "p2",
+          "ip": "172.16.2.9"
+        },
+        {
+          "id": "vx10100",
+          "vni": 10100
+        },
+        {
+          "id": "vx10200",
+          "vni": 10200
+        }
+      ]
+    },
+    {
+      "name": "DC-GW",
+      "profile": "edge",
+      "id": "device-2013",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.1"
+        },
+        {
+          "id": "p1",
+          "ip": "172.31.10.2"
+        }
+      ]
+    },
+    {
+      "name": "TENANT-A-CLIENT",
+      "profile": "desktop",
+      "id": "device-2019",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.10"
+        }
+      ]
+    },
+    {
+      "name": "APP-1",
+      "profile": "web",
+      "id": "device-2023",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.11"
+        }
+      ]
+    },
+    {
+      "name": "APP-2",
+      "profile": "web",
+      "id": "device-2030",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.12"
+        }
+      ]
+    },
+    {
+      "name": "TENANT-B-CLIENT",
+      "profile": "desktop",
+      "id": "device-2037",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.10"
+        }
+      ]
+    },
+    {
+      "name": "TENANT-B-SERVER",
+      "profile": "web",
+      "id": "device-2041",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.11"
+        }
+      ]
+    },
+    {
+      "name": "LB",
+      "profile": "load-balancer",
+      "id": "device-2048",
+      "interfaces": [
+        {
+          "id": "p0",
+          "ip": "10.80.100.100"
+        }
+      ]
+    },
+    {
+      "name": "UPS-DC",
+      "profile": "ups",
+      "id": "device-2059",
+      "interfaces": []
+    }
+  ]
+}

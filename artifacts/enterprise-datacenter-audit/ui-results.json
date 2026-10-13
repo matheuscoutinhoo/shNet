@@ -1,0 +1,98 @@
+{
+  "project": {
+    "id": "e3328cb6-a0a9-4dd4-98c1-92fc91304127",
+    "revision": 2
+  },
+  "name": "Enterprise + datacenter — auditoria 1791904981602",
+  "devices": 38,
+  "links": 46,
+  "realtime": {
+    "elapsedMs": 11753.4081,
+    "advancedMs": 54459,
+    "ratio": 0.9266929138621502
+  },
+  "nativePresets": 0,
+  "preflightText": "Validação da fábrica\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\n0 erros · 25 avisos. A verificação estática não comprova disponibilidade ou bloqueio de tráfego.\n\nExportar revisão\nINFO · CORE-A: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · CORE-B: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · ACCESS-USERS: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-GUEST: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-DMZ: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-CORP: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-MGMT: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · USER-PC: apenas um caminho físico de acesso.\nWARNING · DHCP-PC: apenas um caminho físico de acesso.\nWARNING · GUEST-PC: apenas um caminho físico de acesso.\nWARNING · PORTAL-DMZ: apenas um caminho físico de acesso.\nWARNING · DNS: apenas um caminho físico de acesso.\nWARNING · DHCP: apenas um caminho físico de acesso.\nWARNING · RADIUS: apenas um caminho físico de acesso.\nWARNING · ERP: apenas um caminho físico de acesso.\nWARNING · ADMIN: apenas um caminho físico de acesso.\nWARNING · NTP: apenas um caminho físico de acesso.\nWARNING · SYSLOG: apenas um caminho físico de acesso.\nINFO · AP-ENTERPRISE: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · WIFI-EMPLOYEE: apenas um caminho físico de acesso.\nINFO · TRANSIT-WAN: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · EXTERNAL-WEB: apenas um caminho físico de acesso.\nINFO · LEAF-1: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-1: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · LEAF-2: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-2: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · LEAF-3: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-3: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nWARNING · TENANT-A-CLIENT: apenas um caminho físico de acesso.\nWARNING · APP-1: apenas um caminho físico de acesso.\nWARNING · APP-2: apenas um caminho físico de acesso.\nWARNING · TENANT-B-CLIENT: apenas um caminho físico de acesso.\nWARNING · TENANT-B-SERVER: apenas um caminho físico de acesso.\nWARNING · LB: apenas um caminho físico de acesso.\nWARNING · Endereço IPv4 repetido no contexto default:10.80.100.10.\nWARNING · Endereço IPv4 repetido no contexto default:10.80.100.11.\nWARNING · DNS: única instância habilitada de dnsServer.\nWARNING · DHCP: única instância habilitada de dhcpServer.\nWARNING · LB: única instância habilitada de proxy.\nWARNING · SYSLOG: única instância habilitada de syslogServer.",
+  "scenarioText": "Validação da fábrica\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\nExecute em uma cópia isolada da topologia. Compare baseline e falhas; tempos e SLAs são virtuais. Até 180 amostras por cenário. Os ensaios guardam a revisão e a topologia de origem no laboratório.\n\nCarregar cenário\nSelecione um cenário\nSalvo: Enterprise e DC — ensaio integrado\nFormato dos cenários\nDefinição do cenário\nSalvar cenário no laboratório\nExecutar cenário\nExecutar baseline\nExportar definição\nEnterprise e DC — ensaio integrado · revisão 4 · Salvo\nExportar resultados\nCenário / fluxo\tResultado\tPerda\tp95 / p99\tJitter p95\nEnterprise e DC — ensaio integrado / ERP autorizado\tAprovado\t0.0%\t84.67 / 84.67 ms\t36.37 ms\nEnterprise e DC — ensaio integrado / Visitante bloqueado\tAprovado\t100.0%\t— / — ms\t— ms\nEnterprise e DC — ensaio integrado / Tenant A para APP-1\tAprovado\t0.0%\t48.29 / 48.29 ms\t16.09 ms\nEnterprise e DC — ensaio integrado / Campus para VIP DC\tAprovado\t0.0%\t201.26 / 201.26 ms\t80.56 ms\nEnterprise e DC — ensaio integrado / Wi-Fi empresarial para ERP\tAprovado\t0.0%\t90.69 / 90.69 ms\t34.37 ms",
+  "persisted": true,
+  "mobile": {
+    "viewport": 390,
+    "bodyWidth": 390,
+    "visibleDevices": 32
+  },
+  "mobileReports": {
+    "width": 350,
+    "scrollWidth": 350
+  },
+  "accessibility": {
+    "desktop": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": 30,
+        "examples": [
+          {
+            "target": [
+              "div[aria-label=\"ACCESS-MGMT\"] > strong"
+            ],
+            "html": "<strong>ACCESS-MGMT</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"USER-PC\"] > strong"
+            ],
+            "html": "<strong>USER-PC</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"DHCP-PC\"] > strong"
+            ],
+            "html": "<strong>DHCP-PC</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"GUEST-PC\"] > strong"
+            ],
+            "html": "<strong>GUEST-PC</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"PORTAL-DMZ\"] > strong"
+            ],
+            "html": "<strong>PORTAL-DMZ</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"DNS\"] > strong"
+            ],
+            "html": "<strong>DNS</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"DHCP\"] > strong"
+            ],
+            "html": "<strong>DHCP</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              "div[aria-label=\"RADIUS\"] > strong"
+            ],
+            "html": "<strong>RADIUS</strong>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.46 (foreground color: #c5d8e5, background color: #ffffff, font size: 16.5pt (22px), font weight: bold). Expected contrast ratio of 3:1"
+          }
+        ]
+      }
+    ],
+    "report": [],
+    "mobile": []
+  },
+  "errors": [],
+  "failures": []
+}

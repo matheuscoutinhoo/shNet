@@ -1,0 +1,270 @@
+{
+  "date": "2026-10-13",
+  "count": 15,
+  "findings": [
+    {
+      "id": "ED01",
+      "priority": "P0",
+      "kind": "Lacuna de segurança",
+      "title": "Política de zonas IPv4 não protege IPv6",
+      "evidence": [
+        "P-DUALSTACK-ZONES",
+        "P-DUALSTACK-HTTP",
+        "P-DUALSTACK-ACL"
+      ],
+      "observed": "GUEST→ERP é negado em IPv4, mas ping e HTTP IPv6 chegam. ACL IPv6 explícita bloqueia o ping.",
+      "cause": "Pipeline IPv6 usa ACL própria e não consulta o firewall por zonas. A matriz de fidelidade não explicita essa diferença.",
+      "plan": [
+        "R01"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED02",
+      "priority": "P0",
+      "kind": "Bug",
+      "title": "Relatório aceita recuperação incoerente com as amostras",
+      "evidence": [
+        "P-REPORT-CONSISTENCY",
+        "api-results.json"
+      ],
+      "observed": "Recuperação original de 2072,426 ms/observedFailure=true substituída por 0/false; schema e API aceitam, HTTP 200, resultado persistido.",
+      "cause": "O validador confere nomes/resolução, mas não recalcula recoveryMs/observedFailure. Não comprova execução independente no servidor.",
+      "plan": [
+        "R02",
+        "R15"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED03",
+      "priority": "P1",
+      "kind": "Bug de interface",
+      "title": "Rótulos sem contraste em canvas claro com tema escuro",
+      "evidence": [
+        "ui-results.json",
+        "screenshots/desktop.png"
+      ],
+      "observed": "Axe: color-contrast serious em 30 elementos. Exemplos: texto #c5d8e5 sobre #ffffff, razão 1,46.",
+      "cause": "Cores dos rótulos acompanham o tema da aplicação sem considerar o fundo escolhido para o canvas.",
+      "plan": [
+        "R03"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED04",
+      "priority": "P1",
+      "kind": "Limitação",
+      "title": "Dois spines não garantem failover do VXLAN",
+      "evidence": [
+        "D11",
+        "D12",
+        "D13"
+      ],
+      "observed": "Perda SPINE-2 mantém HTTP; perda SPINE-1 interrompe; retorno recupera. Todos os leaves têm dois enlaces e rotas alternativas.",
+      "cause": "VTEP ligado a p1; resolveUnderlay/sendVxlanFrame/receiveVxlan restringem o transporte à interface configurada. Rotas usam estado administrativo e não oferecem ECMP.",
+      "plan": [
+        "R06",
+        "R18"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED05",
+      "priority": "P1",
+      "kind": "Limitação e validação ausente",
+      "title": "Route target divergente não isola peers estáticos no mesmo VNI",
+      "evidence": [
+        "D16",
+        "D17",
+        "P-PREFLIGHT-RT"
+      ],
+      "observed": "RIB importada fica vazia, mas HTTP continua por flooding/aprendizado de peers estáticos; preflight não alerta.",
+      "cause": "RT controla importação de MACs no modelo. VNI e peers controlam o plano de dados. Não tratar RT sozinho como barreira de segurança.",
+      "plan": [
+        "R07"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED06",
+      "priority": "P1",
+      "kind": "Configuração e validação ausente",
+      "title": "DHCP de backup depende de pool para seu giaddr",
+      "evidence": [
+        "E08",
+        "E14",
+        "P-DHCP-backup-pool",
+        "P-PREFLIGHT-DHCP"
+      ],
+      "observed": "Pool somente para 10.60.10.2 atende o primário e falha no backup .3, apesar de ambos terem relay. Pool adicional não sobreposto recupera a concessão.",
+      "cause": "A regra atual de preflight detecta relay ausente, mas não confere cobertura dos pools por endereço do relay.",
+      "plan": [
+        "R05",
+        "R08"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED07",
+      "priority": "P2",
+      "kind": "Melhoria de análise",
+      "title": "Avisos de IP duplicado não consideram o domínio L2/VNI",
+      "evidence": [
+        "D02",
+        "D03",
+        "D04",
+        "P-PREFLIGHT-TENANTS"
+      ],
+      "observed": "Dois avisos DUPLICATE_IP para endereços intencionalmente sobrepostos em VNIs isolados. Tráfego de cada tenant chega ao servidor correto.",
+      "cause": "Heurística global por nome de VRF/IP não reconstrói domínios de broadcast e contexto do endpoint.",
+      "plan": [
+        "R22"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED08",
+      "priority": "P1",
+      "kind": "Recurso ausente",
+      "title": "Executor de cenários não aceita IPv6 nem seleção de VRF",
+      "evidence": [
+        "U01",
+        "U02",
+        "P-VRF-BLUE",
+        "P-VRF-RED"
+      ],
+      "observed": "Schema recusa endereço IPv6 e campo vrf. O motor executa IPv6 e TCP nas duas VRFs separadamente.",
+      "cause": "Cobertura automática inferior à capacidade do motor; cenários de segurança dual stack ficam fora do executor nativo.",
+      "plan": [
+        "R11"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED09",
+      "priority": "P2",
+      "kind": "Melhoria de produto",
+      "title": "Nenhum preset enterprise/datacenter para a topologia completa",
+      "evidence": [
+        "ui-results.json",
+        "templates.ts"
+      ],
+      "observed": "Zero opções Modelo na topologia de 38 equipamentos. Executar cinco fluxos exige editar JSON; menu/modal ainda se chamam fábrica.",
+      "cause": "Templates campus/EVPN existentes são demonstrações pequenas, sem matriz integrada de HA/segurança e assistente de cenários.",
+      "plan": [
+        "R12",
+        "R21"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED10",
+      "priority": "P1",
+      "kind": "Fidelidade parcial",
+      "title": "PCAP não inclui VXLAN e BGP interoperáveis",
+      "evidence": [
+        "P-PCAP",
+        "diagnostics.json"
+      ],
+      "observed": "423 frames VXLAN e 32 BGP omitidos, além de 109 envelopes sem codec. Exportação informa as exclusões.",
+      "cause": "Mensagens do overlay/controle usam envelopes didáticos. Não é um arquivo completo para validação externa de EVPN.",
+      "plan": [
+        "R19"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED11",
+      "priority": "P2",
+      "kind": "Fidelidade parcial",
+      "title": "Fabric de datacenter não implementa todos os recursos de produção",
+      "evidence": [
+        "docs/adr/025-vxlan-evpn.md",
+        "ipv4.ts",
+        "vxlan.ts"
+      ],
+      "observed": "Inspeção confirma ausência de RR EVPN, ESI/DF, IMET, Type 5, proxy ARP e MAC/IP IPv6 no controle. Underlay/VRF dinâmico completo não está disponível.",
+      "cause": "Limites documentados do modelo educacional, sem emulação de ASIC/firmware ou MP-BGP binário.",
+      "plan": [
+        "R18",
+        "R19"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED12",
+      "priority": "P1",
+      "kind": "Risco do desenho",
+      "title": "SPOFs e ausência de replicação de estado continuam",
+      "evidence": [
+        "E18",
+        "E19",
+        "D07",
+        "D10",
+        "D19",
+        "D20",
+        "P-HA-EXISTING-TCP"
+      ],
+      "observed": "Switch de acesso, DNS, LB, gateway DC/WAN e serviços únicos não têm HA completo. Sessão echo recebia before|, permanece ESTABLISHED, mas after| não chega após failover; backup tem zero sessões.",
+      "cause": "VRRP protege gateway e novas sessões; não replica firewall/NAT/estado de serviço. UPS única do LB não representa alimentação A/B.",
+      "plan": [
+        "R08",
+        "R09",
+        "R10"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED13",
+      "priority": "P2",
+      "kind": "Limite de evidência e desempenho",
+      "title": "Carga de fabric esgota a retenção de captura",
+      "evidence": [
+        "scale-results.json",
+        "ui-results.json"
+      ],
+      "observed": "Perfis 38/62/86: 1/25/49 pings entregues; descartes da captura 0/487/2642. Realtime 5× acompanha aproximadamente 92,7% do ritmo solicitado nesta medição.",
+      "cause": "Retenção de 2 MiB é deliberadamente limitada; descarte não é perda de pacote. Uma medição local não comprova escala de produção ou vazamento de memória.",
+      "plan": [
+        "R23"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED14",
+      "priority": "P1",
+      "kind": "Bug de convergência",
+      "title": "Editar edge de uma porta desconectada reinicializa o bridge",
+      "evidence": [
+        "P-RSTP-PORT-EDIT",
+        "diagnostics.json"
+      ],
+      "observed": "ACCESS-USERS p20 muda forwarding→discarding ao editar p3 sem cabo. HTTP falha nos primeiros 5 s e volta após reconvergência.",
+      "cause": "setSpanningTreePort chama rebuildSpanningTree e initialize no equipamento inteiro. DHCP snooping passou depois de aguardar essa convergência.",
+      "plan": [
+        "R04"
+      ],
+      "status": "aberto"
+    },
+    {
+      "id": "ED15",
+      "priority": "P2",
+      "kind": "Documentação",
+      "title": "Matriz de capacidades e documentação ainda divergem",
+      "evidence": [
+        "docs/protocols.md:63",
+        "fidelity.ts",
+        "ADR-018",
+        "ADR-025"
+      ],
+      "observed": "Texto afirma ausência de IP de gerência em switch L2 apesar da correção entregue. Matriz genérica não detalha IPv6 do firewall, VRFs, codecs EVPN ou underlay preso à porta.",
+      "cause": "Atualização das entregas não foi refletida em todas as descrições e superfícies de produto.",
+      "plan": [
+        "R26"
+      ],
+      "status": "aberto"
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "total": 27,
+  "passed": 18,
+  "findings": 9,
+  "results": [
+    {
+      "id": "P-ospf-base",
+      "name": "ospf: HTTP após convergência",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-ospf-failover",
+      "name": "ospf: falha de um caminho",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-bgp-base",
+      "name": "bgp: HTTP após convergência",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-bgp-failover",
+      "name": "bgp: falha de um caminho",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-vpn-base",
+      "name": "vpn: HTTP após convergência",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-sdwan-base",
+      "name": "sdwan: HTTP após convergência",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-sdwan-failover",
+      "name": "sdwan: falha de um caminho",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-VRF-BLUE",
+      "name": "TCP em VRF BLUE com IP sobreposto",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-VRF-RED",
+      "name": "TCP em VRF RED com IP sobreposto",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-VRF-default",
+      "name": "Tabela default não alcança tenants VRF",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-NTP",
+      "name": "NTP em VLAN de gerência",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-SYSLOG",
+      "name": "Syslog entregue ao coletor",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-DHCP-backup-pool",
+      "name": "DHCP após failover com pool giaddr compatível",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-PREFLIGHT-DHCP",
+      "name": "Preflight detecta pool ausente para relay de backup",
+      "expected": true,
+      "observed": false,
+      "passed": false
+    },
+    {
+      "id": "P-PREFLIGHT-RT",
+      "name": "Preflight detecta route target divergente no mesmo VNI/peer",
+      "expected": true,
+      "observed": false,
+      "passed": false
+    },
+    {
+      "id": "P-PREFLIGHT-TENANTS",
+      "name": "Preflight distingue IP repetido em VNIs isolados",
+      "expected": 0,
+      "observed": 2,
+      "passed": false
+    },
+    {
+      "id": "P-DUALSTACK-ZONES",
+      "name": "Política de zonas GUEST→CORP deve bloquear IPv6 também",
+      "expected": false,
+      "observed": true,
+      "passed": false
+    },
+    {
+      "id": "P-DUALSTACK-HTTP",
+      "name": "HTTP IPv6 GUEST→CORP também deve ser bloqueado",
+      "expected": false,
+      "observed": true,
+      "passed": false
+    },
+    {
+      "id": "P-PCAP",
+      "name": "PCAP exporta tráfego integrado sem omissões de codec",
+      "expected": 0,
+      "observed": 564,
+      "passed": false
+    },
+    {
+      "id": "P-REPORT-CONSISTENCY",
+      "name": "Validador recusa recovery adulterada em relatório",
+      "expected": false,
+      "observed": true,
+      "passed": false
+    },
+    {
+      "id": "P-WIFI-DIAGNOSIS",
+      "name": "Wi-Fi autenticado: diagnóstico de bridge/VLAN",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-WIFI-INVALID-TRUST",
+      "name": "Certificado RADIUS não confiável bloqueia acesso",
+      "expected": false,
+      "observed": false,
+      "passed": true
+    },
+    {
+      "id": "P-DUALSTACK-ACL",
+      "name": "ACL IPv6 explícita bloqueia GUEST→CORP",
+      "expected": false,
+      "observed": false,
+      "passed": true
+    },
+    {
+      "id": "P-ROGUE-DHCP-false",
+      "name": "DHCP indevido vence sem snooping",
+      "expected": false,
+      "observed": false,
+      "passed": true
+    },
+    {
+      "id": "P-ROGUE-DHCP-true",
+      "name": "DHCP indevido bloqueado por snooping",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "id": "P-RSTP-PORT-EDIT",
+      "name": "Alterar edge em porta desconectada não deve interromper uplinks",
+      "expected": true,
+      "observed": false,
+      "passed": false
+    },
+    {
+      "id": "P-HA-EXISTING-TCP",
+      "name": "Sessão TCP existente precisa sobreviver ao failover de firewall",
+      "expected": true,
+      "observed": false,
+      "passed": false
+    }
+  ]
+}

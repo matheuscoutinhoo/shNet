@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-13",
+  "sourceCommit": "3d35c2e1e4e59a382c9d319eac6dc97311a55de5",
+  "productionCodeChanged": false,
+  "regression": { "passed": 677, "failed": 0, "skipped": 1, "files": 72, "artifact": "regression-tests.json" },
+  "auditMatrix": { "cases": 73, "matchedExpectations": 59, "divergentExpectations": 14, "casesWithHarnessError": 0 },
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed with existing large-chunk warning",
+  "buildChunksKb": { "simulationWorker": 878.33, "scenarioWorker": 894.77, "workspace": 626.67, "sharedEngine": 931.66 },
+  "ui": { "positiveFlows": 5, "samples": 30, "savedAndReopened": true, "pageErrors": 0, "projectApiErrors": 0, "contrastViolations": 30, "mobileBodyWidth": 390, "mobileViewport": 390, "mobileReportWidth": 350, "mobileReportScrollWidth": 350 },
+  "apiNegativeResult": "recoveryMs=0 and observedFailure=false accepted and persisted; original was 2072.426040000035 ms and true; artificial project deleted",
+  "scale": { "profiles": [38, 62, 86], "successfulProbes": 75, "totalProbes": 75, "captureDropped": [0, 487, 2642], "productionScaleCertified": false },
+  "notValidated": ["external PostgreSQL backup/restore (TEST_DATABASE_URL not supplied)", "production deployment", "hardware/firmware interoperability", "long-duration soak test", "field RF"]
+}

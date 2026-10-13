@@ -1,0 +1,33 @@
+{
+  "createStatus": 201,
+  "importStatus": 200,
+  "provenance": {
+    "sourceClock": 35000,
+    "sourceHash": "fa4e4e354d35d975e1901657da4f6845c5eef930798fdbd1449074786a1f3200",
+    "revision": 2
+  },
+  "recoveryTampering": {
+    "expectedStatus": 400,
+    "observedStatus": 200,
+    "persisted": true,
+    "recovery": {
+      "flow": "ERP",
+      "recoveryMs": 0,
+      "resolutionMs": 1000,
+      "observedFailure": false
+    }
+  },
+  "revisionConflict": {
+    "expectedStatus": 409,
+    "observedStatus": 409
+  },
+  "identicalCompletionRetry": {
+    "expectedStatus": 200,
+    "observedStatus": 200
+  },
+  "missingCsrf": {
+    "expectedStatus": 403,
+    "observedStatus": 403
+  },
+  "cleanupStatus": 200
+}

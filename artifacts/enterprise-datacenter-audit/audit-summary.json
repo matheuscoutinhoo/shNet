@@ -1,0 +1,156 @@
+{
+  "sourceCommit": "3d35c2e1e4e59a382c9d319eac6dc97311a55de5",
+  "topology": {
+    "devices": 38,
+    "links": 46
+  },
+  "matrix": {
+    "total": 73,
+    "matched": 59,
+    "divergent": 14
+  },
+  "findings": {
+    "total": 15,
+    "bugs": [
+      "ED02",
+      "ED03",
+      "ED14"
+    ]
+  },
+  "plan": {
+    "fronts": 30,
+    "byPhase": [
+      {
+        "phase": 0,
+        "ids": [
+          "R01",
+          "R02"
+        ]
+      },
+      {
+        "phase": 1,
+        "ids": [
+          "R03",
+          "R04",
+          "R05",
+          "R06",
+          "R07",
+          "R08",
+          "R09",
+          "R10"
+        ]
+      },
+      {
+        "phase": 2,
+        "ids": [
+          "R11",
+          "R12",
+          "R13",
+          "R14",
+          "R15"
+        ]
+      },
+      {
+        "phase": 3,
+        "ids": [
+          "R16",
+          "R17",
+          "R18",
+          "R19"
+        ]
+      },
+      {
+        "phase": 4,
+        "ids": [
+          "R20",
+          "R21",
+          "R22",
+          "R23",
+          "R24",
+          "R25",
+          "R26"
+        ]
+      },
+      {
+        "phase": 5,
+        "ids": [
+          "R27",
+          "R28",
+          "R29",
+          "R30"
+        ]
+      }
+    ]
+  },
+  "regression": {
+    "passed": 677,
+    "failed": 0,
+    "skipped": 1
+  },
+  "ui": {
+    "realtimeRatio": 0.9266929138621502,
+    "positiveFlows": 5,
+    "samples": 30,
+    "persisted": true,
+    "errors": 0,
+    "contrastNodes": 30
+  },
+  "api": {
+    "expectedStatus": 400,
+    "observedStatus": 200,
+    "persisted": true,
+    "recovery": {
+      "flow": "ERP",
+      "recoveryMs": 0,
+      "resolutionMs": 1000,
+      "observedFailure": false
+    }
+  },
+  "scale": [
+    {
+      "devices": 38,
+      "links": 46,
+      "hostsAdded": 0,
+      "virtualMs": 20000,
+      "wallMs": 1893,
+      "convergenceSteps": 2321,
+      "trafficSteps": 880,
+      "probes": 1,
+      "successful": 1,
+      "heapDeltaMiB": 58,
+      "snapshotBytes": 2025247,
+      "captureDropped": 0,
+      "queue": 97
+    },
+    {
+      "devices": 62,
+      "links": 70,
+      "hostsAdded": 24,
+      "virtualMs": 20000,
+      "wallMs": 4453,
+      "convergenceSteps": 2369,
+      "trafficSteps": 2008,
+      "probes": 25,
+      "successful": 25,
+      "heapDeltaMiB": -6,
+      "snapshotBytes": 2422775,
+      "captureDropped": 487,
+      "queue": 121
+    },
+    {
+      "devices": 86,
+      "links": 94,
+      "hostsAdded": 48,
+      "virtualMs": 20000,
+      "wallMs": 6453,
+      "convergenceSteps": 2417,
+      "trafficSteps": 4264,
+      "probes": 49,
+      "successful": 49,
+      "heapDeltaMiB": 4,
+      "snapshotBytes": 2590094,
+      "captureDropped": 2642,
+      "queue": 145
+    }
+  ]
+}

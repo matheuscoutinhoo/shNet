@@ -1,0 +1,50 @@
+{
+  "method": "Amostra local, uma execução por perfil; sem warmup/GC forçado. Heap delta não mede vazamento. Sem certificação de escala de produção.",
+  "results": [
+    {
+      "devices": 38,
+      "links": 46,
+      "hostsAdded": 0,
+      "virtualMs": 20000,
+      "wallMs": 1893,
+      "convergenceSteps": 2321,
+      "trafficSteps": 880,
+      "probes": 1,
+      "successful": 1,
+      "heapDeltaMiB": 58,
+      "snapshotBytes": 2025247,
+      "captureDropped": 0,
+      "queue": 97
+    },
+    {
+      "devices": 62,
+      "links": 70,
+      "hostsAdded": 24,
+      "virtualMs": 20000,
+      "wallMs": 4453,
+      "convergenceSteps": 2369,
+      "trafficSteps": 2008,
+      "probes": 25,
+      "successful": 25,
+      "heapDeltaMiB": -6,
+      "snapshotBytes": 2422775,
+      "captureDropped": 487,
+      "queue": 121
+    },
+    {
+      "devices": 86,
+      "links": 94,
+      "hostsAdded": 48,
+      "virtualMs": 20000,
+      "wallMs": 6453,
+      "convergenceSteps": 2417,
+      "trafficSteps": 4264,
+      "probes": 49,
+      "successful": 49,
+      "heapDeltaMiB": 4,
+      "snapshotBytes": 2590094,
+      "captureDropped": 2642,
+      "queue": 145
+    }
+  ]
+}
