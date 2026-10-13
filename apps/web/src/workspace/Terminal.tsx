@@ -17,6 +17,7 @@ import {
   type DeviceTerminalState,
 } from './terminalState';
 import '@xterm/xterm/css/xterm.css';
+import { coloredTerminalCommand, coloredTerminalInput, coloredTerminalOutput } from './terminalColors';
 export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: string }) {
   const ref = useRef<HTMLDivElement>(null),
     stateRef = useRef<DeviceTerminalState | null>(null),
@@ -82,12 +83,12 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       drain();
     };
     const redraw = (before = '') => {
-      const input = state.prompt + ' ' + state.line;
+      const input = coloredTerminalInput(state.prompt, state.line);
       pending.push({ kind: 'redraw', text: before + input, replay: state.output + input });
       drain();
     };
     const result = (text: string) => {
-      const output = text + '\r\n';
+      const output = coloredTerminalOutput(text) + '\r\n';
       appendTerminalOutput(state, output);
       state.prompt = cli.prompt;
       redraw(output);
@@ -108,7 +109,7 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
     // Completed output has no transient input-editing controls. XTerm can reflow
     // it at the current width and render the current hostname/draft exactly once.
     state.prompt = cli.prompt;
-    write(state.output + state.prompt + ' ' + state.line);
+    write(state.output + coloredTerminalInput(state.prompt, state.line));
     const replaceLine = (text: string) => {
       state.line = text;
       state.prompt = cli.prompt;
@@ -129,32 +130,36 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       for (const ch of data) {
         if (ch === '\r' || ch === '\n') {
           const input = state.line;
-          appendTerminalOutput(state, state.prompt + ' ' + input + '\r\n');
+          appendTerminalOutput(state, coloredTerminalInput(state.prompt, input) + '\r\n');
           state.line = '';
           const output = labRef.current.change(
             () => cli.execute(input),
             !/^(show|help|\?|ping|traceroute|nslookup|tcp|http)/i.test(input)
           );
-          if (output) appendTerminalOutput(state, output + '\r\n');
+          if (output) appendTerminalOutput(state, coloredTerminalOutput(output) + '\r\n');
           if (output?.startsWith('DNS [')) {
             const query = labRef.current.engine.device(deviceId).dnsQueries?.at(-1);
             if (query && query.status !== 'pending' && output.includes(query.id)) state.seen.add(query.id);
           }
           state.historyIndex = cli.history.length;
           state.prompt = cli.prompt;
-          write('\r\n' + (output ? output + '\r\n' : '') + state.prompt + ' ');
+          write(
+            '\r\n' +
+              (output ? coloredTerminalOutput(output) + '\r\n' : '') +
+              coloredTerminalInput(state.prompt)
+          );
         } else if (ch === '\x7f') {
           if (state.line) {
             replaceLine(state.line.slice(0, -1));
           }
         } else if (ch === '\x03') {
-          appendTerminalOutput(state, state.prompt + ' ' + state.line + '^C\r\n');
+          appendTerminalOutput(state, coloredTerminalInput(state.prompt, state.line) + '^C\r\n');
           state.line = '';
           state.prompt = cli.prompt;
-          write('^C\r\n' + state.prompt + ' ');
+          write('^C\r\n' + coloredTerminalInput(state.prompt));
         } else if (ch >= ' ' && ch <= '~' && state.line.length < 512) {
           state.line += ch;
-          write(ch);
+          write(coloredTerminalCommand(ch));
         }
       }
     });

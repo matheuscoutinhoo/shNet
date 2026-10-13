@@ -224,6 +224,19 @@ test('Categorias e terminal: capacidades, troca de filtro e texto sem cortes em 
   };
   await command('ipconfig /all');
   await expect(terminal).toContainText('IPv4:');
+  const coloredText = (color: string) =>
+    terminal.locator('.xterm-rows span').evaluateAll(
+      (spans, expected) =>
+        spans
+          .filter((span) => getComputedStyle(span).color === expected)
+          .map((span) => span.textContent)
+          .join(''),
+      color
+    );
+  await expect.poll(() => coloredText('rgb(146, 236, 224)')).toContain('02:');
+  await expect.poll(() => coloredText('rgb(242, 204, 139)')).toContain('não configurado');
+  await command('vlan 20');
+  await expect.poll(() => coloredText('rgb(255, 157, 171)')).toContain('não se aplica');
   const geometry = async () => {
     const host = (await terminal.boundingBox())!,
       screen = (await terminal.locator('.xterm-screen').boundingBox())!;
@@ -253,6 +266,7 @@ test('Categorias e terminal: capacidades, troca de filtro e texto sem cortes em 
   await tabs.getByRole('button', { name: 'Portas', exact: true }).click();
   await tabs.getByRole('button', { name: 'Terminal', exact: true }).click();
   await expect.poll(text).toContain(draft);
+  await expect.poll(() => coloredText('rgb(173, 241, 220)')).toContain('ping');
   const resize = page.getByRole('separator', { name: 'Redimensionar detalhes do equipamento' });
   await resize.focus();
   await page.keyboard.press('End');
