@@ -67,6 +67,7 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 - Tempo virtual, pause/play/step, velocidade, frames animados, timeline, resultados de probes e inspetor com explicação dos eventos.
 - Testes de domínio, integração, autorização e fluxo no navegador.
 - ACL de entrada/saída, NAT estático/dinâmico/PAT e firewall TCP/UDP/Echo, com zonas, regras por porta e erros ICMP relacionados/citados.
+- Par HA explícito de firewall/NAT/PAT por enlace dedicado, com continuidade de conexões existentes, failback, contadores e preflight; limites em [ADR-045](docs/adr/045-firewall-nat-state-synchronization.md).
 - 23 labs guiados/desafios com avaliação por tráfego novo no backend, tarefas e progresso por revisão; grupos, regiões, notas, snap configurável e viewport salvo.
 - Inspetor global com protocolos, overlays/QoS, AAA/segurança, automação/relógio, referências IP, caminho observado e pilha OSI.
 - BGP IPv4/VRF/SVI/subinterfaces, LACP, tracking VRRP, ICMPv6/NDP/SLAAC, wireless, VPN/SD-WAN, QoS/MPLS estático, VXLAN/EVPN, 802.1X/RADIUS/TACACS+ e inspeção HTTP/DNS.

@@ -26,6 +26,7 @@ import {
   applyNodeChanges,
   useReactFlow,
   useNodesInitialized,
+  useUpdateNodeInternals,
   useStore,
   NodeResizer,
   type Node,
@@ -126,6 +127,11 @@ function AnnotationView({ data, selected }: NodeProps<AnnotationNode>) {
 }
 function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
   const d = data.device;
+  const updateNodeInternals = useUpdateNodeInternals();
+  const interfaceIds = d.interfaces.map((p) => p.id).join(',');
+  useEffect(() => {
+    updateNodeInternals(d.id);
+  }, [d.id, data.overview, data.detailed, interfaceIds, updateNodeInternals]);
   const presentation = devicePresentationProfile(d);
   const passive = ['rack', 'patch-panel'].includes(d.infrastructure?.kind ?? '');
   const activityClass = data.activity ? ' activity-' + data.activity.tone : '';
@@ -514,6 +520,25 @@ function Canvas({
   const canMove = motion.visible && !motion.reduced;
   const zoom = useStore((state) => state.transform[2]);
   const overview = engine.state.devices.length > 20 && zoom < 0.55;
+  // Nodes update after the viewport changes. Draw each cable only once both
+  // endpoints have measured handles for that rendering mode. This also keeps
+  // offscreen nodes unmeasured without hiding cables whose endpoints are ready.
+  const measuredEdgeIds = useStore((state) =>
+    engine.state.links
+      .filter((link) =>
+        [link.a, link.b].every((end) => {
+          const node = state.nodeLookup.get(end.device);
+          return (
+            node?.data.overview === overview &&
+            node.internals.handleBounds?.source?.some(
+              (handle) => handle.id === (overview ? 'overview' : end.port)
+            )
+          );
+        })
+      )
+      .map((link) => link.id)
+      .join('\n')
+  );
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
   const container = useRef<HTMLDivElement>(null);
   const [actions, setActions] = useState<{ id: string; x: number; y: number; trigger: HTMLElement } | null>(
@@ -797,6 +822,10 @@ function Canvas({
       setNodes((ns) => applyNodeChanges(changes, ns)),
     []
   );
+  const measuredEdges = useMemo(() => {
+    const ids = new Set(measuredEdgeIds.split('\n'));
+    return edges.filter((edge) => ids.has(edge.id));
+  }, [edges, measuredEdgeIds]);
   const onSelectionChange = useCallback(
     ({ nodes: selection }: { nodes: CanvasNode[] }) => onSelect(selection.map((node) => node.id)),
     [onSelect]
@@ -844,7 +873,7 @@ function Canvas({
       <ReactFlow<CanvasNode, CableEdge>
         onlyRenderVisibleElements={engine.state.devices.length > 200}
         nodes={nodes}
-        edges={edges}
+        edges={measuredEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}

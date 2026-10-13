@@ -98,6 +98,7 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^(access-list|ip access-group|show access-lists)/.test(line)) return c.routing || !d.profile;
   if (/^(ip nat|service nat|show ip nat)/.test(line)) return c.routing;
   if (/^(firewall |service firewall|show firewall)/.test(line)) return c.routing || !!d.firewall;
+  if (/^(ha state-sync|no ha state-sync|show ha state-sync)/.test(line)) return d.type === 'router';
   if (/^management configure/.test(line)) return c.remoteKinds.includes('server');
   if (/^management request/.test(line)) return c.remoteKinds.includes('request');
   if (/^automation /.test(line)) return c.remoteKinds.includes('automation');
@@ -252,6 +253,11 @@ export function deviceCommandHelp(d: Device, context: Context): HelpEntry[] {
       command: 'show vrrp',
       description: 'Consulta qual equipamento atende ao gateway virtual.',
       example: 'show vrrp',
+    },
+    {
+      command: 'show ha state-sync',
+      description: 'Consulta o canal HA, réplicas pendentes e recusas de estado firewall/NAT.',
+      example: 'show ha state-sync',
     },
     {
       command: 'show wireless',

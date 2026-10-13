@@ -13,6 +13,7 @@ import { registerLayer3Commands, layer3RunningConfig } from './layer3';
 import { registerLacpCommands, lacpRunningConfig } from './lacp';
 import { registerBgpCommands, bgpRunningConfig } from './bgp';
 import { registerVrrpCommands, vrrpRunningConfig } from './vrrp';
+import { registerStateSyncCommands, stateSyncRunningConfig } from './state-sync';
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort, type Mode } from './registry';
 import { ipv4Schema } from '../model';
 import { parsePrefix, resolveDefaultRoutes, subnet } from '../protocols/ipv4';
@@ -65,6 +66,7 @@ export function makeRegistry() {
   registerOspfCommands(r);
   registerRipCommands(r);
   registerVrrpCommands(r);
+  registerStateSyncCommands(r);
   registerBgpCommands(r);
   registerManagementCommands(r);
   r.register({
@@ -424,6 +426,7 @@ export function makeRegistry() {
         ...aaaRunningConfig(d),
         ...vxlanRunningConfig(d),
         ...policyRunningConfig(d),
+        ...stateSyncRunningConfig(_e.state, d),
         ...d.vlans.flatMap((v) => ['vlan ' + v.id, ' name ' + v.name]),
         ...d.interfaces.flatMap((i) => [
           'interface ' + i.name,

@@ -41,6 +41,7 @@ import { validateOspf } from '../protocols/ospf-validation';
 import { validateRip } from '../protocols/rip-validation';
 import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
+import { validateStateSync } from '../protocols/state-sync';
 export function validateSnapshot(value: unknown): Snapshot {
   const s = snapshotSchema.parse(value);
   if (s.capture) {
@@ -80,6 +81,7 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateTcp(s);
   validateModbus(s);
   validateFirewall(s);
+  validateStateSync(s);
   validateInspection(s);
   validateOspf(s);
   validateRip(s);

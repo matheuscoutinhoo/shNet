@@ -2,6 +2,7 @@ import type { Snapshot } from './model';
 import { linkOperational } from './links/physical';
 import { networkDomains } from './network-domains';
 import { ipNumber } from './protocols/ipv4';
+import { stateSyncStatus, stateSyncPending } from './protocols/state-sync';
 export interface PreflightIssue {
   code: string;
   severity: 'error' | 'warning' | 'info';
@@ -21,6 +22,50 @@ export function preflight(s: Snapshot): PreflightIssue[] {
   const addresses = new Map<string, string[]>();
   const domain = networkDomains(s);
   for (const d of s.devices) {
+    if (d.type === 'router' && d.vrrp?.enabled && (d.firewall?.enabled || d.nat?.enabled) && !d.stateSync)
+      add(
+        'VRRP_NO_STATE_SYNC',
+        'warning',
+        [d.id],
+        `${d.hostname}: VRRP sem réplica de firewall/NAT; conexões existentes podem interromper.`,
+        'Configure um par HA com canal dedicado e valide continuidade com a mesma conexão.'
+      );
+    if (d.stateSync) {
+      const status = stateSyncStatus(s, d),
+        pending = stateSyncPending(s, d);
+      if (status !== 'ready')
+        add(
+          'HA_SYNC_UNAVAILABLE',
+          'warning',
+          [d.id, d.stateSync.peer],
+          `${d.hostname}: sincronização HA ${status === 'policy-mismatch' ? 'com políticas divergentes' : 'sem enlace operacional'}.`,
+          'Restaure o cabo/energia e aplique políticas equivalentes nos dois peers.'
+        );
+      if (pending)
+        add(
+          'HA_SYNC_PENDING',
+          'info',
+          [d.id, d.stateSync.peer],
+          `${d.hostname}: ${pending} atualizações de estado ainda não recebidas pelo peer.`,
+          'Avance o relógio e verifique os contadores e os ensaios antes de concluir continuidade.'
+        );
+      if (d.stateSync.rejected)
+        add(
+          'HA_SYNC_REJECTED',
+          'warning',
+          [d.id],
+          `${d.hostname}: ${d.stateSync.rejected} atualizações HA foram recusadas.`,
+          'Confira limites, colisões e políticas; resolva as pendências antes de certificar continuidade.'
+        );
+      if (d.nat?.algSip || d.nat?.hairpin || d.firewall?.application?.enabled)
+        add(
+          'HA_SYNC_SCOPE',
+          'warning',
+          [d.id],
+          `${d.hostname}: HA não replica hairpin, SIP ALG ou fluxos de inspeção de aplicação.`,
+          'Use o ensaio específico dessas aplicações; não conclua continuidade pelo estado TCP/NAT básico.'
+        );
+    }
     for (const p of d.interfaces.filter((p) => p.ip)) {
       const key = `${domain(d, p)}:${p.ip}`;
       addresses.set(key, [...(addresses.get(key) ?? []), d.id]);

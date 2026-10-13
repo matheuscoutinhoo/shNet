@@ -13,7 +13,7 @@ export const fidelityMatrix = [
     feature: 'Firewall stateful',
     status: 'Simulado',
     limit:
-      'Zonas ip/TCP/UDP/ICMP e sessões de trânsito aplicam-se a IPv4 e IPv6 em roteadores. Inspeção de aplicação/SIP ALG usa IPv4. Switch L3 oferece ACL; VRRP não replica sessões.',
+      'Zonas ip/TCP/UDP/ICMP e sessões de trânsito cobrem IPv4/IPv6 em roteadores. Par HA explícito replica sessões e NAT/PAT por canal dedicado sujeito a falhas; VRRP sozinho não replica estado. Inspeção de aplicação/SIP ALG e hairpin não são replicados. Switch L3 oferece ACL.',
   },
   {
     feature: 'Wi-Fi/RF',

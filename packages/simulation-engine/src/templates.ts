@@ -278,7 +278,28 @@ export const templates = [
 ] as const;
 export type TemplateId = (typeof templates)[number]['id'];
 export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
-  if (template === 'factory') return structuredClone(factoryTemplate) as unknown as Snapshot;
+  if (template === 'factory') {
+    const e = new SimulationEngine(structuredClone(factoryTemplate) as unknown as Snapshot);
+    const a = e.state.devices.find((d) => d.hostname === 'FW-A')!,
+      b = e.state.devices.find((d) => d.hostname === 'FW-B')!;
+    e.connect({ device: a.id, port: 'p2' }, { device: b.id, port: 'p2' });
+    e.configureStateSyncPair(a.id, b.id, {
+      portA: 'p2',
+      portB: 'p2',
+      mappings: [
+        { a: 'p1', b: 'p1' },
+        ...a.interfaces
+          .filter((p) => p.logical?.kind === 'subinterface')
+          .map((p) => ({
+            a: p.id,
+            b: b.interfaces.find((q) => q.logical?.vlan === p.logical!.vlan)!.id,
+          })),
+      ],
+    });
+    e.state.notes +=
+      ' FW-A/FW-B replicam sessões e NAT/PAT pelo cabo dedicado p2; perda do canal não equivale a continuidade garantida.';
+    return e.snapshot();
+  }
   if (template === 'enterprise-datacenter') return enterpriseDatacenterTemplate();
   if (template === 'enterprise') {
     const e = new SimulationEngine(),

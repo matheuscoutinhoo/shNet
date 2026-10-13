@@ -247,6 +247,18 @@ export function enterpriseDatacenterTemplate() {
       },
     });
   }
+  cable(fws[0], 'p2', fws[1], 'p2');
+  e.configureStateSyncPair(fws[0].id, fws[1].id, {
+    portA: 'p2',
+    portB: 'p2',
+    mappings: [
+      { a: 'p1', b: 'p1' },
+      ...segments.map((s) => ({
+        a: fws[0].interfaces.find((p) => p.logical?.vlan === s.vlan)!.id,
+        b: fws[1].interfaces.find((p) => p.logical?.vlan === s.vlan)!.id,
+      })),
+    ],
+  });
   wan.routes.push({ network: '10.60.0.0', prefix: 16, nextHop: '172.31.0.254', metric: 1 });
   // Three-leaf, two-spine DC. Every leaf has a physical path to each spine.
   const spines = [dev('edge', 'SPINE-1', 2350, 450), dev('edge', 'SPINE-2', 2800, 450)];

@@ -13,6 +13,7 @@ import { ipNumber, ipString, sameSubnet, subnet } from './ipv4';
 import { isUnicast } from './dhcp-config';
 import { isIcmpError } from './icmp';
 import { natIcmpInbound, natIcmpOutbound } from './nat-icmp';
+import { syncNat } from './state-sync';
 
 export function validateNat(device: Device) {
   if (!device.nat) return;
@@ -84,6 +85,7 @@ export function configureNat(engine: SimulationEngine, device: Device, input: un
   config.hairpins = [];
   config.sipBindings = [];
   validateNat({ ...device, nat: config });
+  for (const binding of device.nat?.bindings ?? []) syncNat(engine, device, binding, true);
   device.nat = config;
   engine.state.queue = engine.state.queue.filter(
     ({ action }) =>
@@ -103,12 +105,13 @@ function touch(engine: SimulationEngine, device: Device, binding: NatBinding) {
     ({ action }) =>
       action.kind !== 'nat-expire' || action.device !== device.id || action.binding !== binding.id
   );
-  engine.schedule(binding.expiresAt - engine.state.clock, {
+  engine.scheduleAt(binding.expiresAt, {
     kind: 'nat-expire',
     device: device.id,
     binding: binding.id,
     expiresAt: binding.expiresAt,
   });
+  syncNat(engine, device, binding);
 }
 export function expireNat(engine: SimulationEngine, device: Device, id: string, expiresAt: number) {
   const binding = device.nat?.bindings.find((entry) => entry.id === id && entry.expiresAt === expiresAt);
@@ -123,6 +126,8 @@ export function expireNat(engine: SimulationEngine, device: Device, id: string, 
 
 export function natOwnsAddress(device: Device, port: NetworkInterface, address: string) {
   if (!device.nat?.enabled || port.natRole !== 'outside') return false;
+  const groups = device.vrrp?.enabled ? device.vrrp.groups.filter((g) => g.port === port.id) : [];
+  if (groups.length && !groups.some((g) => g.state === 'ACTIVE')) return false;
   return (
     device.nat.statics.some((entry) => entry.outside === port.id && entry.global === address) ||
     device.nat.bindings.some(

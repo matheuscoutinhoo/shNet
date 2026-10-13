@@ -1,5 +1,6 @@
 """Independent Scapy validation of generated enterprise/industrial captures."""
 import json
+import os
 import struct
 from collections import defaultdict
 from pathlib import Path
@@ -52,7 +53,7 @@ assert overlays and all(p[VXLAN].vni == 10010 and int(p[VXLAN].flags) == 8 for p
 assert all(isinstance(p[VXLAN].payload, Ether) for p in overlays)
 summary = {'decoder': 'Scapy', 'checksums': checked, 'modbusPackets': len(modbus),
            'modbusADUs': decoded, 'vxlanPackets': len(vxlan), 'vxlanEnvelopes': len(overlays)}
-out = Path('artifacts/remediation-2026-10-13')
+out = Path(os.environ.get('SHLAB_AUDIT_OUTPUT', 'artifacts/remediation-2026-10-13'))
 out.mkdir(parents=True, exist_ok=True)
 (out / 'independent-captures.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
 print(json.dumps({'checksums': checked, 'modbusADUs': len(decoded), 'vxlanEnvelopes': len(overlays)}))

@@ -59,13 +59,15 @@ function configuration(value: unknown): unknown {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, val]) => [
         key,
-        key === 'spanningTree' && val && typeof val === 'object'
-          ? Object.fromEntries(
-              Object.entries(val).filter(([k]) =>
-                ['enabled', 'mode', 'priority', 'stpEdge', 'stpCost'].includes(k)
+        key === 'stateSync' && val && typeof val === 'object'
+          ? Object.fromEntries(Object.entries(val).filter(([k]) => ['peer', 'port', 'portMap'].includes(k)))
+          : key === 'spanningTree' && val && typeof val === 'object'
+            ? Object.fromEntries(
+                Object.entries(val).filter(([k]) =>
+                  ['enabled', 'mode', 'priority', 'stpEdge', 'stpCost'].includes(k)
+                )
               )
-            )
-          : configuration(val),
+            : configuration(val),
       ])
   );
 }

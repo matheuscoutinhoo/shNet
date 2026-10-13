@@ -2,6 +2,7 @@ import { InspectionPanel } from './InspectionPanel';
 import type { Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 import { FirewallForm } from './FirewallForm';
+import { StateSyncPanel } from './StateSyncPanel';
 
 export function FirewallPanel({ lab, device }: { lab: LabController; device: Device }) {
   return (
@@ -23,6 +24,7 @@ export function FirewallPanel({ lab, device }: { lab: LabController; device: Dev
         device={device}
       />
       <InspectionPanel lab={lab} device={device} />
+      <StateSyncPanel key={JSON.stringify([device.id, device.stateSync?.token])} lab={lab} device={device} />
       <p className="muted">
         Descartes: {device.firewall?.dropped ?? 0} · Sessões: {device.firewall?.sessions.length ?? 0}
       </p>

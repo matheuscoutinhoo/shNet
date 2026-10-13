@@ -24,7 +24,7 @@ show running-config
 
 `no vrrp 10 preempt` mantém um ativo de prioridade menor até ele falhar. `no vrrp 10` remove o grupo na interface; `no service vrrp` desativa todos os grupos conservando configuração. A aba **VRRP** oferece os mesmos ajustes e mostra estado, VIP, MAC, ativo conhecido, timer e contadores. O filtro **VRRP** inspeciona versão, VRID, VIP, prioridade, intervalo, protocolo 112 e TTL.
 
-Limites: um VIP por grupo, IPv4 estático /1 a /30, 32 grupos por roteador, intervalos 100–10000 ms. Prioridade 255 exige VIP igual ao IP físico e inicia ACTIVE imediatamente. Não donos usam o VIP apenas como gateway, sem atender ping/HTTP local nesse endereço. Tracking por interface/rota está entregue (ADR-019); HSRP, VRRP IPv6 e replicação NAT/firewall não são modelados. ACL pode filtrar `vrrp`; bloquear anúncios pode provocar split brain. Grupos em interfaces diferentes são independentes. Veja [ADR-016](adr/016-vrrp-ipv4-gateway.md) e [RFC 9568](https://www.rfc-editor.org/rfc/rfc9568.html).
+Limites: um VIP por grupo, IPv4 estático /1 a /30, 32 grupos por roteador, intervalos 100–10000 ms. Prioridade 255 exige VIP igual ao IP físico e inicia ACTIVE imediatamente. Não donos usam o VIP apenas como gateway, sem atender ping/HTTP local nesse endereço. Tracking por interface/rota está entregue (ADR-019). VRRP sozinho não replica estado; o par HA explícito de firewall/NAT usa canal separado (ADR-045). HSRP e VRRP IPv6 não são modelados. ACL pode filtrar `vrrp`; bloquear anúncios pode provocar split brain. Grupos em interfaces diferentes são independentes. Veja [ADR-016](adr/016-vrrp-ipv4-gateway.md) e [RFC 9568](https://www.rfc-editor.org/rfc/rfc9568.html).
 
 ## SNMP e syslog
 
@@ -81,6 +81,8 @@ show firewall
 ```
 
 Há até 1024 sessões por roteador. O inspector mostra protocolo, estado e expiração; eventos FIREWALL_PERMIT/DENY/EXPIRED explicam decisões. ACLs continuam podendo bloquear uma sessão existente. O rastreamento ocorre depois de DNAT e antes de SNAT, permitindo retorno com PAT.
+
+**Sincronização HA:** na mesma aba **Políticas**, configure dois roteadores, portas dedicadas conectadas diretamente e um mapeamento de interfaces. Políticas e pools precisam ser equivalentes. Sessões TCP/UDP/ICMP e traduções NAT/PAT mantêm sequências e prazos; a cópia está sujeita à disponibilidade/perda/latência do canal. Contadores distinguem updates enviados, recebidos, pendentes e recusados. `show ha state-sync` consulta o mesmo estado e a timeline oferece **Sincronização HA**. Não replica inspeção de aplicação, SIP ALG ou hairpin; não há codec proprietário/PCAP do canal. Limites, CLI e aceite: [ADR-045](adr/045-firewall-nat-state-synchronization.md).
 
 Erros Time Exceeded e Destination Unreachable incluem uma citação limitada ao cabeçalho IPv4 e aos campos de transporte, sem copiar dados da aplicação. O firewall autoriza ICMP RELATED apenas quando o fluxo citado corresponde a uma sessão viva. O erro pode vir de um roteador intermediário; não muda o estado nem renova a sessão. NAT estático/dinâmico/PAT traduzem o cabeçalho externo e a citação nos dois sentidos, restaurando portas/identificadores sem criar ou renovar bindings. O inspector mostra código, IPs, portas e sequência citados.
 

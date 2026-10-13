@@ -1,0 +1,24 @@
+{
+  "engineContract": "2026.10.13.5",
+  "devices": 43,
+  "links": 48,
+  "connectionId": "tcp-16292",
+  "connectionState": "ESTABLISHED",
+  "replies": [
+    {
+      "transaction": 1,
+      "function": 3
+    },
+    {
+      "transaction": 2,
+      "function": 6
+    },
+    {
+      "transaction": 3,
+      "function": 3
+    }
+  ],
+  "register0": 777,
+  "sameConnectionAcrossFailoverAndFailback": true,
+  "passed": true
+}

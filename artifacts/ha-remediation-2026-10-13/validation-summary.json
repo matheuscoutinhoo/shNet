@@ -1,0 +1,301 @@
+{
+  "date": "2026-10-13",
+  "engineContract": "2026.10.13.5",
+  "regression": {
+    "passed": 724,
+    "failed": 0,
+    "skipped": 1
+  },
+  "postgres": {
+    "passed": 56,
+    "failed": 0,
+    "skipped": 0
+  },
+  "enterprise": {
+    "engineContract": "2026.10.13.5",
+    "devices": 38,
+    "links": 47,
+    "connections": [
+      {
+        "target": "10.60.40.10",
+        "id": "tcp-28579",
+        "received": "before|after|failback|"
+      },
+      {
+        "target": "198.51.100.10",
+        "id": "tcp-28590",
+        "received": "before|after|failback|"
+      }
+    ],
+    "nat": {
+      "id": "nat-28924",
+      "global": "172.31.0.100",
+      "globalToken": "61692",
+      "preserved": true
+    },
+    "primary": {
+      "peer": "device-11",
+      "port": "p2",
+      "token": "state-sync-1335",
+      "portMap": [
+        {
+          "local": "p1",
+          "remote": "p1"
+        },
+        {
+          "local": "interface-491",
+          "remote": "interface-638"
+        },
+        {
+          "local": "interface-493",
+          "remote": "interface-640"
+        },
+        {
+          "local": "interface-495",
+          "remote": "interface-642"
+        },
+        {
+          "local": "interface-497",
+          "remote": "interface-644"
+        },
+        {
+          "local": "interface-499",
+          "remote": "interface-646"
+        }
+      ],
+      "records": [
+        {
+          "table": "firewall",
+          "id": "firewall-15644",
+          "revision": 28574,
+          "expiresAt": 137318.11476599972,
+          "deleted": true
+        },
+        {
+          "table": "firewall",
+          "id": "firewall-28905",
+          "revision": 41284,
+          "expiresAt": 350030.17835800006,
+          "deleted": false
+        },
+        {
+          "table": "firewall",
+          "id": "firewall-28918",
+          "revision": 41293,
+          "expiresAt": 350030.1883580001,
+          "deleted": false
+        },
+        {
+          "table": "nat",
+          "id": "nat-28924",
+          "revision": 41298,
+          "expiresAt": 350030.1883580001,
+          "deleted": false
+        }
+      ],
+      "sent": 54,
+      "received": 4,
+      "rejected": 0,
+      "lastReceivedAt": 46002.005146
+    },
+    "backup": {
+      "peer": "device-7",
+      "port": "p2",
+      "token": "state-sync-1336",
+      "portMap": [
+        {
+          "local": "p1",
+          "remote": "p1"
+        },
+        {
+          "local": "interface-638",
+          "remote": "interface-491"
+        },
+        {
+          "local": "interface-640",
+          "remote": "interface-493"
+        },
+        {
+          "local": "interface-642",
+          "remote": "interface-495"
+        },
+        {
+          "local": "interface-644",
+          "remote": "interface-497"
+        },
+        {
+          "local": "interface-646",
+          "remote": "interface-499"
+        }
+      ],
+      "records": [
+        {
+          "table": "firewall",
+          "id": "firewall-15644",
+          "revision": 28574,
+          "expiresAt": 137318.11476599972,
+          "deleted": true
+        },
+        {
+          "table": "firewall",
+          "id": "firewall-28905",
+          "revision": 41284,
+          "expiresAt": 350030.17835800006,
+          "deleted": false
+        },
+        {
+          "table": "nat",
+          "id": "nat-28924",
+          "revision": 41298,
+          "expiresAt": 350030.1883580001,
+          "deleted": false
+        },
+        {
+          "table": "firewall",
+          "id": "firewall-28918",
+          "revision": 41293,
+          "expiresAt": 350030.1883580001,
+          "deleted": false
+        }
+      ],
+      "sent": 4,
+      "received": 53,
+      "rejected": 0,
+      "lastReceivedAt": 50032.19343200005
+    },
+    "checkpointDeterministic": true,
+    "passed": true
+  },
+  "factory": {
+    "engineContract": "2026.10.13.5",
+    "devices": 43,
+    "links": 48,
+    "connectionId": "tcp-16292",
+    "connectionState": "ESTABLISHED",
+    "replies": [
+      {
+        "transaction": 1,
+        "function": 3
+      },
+      {
+        "transaction": 2,
+        "function": 6
+      },
+      {
+        "transaction": 3,
+        "function": 3
+      }
+    ],
+    "register0": 777,
+    "sameConnectionAcrossFailoverAndFailback": true,
+    "passed": true
+  },
+  "ui": {
+    "results": [
+      {
+        "template": "enterprise-datacenter",
+        "devices": 38,
+        "links": 47,
+        "configureDisableReconfigure": true,
+        "zoomOverviewDetailEdges": true,
+        "savedReopened": true,
+        "desktopViolations": [],
+        "mobileViolations": [],
+        "overflow": false
+      },
+      {
+        "template": "factory",
+        "devices": 43,
+        "links": 48,
+        "configureDisableReconfigure": true,
+        "zoomOverviewDetailEdges": true,
+        "savedReopened": true,
+        "desktopViolations": [],
+        "mobileViolations": [],
+        "overflow": false
+      }
+    ],
+    "errors": [],
+    "canvasWarnings": [],
+    "passed": true
+  },
+  "integrated": {
+    "project": {
+      "id": "a047f5f2-c063-4b59-9e58-2d837f8c6809",
+      "revision": 2
+    },
+    "name": "Enterprise + datacenter — auditoria 1791917987092",
+    "devices": 38,
+    "links": 47,
+    "realtime": {
+      "elapsedMs": 12282.317,
+      "advancedMs": 30418.193,
+      "ratio": 0.495316852675273
+    },
+    "nativePresets": 30,
+    "preflightText": "Validação de redes e cenários\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\n0 erros · 26 avisos. A verificação estática não comprova disponibilidade ou bloqueio de tráfego.\n\nExportar revisão\nINFO · CORE-A: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · CORE-B: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nWARNING · FW-A/Gi0/1.10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.\nWARNING · FW-B/Gi0/1.10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.\nINFO · ACCESS-USERS: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-GUEST: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-DMZ: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-CORP: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · ACCESS-MGMT: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · USER-PC: apenas um caminho físico de acesso.\nWARNING · DHCP-PC: apenas um caminho físico de acesso.\nWARNING · GUEST-PC: apenas um caminho físico de acesso.\nWARNING · PORTAL-DMZ: apenas um caminho físico de acesso.\nWARNING · DNS: apenas um caminho físico de acesso.\nWARNING · DHCP: apenas um caminho físico de acesso.\nWARNING · RADIUS: apenas um caminho físico de acesso.\nWARNING · ERP: apenas um caminho físico de acesso.\nWARNING · ADMIN: apenas um caminho físico de acesso.\nWARNING · NTP: apenas um caminho físico de acesso.\nWARNING · SYSLOG: apenas um caminho físico de acesso.\nINFO · AP-ENTERPRISE: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · WIFI-EMPLOYEE: apenas um caminho físico de acesso.\nINFO · TRANSIT-WAN: múltiplos enlaces compartilham o mesmo equipamento.\nWARNING · EXTERNAL-WEB: apenas um caminho físico de acesso.\nINFO · LEAF-1: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-1: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · LEAF-2: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-2: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nINFO · LEAF-3: múltiplos enlaces compartilham o mesmo equipamento.\nINFO · LEAF-3: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.\nWARNING · TENANT-A-CLIENT: apenas um caminho físico de acesso.\nWARNING · APP-1: apenas um caminho físico de acesso.\nWARNING · APP-2: apenas um caminho físico de acesso.\nWARNING · TENANT-B-CLIENT: apenas um caminho físico de acesso.\nWARNING · TENANT-B-SERVER: apenas um caminho físico de acesso.\nWARNING · LB: uma única UPS alimenta a carga.\nWARNING · LB: apenas um caminho físico de acesso.\nWARNING · DNS: única instância habilitada de dnsServer.\nWARNING · DHCP: única instância habilitada de dhcpServer.\nWARNING · LB: única instância habilitada de proxy.\nWARNING · SYSLOG: única instância habilitada de syslogServer.",
+    "scenarioText": "Validação de redes e cenários\nVerificar topologia\nCenários e SLA\nCapacidades do modelo\nPLC / HMI\nConfiguração e revisão\n\nExecute em uma cópia isolada da topologia. Compare baseline e falhas; tempos e SLAs são virtuais. Até 180 amostras por cenário. Os ensaios guardam a revisão e a topologia de origem no laboratório.\n\nCarregar cenário\nSelecione um cenário\nSalvo: Enterprise e DC — ensaio integrado\nModelo: Enterprise/DC — baseline de aplicações\nModelo: GUEST → ERP — prova de política\nModelo: Perda de CORE-A\nModelo: Perda de CORE-B\nModelo: Perda de FW-A\nModelo: Perda de FW-B\nModelo: Perda de ACCESS-USERS\nModelo: Perda de ACCESS-GUEST\nModelo: Perda de ACCESS-DMZ\nModelo: Perda de ACCESS-CORP\nModelo: Perda de ACCESS-MGMT\nModelo: Perda de DHCP-PC\nModelo: Perda de DNS\nModelo: Perda de DHCP\nModelo: Perda de EDGE-WAN\nModelo: Perda de SPINE-1\nModelo: Perda de SPINE-2\nModelo: Perda de LEAF-1\nModelo: Perda de LEAF-2\nModelo: Perda de LEAF-3\nModelo: Perda de DC-GW\nModelo: Perda de APP-1\nModelo: Perda de APP-2\nModelo: Perda de LB\nModelo: DNS ERP\nModelo: DHCP USERS\nModelo: SNMP firewall\nModelo: NTP gestão\nModelo: Syslog gestão\nModelo: Estado convergido da fabric e Wi-Fi\nFormato dos cenários\nEditar por formulário\nDefinição do cenário\nSalvar cenário no laboratório\nExecutar cenário\nExecutar baseline\nExportar definição\nEnterprise e DC — ensaio integrado · revisão 4 · Salvo\nExportar resultados\nCenário / fluxo\tResultado\tPerda\tp95 / p99\tJitter p95\nEnterprise e DC — ensaio integrado / ERP autorizado\tAprovado\t0.0%\t84.67 / 84.67 ms\t12.24 ms\nEnterprise e DC — ensaio integrado / Visitante bloqueado\tAprovado\t100.0%\t— / — ms\t— ms\nEnterprise e DC — ensaio integrado / Tenant A para APP-1\tAprovado\t0.0%\t64.39 / 64.39 ms\t16.10 ms\nEnterprise e DC — ensaio integrado / Campus para VIP DC\tAprovado\t0.0%\t169.06 / 169.06 ms\t72.47 ms\nEnterprise e DC — ensaio integrado / Wi-Fi empresarial para ERP\tAprovado\t0.0%\t90.69 / 90.69 ms\t6.22 ms",
+    "persisted": true,
+    "mobile": {
+      "viewport": 390,
+      "bodyWidth": 390,
+      "visibleDevices": 32
+    },
+    "mobileReports": {
+      "width": 350,
+      "scrollWidth": 350
+    },
+    "accessibility": {
+      "desktop": [],
+      "report": [],
+      "mobile": []
+    },
+    "errors": [],
+    "failures": []
+  },
+  "qualification": {
+    "environment": "isolated-native-postgresql-local",
+    "productionConfig": {
+      "production": true,
+      "embedded": false,
+      "httpsOrigin": "https://local.shlab.test"
+    },
+    "tlsHandshake": "not-executed: production TLS termination requires qualification in the deployment environment",
+    "migrations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "checks": {
+      "login": true,
+      "secureCookie": true,
+      "csp": true,
+      "hsts": true,
+      "readiness": true,
+      "staticAssets": 16,
+      "immutableScenario": true,
+      "authoritativeReplay": "matched",
+      "localArtifactRollback": true
+    },
+    "sourceHash": "8b6e03d875a4eff2e19b98cff2a7c911d34b03aa9904975b8deb50822bc10eb8",
+    "assetHash": "f0faf65c8731ae2fc312f204c1ec54677e8988601085b1e402acf71b2196a966",
+    "backupRestoreEvidence": "tests/production.test.ts via npm run test:postgres",
+    "remoteDeployment": "not-requested: local-only qualification"
+  },
+  "sourceHash": "8b6e03d875a4eff2e19b98cff2a7c911d34b03aa9904975b8deb50822bc10eb8",
+  "assetHash": "f0faf65c8731ae2fc312f204c1ec54677e8988601085b1e402acf71b2196a966",
+  "counts": {
+    "Concluída": 11,
+    "Parcial": 10,
+    "Pendente": 5,
+    "Validada localmente": 2,
+    "Condicional": 2
+  }
+}

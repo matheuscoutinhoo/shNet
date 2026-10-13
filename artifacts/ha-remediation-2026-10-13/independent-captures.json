@@ -1,0 +1,69 @@
+{
+  "decoder": "Scapy",
+  "checksums": {
+    "ipv4": 51,
+    "tcp": 35,
+    "udp": 8
+  },
+  "modbusPackets": 33,
+  "modbusADUs": [
+    {
+      "direction": "request",
+      "transaction": 33023,
+      "unit": 1,
+      "function": 6,
+      "pduHex": "060002fefe"
+    },
+    {
+      "direction": "request",
+      "transaction": 2,
+      "unit": 1,
+      "function": 3,
+      "pduHex": "0300630001"
+    },
+    {
+      "direction": "response",
+      "transaction": 33023,
+      "unit": 1,
+      "function": 6,
+      "pduHex": "060002fefe"
+    },
+    {
+      "direction": "response",
+      "transaction": 2,
+      "unit": 1,
+      "function": 131,
+      "pduHex": "8302"
+    },
+    {
+      "direction": "request",
+      "transaction": 3,
+      "unit": 1,
+      "function": 3,
+      "pduHex": "0300000002"
+    },
+    {
+      "direction": "response",
+      "transaction": 3,
+      "unit": 1,
+      "function": 3,
+      "pduHex": "0304ffff8000"
+    },
+    {
+      "direction": "request",
+      "transaction": 4,
+      "unit": 1,
+      "function": 16,
+      "pduHex": "100000000204abcd80ff"
+    },
+    {
+      "direction": "response",
+      "transaction": 4,
+      "unit": 1,
+      "function": 16,
+      "pduHex": "1000000002"
+    }
+  ],
+  "vxlanPackets": 24,
+  "vxlanEnvelopes": 8
+}

@@ -5,7 +5,7 @@ import {
   scenarioReportSchema,
   enterpriseScenarios,
 } from '../packages/simulation-engine/src';
-const out = 'artifacts/remediation-2026-10-13';
+const out = process.env.SHLAB_AUDIT_OUTPUT ?? 'artifacts/remediation-2026-10-13';
 await mkdir(out, { recursive: true });
 const topology = makeTemplate('enterprise-datacenter');
 await writeFile(out + '/enterprise-datacenter.shlab.json', JSON.stringify(topology));

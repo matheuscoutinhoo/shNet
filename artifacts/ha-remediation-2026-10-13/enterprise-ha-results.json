@@ -1,0 +1,155 @@
+{
+  "engineContract": "2026.10.13.5",
+  "devices": 38,
+  "links": 47,
+  "connections": [
+    {
+      "target": "10.60.40.10",
+      "id": "tcp-28579",
+      "received": "before|after|failback|"
+    },
+    {
+      "target": "198.51.100.10",
+      "id": "tcp-28590",
+      "received": "before|after|failback|"
+    }
+  ],
+  "nat": {
+    "id": "nat-28924",
+    "global": "172.31.0.100",
+    "globalToken": "61692",
+    "preserved": true
+  },
+  "primary": {
+    "peer": "device-11",
+    "port": "p2",
+    "token": "state-sync-1335",
+    "portMap": [
+      {
+        "local": "p1",
+        "remote": "p1"
+      },
+      {
+        "local": "interface-491",
+        "remote": "interface-638"
+      },
+      {
+        "local": "interface-493",
+        "remote": "interface-640"
+      },
+      {
+        "local": "interface-495",
+        "remote": "interface-642"
+      },
+      {
+        "local": "interface-497",
+        "remote": "interface-644"
+      },
+      {
+        "local": "interface-499",
+        "remote": "interface-646"
+      }
+    ],
+    "records": [
+      {
+        "table": "firewall",
+        "id": "firewall-15644",
+        "revision": 28574,
+        "expiresAt": 137318.11476599972,
+        "deleted": true
+      },
+      {
+        "table": "firewall",
+        "id": "firewall-28905",
+        "revision": 41284,
+        "expiresAt": 350030.17835800006,
+        "deleted": false
+      },
+      {
+        "table": "firewall",
+        "id": "firewall-28918",
+        "revision": 41293,
+        "expiresAt": 350030.1883580001,
+        "deleted": false
+      },
+      {
+        "table": "nat",
+        "id": "nat-28924",
+        "revision": 41298,
+        "expiresAt": 350030.1883580001,
+        "deleted": false
+      }
+    ],
+    "sent": 54,
+    "received": 4,
+    "rejected": 0,
+    "lastReceivedAt": 46002.005146
+  },
+  "backup": {
+    "peer": "device-7",
+    "port": "p2",
+    "token": "state-sync-1336",
+    "portMap": [
+      {
+        "local": "p1",
+        "remote": "p1"
+      },
+      {
+        "local": "interface-638",
+        "remote": "interface-491"
+      },
+      {
+        "local": "interface-640",
+        "remote": "interface-493"
+      },
+      {
+        "local": "interface-642",
+        "remote": "interface-495"
+      },
+      {
+        "local": "interface-644",
+        "remote": "interface-497"
+      },
+      {
+        "local": "interface-646",
+        "remote": "interface-499"
+      }
+    ],
+    "records": [
+      {
+        "table": "firewall",
+        "id": "firewall-15644",
+        "revision": 28574,
+        "expiresAt": 137318.11476599972,
+        "deleted": true
+      },
+      {
+        "table": "firewall",
+        "id": "firewall-28905",
+        "revision": 41284,
+        "expiresAt": 350030.17835800006,
+        "deleted": false
+      },
+      {
+        "table": "nat",
+        "id": "nat-28924",
+        "revision": 41298,
+        "expiresAt": 350030.1883580001,
+        "deleted": false
+      },
+      {
+        "table": "firewall",
+        "id": "firewall-28918",
+        "revision": 41293,
+        "expiresAt": 350030.1883580001,
+        "deleted": false
+      }
+    ],
+    "sent": 4,
+    "received": 53,
+    "rejected": 0,
+    "lastReceivedAt": 50032.19343200005
+  },
+  "checkpointDeterministic": true,
+  "passed": true
+}

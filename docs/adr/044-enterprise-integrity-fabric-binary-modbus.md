@@ -2,6 +2,8 @@
 
 Data: 2026-10-13. Contrato do motor: `2026.10.13.4`. Atualiza os limites registrados nos ADRs 017, 025, 042 e 043.
 
+A sincronização HA de firewall/NAT foi acrescentada no contrato `2026.10.13.5`, conforme [ADR-045](045-firewall-nat-state-synchronization.md). Os resultados e limites abaixo descrevem o incremento anterior.
+
 ## Decisões
 
 - A política stateful de zonas cobre TCP, UDP e ICMP em IPv4/IPv6. NDP permanece local; ACL IPv6 de saída também é aplicada. Inspeção de conteúdo de aplicação ainda usa IPv4 e o preflight informa esse limite.

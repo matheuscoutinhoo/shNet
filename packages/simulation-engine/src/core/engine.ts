@@ -170,6 +170,7 @@ import { configureTcpService } from '../protocols/tcp-services';
 import { configureTcpSettings } from '../protocols/tcp-extensions';
 import { configureDhcp6Relay } from '../protocols/dhcp6-relay';
 import { configureFirewall, expireFirewall, permitFirewall } from '../protocols/firewall';
+import { configureStateSyncPair, disableStateSync, handleStateSync } from '../protocols/state-sync';
 import { sendIcmpError } from '../protocols/icmp';
 import { configureOspf, handleOspfTick } from '../protocols/ospf';
 import { OSPF } from '../protocols/ospf-model';
@@ -505,6 +506,7 @@ export class SimulationEngine {
     });
   }
   removeDevice(id: string) {
+    if (this.device(id).stateSync) disableStateSync(this, this.device(id));
     for (const link of this.state.links.filter((l) => l.a.device === id || l.b.device === id))
       this.removeLink(link.id);
     for (const d of this.state.devices)
@@ -583,7 +585,9 @@ export class SimulationEngine {
       (item) => !(item.anchor?.kind === 'link' && item.anchor.target === id)
     );
     refreshPower(this);
-    this.state.queue = this.state.queue.filter((q) => q.action.kind !== 'deliver' || q.action.link !== id);
+    this.state.queue = this.state.queue.filter(
+      (q) => (q.action.kind !== 'deliver' && q.action.kind !== 'state-sync-deliver') || q.action.link !== id
+    );
     for (const d of this.state.devices) {
       d.macTable = [];
       d.arpTable = [];
@@ -863,6 +867,12 @@ export class SimulationEngine {
   }
   configureFirewall(deviceId: string, input: unknown) {
     configureFirewall(this, this.device(deviceId), input);
+  }
+  configureStateSyncPair(deviceA: string, deviceB: string, input: unknown) {
+    configureStateSyncPair(this, this.device(deviceA), this.device(deviceB), input);
+  }
+  disableStateSync(deviceId: string) {
+    disableStateSync(this, this.device(deviceId));
   }
   configureOspf(deviceId: string, input: unknown) {
     configureOspf(this, this.device(deviceId), input);
@@ -1391,6 +1401,7 @@ export class SimulationEngine {
     } else if (a.kind === 'lacp-tick') handleLacpTick(this, a);
     else if (a.kind === 'stp-hello' || a.kind === 'stp-transition' || a.kind === 'stp-info-expire')
       handleSpanningTreeAction(this, a);
+    else if (a.kind === 'state-sync-tick' || a.kind === 'state-sync-deliver') handleStateSync(this, a);
     else if (a.kind === 'nat-expire') expireNat(this, this.device(a.device), a.binding, a.expiresAt);
     else if (a.kind === 'tcp-timer') handleTcpTimer(this, a);
     else if (a.kind === 'dhcp6-tick') handleDhcp6Tick(this, a);

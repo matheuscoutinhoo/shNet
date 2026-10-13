@@ -1,0 +1,1471 @@
+{
+  "baseCommit": "8138135e740badfcf1e7d5a9d6c5126df571bbc3",
+  "engineContract": "2026.10.13.5",
+  "schemaVersion": 1,
+  "sourceHash": "8b6e03d875a4eff2e19b98cff2a7c911d34b03aa9904975b8deb50822bc10eb8",
+  "assetHash": "f0faf65c8731ae2fc312f204c1ec54677e8988601085b1e402acf71b2196a966",
+  "sourceEntries": [
+    {
+      "path": "apps/api/migrations/001_initial.sql",
+      "sha256": "26429d6a28aa60fdbeb59fd92ba68cda2bb1b93f63a411bd2bf348194a71bcbe"
+    },
+    {
+      "path": "apps/api/migrations/002_account_sessions.sql",
+      "sha256": "99f0f6da70b339c6edf11eb8240b178897e3966d1ceb2c15c7113e3837465b35"
+    },
+    {
+      "path": "apps/api/migrations/003_lab_progress.sql",
+      "sha256": "91ab4c4309bcd2c3497935be41ef2001c7ca029e23d75d26cbf0d25d0441c14d"
+    },
+    {
+      "path": "apps/api/migrations/004_learning.sql",
+      "sha256": "8e0e7d29d75f790a5ff2a985305d2ee2b7e0949046d5b430f0c881efcfaa828a"
+    },
+    {
+      "path": "apps/api/migrations/005_learning_best.sql",
+      "sha256": "929d6953913385b187596ceebbbb37a080d97315e54c4d26b21638de06c41e72"
+    },
+    {
+      "path": "apps/api/migrations/006_activity.sql",
+      "sha256": "589b95961d66ab1d85288c2fea459c0ba755644d07b361ae3a413c0702dbc673"
+    },
+    {
+      "path": "apps/api/migrations/007_shared_rate_limits.sql",
+      "sha256": "2022e33775d0069df026a61a7386a51124f6d0198791098201b853fce81194ab"
+    },
+    {
+      "path": "apps/api/migrations/008_scenario_runs.sql",
+      "sha256": "f206c36b995d61b548b8ce81e6d9db2970106ba0eb62bdda863db7590b85f1a6"
+    },
+    {
+      "path": "apps/api/migrations/009_scenario_run_expiration.sql",
+      "sha256": "d0cafe4e46886089c46d4046b5c0c101865d7d0717f26192bece30fc155ae314"
+    },
+    {
+      "path": "apps/api/migrations/010_scenario_run_verification.sql",
+      "sha256": "34aba13bbf6e8fd678dd3f18c4b0e81bd8c79e8c8592c84a2839d7d7b62978ea"
+    },
+    {
+      "path": "apps/api/src/activity.ts",
+      "sha256": "71406ab4d30539a29af35ed750e19723aced2bcaca8b09e6b2762d07722d0405"
+    },
+    {
+      "path": "apps/api/src/app.ts",
+      "sha256": "c4b34954f79cc14444e1d29dbd1ac4600cafdc87281bbf3d7f9e8c0b6dbdc0fe"
+    },
+    {
+      "path": "apps/api/src/auth.ts",
+      "sha256": "c535c9015409105f4c159108685701d017028a3a69638e2349ba13a6f275576b"
+    },
+    {
+      "path": "apps/api/src/config.ts",
+      "sha256": "a67b385ac76f8cc5d1fa5dd92d006c65551e5bf31ce1a3904327d0d9b1c16162"
+    },
+    {
+      "path": "apps/api/src/database-json.ts",
+      "sha256": "72563f774b91556d702a27b7f18a47fa1845d950d22f1cb17d0daac219a02c77"
+    },
+    {
+      "path": "apps/api/src/db.ts",
+      "sha256": "c0b1191b097531dd3bf5c58c423ee5957938d3f6856e454262401c558847544b"
+    },
+    {
+      "path": "apps/api/src/learning.ts",
+      "sha256": "68fa8f128c1664a28627e989b4b0f62a0a93d3600511531fc3052c205d715e02"
+    },
+    {
+      "path": "apps/api/src/mailer.ts",
+      "sha256": "6314598bad1b070905ec584595c0f53dbe9694d7b8b160cfebf210081a996aa6"
+    },
+    {
+      "path": "apps/api/src/main.ts",
+      "sha256": "0305edef1675ef3646bce7017140acb1b205521fc6e9d03aec211bfe0502274f"
+    },
+    {
+      "path": "apps/api/src/migrate.ts",
+      "sha256": "0e42ff5fb1ad5178f580fb12d2d834761b0c78290d2bd08977bb50e4eafcf033"
+    },
+    {
+      "path": "apps/api/src/observability.ts",
+      "sha256": "329e97340e65f955c68d691e60bc43de23480fe6268b972f7ea80e0ac7a36533"
+    },
+    {
+      "path": "apps/api/src/openapi.ts",
+      "sha256": "0324f097979658b70fb93fd3a88e072133ca8edc02f3b8f24ec8c85dd729eca6"
+    },
+    {
+      "path": "apps/api/src/projects.ts",
+      "sha256": "4fa8efae053cfbf51ca8c24f74205a6a456fb59859fd5512913e2d1b85c385b8"
+    },
+    {
+      "path": "apps/api/src/scenario-replay-worker.mjs",
+      "sha256": "ed598f703a88d6061b7c22883bc90adbd076d70c69b3b7f9753e5b83c06b515f"
+    },
+    {
+      "path": "apps/api/src/scenario-replay.ts",
+      "sha256": "65143a58c9eede9d0367c87a6e6074ed9d5cba45d17b9823b5b1e29a166d80dc"
+    },
+    {
+      "path": "apps/api/src/scenario-runs.ts",
+      "sha256": "b7b00c9e71d15139641bbf76f32249812b7192a8f82597d5fe96a958987181f1"
+    },
+    {
+      "path": "apps/api/src/security.ts",
+      "sha256": "d1e3f4210368b046a53cb772f8e1007c3941f7ff3fc64976b804cd963b8f9b5d"
+    },
+    {
+      "path": "apps/api/src/shared-rate-limit.ts",
+      "sha256": "efaf7898aa1778865e3827fdde33d95f121a8bcaa76caf499d39c9dd8ef9233f"
+    },
+    {
+      "path": "apps/web/src/Account.tsx",
+      "sha256": "4c5ff6d44c17a06d6a286f533d8494a505a32cbec58b7aac06111abd5d45b9d8"
+    },
+    {
+      "path": "apps/web/src/ActivityHistory.tsx",
+      "sha256": "1401d286d18c5bf5e64689006f22ea33bc34549227126e2182050e9c319090d2"
+    },
+    {
+      "path": "apps/web/src/Auth.tsx",
+      "sha256": "2a0b6862439c4f6527aebc18c19118d2b234e069ef84ba01b87d9b39efcd43c3"
+    },
+    {
+      "path": "apps/web/src/Dashboard.tsx",
+      "sha256": "09785ae794ffdfe6eed4ae59a982b1d7685b7beeeb604c561a17cd5542316f31"
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "sha256": "5d2abc15d7c02c95a9a0fd6808a3c6b27b7f6e065f35b9baf8cabd3b10cddb3d"
+    },
+    {
+      "path": "apps/web/src/canvas-motion.css",
+      "sha256": "8d5b8e1e707311ab74200cb365039fce691c67e36453f6d1b750504ea52c9ec9"
+    },
+    {
+      "path": "apps/web/src/canvas-ui.css",
+      "sha256": "d830090f4377f1491307f0d12c86c03fe7969a3f8f36cc8f4a1809c067ff3e30"
+    },
+    {
+      "path": "apps/web/src/catalog.ts",
+      "sha256": "bd34810a78a0aeb13665ea0a5bfc253af260bb5d996fb9e6e3a23c6ea357d3e6"
+    },
+    {
+      "path": "apps/web/src/components/Brand.tsx",
+      "sha256": "b8bd9b49cd516887b8c513e58ed5d6691f96f3e1c7a88b13e11479647165b868"
+    },
+    {
+      "path": "apps/web/src/components/CatalogCard.tsx",
+      "sha256": "1cedb93016b85676d26737055e348326fd71727f53c6c912a64693e985917638"
+    },
+    {
+      "path": "apps/web/src/components/ConfigEditor.tsx",
+      "sha256": "2fdee64a82a2960158d34db9bc54cf37be43ce46c9b8b325ae293fa010b912dc"
+    },
+    {
+      "path": "apps/web/src/components/DeviceIcon.tsx",
+      "sha256": "ed943ac02e728e56cd064e228c6631569573b5f672c00be2ae08daee7eb1c7d8"
+    },
+    {
+      "path": "apps/web/src/components/Modal.tsx",
+      "sha256": "14a1ba3952b56e90471be137b6f53330fce208cf67ba9f7e031548e41662727d"
+    },
+    {
+      "path": "apps/web/src/components/NetworkText.tsx",
+      "sha256": "e10b6f979d625d4c420f73f388003fc55929ebd1f241effe124be6d67c3087a9"
+    },
+    {
+      "path": "apps/web/src/components/SearchField.tsx",
+      "sha256": "04a534dd0ff8996e0180a3000fd93c1bb5226be5c9b2df90dfd425379c98c7c0"
+    },
+    {
+      "path": "apps/web/src/dashboard.css",
+      "sha256": "d91dfaad077c3cca92d08b26d388a4e082a2d98eb141b304d72fa5ad85cf1b00"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "sha256": "726926f4eae8b6372d0073b324bf029e6d24b26828b171b9f7b8f445e802b982"
+    },
+    {
+      "path": "apps/web/src/redesign.css",
+      "sha256": "6e59b019013d008f04e5e87d63e0ce1af13aac4a54bb326b5ae9d6c1dd312a32"
+    },
+    {
+      "path": "apps/web/src/styles.css",
+      "sha256": "122a432b5e0ae3136f0d2b1f5fc11edede377b2891d04455332a33ba3cec1ca2"
+    },
+    {
+      "path": "apps/web/src/theme.css",
+      "sha256": "cda7610b7a346d38f0b36e38c85562b937eb2df93a1082fa73b234529618ad27"
+    },
+    {
+      "path": "apps/web/src/theme.ts",
+      "sha256": "2134d4f47921f44e2af035b069222900461872303481832cfcd188cce06747c4"
+    },
+    {
+      "path": "apps/web/src/workspace.css",
+      "sha256": "cc5a4f41a9b1cc08fcb6a45e1ef901af28a78d843e65c942241690e12503cdbb"
+    },
+    {
+      "path": "apps/web/src/workspace/AaaPanel.tsx",
+      "sha256": "85fc70302097512572c465228afee14a5197e4c31a9897f11d52acbe8e4be85a"
+    },
+    {
+      "path": "apps/web/src/workspace/AdvancedNetworkPanel.tsx",
+      "sha256": "2a7600b73f22f4428714d67a8f612e0206d8966dae21221307ba4c2521a2ddcf"
+    },
+    {
+      "path": "apps/web/src/workspace/ApplicationsPanel.tsx",
+      "sha256": "32f4db98df24bdc1303a9e6e18f7d2be6b429462d4fb79b6461d8d0b055ca38e"
+    },
+    {
+      "path": "apps/web/src/workspace/BgpPanel.tsx",
+      "sha256": "d3e592b046d1b53baf8a2daa29980fe6ba95bd475e7a80c6937e6464d0073751"
+    },
+    {
+      "path": "apps/web/src/workspace/CaptureDialog.tsx",
+      "sha256": "8d4beda8e19e6184aa20aa06407bfcc7e2c97f766f74706093a7fcbba36a908d"
+    },
+    {
+      "path": "apps/web/src/workspace/CommentDialog.tsx",
+      "sha256": "5406a4651377a963bde7fc56fa273977cced9cc807fb92b5482cec35786075d0"
+    },
+    {
+      "path": "apps/web/src/workspace/ConfigurationReview.tsx",
+      "sha256": "ac8130a526c0bd436db1327e877694736697f4f297d485de23451578cff6ea78"
+    },
+    {
+      "path": "apps/web/src/workspace/Connections.tsx",
+      "sha256": "e08516d08ff9cbcf7031f86101f914e070c8cea525bb71835076aa249921141b"
+    },
+    {
+      "path": "apps/web/src/workspace/DatabasePanel.tsx",
+      "sha256": "73f7c7ab7338aacfceeeb353d642657bcd7d88affb640d558c7a46e95fa7d1a4"
+    },
+    {
+      "path": "apps/web/src/workspace/DeviceActions.tsx",
+      "sha256": "60515ca8148d932d839c9a78ac3eb41ff41c94895eaa0b55c2d940dce2d9e8a2"
+    },
+    {
+      "path": "apps/web/src/workspace/Dhcp6Panel.tsx",
+      "sha256": "f9d0a2ff363b4e9cf3a3ff04f6dbd6bbfa17244dcb247b5acbe90441d0823dec"
+    },
+    {
+      "path": "apps/web/src/workspace/DhcpPanel.tsx",
+      "sha256": "7cc42ae8bbdceb3516cc55fa51685859ea0bcb508c0a73abef17b69aecdf7bcb"
+    },
+    {
+      "path": "apps/web/src/workspace/DhcpProtectionPanel.tsx",
+      "sha256": "fc72e879b1d129844ace29182e2eeff15d46224e4301424482041a489cdabca2"
+    },
+    {
+      "path": "apps/web/src/workspace/DhcpRelayPanel.tsx",
+      "sha256": "3c4694cf0248ec8da56d2889987aa96e102558e8bd205415c0dc88bc0bd2830f"
+    },
+    {
+      "path": "apps/web/src/workspace/DnsPanel.tsx",
+      "sha256": "9cd80895291f4a341a2960539d8f97891c057a86a3dfc8610a39eccd20348af8"
+    },
+    {
+      "path": "apps/web/src/workspace/DnsSecurityPanel.tsx",
+      "sha256": "0ca49740190deaeae353bf376eebef0b606e38dfafd4e7d40f473a6f55388a76"
+    },
+    {
+      "path": "apps/web/src/workspace/DrawingLayer.tsx",
+      "sha256": "7bd5c1bcd7d420e6dd7316754e7ab65af2b590dcb5bdb0dc47a47faa87060250"
+    },
+    {
+      "path": "apps/web/src/workspace/EquipmentCatalog.tsx",
+      "sha256": "3810038bea36363d217af199b3a88ba9d290307f8607a5e5923d7ff7f390e0e3"
+    },
+    {
+      "path": "apps/web/src/workspace/FactoryTools.tsx",
+      "sha256": "326980ad51e451136a3ba9a81d9b2221de035d6fd6151976e6766ff649bbb6f9"
+    },
+    {
+      "path": "apps/web/src/workspace/FirewallForm.tsx",
+      "sha256": "5a49b5acf598f3b82c87a0b6c32ebd22be9123d21998a285c55b7bea7c054d3b"
+    },
+    {
+      "path": "apps/web/src/workspace/FirewallPanel.tsx",
+      "sha256": "ad8dd3133f1886da92c9390e1b4113d52d6fb657a6458bbe2912a1a13b9ae806"
+    },
+    {
+      "path": "apps/web/src/workspace/ForwardingPanel.tsx",
+      "sha256": "29441c19b75a88af9fcf4f3e851bd4ff5a1cb856f1d937d92d7211f379cce719"
+    },
+    {
+      "path": "apps/web/src/workspace/HardwarePanel.tsx",
+      "sha256": "1aeef3f7b5346cc4d3b167289eac1ef4351cfcfa82168aacecf3da822a80d65d"
+    },
+    {
+      "path": "apps/web/src/workspace/IndustrialPanel.tsx",
+      "sha256": "56b892e22da4611ccd0a3b6ea905162037361c37e8f3b1ad0458499c01fe1c2a"
+    },
+    {
+      "path": "apps/web/src/workspace/InfrastructurePanel.tsx",
+      "sha256": "8d42c3486d178342ffe273eb3cf5de22fc3f577916fb3176a0ea3c1b8deb8850"
+    },
+    {
+      "path": "apps/web/src/workspace/InspectionPanel.tsx",
+      "sha256": "99e90b00faad2ce3fe90c085033ba9c9bf813126bad6af4337225de86c746c70"
+    },
+    {
+      "path": "apps/web/src/workspace/Inspector.tsx",
+      "sha256": "7a896a15880bcd57c141f69d41ffe02ff55100e7f736f3bc9a17140b646bf311"
+    },
+    {
+      "path": "apps/web/src/workspace/Ipv6Panel.tsx",
+      "sha256": "e880f155b2ec17c73b2c5db06b5c57f06cd3c4b89ae3d44f02d86e361375c461"
+    },
+    {
+      "path": "apps/web/src/workspace/LabPanel.tsx",
+      "sha256": "b28fe392204462547b22dd8ad1846689b9fe9ea229b0293eef3de6ac48b327c8"
+    },
+    {
+      "path": "apps/web/src/workspace/LacpPanel.tsx",
+      "sha256": "bc2da28911a277c75cd2993c8d51ae68a47106e3ee54f178406a401858f06419"
+    },
+    {
+      "path": "apps/web/src/workspace/Layer3Panel.tsx",
+      "sha256": "179cf0ac0422946f2a1a929d7be423cd3a7ac54219781e7f7b39779ae4f89fbe"
+    },
+    {
+      "path": "apps/web/src/workspace/LearningPanel.tsx",
+      "sha256": "9f01baa8ceea0443dd82b11b1d423d974df9795e6ec370ae220712994a3881d4"
+    },
+    {
+      "path": "apps/web/src/workspace/ManagementPanel.tsx",
+      "sha256": "cccedd2b6e95417154af033ed201b02066137ff823ed8f353f676ada9cc0b091"
+    },
+    {
+      "path": "apps/web/src/workspace/NetworkConceptGuide.tsx",
+      "sha256": "cb0f8e6a7af119d1b54c8deb2990ce6d7ea1aa291022923a8543d06c3eb4d22f"
+    },
+    {
+      "path": "apps/web/src/workspace/NetworkInspector.tsx",
+      "sha256": "fd7fe717028f797e02a06ebb904fa09154de7dcd4f54ec47a5ffd48d3d160ae0"
+    },
+    {
+      "path": "apps/web/src/workspace/OspfPanel.tsx",
+      "sha256": "c3e7c85251adb6c987d69b77fc8883576d29100a352cfdff7cb6a7b7baf61d54"
+    },
+    {
+      "path": "apps/web/src/workspace/PacketFields.tsx",
+      "sha256": "18bde65378495d879aad1f89b7e2bff5a2a78cb778f8798f8f87d3464832f066"
+    },
+    {
+      "path": "apps/web/src/workspace/PolicyPanel.tsx",
+      "sha256": "f7812be051377da62eb3fd1429833d495351d5b5a9fea2814f8909bde6c8745f"
+    },
+    {
+      "path": "apps/web/src/workspace/RemotePanel.tsx",
+      "sha256": "9005acfddba11e0f6c409f9d779561a9a44dff2aae497e5b2867eb26b24d00bf"
+    },
+    {
+      "path": "apps/web/src/workspace/ResizableInspector.tsx",
+      "sha256": "35b8efa301e761254bc9325e14a6f61a657bcf0c34580440a3f92a2669e7f8a7"
+    },
+    {
+      "path": "apps/web/src/workspace/ResizableTimeline.tsx",
+      "sha256": "b6622de0c25ee4871631c388f527972d8bbcb560d7d9090b36117e7fab1dab5e"
+    },
+    {
+      "path": "apps/web/src/workspace/RipPanel.tsx",
+      "sha256": "d94b18de93a215ed030aaa6549442eef8a19d266fb1a6d2997696c01fa19ec4f"
+    },
+    {
+      "path": "apps/web/src/workspace/ScenarioForm.tsx",
+      "sha256": "c60d2979116b6827c59da8c792ef3a0dd636593a8abebccdc31bd3eb76cbd95f"
+    },
+    {
+      "path": "apps/web/src/workspace/SectionEducation.tsx",
+      "sha256": "112595a14f82cdb34f5a985c2a76e7fd7f1f18cbb0afd421fb37c5e2f21814af"
+    },
+    {
+      "path": "apps/web/src/workspace/SnmpPanel.tsx",
+      "sha256": "9e404c12e10fa14acd5062b4287d42b2890c5f70f2903c593e8777e540f733ed"
+    },
+    {
+      "path": "apps/web/src/workspace/SpanningTreePanel.tsx",
+      "sha256": "615e0b784ec63554f8ec653bde1a4cb3520c8e296f4ee854fe9f11062586a349"
+    },
+    {
+      "path": "apps/web/src/workspace/StateSyncPanel.tsx",
+      "sha256": "bcf6c4c5de7749a4bc466d3a2a0d3a1e0983a8b81d16a2c7d9ce0aff2c587584"
+    },
+    {
+      "path": "apps/web/src/workspace/SyslogPanel.tsx",
+      "sha256": "826741ed6d8b385a7a8ae71cf81e593e085d2a3801cea788284e5df2feb8474f"
+    },
+    {
+      "path": "apps/web/src/workspace/TcpPacketDetails.tsx",
+      "sha256": "3ab5f79ed7f9192ed3ddab157b89917f2b21845cb59a835b480de3de38d5be45"
+    },
+    {
+      "path": "apps/web/src/workspace/TcpPanel.tsx",
+      "sha256": "842285521fccb73913fb53c29001191e134c66b2fd9d83ade7f984f472dd9643"
+    },
+    {
+      "path": "apps/web/src/workspace/Terminal.tsx",
+      "sha256": "468d5cafa073b22f8b5680c7c55c0d6130056c737ff05538cf41e1c608606572"
+    },
+    {
+      "path": "apps/web/src/workspace/Timeline.tsx",
+      "sha256": "2132bd03eed934546d7886c56abbe7b5c61fe3cda9b5683805240acabccc35ba"
+    },
+    {
+      "path": "apps/web/src/workspace/TopologyCanvas.tsx",
+      "sha256": "f610c4875295c9cff50df0cec144c2df3dbe6624346932e8075c7ad939825d69"
+    },
+    {
+      "path": "apps/web/src/workspace/TunnelPanel.tsx",
+      "sha256": "2ff42e8a7f66432189a8bb9a9682c67a214962b617d81863c70582bf435c604f"
+    },
+    {
+      "path": "apps/web/src/workspace/VrrpPanel.tsx",
+      "sha256": "a7d78aed8bec95976361e12a25661ff865818b8d5856f683cc949920dd4d6963"
+    },
+    {
+      "path": "apps/web/src/workspace/VxlanPanel.tsx",
+      "sha256": "f965555c57ec6f554667250b459269cc3963ad40b8e444cac61e6a82faf9ec61"
+    },
+    {
+      "path": "apps/web/src/workspace/WirelessPanel.tsx",
+      "sha256": "f23778e041721b00f64cef5e0fb5a18631838c4b129f7dc66e34af6bb6952609"
+    },
+    {
+      "path": "apps/web/src/workspace/Workspace.tsx",
+      "sha256": "8e6546a4ab29f7033a64e1c30a219be434cae7b6aacce5b6d5910356231dd5e3"
+    },
+    {
+      "path": "apps/web/src/workspace/canvasActivity.ts",
+      "sha256": "9d8f42bb2a417a8b7f8a8a0db5a6f2d0f47348fb02bfcfe3e1339a0742e15e32"
+    },
+    {
+      "path": "apps/web/src/workspace/deviceCapabilities.ts",
+      "sha256": "ef78a1ddd9c95ecc434a187c2e161a506dc74aa359c492731441509a539b17c4"
+    },
+    {
+      "path": "apps/web/src/workspace/deviceCatalog.ts",
+      "sha256": "8193885560efc91b622cf2dd08f5a771164a2878667d6befe491a0448871ab63"
+    },
+    {
+      "path": "apps/web/src/workspace/deviceFinder.ts",
+      "sha256": "267e09b3a29cc757411f080d0f6e39b4fc759346a633a7e499e8d5b0bc48a061"
+    },
+    {
+      "path": "apps/web/src/workspace/duplicateDevice.ts",
+      "sha256": "c607aa0b25204fd2218685ad664b266992083449153bdc55dd625b9334305056"
+    },
+    {
+      "path": "apps/web/src/workspace/educationalContent.ts",
+      "sha256": "680007d7ff9b9c57037b60d8d46ec2f950b79ff1a6d299070b76d7202f091dee"
+    },
+    {
+      "path": "apps/web/src/workspace/eventEducation.ts",
+      "sha256": "ec7321f0c7eb5480626211afa41e64b99d2ed6ab8f11197cebb907f69cd9ce80"
+    },
+    {
+      "path": "apps/web/src/workspace/eventFilters.ts",
+      "sha256": "5bfc34498f7d6638806fadbcb74265659cc2e840e23a4bc652de1dc283c76fd0"
+    },
+    {
+      "path": "apps/web/src/workspace/networkConcepts.ts",
+      "sha256": "bf07467c99f4062050ba65aeb73a8a436e9957c0625197e87535ddc1819ac7e8"
+    },
+    {
+      "path": "apps/web/src/workspace/pending-scenario-results.ts",
+      "sha256": "0456ab30f6d1276b98cf153582c112347d9db7edc278d0cfbd125e5d31be5db2"
+    },
+    {
+      "path": "apps/web/src/workspace/physicalControls.ts",
+      "sha256": "9f7e50b91dcada038dab6fc45c40820c11e5220f71bba8e3ffda085f2823e02a"
+    },
+    {
+      "path": "apps/web/src/workspace/scenario.worker.ts",
+      "sha256": "2f528b0923390f4cc87476869d99a1b3f6316b7a6addc7dc2e029a7f9d0ace83"
+    },
+    {
+      "path": "apps/web/src/workspace/simulation.worker.ts",
+      "sha256": "ca601fdb528c8cec2fd8c9f8113c3dba58de630482238a6e63fa727b8f02a1a7"
+    },
+    {
+      "path": "apps/web/src/workspace/terminalColors.ts",
+      "sha256": "6440587af418d662ded6207dd8ade77ac4c61abf9b6dcbb9b1a08496d5d97461"
+    },
+    {
+      "path": "apps/web/src/workspace/terminalState.ts",
+      "sha256": "4b28828e5c37cade84a2b92d9c35828f57bac92bf2ac6ce8b70ffc75d1e11c05"
+    },
+    {
+      "path": "apps/web/src/workspace/useLab.ts",
+      "sha256": "7df52e8a57226467ce3e7343cb0a988a33083f55d030c802a4f19736375287dc"
+    },
+    {
+      "path": "apps/web/src/workspace/workspace.css",
+      "sha256": "7c730260e388775b6bb9e67d9b6b94a9a12e1104a9f15c608d4d2cf2a670d554"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "a31c61d71adf7f75432f7f3a4e88c20e58324f3d9a74483890e367dc0c98d168"
+    },
+    {
+      "path": "packages/simulation-engine/src/advanced-labs.ts",
+      "sha256": "b2c77bef6ef827f1b051ee5ad00fc796ae5545b00e2375e8d55910da7024e728"
+    },
+    {
+      "path": "packages/simulation-engine/src/canonical-json.ts",
+      "sha256": "fcef767b2892dc23e09d9cf9b7c93cffcc932798de60f81ca9bcdaaca6ee0856"
+    },
+    {
+      "path": "packages/simulation-engine/src/canvas.ts",
+      "sha256": "86e2ac29d78bacd550a5033bfa9b80c5a15f0197735ffa9a2e7cd44d222c913f"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/aaa.ts",
+      "sha256": "decf4c4b758dca86cc9ad69d1fb525df29c6c69e70ff3fd694f4ac86b87e092a"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/applications.ts",
+      "sha256": "f80e194a7111794d9b24285cf52981f52a31942ac6efdb2e103cc11945f4bf20"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/bgp.ts",
+      "sha256": "9643f4a90d12d2d76be53a2545c0085e991ce48bf3792e0a4bdc0722016e9b51"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/commands.ts",
+      "sha256": "b63c634cfd2ffd2c7796d9fa161be4e9f47d41ce44078b8bd8bff9182e933edc"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/device-commands.ts",
+      "sha256": "40f63d17d90ca8045b18c08561beaa8948009f2a6dc1f533cc9b6c25d574e845"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/dhcp.ts",
+      "sha256": "6b0553fc9bb005e1b5947cd924949297ba497c74cb7541586177c9fb327904c3"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/dns.ts",
+      "sha256": "7e1ab9968132556e33a565227ee893eeac7737f9aa15d1fe0f7670db9f254988"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/firewall-zones.ts",
+      "sha256": "b5c2329a07ddafaf454bae3e07a79f8f81ad1f5677ef8f6609ad93eab93b3013"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/forwarding.ts",
+      "sha256": "3b8eae7a209fbd79dd6c2a384649e6510235ea4a8cfd0c1df05ccca27e44f9be"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/host.ts",
+      "sha256": "4bafc71226491385972ed3b423e6239bc0ce3bc056e40a46459d91e874f40901"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/ipv6.ts",
+      "sha256": "a412a34aa6c043dad68a3c0f31f57f1f9522e4dd32fb82ea1425aeb18efbbe57"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/lacp.ts",
+      "sha256": "2d465885b7cd143f95439e89bf0474964081cdf6be7a4607580708af26ebd795"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/layer3.ts",
+      "sha256": "8945466787e6175ace252438fba26b7c3368d4bff53f2895873d1e7730536de0"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/management.ts",
+      "sha256": "73145a045729cc2c777042cf2d7ccd84aa07b2fe02b3a16b24b890324cb3119c"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/ospf.ts",
+      "sha256": "6186e9362a3c4abc737ac4666462e42c646673dddbb4338d8a5d7e9fc1d8df63"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/policy.ts",
+      "sha256": "d70b81c9bfedb0b5684ac6a3f285eb1e0e9a8a0fd7ff19e5e71fa00a6a3342cc"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/registry.ts",
+      "sha256": "044a541552d90e0b5c60fccb568a90c0d9cceb92ce86c26482c10b1d78aa36c8"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/remote.ts",
+      "sha256": "851561329876ce0782aa0b1c794f1f8a5df55c80fbac0bec69b541a2b3d4736e"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/rip.ts",
+      "sha256": "3d0b2be5ad2f248b773c6b2bc63c3c1096c03e2a7e3407068dc11247a182a454"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/state-sync.ts",
+      "sha256": "707a5167c6785513218c2d6febc4c6bf951022efbdd7ea70a45e992137cfdde0"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/stp.ts",
+      "sha256": "6d485a9d90992ac200d2b6182869a879e2599bac4028de18cfbb9ce5e698f4e8"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/tcp.ts",
+      "sha256": "74477146b5f434b7ef8183385e8c0d7899e099d1ae7c9c3c091039ba78cd6900"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/terminal.ts",
+      "sha256": "3042588ed5bd86a5396d85ebbdd74397329242f6fe5b6c669f514ef5e40f2ad1"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/tunnel.ts",
+      "sha256": "aa44aa0d82189f20c2392cac8a1179866fc40cc92f3ecb50200ec649c0ee6a16"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/vrrp.ts",
+      "sha256": "b848c818d240ac1dfc36936fc5fb9b1361169a201d290ac8f38ebdc319bc9939"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/vxlan.ts",
+      "sha256": "26196a64a5992ffaf4ffddf51eb7e55b07e87868b2aae36c30349d035cc4fd76"
+    },
+    {
+      "path": "packages/simulation-engine/src/cli/wireless.ts",
+      "sha256": "aa47138ca8291167dfabcb2c643c7ad932054398fde3c370eb1bf09a791757a5"
+    },
+    {
+      "path": "packages/simulation-engine/src/configuration-review.ts",
+      "sha256": "6ca771c2f298c0e476f943a35c9774e1cb180a6a516cc381ec5677cbfd1b4625"
+    },
+    {
+      "path": "packages/simulation-engine/src/configuration-schemas.ts",
+      "sha256": "24d15fe81c0093dbb6a71ebd5997e1ffdbf149aa70c481c0a8255475e92e9728"
+    },
+    {
+      "path": "packages/simulation-engine/src/core/engine.ts",
+      "sha256": "6abed53040a1354e2932fdef1f389dc6996577381b7089bd12a8901fb72c871f"
+    },
+    {
+      "path": "packages/simulation-engine/src/core/queue.ts",
+      "sha256": "6a5e71066c17b5dbe4d710c179a427af9ef71ac7e764ce50fb51f7345f533bd8"
+    },
+    {
+      "path": "packages/simulation-engine/src/core/runner.ts",
+      "sha256": "6c48f17649da3c945ec9d274bc28297dd63c003d60ea431a5327be11841fa6a1"
+    },
+    {
+      "path": "packages/simulation-engine/src/core/topology-index.ts",
+      "sha256": "09fd6d8d43dfb4b8e31c8a544818fad24585c325ca955b7344b967c5f2edd538"
+    },
+    {
+      "path": "packages/simulation-engine/src/core/validation.ts",
+      "sha256": "3258958919a4914c76fc41ee5f9b707c50fbee847e9e4be25b08573dcc6e1c74"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/capabilities.ts",
+      "sha256": "c449434a21be2740a858a5a193df85a59aa9416c325447e0cd4ace6b506f4569"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/catalog.ts",
+      "sha256": "a7eb7b0f19c9c376e8a245d2b6b7756c202460c5b3e2476d08423b5cb8bb3a7d"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/hardware-model.ts",
+      "sha256": "7965df0624925c9f96accd1b7f157c58ab7985a7abfc2f9b573b27f6c807e195"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/hardware.ts",
+      "sha256": "a946d2684de2d7a96f4933e5560eac0061e4965981387d756d24b6c49db6b299"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/infrastructure-model.ts",
+      "sha256": "0c780c2eff9c7ef45eefc4662bdbaec7903c593224a7c27412fd70f82931ea90"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/infrastructure.ts",
+      "sha256": "741cb6ba60b365122ccc3db3b00c7395c2a5f27ef8d7172ca97f6bf895062813"
+    },
+    {
+      "path": "packages/simulation-engine/src/devices/profiles.ts",
+      "sha256": "215f1bd76e06929221689df4ecff127054c95b87d104b6b5b2fce2cf76919793"
+    },
+    {
+      "path": "packages/simulation-engine/src/enterprise-datacenter-template.ts",
+      "sha256": "94062903f85b0e1f88a5577b1e3fbb2227e0a07b41d495e12171ee769f62b1f1"
+    },
+    {
+      "path": "packages/simulation-engine/src/enterprise-scenarios.ts",
+      "sha256": "5aa3d5be0e4c065d0b9133127599dbef9ea172083759113cae21429051464646"
+    },
+    {
+      "path": "packages/simulation-engine/src/factory-scenarios.ts",
+      "sha256": "a7297896fc3cfe972b7af5ab5b22741bc5e0716cbb538b3319915d97d023e9ea"
+    },
+    {
+      "path": "packages/simulation-engine/src/factory-template.json",
+      "sha256": "59d6f8f4cf9e9e2095383fc4495511bef00ae44f80e1ff8d00215cd40f21ef0f"
+    },
+    {
+      "path": "packages/simulation-engine/src/fidelity.ts",
+      "sha256": "347e470382f01b0a507465bf5fa1a59ed64de3baeaf1fad211a49a080d8ef433"
+    },
+    {
+      "path": "packages/simulation-engine/src/index.ts",
+      "sha256": "970ea22f900d5166caa81ab112f0af38ce7208997b4067e96d2344572ca07e88"
+    },
+    {
+      "path": "packages/simulation-engine/src/inspection.ts",
+      "sha256": "1b8561b4ed89be7f9aef385797998e6b2bd1a3672ba6d2e260a615743c16f3de"
+    },
+    {
+      "path": "packages/simulation-engine/src/labs.ts",
+      "sha256": "33352b49113d320a12de3ca79c71b75a4bff85dc9b9ee94e078b7c68dfca57c8"
+    },
+    {
+      "path": "packages/simulation-engine/src/learning-model.ts",
+      "sha256": "e0ee56491125b0964829ed2fa492eb675b526762c8c1d7a17e37513109020f04"
+    },
+    {
+      "path": "packages/simulation-engine/src/learning.ts",
+      "sha256": "6a8ec477f43f24ecce41c88d0ea696530d5517c7c460aa79b70679b003cbc5ec"
+    },
+    {
+      "path": "packages/simulation-engine/src/links/physical.ts",
+      "sha256": "425de8a05568d366a151250f341724a3568a265a122dcae5b43e50e02edd4f38"
+    },
+    {
+      "path": "packages/simulation-engine/src/model.ts",
+      "sha256": "6af89c4c66efda8a8ec662ea46448cf49ec039ec5e6399d5137135a6dd5c9104"
+    },
+    {
+      "path": "packages/simulation-engine/src/network-analysis.ts",
+      "sha256": "60f23f9a4695afb2f0db0a3374d3b072e1cda3a9dcc1ec171eb1e6152715ce9b"
+    },
+    {
+      "path": "packages/simulation-engine/src/network-domains.ts",
+      "sha256": "1061bb8a78a6a52f3d55e985e21419cf2c3a9bc80971f276da5813653b41eea9"
+    },
+    {
+      "path": "packages/simulation-engine/src/preflight.ts",
+      "sha256": "1f7da0c94a7ce64fa29c526dfa92be3938181a71ac5e062ed14983bf478342a3"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/aaa-codec.ts",
+      "sha256": "272db6bb7d48edf00229e99cf732f96f0fc29b01ee4c55130f410450f3dba62f"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/aaa-model.ts",
+      "sha256": "075980b6d018b4be2599bf5e964a834d1bfb8f31862a194cb505e0d18a0a8d6c"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/aaa-validation.ts",
+      "sha256": "493be53f48506d83364b6f3b7f1ab471d21b109836a417e8b31c73edde9afe92"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/aaa.ts",
+      "sha256": "a56dcc947000bcbadd841a6848e53b02e1fbebc0f96619d1babbd368e8d09596"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/acl.ts",
+      "sha256": "f3d96d554a0ea2858da8ab19a6a05ea0d739e093a79b57abccfb3df2da98792b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/applications-http.ts",
+      "sha256": "d39b0eab02f0bcea6302abe2a085bf036e653ce87ea3c71540e1dc90ac247790"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/applications-model.ts",
+      "sha256": "7a5f3af6d2a909807d958de8a50297cc879e39165289c086dec5812311a2ed28"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/applications.ts",
+      "sha256": "fee759bfeb2d147482d2602641a5a5c47971a041fe41d21df639603015bdfa5b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/arp.ts",
+      "sha256": "2a5b6884cefcffbc2c013fc77bf194537703f04a48420a0d2eef363c6464cde6"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/bgp-model.ts",
+      "sha256": "d1cfc9eb7e8a62703578d0a0023a3d664b403c9c0159417287bf46a00093dff5"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/bgp-routing.ts",
+      "sha256": "4177271c04cd1c409c57b12c6c35c9ff7ea1058da41832971411ff22a1ad8a75"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/bgp-validation.ts",
+      "sha256": "382f70945401e78faab5e618d4dd5c756e3e5080bf34150362cace32257077ed"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/bgp.ts",
+      "sha256": "ea95eb79f3fc80ff5c53f161adabd071286e6c6b747108fc9796dcfbe266bd65"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/capwap-model.ts",
+      "sha256": "ce02da5c84fedeadbd12508f80b97b931e71a7c21d80a5bfc881c526af61e5ce"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/capwap.ts",
+      "sha256": "73f26ea44c5ee717349d5e3ecd51ce6dc2defa73a5075715c09482d24135196a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/database-model.ts",
+      "sha256": "fd25d85de903d9afc528bf5e030a1a9f7ef8750ef2ae107573b2ff74be635abf"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/database.ts",
+      "sha256": "aecb09cba033de554090f9dc55540c43a9b9c7128066f61a2fd1d8aa3f3956b2"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-client.ts",
+      "sha256": "710bc20aa7b9c9f94ed41721970d33dee59f013e5142246c5b2bd4361e2a7e6a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-config.ts",
+      "sha256": "ac19b8d59489d12a84ba720c4f98b1310f9ee18bb9c9b069b66ea3e0711ed811"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-relay.ts",
+      "sha256": "9473ba7ac6b98f0b457ded808c321b375402246cceac4c9023737f9d022ad666"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-server.ts",
+      "sha256": "988287be5cfda965084ea01326016273395030b87953f9291af8c7f1bbecc6b9"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-snooping-model.ts",
+      "sha256": "845a30689022878f52261291b2753768d74c870244f9c44427e3eb23b1ff5cfd"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-snooping.ts",
+      "sha256": "92aee1fd7518d6610df3fc3012107e76186606aae829d458125c7c707b7fffaf"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp-wire.ts",
+      "sha256": "17125a98543be10936ee4e741164d51c626d2975f0df4aab99bca8ffc1fed7bc"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp6-model.ts",
+      "sha256": "31aa53e9e1c7f843b1a624a655136c49447adc22308e8ae45a12fb4154201358"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp6-relay.ts",
+      "sha256": "6374938ec30602d4b7918bc54868d97df53cd1c8248d47910bd75f396d9e5029"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dhcp6.ts",
+      "sha256": "e92e435b01400e0c4ec0d4d3b3f9d0aefa8be301c96a27d1e8d18c6a1a5b5a93"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-client.ts",
+      "sha256": "bd4bc1e527103417173a26ef76283179b3c5caae8386e6796ae1c34b2c5bbef6"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-model.ts",
+      "sha256": "b941263938cda34df71f73b341b00ecfec0282deaa2c6b7085844c6479e0f307"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-records.ts",
+      "sha256": "0e65f9284e7f9318e327a3eae6480071a8056bf410eaad43808eba91a1c4ea7a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-server.ts",
+      "sha256": "8b22e02d03e5129a0b8b828e418de10ae227cd136461d7a31274a8f482200ddd"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-tcp-codec.ts",
+      "sha256": "7a061fc35ccb9f9958108dbf1d0ec4cb1d5dfa1b8692f037c85537c0aedc2013"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-tcp.ts",
+      "sha256": "47421a869ce5e44f7c5b334509e5bff51289578c171c1814201d220bf2134f21"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dns-wire.ts",
+      "sha256": "72113059a8b82c3dac33e0c9ecfb076751b84c13568b951c7ffcf11bd1080523"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dnssec.ts",
+      "sha256": "b02810787ad9a4b41e3ca2376f800aa050b83e0a3d682eee37976db6a7e6a86f"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/dot1x.ts",
+      "sha256": "e367683b8ab6caa0ad97f2c7922027d6478b0dd8d062987d81e0419c6ea9b135"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/eap-fragments.ts",
+      "sha256": "b774468447b97dc92a1eb24b69158763e6b852708c9bd22074cdbc8a3e84a5cb"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/enterprise-defaults.ts",
+      "sha256": "c71cd674ede51bb0c9a3ca40832cfafd7706116d5d7c4b10be63139e339c6cf1"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/enterprise-model.ts",
+      "sha256": "0bf8223b2f14d50fdd9066178762107e3357ca5add701b006822c24b7e3d9c50"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/enterprise.ts",
+      "sha256": "c7cc1c032e960e646741b8726433aa947bb3848479c5ea2f7efd40d7c20636ce"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ethernet.ts",
+      "sha256": "9347b26a1f69569ac3cd61a12d16f32ced20b35f1b61fa65a34421cf09200e87"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/evpn.ts",
+      "sha256": "c41ce89bc62e05695b3e2017dd91977aecefe18b3a83ef497e9521bf14e5d33b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/firewall-model.ts",
+      "sha256": "711d99bdb3be3496951fbf359eedcea3302bfcc62fef74f55a9a126b73cf4189"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/firewall-policy.ts",
+      "sha256": "6ba3b9e0f2c003fed14546f9260677a2e2a7ed0aceaa73edc86e1ce331ed125e"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/firewall-tcp.ts",
+      "sha256": "c0877bc09699335e4f5abbd7fe43f07bab6f02877d8f2e8f2672568e358e4e23"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/firewall-validation.ts",
+      "sha256": "34ae174cc0b0c331cb8087f651500959c9e98afff9d9804892bbadf92d1c09b2"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/firewall.ts",
+      "sha256": "1c009f17c23559f2ceae7eb5bea52cbd21e6812564228dc5350f586d304d49ca"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/firewall6.ts",
+      "sha256": "14f5c720603fe6fed639a445f3d047bdc7c44fbfd471fceb0aa263e82258f32d"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/fragment-model.ts",
+      "sha256": "ea8f841fbcdf2ab3f194e8413d27fdb90fb7928f6ce9a900cea8192cd9bf73ed"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/fragment.ts",
+      "sha256": "a24b14f76d36e5a65cb55fa29bf7de6b19f807517fd7821946914583eea55b68"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/icmp-model.ts",
+      "sha256": "f05f85967672eccccd449a55546da1d306e92dd2e413ad0807c6412b5bc7ba07"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/icmp.ts",
+      "sha256": "acb63a121ad36207ad06eadcd6e95ebc6a9a7af115024417ca4e3a7f934c5722"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ids-model.ts",
+      "sha256": "4966427025fbd14939a5787527fa500a23689f0154e87a4754d1d1d84adc6341"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ids.ts",
+      "sha256": "5d91f8d5fe4dfd6b868f4aa977e3b3b57e71bfb3fa3338cb7ea81edc015b5a74"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/inspection-model.ts",
+      "sha256": "4975c038fca5f705baf703a137b073f975495f288eae30e45c869bca797bb0c2"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/inspection.ts",
+      "sha256": "d862af0f10377e24d1e5fb352040a6b0a45016bf0eb6f2a1378dd08173a22aa6"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipp-codec.ts",
+      "sha256": "de13296653a2973e3fb1b667b0b9f0fd3ebf9903cb8ba69ddbcd21da2d499dd8"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv4.ts",
+      "sha256": "c36aa612fbb4f36bd96d2656df8e934fe491f6e981c5c232f35e211540a3d216"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6-address.ts",
+      "sha256": "b33d3ca736550d23f7b87609b50e049f25f3aeb994806841f8ba9978ba260bb4"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6-control.ts",
+      "sha256": "3862267061187394b39c88c8c67d5a10f2ab09baed9c35138e4b31f78f29f3c9"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6-model.ts",
+      "sha256": "9ed12d8caa627ae73b3686e0bf27e872ec55e09236d8e17331785e5adac54860"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6-routing.ts",
+      "sha256": "a7ab560b94ac030bc8e07061b177e80e6cb0f8e4772cc3d06cefb1c98ccda81e"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6-validation.ts",
+      "sha256": "c10a9e9d2f74ffe31da37546832322f662eff1596d0a4299b13a4316e2a8dbc7"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6-wire.ts",
+      "sha256": "491dae2a5078ca081d5523f3e05273545beb833275bc88c04f68efa4734d81cc"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ipv6.ts",
+      "sha256": "8a0c6cb5cd4a08a7272f1318847c70e4ee00c88f81f14ab268b0bebff5de8d80"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/lacp-members.ts",
+      "sha256": "a58ed36f8f10a1c03de323b9bdec06c1000db3899c5e1d061ddb8f720ddaa508"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/lacp-model.ts",
+      "sha256": "e1b0614cfcc9c2ec9f9467cc381a3281d1f5f7055fde490de10b26e5796a20a8"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/lacp.ts",
+      "sha256": "03faaec1d379c488fdefa0a297032f8c496edcb7a5525f5bf412b663fa690671"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/layer3.ts",
+      "sha256": "ebd6bb75fe36f9329c317721fae5f37baae6a2f9a268e69605fd9b869ae34f35"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/management-validation.ts",
+      "sha256": "842cdce6746515d8d8d725d4114f796ca3ed082b4ada5051103a3539d472e1d1"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/management-wire.ts",
+      "sha256": "605486ad7273507687cab2eb529eddec35cf00844a9ddb2b8918abe706f18b86"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/mesh-model.ts",
+      "sha256": "405650eb414e4be373b58836911bb9c2f0e5a3b07f5541d6bface45915c79b26"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/mesh.ts",
+      "sha256": "787138ae98b97ef2a064fa05c7a8c32d4c520036deb7af1d34d212483bdbacb1"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/modbus-model.ts",
+      "sha256": "7059bea36cbc524875bd3a90d8f7118924541fdbecb94a382d509bd1206a9009"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/modbus.ts",
+      "sha256": "01a9689302a0a955ec0ea28277d490a5d358688ca6c50a0498247cb116ef8400"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/model-cipher.ts",
+      "sha256": "0199366dcee7bf017326783b95780ca6f4ee7c7bb699b32b38e12ba7fd1f5bfe"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/mpls-model.ts",
+      "sha256": "0865217092ba91b21994b0175bc06936a6455f1c1c157fe9f580f9820dfc44b2"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/mpls.ts",
+      "sha256": "175b6247159926f3655de8cd15ad228b9db47d090fbb0312f37e00ceadbbbf6b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/mqtt-codec.ts",
+      "sha256": "8b5b2456c60a311fc270c9a9570988fc1f893b7ec84a5234fd89d61336de15ae"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/nat-hairpin-model.ts",
+      "sha256": "10cae21c8ba01c0c49e966c7e999ad659649d8536dd2c58be4155ac393378477"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/nat-hairpin.ts",
+      "sha256": "1c75ede5b1fff37bf08df75099449a6536f486cf98fe2ddf22157afc903370d9"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/nat-icmp.ts",
+      "sha256": "a86dd9030013556adab3d7bab6e1cd46f17e914a68c37e5a7323d5cafbf7f75a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/nat-sip.ts",
+      "sha256": "9f56370fe848a31e68919f542e05304c00692707629b6106a5baf726127fe2bc"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/nat.ts",
+      "sha256": "562f1bfcb6a81cffc2a2a3131064ee6e86329baa3584205c1fa173ea77de29b0"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ntp.ts",
+      "sha256": "7f076a8cf00fc78d3a8329c3607abe46c17adeb3c6b9746cc2ec318f893f1d6c"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-database.ts",
+      "sha256": "a23887eeab45c6b6badc57795d03ac51a7328e72e51fe83309dc82f8f07e151d"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-model.ts",
+      "sha256": "16ec30ad71986ef2ae2bc10cc47fc26930f4fe1bf155672dad24a0a9e49e4cab"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-neighbors.ts",
+      "sha256": "caf16808a0ab0b87f738eefe676ef5566dd7b8a5ab5e9e08cb56b3ed02b5bf80"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-security.ts",
+      "sha256": "ec81485d403ff455f338746bbda70069c988d7f14a864d5de36b1608954c073e"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-spf.ts",
+      "sha256": "6a383e0b061a6e528cce61644bb6ddeb7f86f92b74a9be832bdf308e614d619c"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-validation.ts",
+      "sha256": "0928a96a286c2533bef4984dd6a95cf8954b5aff88520cc89b18171d220620aa"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf-wire.ts",
+      "sha256": "079b29c03f31199442e3c6e587666b2a354f240eec94d5bd48b285deb9b17b5d"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/ospf.ts",
+      "sha256": "d48c737660f2e50a247d48c7f6b797feca3b54fe224ae45cd512a783e7dc0539"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/qos-model.ts",
+      "sha256": "cf4bc49e429b6f32195ae6c17b845267504dc64ef5d5480f7ca9c1aec881ca65"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/qos.ts",
+      "sha256": "ddfbf084bd904e22d2c5dff8e45911e8600b1c5d18cbe7355c97db6c06d78a4e"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/radius-codec.ts",
+      "sha256": "e50db8a6b40d741c833feee51a9220c89735663478e5ce0122f8408089d129d3"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/remote-codec.ts",
+      "sha256": "b4a60928f58730e9ebd38c3ed9979ca59b37c99b6c6573a52116937569237cfe"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/remote-model.ts",
+      "sha256": "c441bc54b8d16ace3bb2339b363d0d8db64b3390d7ede786c2e6a75129319a35"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/remote-session.ts",
+      "sha256": "7ca28eaa188bcde9f6bbd55eea456409b442a247a48f319cb2d4bcdc10c7ead2"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/remote-validation.ts",
+      "sha256": "0b7931a83f73b6fab2093736533abaf12409529f0358937310a88768f8471d98"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/remote-wire.ts",
+      "sha256": "0018ed644e478455f1cb9c8333e6c10cdb6a69144e11e9206bc0feb431c6cdb0"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/remote.ts",
+      "sha256": "8e40433a8e93da94aa1b981d6f0766fbe0e5fcd123f2a622330521bd70d0be9a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/rip-codec.ts",
+      "sha256": "807281a36e6f5e6363a044acde4de514fc98881f88415824b7a60f685335f55a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/rip-model.ts",
+      "sha256": "497c4139c03bcc7ca86ce4396798e3a0d2e99f8e2b4ef6fde669ba83a8f228ae"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/rip-validation.ts",
+      "sha256": "3c41d22d17c2e6081b4c00499e2bd9f2dcea29efb13a3c4151099b5b695c210b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/rip.ts",
+      "sha256": "25ea1643bdcd96c4d16f24b854fb70ec479215e4c8391e121b3ebf76ac3fc276"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/sdwan.ts",
+      "sha256": "7fc1b5b15332ead1cc1e34f57b2dfb6bc6d67592f297dc4f23a7dc54113cd7a7"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/security-crypto.ts",
+      "sha256": "3208f483c6ef52e79692b54c7fdd2da2d9b50304f06aa2bdc2749ffeaebf7d0c"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/snmp-mib.ts",
+      "sha256": "a876055b40d76c673008849eb305160aaee93bf9e7b144c5e8fa15da14771fb8"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/snmp-model.ts",
+      "sha256": "e9377ff6639b960b3346175cb349b7e192dcaca22c4450939e3a18f897b20011"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/snmp.ts",
+      "sha256": "a44c60ac960d4bb0de410c1f1d5a46f6607b2528ca296a491b14c64526c08184"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/state-sync-model.ts",
+      "sha256": "508c230db7bdda58d91fa66a4857360f3905d3e36b8888f62948acf83971a559"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/state-sync.ts",
+      "sha256": "18a74981f7bcbf596c9999821d793c5aa975c39f1a7cd80e578f0e5757613f5e"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/stp-election.ts",
+      "sha256": "d9d5a6e89b7e3ddca8dc2e5ecdb5f153ae8c98d54934e6edec975d3839fdd33d"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/stp-scope.ts",
+      "sha256": "96f4f595e2aaf32777764c374d8320e9c0976037bb0402d8632df96e8ef9dfce"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/stp-validation.ts",
+      "sha256": "7c5cc1e44fcb4cb871c7fe7e73c3e9396b6607e9a18ee2b90a43881cb6cc40b5"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/stp.ts",
+      "sha256": "14ac18607bc525f7f082198d3ef5c5ee02cf350046815672f0dc030b702c46ca"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/syslog-model.ts",
+      "sha256": "32eebe1864664430fe25099bf124e8df8bd8b54ebd232a825398efd94c49ee04"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/syslog.ts",
+      "sha256": "c3a8a152e1c6f2f3c80f6e09eae08c3742105a23d99f4e0eb4b0bb15241adf97"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tacacs.ts",
+      "sha256": "91f6ab1db508a9dddb726dd536f8ed3e6b5b1ddaae750f77d822861c16086914"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-extensions.ts",
+      "sha256": "ac6c2c59ef4530e450307bb0a87584f4c2a31a4bf3b97889b8ccae0fd98b3f2b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-flow.ts",
+      "sha256": "593d8552d804f14a4dd27bebcd32ca8c5623373e3672fbe08b3a821cc29ef761"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-model.ts",
+      "sha256": "1955e33abb95b3eaf99d9b3cbaed7aac198009ef19c43533ab5a092a15d31577"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-pmtud.ts",
+      "sha256": "4829920bd37f781d984c9fd202c285eb85bd949833f2e89a61c28bea441a0f77"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-services.ts",
+      "sha256": "0296b48e10d3cdc2305108974ddef624d3ba525aabc99a7ab7dbce57080fa147"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-validation.ts",
+      "sha256": "44c5e7c6bb8f25b48ee0915ee28b68f5bd07edc07ece5e81110d718be3cfe15b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp-wire.ts",
+      "sha256": "e2e7defc88611ff22ebb2f67dcc2472630beb0c1a83a15abd906f422ee6b8474"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tcp.ts",
+      "sha256": "06ad838e63c124af0aa381c7ca61368fed30c7749e7d029bf929cbfa06bda58b"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/telemetry-model.ts",
+      "sha256": "da9566952e5fe88775daac65d8f9408a7ab05780ac8ebc6dac865a2401c6bd24"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/telemetry.ts",
+      "sha256": "be4fe9f29f3e62de7c3018a6476eedb044cb4fc1ca80c6266d0bbe6dc931d3f7"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tls-model.ts",
+      "sha256": "fcce1cf597c8e60629c4a9b0d973b5b0639bb33f72850f9db8fe4da9aa8e8255"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tls-session.ts",
+      "sha256": "b9131f505cc7e340c86efc275c84e22686f3f8b5b271dead6a58c1761704d1c8"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tunnel-model.ts",
+      "sha256": "ccdfbce3ef1472371ea27e629a2ddf0d521162244ff324208199e25a79f4ad3d"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tunnel-validation.ts",
+      "sha256": "d01a506c813cabee3d98d11cce49e8541b2b429595f749e48c2e8bc0c56d3293"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/tunnel.ts",
+      "sha256": "d676e780b708a9b873dd9e27afd7183c900f2b09f8135bee6622e64f6f0f0be1"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/udp.ts",
+      "sha256": "d233d8e3db3120532bfd3d7fcdfdae41df860ec664321b277830bc28b5db70f3"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/udp6-model.ts",
+      "sha256": "c98ddbb0c10bf13a6ae29833a47cf7bd479fc4035f54f6db34174888a75aa245"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/udp6.ts",
+      "sha256": "42747c5dda4d3b60a910d6d56eecac30c8abe42f06c26a341b33daab1999b8e5"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/underlay.ts",
+      "sha256": "f7fb4a83f99780f269fd7e01c4502e0f08b1fe71aac65c1f4f247cca6ed239f6"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/voice-model.ts",
+      "sha256": "3b5c3c5ee648dd39f51e4ebed692823330c0391cbb095ba0c4ab539a21a3963a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/voice.ts",
+      "sha256": "e009659d8e9d9ca7202b66e1547b6e34b7cde06169a18fd46bac88819da7b2bb"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/vrrp-model.ts",
+      "sha256": "841f49e79506cb789077b2c0544bdca923759b70992bff5782522243e8da494c"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/vrrp.ts",
+      "sha256": "3d4cb40cf7bf7bcb2741119d572f9b3bbd077c108d5c10fd1feb3d855a490f2d"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/vxlan-model.ts",
+      "sha256": "200670f86c4252f7edf4926ce975d1009b9cc1bddeae947f713d30ebe33fbebe"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/vxlan.ts",
+      "sha256": "f6eeb31db8284b46ffea669fec7330233dac517b55dc46890322c5a3855c717a"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/wireless-cipher.ts",
+      "sha256": "a83fb001ad6b9656d66a03e93d007296225f1776328868ac828a2a9bd7ec7f23"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/wireless-model.ts",
+      "sha256": "64e5f8e633171ae962ead89954c715ea67cf6dda2badfeda52d4b87079243744"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/wireless-radio.ts",
+      "sha256": "e1ffbcdf7f16079603b252b56e3ce6c85aa321081d1c034b472b0ea3c33bd38e"
+    },
+    {
+      "path": "packages/simulation-engine/src/protocols/wireless.ts",
+      "sha256": "24668e566fc0381c96a4e57364e996f4a149daedd0638fcc30a892aa849b2016"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenario-assertions.ts",
+      "sha256": "9e8aafe9fad03e1699b1ecb67ac421be5b8e379ae3b7bb2e8fd91342c2b8643e"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenario-evidence.ts",
+      "sha256": "453f1a4123cb60bba3a5a0e12897eb1d8abdcd862375c990388973667a72908e"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenario-metrics.ts",
+      "sha256": "7ab667fd84833a5ad5ccf0501d1016ac0cdf3095f65864c85a5b515947a77de2"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenario-protocols.ts",
+      "sha256": "71e1f4ae38dfe14d5b2fc2b18d654dfc335609c029d7d37962614739f86fb248"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenario-report.ts",
+      "sha256": "da8f680688ff3c103ecefbb0ed9accf6d17b41e4cfcb0c2df9908291e6c9c0d8"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenarios-model.ts",
+      "sha256": "5cad734d04ca194ebafcef55111bf9903135a3ed74429f8e227773b74afeb103"
+    },
+    {
+      "path": "packages/simulation-engine/src/scenarios.ts",
+      "sha256": "a345f643f6a4e0ae659b535441ac8463c40d3246bf45b1f9478c73ba13393d47"
+    },
+    {
+      "path": "packages/simulation-engine/src/schemas.ts",
+      "sha256": "8c4b232b55ba085c63b118538956e6dd56498653d1b5f149334dc743311a50c4"
+    },
+    {
+      "path": "packages/simulation-engine/src/templates.ts",
+      "sha256": "732ba02170855cdbd7dfb6a520fb368503704f09bda2221eb4d329adf90f2755"
+    },
+    {
+      "path": "packages/simulation-engine/src/version.ts",
+      "sha256": "6fab62804ad2b6352e9f955ea66d6bf3d4965f3a985cc95b34d41cfb43211e4a"
+    },
+    {
+      "path": "packages/simulation-engine/src/wire/binary.ts",
+      "sha256": "0d6f7db33075c3bca5836a2483f3780447f02c73ab55033f18cb02f378aa2dee"
+    },
+    {
+      "path": "packages/simulation-engine/src/wire/dhcp6-codec.ts",
+      "sha256": "5304a1bf8f4d4c3dfc23729294d64ed1747c4d39fe2679fc2039bdc15d4da6c9"
+    },
+    {
+      "path": "packages/simulation-engine/src/wire/dns-codec.ts",
+      "sha256": "0fc6f0a864c210538058d77ac80d4cb3170ce9516014405b2fa0d18233b07559"
+    },
+    {
+      "path": "packages/simulation-engine/src/wire/ethernet-codec.ts",
+      "sha256": "ff0df62d9fd6bf128f42572d236afb5847be55da7063ad877a2256082536a711"
+    },
+    {
+      "path": "packages/simulation-engine/src/wire/pcap.ts",
+      "sha256": "1afd2fd67bb81e638795f306d64a3b1988af6fd8c330f960bd9f45928fda5178"
+    }
+  ],
+  "assetEntries": [
+    {
+      "path": "assets/Terminal-BrP-ENHg.css",
+      "sha256": "0e5386f16cb4be78a2fe911e014a810da76ea2db47d8c8b2a966516b2fd5270b"
+    },
+    {
+      "path": "assets/Terminal-DfpNq1Ju.js",
+      "sha256": "730b1fdba7729a7740b572ea692174f5f948ae3ba2ae9f3cba4b1442546b3994"
+    },
+    {
+      "path": "assets/Workspace-B6ixE9bS.js",
+      "sha256": "263cced705fc6dde939a424e46892658b245f3a2fd05e80d3cb9daa3f90b4704"
+    },
+    {
+      "path": "assets/Workspace-DLioOiRN.css",
+      "sha256": "b0cb7bd6fec5951c9c8f5808821438206604b1629a912c96009ac427f38e7d69"
+    },
+    {
+      "path": "assets/index-DRdJ4wFJ.css",
+      "sha256": "93405d5a98ab57005144745a6887463607b5230b185df74f9e7f7518a9ec93b8"
+    },
+    {
+      "path": "assets/index-ovdxUS7L.js",
+      "sha256": "452b733a0b28ff1fb0abb54a617ecd30b7eac61865c1d0545295349f4c668941"
+    },
+    {
+      "path": "assets/rolldown-runtime-CbXtAM7H.js",
+      "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
+    },
+    {
+      "path": "assets/scenario.worker-D5YvVXjZ.js",
+      "sha256": "96fef72c3af3fd07494974e9150d9c81ff616871861c07828a0b4d1b02ee267f"
+    },
+    {
+      "path": "assets/simulation.worker-D0B7RMzF.js",
+      "sha256": "1e421b1673126f9de51d71ec998e55fa051f2029e41707f307c4ed9bba469c01"
+    },
+    {
+      "path": "assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2",
+      "sha256": "952dddb45d2f96f71cbf3b7f510b24379afc3c89ea02fcf89d377b45d62c0166"
+    },
+    {
+      "path": "assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2",
+      "sha256": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d"
+    },
+    {
+      "path": "assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA.woff2",
+      "sha256": "8895e3d49825128bfa5238e4c96e9b432d7a3dadbe5c17c6081267398305dc71"
+    },
+    {
+      "path": "assets/src-tRWNpdn2.js",
+      "sha256": "32c8bbc9d33c11e1b51ca35941952cb819bf797cb062f177b0878de3adfed183"
+    },
+    {
+      "path": "index.html",
+      "sha256": "f714b3841c491833e458ad7466642ef2000f1b4a5f8dbd26033e56ecb2613f34"
+    },
+    {
+      "path": "shlab-mark.svg",
+      "sha256": "f714bcacbf342a1bd5ea259d974e9a4cdf2e79b4659ccd2c327ccc8cc91f5850"
+    },
+    {
+      "path": "theme-init.js",
+      "sha256": "ed6ebc6523a7bc672d56ef16a363110dd6dcfbb3eb39a77aeb6cd368b025ec5e"
+    }
+  ]
+}

@@ -22,6 +22,8 @@ export * from './canvas';
 export * from './inspection';
 
 export { vrrpConfigGroups } from './protocols/vrrp';
+export { stateSyncStatus, stateSyncCompatible, stateSyncPending } from './protocols/state-sync';
+export type { StateSyncPair } from './protocols/state-sync-model';
 
 export { bgpConfig } from './protocols/bgp';
 export { routingEnabled, interfaceUp, sviOperational, interfaceOperational } from './protocols/layer3';

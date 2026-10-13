@@ -13,7 +13,7 @@ import {
   canonicalScenarioJson,
 } from '../packages/simulation-engine/src';
 
-const out = resolve('artifacts/remediation-2026-10-13'),
+const out = resolve(process.env.SHLAB_AUDIT_OUTPUT ?? 'artifacts/remediation-2026-10-13'),
   local = resolve('.data/local-qualification');
 await mkdir(out, { recursive: true });
 await mkdir(local, { recursive: true });

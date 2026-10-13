@@ -154,6 +154,8 @@ import {
   tcpTimerSchema,
 } from './protocols/tcp-model';
 import { firewallSchema, firewallTimerSchema } from './protocols/firewall-model';
+import { firewallSessionSchema } from './protocols/firewall-model';
+import { stateSyncSchema, stateSyncRecordSchema } from './protocols/state-sync-model';
 import { icmpErrorSchema } from './protocols/icmp-model';
 import { ospfPacketSchema, ospfStateSchema, ospfTimerSchema } from './protocols/ospf-model';
 export * from './protocols/ospf-model';
@@ -827,6 +829,7 @@ export const deviceSchema = z
     tcpConnections: z.array(tcpConnectionSchema).max(128).optional(),
     tcpSettings: tcpSettingsSchema.optional(),
     firewall: firewallSchema.optional(),
+    stateSync: stateSyncSchema.optional(),
     ospf: ospfStateSchema.optional(),
     rip: ripStateSchema.optional(),
     vrrp: vrrpStateSchema.optional(),
@@ -1001,6 +1004,9 @@ export const eventSchema = z
       'FIREWALL_PERMIT',
       'FIREWALL_DENY',
       'FIREWALL_EXPIRED',
+      'HA_SYNC_SENT',
+      'HA_SYNC_RECEIVED',
+      'HA_SYNC_REJECTED',
       'OSPF_HELLO',
       'OSPF_SENT',
       'OSPF_RECEIVED',
@@ -1073,6 +1079,20 @@ export const actionSchema = z.discriminatedUnion('kind', [
   lacpTimerSchema,
   tcpTimerSchema,
   firewallTimerSchema,
+  z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
+  z
+    .object({
+      kind: z.literal('state-sync-deliver'),
+      device: id,
+      peer: id,
+      token: id,
+      peerToken: id,
+      link: id,
+      record: stateSyncRecordSchema,
+      session: firewallSessionSchema.optional(),
+      binding: natBindingSchema.optional(),
+    })
+    .strict(),
   ospfTimerSchema,
   ripTimerSchema,
   vrrpTimerSchema,

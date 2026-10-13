@@ -229,7 +229,10 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
     { port: port.id, frame }
   );
   if (arp.kind === 'request' && port.ip) {
-    const replyMac = virtual ? vrrpMac(virtual.vrid) : port.mac;
+    const natVirtual = natOwnsAddress(device, port, arp.targetIp)
+      ? activeVrrpGroup(engine.state, device, port)
+      : undefined;
+    const replyMac = virtual || natVirtual ? vrrpMac((virtual ?? natVirtual)!.vrid) : port.mac;
     const reply: Frame = {
       src: replyMac,
       dst: arp.senderMac,

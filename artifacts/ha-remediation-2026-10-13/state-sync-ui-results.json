@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "template": "enterprise-datacenter",
+      "devices": 38,
+      "links": 47,
+      "configureDisableReconfigure": true,
+      "zoomOverviewDetailEdges": true,
+      "savedReopened": true,
+      "desktopViolations": [],
+      "mobileViolations": [],
+      "overflow": false
+    },
+    {
+      "template": "factory",
+      "devices": 43,
+      "links": 48,
+      "configureDisableReconfigure": true,
+      "zoomOverviewDetailEdges": true,
+      "savedReopened": true,
+      "desktopViolations": [],
+      "mobileViolations": [],
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "canvasWarnings": [],
+  "passed": true
+}

@@ -78,3 +78,5 @@ O template de fábrica e o menu **Validar rede e cenários** incluem Modbus 03/0
 ## Correções enterprise/datacenter e contrato atual
 
 O [ADR-044](adr/044-enterprise-integrity-fabric-binary-modbus.md) documenta zonas IPv4/IPv6, loopbacks e IMET estrito, DHCP T1/T2, UPS A/B, Modbus binário 01/02/03/04/05/06/15/16, PCAP VXLAN, executor dual stack, assertions, checkpoints e reexecução no servidor. A cobertura completa e as funcionalidades adicionais permanecem acompanhadas no [plano consolidado](consolidated-remediation-plan.md); as descrições de incrementos anteriores acima são históricas.
+
+O [ADR-045](adr/045-firewall-nat-state-synchronization.md) acrescenta par HA explícito de firewall/NAT/PAT, canal sujeito a falhas, continuidade da mesma conexão, retorno assimétrico, failback e restauração determinística. Fábrica e enterprise/DC incluem portas dedicadas e mapeamento de subinterfaces. HA de dados/serviços e NICs redundantes permanece em R08/R10.

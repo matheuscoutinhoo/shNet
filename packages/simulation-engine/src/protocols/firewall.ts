@@ -15,6 +15,7 @@ import {
 } from './firewall-policy';
 export { validateFirewall } from './firewall-validation';
 import { validateFirewallConfig } from './firewall-validation';
+import { syncFirewall } from './state-sync';
 
 // Snapshots saved before protocol selection retain their TCP-only policy.
 export function firewallProtocols(config: Device['firewall']): ('TCP' | 'UDP' | 'ICMP')[] {
@@ -30,6 +31,7 @@ export function configureFirewall(engine: SimulationEngine, device: Device, inpu
   }
   config.dropped = 0;
   validateFirewallConfig({ ...device, firewall: config });
+  for (const session of device.firewall?.sessions ?? []) syncFirewall(engine, device, session, true);
   device.firewall = config;
   engine.state.queue = engine.state.queue.filter(
     ({ action }) =>
@@ -42,7 +44,8 @@ export function configureFirewall(engine: SimulationEngine, device: Device, inpu
     'Firewall de trânsito ' + (config.enabled ? 'ativado' : 'desativado') + '; sessões reiniciadas.'
   );
 }
-function removeSession(engine: SimulationEngine, device: Device, session: FirewallSession) {
+function removeSession(engine: SimulationEngine, device: Device, session: FirewallSession, replicate = true) {
+  if (replicate) syncFirewall(engine, device, session, true);
   device.firewall!.sessions = device.firewall!.sessions.filter((entry) => entry.id !== session.id);
   engine.state.queue = engine.state.queue.filter(
     ({ action }) =>
@@ -71,11 +74,12 @@ function touchSession(engine: SimulationEngine, device: Device, session: Firewal
     session: session.id,
     at: session.expiresAt,
   });
+  syncFirewall(engine, device, session);
 }
 export function expireFirewall(engine: SimulationEngine, device: Device, id: string, at: number) {
   const session = device.firewall?.sessions.find((entry) => entry.id === id && entry.expiresAt === at);
   if (!session) return;
-  removeSession(engine, device, session);
+  removeSession(engine, device, session, false);
   engine.emit('FIREWALL_EXPIRED', device.id, 'Sessão ' + id + ' expirada no relógio virtual.');
 }
 export function permitFirewall(
