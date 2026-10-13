@@ -10,6 +10,10 @@ import { receiveIp6 } from './ipv6';
 
 export const routingEnabled = (device: Device) =>
   device.type === 'router' || (device.type === 'switch' && device.ipRouting === true);
+export const managementEnabled = (device: Device) =>
+  device.type !== 'switch' ||
+  routingEnabled(device) ||
+  device.interfaces.some((port) => port.logical?.kind === 'svi' && port.ip && port.prefix !== undefined);
 export const interfaceUp = (device: Device, port: NetworkInterface) =>
   port.adminUp &&
   (!port.tunnel || (port.tunnel.enabled && port.tunnel.status === 'up')) &&

@@ -513,7 +513,7 @@ function Canvas({
   const activities = useCanvasActivities(lab, motion.visible);
   const canMove = motion.visible && !motion.reduced;
   const zoom = useStore((state) => state.transform[2]);
-  const overview = engine.state.devices.length > 200 && zoom < 0.45;
+  const overview = engine.state.devices.length > 20 && zoom < 0.55;
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
   const container = useRef<HTMLDivElement>(null);
   const [actions, setActions] = useState<{ id: string; x: number; y: number; trigger: HTMLElement } | null>(
@@ -531,6 +531,20 @@ function Canvas({
     if (actions && !selected.includes(actions.id)) setActions(null);
   }, [actions, selected]);
   const nodesInitialized = useNodesInitialized();
+  useEffect(() => {
+    const compact = window.matchMedia('(max-width: 699px)');
+    let timer: ReturnType<typeof setTimeout>;
+    const refit = () => {
+      clearTimeout(timer);
+      if (compact.matches && nodesInitialized && engine.state.devices.length)
+        timer = setTimeout(() => void fitView({ padding: 0.2, maxZoom: 1.5 }), 150);
+    };
+    compact.addEventListener('change', refit);
+    return () => {
+      compact.removeEventListener('change', refit);
+      clearTimeout(timer);
+    };
+  }, [nodesInitialized, engine, fitView]);
   const matches = findDevices(engine.state.devices, query);
   const matchIds = matches.map((d) => d.id).join(',');
   const lastSearch = useRef('');

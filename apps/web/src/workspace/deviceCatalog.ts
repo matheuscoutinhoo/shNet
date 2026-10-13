@@ -10,6 +10,7 @@ export const equipmentCategories = [
   'Servidores e serviços',
   'SD-WAN',
   'Infraestrutura',
+  'Industrial',
 ] as const;
 export type EquipmentCategory = (typeof equipmentCategories)[number];
 

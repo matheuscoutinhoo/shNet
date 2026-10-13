@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-13",
+  "scope": "PLC/HMI com Modbus TCP e rede IP",
+  "tests": {
+    "passed": 664,
+    "failed": 0,
+    "skipped": 1,
+    "files": 71,
+    "factoryMatrix": 42,
+    "nativeModels": 7
+  },
+  "checks": {
+    "build": "passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "format": "passed",
+    "diffCheck": "passed"
+  },
+  "interface": {
+    "modbus": "TIME-WAIT · Registradores: 725",
+    "errors": [],
+    "accessibility": [],
+    "scenarioAccessibility": [],
+    "mobile": {
+      "viewport": 390,
+      "bodyWidth": 390,
+      "visibleDevices": 43
+    },
+    "realtime": {
+      "elapsedMs": 10901.681599999998,
+      "advancedMs": 53752.5,
+      "ratio": 0.9861322678879194
+    }
+  },
+  "limits": [
+    "HA de serviços/WAN/células ainda parcial",
+    "Modbus hexadecimal no transporte textual do modelo; sem firmware/processo real",
+    "Executor nativo com ações ICMP/HTTP/Modbus e falhas dispositivo/enlace; demais ações na regressão do motor",
+    "Colaboração/RBAC e assistente completo de célula pendentes"
+  ]
+}

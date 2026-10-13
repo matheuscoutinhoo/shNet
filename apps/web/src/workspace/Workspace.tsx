@@ -7,6 +7,7 @@ import type { DeviceAction } from './DeviceActions';
 import { labs } from '@shlab/engine';
 import { duplicateDevice } from './duplicateDevice';
 import { CaptureDialog } from './CaptureDialog';
+import { FactoryTools } from './FactoryTools';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Connection } from '@xyflow/react';
 import {
@@ -97,8 +98,9 @@ export function Workspace({
     [drawing, setDrawing] = useState(false),
     [comment, setComment] = useState(false),
     [capture, setCapture] = useState(false),
-    [renaming, setRenaming] = useState<Device | null>(null),
-    [mode, setMode] = useState<'simulation' | 'realtime'>('simulation');
+    [factoryTools, setFactoryTools] = useState(false),
+    [renaming, setRenaming] = useState<Device | null>(null);
+  const mode = lab.playbackMode;
   const importRef = useRef<HTMLInputElement>(null),
     copyRef = useRef<Device[]>([]);
   const copiedItems = useRef<CanvasItem[]>([]);
@@ -407,11 +409,11 @@ export function Workspace({
             value={mode}
             onChange={(e) => {
               const mode = e.target.value as 'simulation' | 'realtime';
-              setMode(mode);
+              lab.setPlaybackMode(mode);
               lab.setPlaying(mode === 'realtime');
             }}
           >
-            <option value="simulation">Simulação</option>
+            <option value="simulation">Evento a evento</option>
             <option value="realtime">Tempo real</option>
           </select>
           <button
@@ -447,6 +449,21 @@ export function Workspace({
             ))}
           </select>
           <span className="pending-events">{lab.engine.state.queue.length} na fila</span>
+          {mode === 'realtime' && (
+            <span
+              className="pending-events playback-metrics"
+              title="Atraso em relação ao tempo virtual solicitado"
+            >
+              {lab.playbackMetrics.ready ? (
+                <>
+                  {lab.playbackMetrics.eventsPerSecond.toFixed(0)} eventos/s · atraso{' '}
+                  {lab.playbackMetrics.lagMs.toFixed(0)} ms
+                </>
+              ) : (
+                'Carregando motor…'
+              )}
+            </span>
+          )}
         </div>
         <div className="tool-group">
           <button
@@ -487,6 +504,14 @@ export function Workspace({
             </button>
             {more && (
               <div className="dropdown">
+                <button
+                  onClick={() => {
+                    setFactoryTools(true);
+                    setMore(false);
+                  }}
+                >
+                  <Check size={16} /> Validar fábrica e cenários
+                </button>
                 <button
                   onClick={() => {
                     setCapture(true);
@@ -659,6 +684,7 @@ export function Workspace({
       </div>
       {comment && <CommentDialog lab={lab} selected={selected[0]} onClose={() => setComment(false)} />}
       {capture && <CaptureDialog lab={lab} onClose={() => setCapture(false)} />}
+      {factoryTools && <FactoryTools lab={lab} onClose={() => setFactoryTools(false)} />}
       {lab.error && (
         <div className="workspace-alert" role="alert">
           <span>{lab.error}</span>
@@ -697,7 +723,7 @@ export function Workspace({
             </button>
             <div className="catalog-lesson">
               <BookOpen size={19} />
-              <h4>Configuração e tráfego</h4>
+              <h2>Configuração e tráfego</h2>
               <p>Use o terminal para configurar os equipamentos e consulte os eventos da simulação.</p>
               <button onClick={() => setHelp(true)}>
                 Guia rápido <ChevronRight size={14} />

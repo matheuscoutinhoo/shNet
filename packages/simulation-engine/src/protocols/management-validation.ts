@@ -3,12 +3,13 @@ import { isUnicast } from './dhcp-config';
 import { compareOids } from './snmp-mib';
 import { managementBytes } from './management-wire';
 import { SNMP } from './snmp-model';
+import { managementEnabled } from './layer3';
 
 export function validateManagement(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
     if (
       device.type === 'switch' &&
-      !device.ipRouting &&
+      !managementEnabled(device) &&
       (device.snmpAgent || device.snmpQueries?.length || device.syslogClient || device.syslogServer)
     )
       throw new Error('Gerenciamento IPv4 não disponível no switch L2.');
@@ -68,7 +69,7 @@ export function validateManagement(snapshot: Snapshot) {
     if (
       device.syslogServer &&
       !['server', 'router'].includes(device.type) &&
-      !(device.type === 'switch' && device.ipRouting)
+      !(device.type === 'switch' && managementEnabled(device))
     )
       throw new Error('Tipo inválido para coletor syslog.');
     for (const entry of device.syslogServer?.entries ?? [])

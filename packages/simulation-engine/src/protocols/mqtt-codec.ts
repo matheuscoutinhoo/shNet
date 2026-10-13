@@ -12,7 +12,17 @@ export function encodeMqtt(input: Message) {
     body: number[] = [];
   if (m.type === 'CONNECT') {
     header = 0x10;
-    body = [...str('MQTT'), 4, 2, m.keepAlive >>> 8, m.keepAlive & 255, ...str(m.clientId)];
+    if (m.password !== undefined && !m.username) throw new Error('MQTT password exige username.');
+    body = [
+      ...str('MQTT'),
+      4,
+      2 | (m.username ? 128 : 0) | (m.password !== undefined ? 64 : 0),
+      m.keepAlive >>> 8,
+      m.keepAlive & 255,
+      ...str(m.clientId),
+      ...(m.username ? str(m.username) : []),
+      ...(m.password !== undefined ? str(m.password) : []),
+    ];
   } else if (m.type === 'CONNACK') {
     header = 0x20;
     body = [0, m.code];
@@ -23,8 +33,17 @@ export function encodeMqtt(input: Message) {
     header = 0x90;
     body = [m.id >>> 8, m.id & 255, 0];
   } else if (m.type === 'PUBLISH') {
-    header = 0x30 + Number(m.retain);
-    body = [...str(m.topic), ...new TextEncoder().encode(m.payload)];
+    if (m.qos === 1 && !m.id) throw new Error('MQTT QoS 1 exige Packet Identifier.');
+    if (!m.qos && m.dup) throw new Error('MQTT QoS 0 não admite DUP.');
+    header = 0x30 + Number(m.retain) + (m.qos === 1 ? 2 : 0) + (m.dup ? 8 : 0);
+    body = [
+      ...str(m.topic),
+      ...(m.qos === 1 ? [m.id! >>> 8, m.id! & 255] : []),
+      ...new TextEncoder().encode(m.payload),
+    ];
+  } else if (m.type === 'PUBACK') {
+    header = 0x40;
+    body = [m.id >>> 8, m.id & 255];
   } else header = m.type === 'PINGREQ' ? 0xc0 : m.type === 'PINGRESP' ? 0xd0 : 0xe0;
   const remaining: number[] = [];
   let n = body.length;
@@ -66,10 +85,14 @@ export function decodeMqtt(line: string): Message {
   };
   let message: Message;
   if (b[0] === 0x10) {
-    if (text() !== 'MQTT' || b[i++] !== 4 || b[i++] !== 2)
-      throw new Error('MQTT requer 3.1.1 clean session.');
+    if (text() !== 'MQTT' || b[i++] !== 4) throw new Error('MQTT requer 3.1.1 clean session.');
+    const flags = b[i++];
+    if ((flags & 63) !== 2 || ((flags & 64) !== 0 && !(flags & 128)))
+      throw new Error('MQTT flags CONNECT não suportados.');
     const keepAlive = u16();
     message = { type: 'CONNECT', keepAlive, clientId: text() };
+    if (flags & 128) message.username = text();
+    if (flags & 64) message.password = text();
   } else if (b[0] === 0x20 && n === 2) {
     if (b[i++] !== 0) throw new Error('MQTT Session Present inesperado.');
     message = { type: 'CONNACK', code: b[i++] };
@@ -82,11 +105,20 @@ export function decodeMqtt(line: string): Message {
     const id = u16();
     if (b[i++] !== 0) throw new Error('MQTT SUBACK QoS inválido.');
     message = { type: 'SUBACK', id };
-  } else if (b[0] === 0x30 || b[0] === 0x31) {
+  } else if ([0x30, 0x31, 0x32, 0x33, 0x3a, 0x3b].includes(b[0])) {
     const topic = text(),
+      id = b[0] & 2 ? u16() : undefined,
       payload = new TextDecoder('utf-8', { fatal: true }).decode(b.slice(i));
     i = b.length;
-    message = { type: 'PUBLISH', topic, payload, retain: b[0] === 0x31 };
+    message = {
+      type: 'PUBLISH',
+      topic,
+      payload,
+      retain: !!(b[0] & 1),
+      ...(id !== undefined ? { qos: 1, id, dup: !!(b[0] & 8) } : {}),
+    };
+  } else if (b[0] === 0x40 && n === 2) {
+    message = { type: 'PUBACK', id: u16() };
   } else if (n === 0 && [0xc0, 0xd0, 0xe0].includes(b[0]))
     message = { type: b[0] === 0xc0 ? 'PINGREQ' : b[0] === 0xd0 ? 'PINGRESP' : 'DISCONNECT' };
   else throw new Error('MQTT pacote ou flags não suportados.');

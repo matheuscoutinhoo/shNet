@@ -1,4 +1,5 @@
 import { receiveDatabase } from './database';
+import { receiveModbus } from './modbus';
 import { receiveSpecialApplication } from './applications';
 import { receiveRemote } from './remote-wire';
 import { receiveTacacs } from './tacacs';
@@ -56,6 +57,10 @@ export function receiveTcpApplication(
     receiveDatabase(engine, device, connection);
     return;
   }
+  if (connection.service === 'modbus') {
+    receiveModbus(engine, device, connection);
+    return;
+  }
   if (receiveSpecialApplication(engine, device, connection)) return;
   if (connection.service === 'netconf' || connection.service === 'restconf') {
     receiveRemote(engine, device, connection);
@@ -73,7 +78,19 @@ export function receiveTcpApplication(
     receiveDnsTcpApplication(engine, device, connection);
     return;
   }
-  if (connection.role !== 'server') return;
+  if (connection.role !== 'server') {
+    if (connection.service === 'http' && connection.responseAt === undefined) {
+      const header = connection.received.indexOf('\r\n\r\n');
+      const length = connection.received.match(/\r\nContent-Length: (\d+)/i)?.[1];
+      if (
+        header >= 0 &&
+        length !== undefined &&
+        tcpBytes(connection.received.slice(header + 4)) >= Number(length)
+      )
+        connection.responseAt = engine.state.clock;
+    }
+    return;
+  }
   if (connection.service === 'echo') queueTcpText(connection, data);
   if (connection.service !== 'http' || connection.httpHandled || !connection.received.includes('\r\n\r\n'))
     return;

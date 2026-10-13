@@ -201,3 +201,9 @@ Os templates **Um trunk, duas redes**, **VLANs com gateway no switch** e **Mesmo
 **Quem passa primeiro na fila** demonstra shaping, classes DSCP, prioridade/WRR, policer e congestionamento. **O pacote segue os labels** demonstra FEC/LFIB e MPLS com push/swap/pop. A aba **QoS / MPLS** configura ambos; a timeline inspeciona espera e labels. [ADR-024](docs/adr/024-qos-mpls-forwarding.md).
 
 O template **Campus com autenticação empresarial** conecta cliente, AP, RADIUS e HTTP, com certificados locais para exercício. Na aba **WLC / Mesh / IDS**, selecione Cliente EAP para revisar a confiança e o certificado antes de avançar os eventos. Os botões **Desafio** e **Tutorial** abrem os recursos de aprendizagem; a pontuação aparece ao voltar ao dashboard. Limites de protocolo estão nos [ADRs 029–034](docs/network-implementation.md).
+
+## Fábrica PLC/HMI e rede IP
+
+Pendências, prioridades e critérios de aceite: [plano das próximas correções](docs/factory-remediation-backlog.md).
+
+O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](docs/adr/042-factory-modbus-scenarios-remediation.md).

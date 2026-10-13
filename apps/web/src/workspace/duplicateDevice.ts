@@ -18,8 +18,12 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       ? e.addFactoryProfile(d.profile, position)
       : e.addFactoryDevice(d.type, position);
   copy.profile = d.profile;
+  if (d.modbus) copy.modbus = structuredClone(d.modbus);
   copy.power = d.power;
   copy.hostname = d.hostname.slice(0, 24) + '-copy';
+  let suffix = 2;
+  while (e.state.devices.some((other) => other.id !== copy.id && other.hostname === copy.hostname))
+    copy.hostname = d.hostname.slice(0, 22) + '-copy' + suffix++;
   copy.ipRouting = d.ipRouting;
   copy.ipv6Routing = d.ipv6Routing;
   if (d.system)

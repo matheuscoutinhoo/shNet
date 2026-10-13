@@ -58,6 +58,12 @@ export * from './devices/profiles';
 export * from './devices/capabilities';
 export * from './cli/device-commands';
 export * from './network-analysis';
+export * from './preflight';
+export * from './scenarios';
+export * from './fidelity';
+export * from './configuration-review';
+export * from './protocols/modbus';
+export * from './protocols/modbus-model';
 export { advancedLabs } from './advanced-labs';
 
 export { dnssecAnchor } from './protocols/dnssec';
@@ -88,3 +94,5 @@ export * from './wire/ethernet-codec';
 export * from './wire/dhcp6-codec';
 export * from './wire/dns-codec';
 export * from './wire/pcap';
+
+export * from './factory-scenarios';

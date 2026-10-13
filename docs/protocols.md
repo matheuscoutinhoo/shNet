@@ -390,3 +390,7 @@ OSPF/RIP, VPN com rekey, AAA com autorização/accounting e NETCONF XML/RESTCONF
 Para praticar, abra Desafio ou Tutorial no laboratório. Definições e evidências são avaliadas no backend, e a pontuação aparece no dashboard. Veja [ADR-034](adr/034-challenges-score-interactive-tutorial.md).
 
 As extensões TCP, PMTUD, relay DHCPv6 e codecs/capturas atuais estão detalhados no [ADR-035](adr/035-transport-extensions-relay-captures.md). Essa ampliação substitui os limites anteriores de transporte e relay dos ADRs 029–030, preservando os demais limites explícitos.
+
+## Fábrica PLC/HMI e rede IP
+
+O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).

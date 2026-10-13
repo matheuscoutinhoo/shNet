@@ -26,6 +26,7 @@ const categoryIcons = {
   'Servidores e serviços': Server,
   'SD-WAN': Waypoints,
   Infraestrutura: Cable,
+  Industrial: Server,
 };
 
 export function EquipmentCatalog({ onAdd }: { onAdd: (profile: DeviceProfile) => void }) {

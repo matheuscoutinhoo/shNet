@@ -7,7 +7,7 @@ export function exportPcap(s: Snapshot, link?: string) {
   const connections = new Map(
     s.devices.flatMap((d) => (d.tcpConnections ?? []).map((c) => [c.id, c] as const))
   );
-  for (const event of s.events) {
+  for (const event of s.capture?.frames ?? s.events) {
     if (event.type !== 'FRAME_SENT' || !event.frame || (link && event.link !== link)) continue;
     try {
       const tcp =
@@ -17,14 +17,15 @@ export function exportPcap(s: Snapshot, link?: string) {
               ? event.frame.ipv6.segment
               : undefined,
         connection = tcp?.traceId ? connections.get(tcp.traceId) : undefined;
-      if (tcp?.data && !connection) throw new Error('Aplicação TCP ausente do estado retido.');
+      const application = event.application ?? connection?.service;
+      if (tcp?.data && !application) throw new Error('Aplicação TCP ausente do estado retido.');
       if (
-        connection &&
+        application &&
         !['manual', 'echo', 'http', 'database', 'proxy', 'proxy-upstream', 'load-balancer'].includes(
-          connection.service
+          application
         )
       )
-        throw new Error('Aplicação TCP ' + connection.service + ' usa enquadramento didático.');
+        throw new Error('Aplicação TCP ' + application + ' usa enquadramento didático.');
       frames.push({ at: event.time, bytes: encodeEthernet(event.frame) });
     } catch (error) {
       excluded.push({
@@ -54,6 +55,9 @@ export function exportPcap(s: Snapshot, link?: string) {
     packets: frames.length,
     excluded,
     retainedEvents: s.events.length,
+    retainedFrames: s.capture?.frames.length ?? frames.length + excluded.length,
+    dropped: s.capture?.dropped ?? 0,
+    startedAt: s.capture?.startedAt ?? 0,
   };
 }
 export function decodePcap(bytes: Uint8Array) {

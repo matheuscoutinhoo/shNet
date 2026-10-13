@@ -1,0 +1,170 @@
+[
+  {
+    "id": "B01",
+    "status": "Corrigido",
+    "change": "Horizonte virtual no Worker; reprodução didática separada, métricas de atraso/taxa e pausa.",
+    "remaining": "Sincronismo depende da CPU; atraso permanece visível."
+  },
+  {
+    "id": "B02",
+    "status": "Corrigido",
+    "change": "Captura e diagnósticos independentes, filtro de controle, limites e deltas consistentes por bytes.",
+    "remaining": "Retenção limitada; descarte contado. PCAP tem codecs parciais."
+  },
+  {
+    "id": "B03",
+    "status": "Corrigido",
+    "change": "Syslog e SNMP em switch L2 com SVI sem exigir ipRouting.",
+    "remaining": "SNMP mantém community."
+  },
+  {
+    "id": "B04",
+    "status": "Corrigido",
+    "change": "Hierarquia de títulos e nova validação Axe.",
+    "remaining": "Verificação nos estados exercitados; não certificação WCAG."
+  },
+  {
+    "id": "O01",
+    "status": "Corrigido",
+    "change": "Agreement RSTP não participa como anúncio de raiz; evita realimentação de custo e ressincronização repetida.",
+    "remaining": "Convergência medida neste modelo e topologia."
+  },
+  {
+    "id": "D01",
+    "status": "Corrigido",
+    "change": "Template com relay nos dois firewalls e pools disjuntos. Relay respeita o membro ativo do VRRP.",
+    "remaining": "O serviço DHCP ainda é uma instância única."
+  },
+  {
+    "id": "D02",
+    "status": "Corrigido",
+    "change": "Retorno WAN pelo VIP do trânsito; novas sessões sobrevivem à perda de FW-A.",
+    "remaining": "Não replica sessões stateful existentes."
+  },
+  {
+    "id": "D03",
+    "status": "Parcial",
+    "change": "Preflight expõe dependências e instâncias únicas; testes de serviço indisponível e WAN.",
+    "remaining": "DNS/DHCP/MES/SCADA/broker e WAN não ganharam HA de dados/serviço."
+  },
+  {
+    "id": "D04",
+    "status": "Ensaiado; desenho parcial",
+    "change": "Cenário nativo e regressão desligam switch de célula e medem a interrupção/restauração.",
+    "remaining": "Endpoints e switch de célula permanecem pontos únicos; dois uplinks não eliminam o risco."
+  },
+  {
+    "id": "D05",
+    "status": "Corrigido",
+    "change": "Template remove acesso WIFI→DMZ/80; testes negativos ao MES e PLC. Preflight avisa permissões de visitantes a zonas sensíveis.",
+    "remaining": "Exceções futuras precisam de teste por destino."
+  },
+  {
+    "id": "L01",
+    "status": "Implementado no subconjunto Modbus",
+    "change": "Perfis PLC/HMI, MBAP/PDU, funções 03/06/16, registradores, exceções e testes de valores/persistência.",
+    "remaining": "Hexadecimal sobre TCP textual; sem firmware/lógica física, coils ou demais protocolos industriais."
+  },
+  {
+    "id": "L02",
+    "status": "Fora do escopo escolhido",
+    "change": "RSTP/VRRP disponíveis e testados; limites de MRP/DLR/PRP/HSR visíveis na aplicação.",
+    "remaining": "Protocolos de anel industrial não implementados."
+  },
+  {
+    "id": "L03",
+    "status": "Fora do escopo escolhido",
+    "change": "Deadlines e jitter de transações IP/Modbus mensuráveis; NTP mantém escopo próprio.",
+    "remaining": "PTP/TSN e agendamento determinístico não implementados."
+  },
+  {
+    "id": "L04",
+    "status": "Implementado com aproximação",
+    "change": "Posições físicas em metros independentes do desenho e obstáculos 2D com perda explícita.",
+    "remaining": "Sem reflexão/difração ou certificação RF."
+  },
+  {
+    "id": "L05",
+    "status": "Parcial",
+    "change": "Polling periódico Modbus com taxa e deadline explícitos nos cenários.",
+    "remaining": "MES/SCADA/NVR HTTP substitutos; processo produtivo e RTSP/H.264 não modelados."
+  },
+  {
+    "id": "L06",
+    "status": "Limite explícito",
+    "change": "Matriz de fidelidade no painel, docs e ADR distingue simulado/parcial/representado/não suportado.",
+    "remaining": "Firmware real e integração com hardware não implementados."
+  },
+  {
+    "id": "L07",
+    "status": "Parcial",
+    "change": "MQTT com usuário/senha, PUBLISH QoS 1, PUBACK, retransmissão DUP e tentativas limitadas.",
+    "remaining": "Assinaturas QoS 0; sem QoS 2, TLS, sessões persistentes ou reconexão automática."
+  },
+  {
+    "id": "L08",
+    "status": "Limite explícito",
+    "change": "Gerência L2 corrigida; matriz declara o subconjunto SNMP.",
+    "remaining": "SNMPv3 authPriv, traps e integração externa continuam pendentes."
+  },
+  {
+    "id": "L09",
+    "status": "Melhorado; codecs parciais",
+    "change": "Captura mostra retenção, exportáveis, omissões por motivo e descarte; origem de aplicação preservada.",
+    "remaining": "Não exporta todos os protocolos nem Modbus binário interoperável."
+  },
+  {
+    "id": "L10",
+    "status": "Limite explícito",
+    "change": "Preflight e matriz explicam firewall stateful de trânsito em roteador e ACL em switch L3.",
+    "remaining": "Restrição de capacidade do motor preservada."
+  },
+  {
+    "id": "U01",
+    "status": "Parcial",
+    "change": "Executor nativo ICMP/HTTP/Modbus com falhas, baseline, assertions, cancelamento, sete modelos e até 32 definições salvas.",
+    "remaining": "Os 42 casos foram migrados para regressão automatizada do motor; ações DNS/DHCP/MQTT/SNMP/NTP/syslog e persistência não estão todas no executor nativo."
+  },
+  {
+    "id": "U02",
+    "status": "Parcial",
+    "change": "Zoom semântico para topologias acima de 20 dispositivos e reenquadramento ao entrar em tela estreita.",
+    "remaining": "Sem autolayout, agregação de trunks ou vistas físicas/lógicas completas."
+  },
+  {
+    "id": "U03",
+    "status": "Parcial",
+    "change": "Template de fábrica, revisão/importação por diff, edição de endereços em lote e nomes únicos na duplicação.",
+    "remaining": "Sem assistente completo de células com remapeamento simultâneo de IP/VLAN/MAC/referências."
+  },
+  {
+    "id": "U04",
+    "status": "Implementado com regras estáticas",
+    "change": "Preflight de IP, VLAN nativa, endpoints, links, relay, retorno físico de VRRP, SPOFs, RF e acesso de visitantes.",
+    "remaining": "Heurísticas; prova de política/disponibilidade exige tráfego e cenários."
+  },
+  {
+    "id": "U05",
+    "status": "Parcial",
+    "change": "Perda, p95/p99, jitter, deadlines, amostras e recuperação observada com resolução declarada; exportação e comparação.",
+    "remaining": "Não atribui automaticamente a causa de todos os eventos; relatórios do painel duram a sessão e podem ser exportados."
+  },
+  {
+    "id": "U06",
+    "status": "Parcial",
+    "change": "Diff antes/depois e aplicação validada/desfazível; histórico e proteção de revisão existentes preservados.",
+    "remaining": "Sem RBAC de equipe ou edição simultânea autoritativa."
+  },
+  {
+    "id": "B05",
+    "status": "Corrigido; novo achado",
+    "change": "Dois relays em VRRP produziam ofertas concorrentes e NAK contínuo; somente o membro ativo encaminha o broadcast.",
+    "remaining": "Cobertura S10/S19/S38: concessão normal e após failover."
+  },
+  {
+    "id": "B06",
+    "status": "Corrigido; novo achado",
+    "change": "Canvas podia ficar vazio após resize desktop→mobile; reenquadramento na mudança de faixa responsiva.",
+    "remaining": "Topologias grandes continuam exigindo zoom/localizador em telas pequenas."
+  }
+]

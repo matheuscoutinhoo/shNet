@@ -1,0 +1,429 @@
+{
+  "finalDevices": 43,
+  "finalLinks": 47,
+  "results": [
+    {
+      "id": "S31",
+      "label": "WAN após falha de FW-A: rota de retorno estática",
+      "detail": {
+        "id": "tcp-14895",
+        "localIp": "10.20.10.10",
+        "remoteIp": "198.51.100.10",
+        "localPort": 49152,
+        "remotePort": 80,
+        "role": "client",
+        "service": "manual",
+        "state": "SYN-SENT",
+        "initialSequence": 953280000,
+        "sendUna": 953280000,
+        "sendNext": 953280001,
+        "receiveNext": 0,
+        "peerWindow": 16384,
+        "sendBuffer": "GET / HTTP/1.1\r\nHost: 198.51.100.10\r\nConnection: close\r\n\r\n",
+        "received": "",
+        "closeRequested": true,
+        "peerClosed": false,
+        "httpHandled": false,
+        "bytesSent": 0,
+        "bytesReceived": 0,
+        "retransmissions": 1,
+        "startedAt": 11000,
+        "updatedAt": 11000,
+        "expiresAt": 131000,
+        "pending": {
+          "packet": {
+            "src": "10.20.10.10",
+            "dst": "198.51.100.10",
+            "protocol": "TCP",
+            "ttl": 64,
+            "sourcePort": 49152,
+            "destinationPort": 80,
+            "sequence": 953280000,
+            "acknowledgment": 0,
+            "flags": [
+              "SYN"
+            ],
+            "window": 16384,
+            "data": "",
+            "bytes": 40,
+            "traceId": "tcp-14895"
+          },
+          "retries": 1,
+          "deadline": 14000,
+          "sentAt": 11000,
+          "retransmitted": true
+        },
+        "flow": {
+          "mss": 536,
+          "cwnd": 536,
+          "ssthresh": 1072,
+          "duplicateAcks": 0,
+          "rto": 2000,
+          "flight": [],
+          "receiveQueue": []
+        }
+      }
+    },
+    {
+      "id": "S32",
+      "label": "Falha de distribuição DIST-A",
+      "detail": {
+        "primary": [
+          "INIT",
+          "INIT",
+          "INIT",
+          "INIT",
+          "INIT",
+          "INIT",
+          "INIT",
+          "INIT"
+        ],
+        "backup": [
+          "ACTIVE",
+          "ACTIVE",
+          "ACTIVE",
+          "ACTIVE",
+          "ACTIVE",
+          "ACTIVE",
+          "ACTIVE",
+          "ACTIVE"
+        ],
+        "probe": {
+          "id": "probe-18249",
+          "device": "device-1837",
+          "target": "10.20.40.10",
+          "start": 12000,
+          "status": "timeout",
+          "ttl": 64
+        },
+        "retry": {
+          "id": "probe-43852",
+          "device": "device-1837",
+          "target": "10.20.40.10",
+          "start": 43000,
+          "status": "success",
+          "ttl": 64,
+          "rtt": 60.53341600015847,
+          "responder": "10.20.40.10"
+        },
+        "stp": [
+          {
+            "port": "p22",
+            "state": {
+              "role": "disabled",
+              "state": "discarding",
+              "operational": false,
+              "token": "stp-port-25139",
+              "proposed": true,
+              "agreed": false
+            }
+          },
+          {
+            "port": "p23",
+            "state": {
+              "role": "root",
+              "state": "forwarding",
+              "operational": true,
+              "token": "stp-port-25141",
+              "proposed": true,
+              "agreed": true,
+              "received": {
+                "bpdu": {
+                  "mode": "rstp",
+                  "root": {
+                    "priority": 4096,
+                    "mac": "02:00:00:04:00:00"
+                  },
+                  "cost": 0,
+                  "bridge": {
+                    "priority": 4096,
+                    "mac": "02:00:00:04:00:00"
+                  },
+                  "portId": 3,
+                  "age": 0,
+                  "proposal": false,
+                  "agreement": false
+                },
+                "at": 42002.03071800001,
+                "expiresAt": 48002.03071800001
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "S33",
+      "label": "Captura PCAP de HTTP",
+      "detail": {
+        "id": "tcp-11754",
+        "packets": 117,
+        "decoded": 117,
+        "excluded": 164,
+        "reasons": [
+          "Envelope didático ou enlace sem codec Ethernet interoperável."
+        ]
+      }
+    },
+    {
+      "id": "S34",
+      "label": "Retenção dos eventos após ping e 5 s",
+      "detail": {
+        "id": "probe-11754",
+        "immediate": true,
+        "retained": 1500,
+        "successEventRetained": false,
+        "probe": {
+          "id": "probe-11754",
+          "device": "device-1837",
+          "target": "10.20.40.10",
+          "start": 6000,
+          "status": "success",
+          "ttl": 64,
+          "rtt": 60.553941000011946,
+          "responder": "10.20.40.10"
+        },
+        "pcap": 0
+      }
+    },
+    {
+      "id": "S35",
+      "label": "NTP no segmento de gestão",
+      "detail": {
+        "ntp": {
+          "enabled": true,
+          "servers": [
+            "10.20.99.123"
+          ],
+          "intervalMs": 5000,
+          "token": "ntp-11756",
+          "tickAt": 9000.001,
+          "index": 0,
+          "synchronized": true,
+          "stratum": 2,
+          "samples": [
+            {
+              "server": "10.20.99.123",
+              "at": 6016.096880000003,
+              "offsetMs": -250,
+              "delayMs": 8.043708000001061
+            }
+          ],
+          "failures": 0,
+          "lastSync": 6016.096880000003
+        },
+        "clock": {
+          "offsetMs": 0,
+          "server": false,
+          "stratum": 2
+        }
+      }
+    },
+    {
+      "id": "S36",
+      "label": "Syslog no segmento de gestão",
+      "detail": {
+        "enabled": true,
+        "entries": [
+          {
+            "receivedAt": 6012.066818000001,
+            "source": "10.20.99.11",
+            "message": {
+              "id": "syslog-11756",
+              "timestamp": 6000,
+              "hostname": "ADMIN-REDE",
+              "facility": 23,
+              "severity": 6,
+              "appName": "netos",
+              "text": "Teste de evento de manutenção da fábrica"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "S37",
+      "label": "Switch L2 com SVI: gerência syslog",
+      "detail": {
+        "probe": {
+          "id": "probe-11756",
+          "device": "device-16",
+          "target": "10.20.99.10",
+          "start": 6000,
+          "status": "success",
+          "ttl": 64,
+          "rtt": 24.22060400000555,
+          "responder": "10.20.99.10"
+        },
+        "syslogError": "Switch L2 não possui stack IPv4 de gerenciamento."
+      }
+    },
+    {
+      "id": "S38",
+      "label": "DHCP redundante corrigido após falha de FW-A",
+      "detail": {
+        "id": "p0",
+        "name": "Eth0",
+        "mac": "02:00:04:43:00:00",
+        "media": "rj45",
+        "adminUp": true,
+        "speed": 1000,
+        "duplex": "full",
+        "mtu": 1500,
+        "mode": "routed",
+        "accessVlan": 1,
+        "nativeVlan": 1,
+        "allowedVlans": [
+          1
+        ],
+        "description": "",
+        "rx": 49,
+        "tx": 2,
+        "errors": 0,
+        "ipv4Mode": "dhcp",
+        "dhcp": {
+          "status": "bound",
+          "transactionId": "dhcp-18661",
+          "attempts": 0,
+          "lease": {
+            "id": "dhcp-lease-19843",
+            "address": "10.20.10.111",
+            "prefix": 24,
+            "server": "10.20.20.67",
+            "serverMac": "02:00:00:0b:01:00",
+            "gateway": "10.20.10.1",
+            "dns": [
+              "10.20.20.53"
+            ],
+            "acquiredAt": 16064.59643200001,
+            "renewAt": 46064.596432000006,
+            "rebindAt": 68564.596432,
+            "expiresAt": 76064.596432
+          }
+        },
+        "ip": "10.20.10.111",
+        "prefix": 24,
+        "gateway": "10.20.10.1",
+        "dns": [
+          "10.20.20.53"
+        ]
+      }
+    },
+    {
+      "id": "S39",
+      "label": "WAN corrigida: nova sessão após failover",
+      "detail": {
+        "id": "tcp-18661",
+        "localIp": "10.20.10.10",
+        "remoteIp": "198.51.100.10",
+        "localPort": 49152,
+        "remotePort": 80,
+        "role": "client",
+        "service": "manual",
+        "state": "TIME-WAIT",
+        "initialSequence": 1194304000,
+        "sendUna": 1194304060,
+        "sendNext": 1194304060,
+        "receiveNext": 1246656136,
+        "peerWindow": 16326,
+        "sendBuffer": "",
+        "received": "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 35\r\nConnection: close\r\n\r\nSUPORTE-EXTERNO - serviço de teste",
+        "closeRequested": true,
+        "peerClosed": true,
+        "httpHandled": false,
+        "bytesSent": 58,
+        "bytesReceived": 134,
+        "retransmissions": 0,
+        "startedAt": 16000,
+        "updatedAt": 16120.75776400002,
+        "expiresAt": 136120.757764,
+        "flow": {
+          "mss": 536,
+          "cwnd": 1132,
+          "ssthresh": 16384,
+          "duplicateAcks": 0,
+          "rto": 1000,
+          "flight": [],
+          "receiveQueue": [],
+          "srtt": 55.927273531256645,
+          "rttvar": 32.85726256250382
+        }
+      }
+    },
+    {
+      "id": "S40",
+      "label": "UPS A sem rede elétrica e bateria esgotada",
+      "detail": {
+        "ups": {
+          "kind": "ups",
+          "mains": false,
+          "capacityWh": 1000,
+          "maxWatts": 1500,
+          "chargeWatts": 100,
+          "efficiency": 0.9,
+          "loads": [
+            {
+              "device": "device-7",
+              "watts": 100,
+              "requested": true
+            },
+            {
+              "device": "device-1",
+              "watts": 200,
+              "requested": true
+            }
+          ],
+          "remainingWh": 0,
+          "lastAt": 48000,
+          "output": false
+        },
+        "primaryPower": false,
+        "distributionPower": false,
+        "probe": {
+          "id": "probe-25678",
+          "device": "device-1837",
+          "target": "10.20.40.10",
+          "start": 16000,
+          "status": "timeout",
+          "ttl": 64
+        },
+        "retry": {
+          "id": "probe-53533",
+          "device": "device-1837",
+          "target": "10.20.40.10",
+          "start": 47000,
+          "status": "success",
+          "ttl": 64,
+          "rtt": 68.53568400015502,
+          "responder": "10.20.40.10"
+        }
+      }
+    },
+    {
+      "id": "S41",
+      "label": "Patch panel: comunicação SCADA–PLC",
+      "detail": {
+        "id": "probe-16282",
+        "device": "device-1837",
+        "target": "10.20.40.10",
+        "start": 11000,
+        "status": "success",
+        "ttl": 64,
+        "rtt": 68.53568400001132,
+        "responder": "10.20.40.10"
+      }
+    },
+    {
+      "id": "S42",
+      "label": "Energia: perda das duas UPS",
+      "detail": {
+        "id": "probe-16288",
+        "device": "device-1837",
+        "target": "10.20.40.10",
+        "start": 11000,
+        "status": "timeout",
+        "ttl": 64
+      }
+    }
+  ]
+}

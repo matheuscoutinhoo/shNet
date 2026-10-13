@@ -111,7 +111,7 @@ export const tcpLength = (packet: TcpPacket) =>
 export const tcpServiceSchema = z
   .object({
     port: portNumberSchema,
-    kind: z.enum(['echo', 'http', 'proxy', 'load-balancer', 'ipp', 'mqtt', 'database']),
+    kind: z.enum(['echo', 'http', 'proxy', 'load-balancer', 'ipp', 'mqtt', 'database', 'modbus']),
     enabled: z.boolean(),
     body: z.string().max(4096).default('shLab: servidor HTTP simulado.\n'),
   })
@@ -175,6 +175,7 @@ export const tcpConnectionSchema = z
     state: tcpStateSchema,
     service: z.enum([
       'manual',
+      'modbus',
       'echo',
       'http',
       'dns',
@@ -245,6 +246,7 @@ export const tcpConnectionSchema = z
       .optional(),
     startedAt: timeSchema,
     updatedAt: timeSchema,
+    responseAt: timeSchema.optional(),
     expiresAt: timeSchema.optional(),
     pending: tcpOutstandingSchema.optional(),
   })

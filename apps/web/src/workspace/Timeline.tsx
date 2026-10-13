@@ -27,9 +27,14 @@ export function Timeline({
   const selectedIds = new Set(selected);
   const devices = lab.engine.state.devices.filter((d) => selectedIds.has(d.id));
   const deviceIds = new Set(devices.map((d) => d.id));
+  const retainedEvents = [
+    ...new Map(
+      [...(lab.engine.state.diagnostics ?? []), ...lab.engine.state.events].map((e) => [e.id, e])
+    ).values(),
+  ].sort((a, b) => a.time - b.time);
   const scopedEvents = deviceIds.size
-    ? lab.engine.state.events.filter((e) => deviceIds.has(e.device))
-    : lab.engine.state.events;
+    ? retainedEvents.filter((e) => deviceIds.has(e.device))
+    : retainedEvents;
   const probes = deviceIds.size
     ? lab.engine.state.probes.filter((p) => deviceIds.has(p.device))
     : lab.engine.state.probes;

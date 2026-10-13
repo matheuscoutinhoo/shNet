@@ -68,3 +68,7 @@ VRRP IPv4 foi entregue com CLI, painel, template, timers persistidos e testes de
 IPv6 entrega ICMPv6, DAD, NDP, RS/RA/SLAAC, vida dos endereços/gateways, rotas estáticas, ACL e isolamento VLAN/VRF. TCP/UDP, DHCPv6 IA_NA/IA_PD e estados NUD entregues na ampliação [ADR-029](adr/029-tcp-window-ipv6-dhcp6-nud.md). Relay DHCPv6 e codecs binários limitados entregues no [ADR-035](adr/035-transport-extensions-relay-captures.md). Extensões IPv6, autenticação DHCPv6 e codecs para todos os protocolos permanecem limites.
 
 Wireless entrega AP/cliente, SSID, associação/negociação de credencial, canais, RSSI/SNR, perda/interferência e transporte Ethernet do modelo. WPA2/WPA3 pessoais mantêm contratos educacionais. A ampliação empresarial PEAP/TLS, CAPWAP e mesh usa X25519/Ed25519/HKDF/AES-GCM no modelo, sem alegar interoperabilidade binária ou conformidade de chipset (ADR-032). [ADR-022](adr/022-wireless-association-radio.md).
+
+## Fábrica PLC/HMI e rede IP
+
+O template de fábrica e o menu **Validar fábrica e cenários** incluem Modbus 03/06/16, ensaios periódicos ICMP/HTTP/Modbus, falhas agendadas, baseline, SLA, definições salvas, preflight e revisão por diff. Captura e diagnósticos possuem retenção independente; o modo Tempo real usa horizonte virtual e informa atraso. RF aceita posição física independente e obstáculos. MQTT acrescenta autenticação e publicação QoS 1. Contratos, validação e limites: [ADR-042](adr/042-factory-modbus-scenarios-remediation.md).

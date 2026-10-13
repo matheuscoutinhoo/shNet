@@ -1,3 +1,4 @@
+import { scenarioSchema } from './scenarios-model';
 import { databaseStateSchema } from './protocols/database-model';
 import { infrastructureConfigSchema, systemStateSchema } from './devices/infrastructure-model';
 import {
@@ -119,6 +120,7 @@ import { aggregateSchema, lacpPduSchema, lacpTimerSchema } from './protocols/lac
 export * from './protocols/lacp-model';
 export * from './protocols/bgp-model';
 import { z } from 'zod';
+import { modbusConfigSchema } from './protocols/modbus-model';
 import {
   ipv6InterfaceSchema,
   packet6Schema,
@@ -736,7 +738,12 @@ export const deviceSchema = z
       .regex(/^[a-z0-9-]{1,40}$/)
       .optional(),
     hostname: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
+    modbus: modbusConfigSchema.optional(),
     position: z.object({ x: finite.min(-100000).max(100000), y: finite.min(-100000).max(100000) }).strict(),
+    physicalPosition: z
+      .object({ x: finite.min(-100000).max(100000), y: finite.min(-100000).max(100000) })
+      .strict()
+      .optional(),
     power: z.boolean(),
     reassemblies: z.array(reassemblySchema).max(64).optional(),
     fragmentPending: z.array(fragmentPendingSchema).max(64).optional(),
@@ -1032,6 +1039,7 @@ export const eventSchema = z
     peer: id.optional(),
     link: id.optional(),
     reason: z.string().max(500),
+    application: z.string().max(40).optional(),
     frame: frameSchema.optional(),
   })
   .strict();
@@ -1148,6 +1156,15 @@ export const probeSchema = z
     dscp: z.number().int().min(0).max(63).optional(),
   })
   .strict();
+export const rfObstacleSchema = z
+  .object({
+    name: z.string().min(1).max(80),
+    material: z.enum(['metal', 'concrete', 'brick', 'drywall', 'custom']),
+    a: z.object({ x: finite.min(-100000).max(100000), y: finite.min(-100000).max(100000) }).strict(),
+    b: z.object({ x: finite.min(-100000).max(100000), y: finite.min(-100000).max(100000) }).strict(),
+    lossDb: finite.min(0).max(100),
+  })
+  .strict();
 export const snapshotSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -1164,9 +1181,22 @@ export const snapshotSchema = z
       )
       .max(100000),
     events: z.array(eventSchema).max(1500),
+    diagnostics: z.array(eventSchema).max(4000).optional(),
+    capture: z
+      .object({
+        frames: z.array(eventSchema).max(10000),
+        dropped: z.number().int().nonnegative(),
+        includeControl: z.boolean(),
+        startedAt: finite.nonnegative(),
+        bytes: z.number().int().nonnegative().optional(),
+      })
+      .strict()
+      .optional(),
     probes: z.array(probeSchema).max(200),
     probes6: z.array(probe6Schema).max(200).optional(),
     notes: z.string().max(10000),
+    rfObstacles: z.array(rfObstacleSchema).max(100).optional(),
+    scenarios: z.array(scenarioSchema).max(32).optional(),
     background: z.enum(['light', 'gray', 'dark']),
     pattern: z.enum(['dots', 'grid', 'fine-grid', 'none']),
     snapToGrid: z.boolean().optional(),
@@ -1225,6 +1255,8 @@ export const DHCP = {
 export const LIMITS = {
   queue: 100000,
   events: 1500,
+  capture: 10000,
+  diagnostics: 4000,
   probes: 200,
   devices: 2000,
   macAge: 300000,

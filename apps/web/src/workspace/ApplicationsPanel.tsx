@@ -22,7 +22,7 @@ export function ApplicationsPanel({ lab, device }: { lab: LabController; device:
       healthIntervalMs: 5000,
     },
     printer: { enabled: true, port: 631, pagesPerMinute: 30, paper: 100 },
-    broker: { enabled: true, port: 1883 },
+    broker: { enabled: true, port: 1883, users: [] },
   };
   const config = (type: typeof kind) => {
     const c = device[type];
@@ -192,7 +192,17 @@ export function ApplicationsPanel({ lab, device }: { lab: LabController; device:
               ev.preventDefault();
               const f = new FormData(ev.currentTarget);
               lab.change(
-                (e) => e.connectIot(device.id, String(f.get('broker')), String(f.get('client'))),
+                (e) =>
+                  e.connectIot(
+                    device.id,
+                    String(f.get('broker')),
+                    String(f.get('client')),
+                    1883,
+                    30,
+                    f.get('username')
+                      ? { username: String(f.get('username')), password: String(f.get('password')) }
+                      : undefined
+                  ),
                 false
               );
             }}
@@ -206,6 +216,14 @@ export function ApplicationsPanel({ lab, device }: { lab: LabController; device:
               <input name="client" defaultValue={device.hostname} maxLength={64} />
             </label>
             <button className="button small">Conectar IoT</button>
+            <label>
+              Usuário MQTT
+              <input name="username" maxLength={64} />
+            </label>
+            <label>
+              Senha MQTT
+              <input name="password" type="password" maxLength={128} />
+            </label>
           </form>
           <p>MQTT: {device.iot?.state ?? 'desconectado'}</p>
           <form
@@ -233,7 +251,8 @@ export function ApplicationsPanel({ lab, device }: { lab: LabController; device:
                     device.id,
                     String(f.get('topic')),
                     String(f.get('payload')),
-                    f.get('retain') === 'on'
+                    f.get('retain') === 'on',
+                    Number(f.get('qos')) as 0 | 1
                   ),
                 false
               );
@@ -250,6 +269,17 @@ export function ApplicationsPanel({ lab, device }: { lab: LabController; device:
             <label className="checkbox-label">
               <input type="checkbox" name="retain" /> Reter último valor
             </label>
+            <label>
+              Garantia de publicação
+              <select name="qos">
+                <option value="0">QoS 0 — sem confirmação</option>
+                <option value="1">QoS 1 — PUBACK e retransmissão</option>
+              </select>
+            </label>
+            <p className="muted">
+              Assinaturas usam QoS 0. Autenticação não cifra o transporte; TLS, QoS 2 e sessões persistentes
+              ainda não estão disponíveis neste modelo.
+            </p>
             <button className="button small" disabled={device.iot?.state !== 'CONNECTED'}>
               Publicar leitura
             </button>

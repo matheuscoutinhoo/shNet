@@ -21,6 +21,10 @@ export function relayDhcpRequest(
     return;
   const message = packet.payload.message;
   if (!['discover', 'request', 'decline'].includes(message.type) || packet.dst !== DHCP.broadcastIp) return;
+  // A redundant gateway pair must relay through the active member. Relaying
+  // through both members can produce competing allocations for the same client.
+  const groups = device.vrrp?.enabled ? device.vrrp.groups.filter((group) => group.port === port.id) : [];
+  if (groups.length && !groups.some((group) => group.state === 'ACTIVE')) return;
   // One relay hop: routed unicast renewals and replies never enter this branch.
   if ((message.giaddr && message.giaddr !== DHCP.unspecifiedIp) || (message.hops ?? 0) !== 0) {
     engine.drop(

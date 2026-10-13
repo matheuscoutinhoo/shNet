@@ -1,6 +1,7 @@
 import { interfaceSchema, type Device, type NetworkInterface } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { wirelessConfig } from '../protocols/wireless';
+import { configureModbus } from '../protocols/modbus';
 export interface DeviceProfile {
   id: string;
   type: Device['type'];
@@ -65,6 +66,22 @@ const p = (
   ...extra,
 });
 export const deviceProfiles: DeviceProfile[] = [
+  p(
+    'plc',
+    'server',
+    'PLC Modbus',
+    'Industrial',
+    'Controle industrial',
+    'Registradores de 16 bits; Modbus funções 03/06/16 no modelo educacional.'
+  ),
+  p(
+    'hmi',
+    'pc',
+    'HMI',
+    'Industrial',
+    'Operação industrial',
+    'Cliente para supervisão e operações Modbus; configure os fluxos da fábrica.'
+  ),
   p(
     'database',
     'server',
@@ -569,6 +586,8 @@ export function addFactoryProfile(e: SimulationEngine, id: string, position = { 
 /** Provisioned profiles retained for explicit demonstrations and prepared lab fixtures. */
 export function addProfile(e: SimulationEngine, id: string, position = { x: 100, y: 100 }) {
   const { device: d, spec, feature: f } = createProfileHardware(e, id, position);
+  if (id === 'plc')
+    configureModbus(e, d, { enabled: true, port: 502, unit: 1, registers: Array(128).fill(0) });
   if (f === 'rack')
     e.configureInfrastructure(d.id, { kind: 'rack', units: 42, ambientC: 22, ventilation: 1, slots: [] });
   if (f === 'patch-panel') {

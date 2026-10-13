@@ -1,4 +1,5 @@
 import { enterpriseDefaults } from './protocols/enterprise-defaults';
+import factoryTemplate from './factory-template.json';
 import { SimulationEngine } from './core/engine';
 import type { Device, Snapshot } from './model';
 import { vrrpConfigGroups } from './protocols/vrrp';
@@ -6,6 +7,13 @@ function address(d: Device, port: number, ip: string, prefix = 24) {
   Object.assign(d.interfaces[port], { ip, prefix });
 }
 export const templates = [
+  {
+    id: 'factory',
+    name: 'Fábrica segmentada e redundância IP',
+    description: '43 equipamentos, oito VLANs, VRRP, DHCP redundante, PLC Modbus e cenários de falha.',
+    level: 'Industrial / Disponibilidade',
+    devices: 43,
+  },
   {
     id: 'enterprise',
     name: 'Campus com autenticação empresarial',
@@ -261,6 +269,7 @@ export const templates = [
 ] as const;
 export type TemplateId = (typeof templates)[number]['id'];
 export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
+  if (template === 'factory') return structuredClone(factoryTemplate) as unknown as Snapshot;
   if (template === 'enterprise') {
     const e = new SimulationEngine(),
       ap = e.addDevice('switch', { x: 380, y: 180 }),

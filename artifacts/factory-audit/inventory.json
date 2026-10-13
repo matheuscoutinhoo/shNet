@@ -1,0 +1,451 @@
+[
+  {
+    "name": "DIST-A",
+    "id": "device-1",
+    "profile": "distribution",
+    "addresses": []
+  },
+  {
+    "name": "DIST-B",
+    "id": "device-4",
+    "profile": "distribution",
+    "addresses": []
+  },
+  {
+    "name": "FW-A",
+    "id": "device-7",
+    "profile": "firewall",
+    "addresses": [
+      {
+        "port": "p1",
+        "ip": "172.20.0.2"
+      },
+      {
+        "port": "interface-699",
+        "ip": "10.20.10.2"
+      },
+      {
+        "port": "interface-701",
+        "ip": "10.20.20.2"
+      },
+      {
+        "port": "interface-703",
+        "ip": "10.20.30.2"
+      },
+      {
+        "port": "interface-705",
+        "ip": "10.20.40.2"
+      },
+      {
+        "port": "interface-707",
+        "ip": "10.20.50.2"
+      },
+      {
+        "port": "interface-709",
+        "ip": "10.20.60.2"
+      },
+      {
+        "port": "interface-711",
+        "ip": "10.20.70.2"
+      },
+      {
+        "port": "interface-713",
+        "ip": "10.20.99.2"
+      }
+    ]
+  },
+  {
+    "name": "FW-B",
+    "id": "device-11",
+    "profile": "firewall",
+    "addresses": [
+      {
+        "port": "p1",
+        "ip": "172.20.0.3"
+      },
+      {
+        "port": "interface-724",
+        "ip": "10.20.10.3"
+      },
+      {
+        "port": "interface-726",
+        "ip": "10.20.20.3"
+      },
+      {
+        "port": "interface-728",
+        "ip": "10.20.30.3"
+      },
+      {
+        "port": "interface-730",
+        "ip": "10.20.40.3"
+      },
+      {
+        "port": "interface-732",
+        "ip": "10.20.50.3"
+      },
+      {
+        "port": "interface-734",
+        "ip": "10.20.60.3"
+      },
+      {
+        "port": "interface-736",
+        "ip": "10.20.70.3"
+      },
+      {
+        "port": "interface-738",
+        "ip": "10.20.99.3"
+      }
+    ]
+  },
+  {
+    "name": "SW-TI",
+    "id": "device-16",
+    "profile": "access",
+    "addresses": []
+  },
+  {
+    "name": "SW-DMZ",
+    "id": "device-87",
+    "profile": "access",
+    "addresses": []
+  },
+  {
+    "name": "SW-SCADA",
+    "id": "device-158",
+    "profile": "access",
+    "addresses": []
+  },
+  {
+    "name": "SW-A",
+    "id": "device-229",
+    "profile": "industrial",
+    "addresses": []
+  },
+  {
+    "name": "SW-B",
+    "id": "device-267",
+    "profile": "industrial",
+    "addresses": []
+  },
+  {
+    "name": "SW-CCTV",
+    "id": "device-305",
+    "profile": "access",
+    "addresses": []
+  },
+  {
+    "name": "SW-WIFI",
+    "id": "device-376",
+    "profile": "access",
+    "addresses": []
+  },
+  {
+    "name": "SW-MGMT",
+    "id": "device-447",
+    "profile": "access",
+    "addresses": []
+  },
+  {
+    "name": "PC-ERP",
+    "id": "device-953",
+    "profile": "desktop",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.10.10"
+      }
+    ],
+    "gateway": "10.20.10.1"
+  },
+  {
+    "name": "PC-FINANCEIRO",
+    "id": "device-1091",
+    "profile": "desktop",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.10.11"
+      }
+    ],
+    "gateway": "10.20.10.1"
+  },
+  {
+    "name": "IMP-EXPEDICAO",
+    "id": "device-1237",
+    "profile": "printer",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.10.20"
+      }
+    ],
+    "gateway": "10.20.10.1"
+  },
+  {
+    "name": "MES-DMZ",
+    "id": "device-1395",
+    "profile": "web",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.20.10"
+      }
+    ],
+    "gateway": "10.20.20.1"
+  },
+  {
+    "name": "DNS-DMZ",
+    "id": "device-1535",
+    "profile": "dns",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.20.53"
+      }
+    ],
+    "gateway": "10.20.20.1"
+  },
+  {
+    "name": "DHCP-DMZ",
+    "id": "device-1682",
+    "profile": "dhcp",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.20.67"
+      }
+    ],
+    "gateway": "10.20.20.1"
+  },
+  {
+    "name": "SCADA",
+    "id": "device-1837",
+    "profile": "server",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.30.10"
+      }
+    ],
+    "gateway": "10.20.30.1"
+  },
+  {
+    "name": "ENG-OT",
+    "id": "device-1975",
+    "profile": "desktop",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.30.11"
+      }
+    ],
+    "gateway": "10.20.30.1"
+  },
+  {
+    "name": "BROKER-OT",
+    "id": "device-2121",
+    "profile": "mqtt",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.30.20"
+      }
+    ],
+    "gateway": "10.20.30.1"
+  },
+  {
+    "name": "PLC-A",
+    "id": "device-2279",
+    "profile": "server",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.40.10"
+      }
+    ],
+    "gateway": "10.20.40.1"
+  },
+  {
+    "name": "HMI-A",
+    "id": "device-2353",
+    "profile": "desktop",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.40.11"
+      }
+    ],
+    "gateway": "10.20.40.1"
+  },
+  {
+    "name": "SENSOR-A",
+    "id": "device-2435",
+    "profile": "iot",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.40.20"
+      }
+    ],
+    "gateway": "10.20.40.1"
+  },
+  {
+    "name": "PLC-B",
+    "id": "device-2525",
+    "profile": "server",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.50.10"
+      }
+    ],
+    "gateway": "10.20.50.1"
+  },
+  {
+    "name": "HMI-B",
+    "id": "device-2599",
+    "profile": "desktop",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.50.11"
+      }
+    ],
+    "gateway": "10.20.50.1"
+  },
+  {
+    "name": "SENSOR-B",
+    "id": "device-2681",
+    "profile": "iot",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.50.20"
+      }
+    ],
+    "gateway": "10.20.50.1"
+  },
+  {
+    "name": "NVR",
+    "id": "device-2771",
+    "profile": "server",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.60.10"
+      }
+    ],
+    "gateway": "10.20.60.1"
+  },
+  {
+    "name": "CAM-01",
+    "id": "device-2909",
+    "profile": "iot",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.60.11"
+      }
+    ],
+    "gateway": "10.20.60.1"
+  },
+  {
+    "name": "CAM-02",
+    "id": "device-3055",
+    "profile": "iot",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.60.12"
+      }
+    ],
+    "gateway": "10.20.60.1"
+  },
+  {
+    "name": "AP-ARMAZEM",
+    "id": "device-3209",
+    "profile": "ap",
+    "addresses": []
+  },
+  {
+    "name": "NOTEBOOK-VISITANTE",
+    "id": "device-3351",
+    "profile": "laptop",
+    "addresses": [
+      {
+        "port": "wlan0",
+        "ip": "10.20.70.10"
+      }
+    ],
+    "gateway": "10.20.70.1"
+  },
+  {
+    "name": "NMS-SYSLOG",
+    "id": "device-3364",
+    "profile": "syslog",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.99.10"
+      }
+    ],
+    "gateway": "10.20.99.1"
+  },
+  {
+    "name": "NTP-MGMT",
+    "id": "device-3504",
+    "profile": "ntp",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.99.123"
+      }
+    ],
+    "gateway": "10.20.99.1"
+  },
+  {
+    "name": "ADMIN-REDE",
+    "id": "device-3652",
+    "profile": "desktop",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "10.20.99.11"
+      }
+    ],
+    "gateway": "10.20.99.1"
+  },
+  {
+    "name": "R-WAN-SIMULADA",
+    "id": "device-3806",
+    "profile": "edge",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "172.20.0.1"
+      },
+      {
+        "port": "p1",
+        "ip": "198.51.100.1"
+      }
+    ]
+  },
+  {
+    "name": "SUPORTE-EXTERNO",
+    "id": "device-3808",
+    "profile": "web",
+    "addresses": [
+      {
+        "port": "p0",
+        "ip": "198.51.100.10"
+      }
+    ],
+    "gateway": "198.51.100.1"
+  },
+  {
+    "name": "SW-WAN",
+    "id": "device-3812",
+    "profile": "switch-l2",
+    "addresses": []
+  }
+]

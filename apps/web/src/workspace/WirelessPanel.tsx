@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { radioObstructions, wirelessConfig, wirelessMetrics, type Device } from '@shlab/engine';
+import {
+  radioObstructions,
+  wirelessConfig,
+  wirelessMetrics,
+  rfObstacleSchema,
+  type Device,
+} from '@shlab/engine';
 import type { LabController } from './useLab';
 
 export function WirelessPanel({ lab, device }: { lab: LabController; device: Device }) {
@@ -9,6 +15,7 @@ export function WirelessPanel({ lab, device }: { lab: LabController; device: Dev
     [band, setBand] = useState(c.band),
     [security, setSecurity] = useState(c.security);
   const obstruction = radioObstructions.find((entry) => entry.attenuation === c.attenuation);
+  const [walls, setWalls] = useState(() => JSON.stringify(lab.engine.state.rfObstacles ?? [], null, 2));
   const links = lab.engine.state.links.filter(
     (l) => l.cable === 'wireless' && [l.a, l.b].some((p) => p.device === device.id)
   );
@@ -20,6 +27,83 @@ export function WirelessPanel({ lab, device }: { lab: LabController; device: Dev
         certificados no painel específico. As trocas e a proteção são modelos de laboratório, sem
         compatibilidade completa com equipamentos reais. A distância usa 4 pixels por metro no canvas.
       </p>
+      <form
+        key={device.id + '-physical'}
+        onSubmit={(event) => {
+          event.preventDefault();
+          const f = new FormData(event.currentTarget);
+          lab.change((e) => {
+            if (f.get('physical') === 'on')
+              e.device(device.id).physicalPosition = {
+                x: Number(f.get('physical-x')),
+                y: Number(f.get('physical-y')),
+              };
+            else delete e.device(device.id).physicalPosition;
+          });
+        }}
+      >
+        <label>
+          <input name="physical" type="checkbox" defaultChecked={!!device.physicalPosition} /> Usar posição
+          física independente do desenho
+        </label>
+        <label>
+          X físico (metros)
+          <input
+            name="physical-x"
+            type="number"
+            step="any"
+            min={-100000}
+            max={100000}
+            defaultValue={device.physicalPosition?.x ?? device.position.x / 4}
+            required
+          />
+        </label>
+        <label>
+          Y físico (metros)
+          <input
+            name="physical-y"
+            type="number"
+            step="any"
+            min={-100000}
+            max={100000}
+            defaultValue={device.physicalPosition?.y ?? device.position.y / 4}
+            required
+          />
+        </label>
+        <p className="muted">
+          Configure os dois rádios em metros para que mover os ícones não altere a distância RF. Sem essas
+          posições, permanece a escala didática de quatro unidades por metro.
+        </p>
+        <button className="button small">Aplicar posição física</button>
+      </form>
+      <details>
+        <summary>Obstáculos físicos da fábrica</summary>
+        <p>
+          Segmentos em metros com material e perda configurável em dB. A perda soma os segmentos atravessados.
+          Modelo aproximado 2D, sem reflexão ou difração.
+        </p>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            lab.change((e) => {
+              e.state.rfObstacles = rfObstacleSchema.array().max(100).parse(JSON.parse(walls));
+            });
+          }}
+        >
+          <label>
+            Obstáculos
+            <textarea
+              rows={5}
+              value={walls}
+              onChange={(e) => setWalls(e.target.value)}
+              placeholder={
+                '[{"name":"Parede","material":"metal","a":{"x":5,"y":-5},"b":{"x":5,"y":5},"lossDb":15}]'
+              }
+            />
+          </label>
+          <button className="button small">Aplicar obstáculos</button>
+        </form>
+      </details>
       <form
         key={device.id}
         onSubmit={(event) => {

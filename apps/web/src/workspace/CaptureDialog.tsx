@@ -8,10 +8,51 @@ export function CaptureDialog({ lab, onClose }: { lab: LabController; onClose: (
   return (
     <Modal title="Captura binária da simulação" onClose={onClose}>
       <p>
-        Frames enviados nos {capture.retainedEvents} eventos retidos. Os horários começam no tempo virtual
-        zero. Ethernet/VLAN, ARP, IPv4/IPv6, TCP, UDP, ICMP/NDP, DNS/EDNS, DHCPv6/relay, RIP e RADIUS possuem
-        codecs.
+        {capture.retainedFrames} frames retidos em armazenamento independente do histórico visual. Início:{' '}
+        {capture.startedAt.toFixed(0)} ms virtuais. Ethernet/VLAN, ARP, IPv4/IPv6, TCP, UDP, ICMP/NDP,
+        DNS/EDNS, DHCPv6/relay, RIP e RADIUS possuem codecs.
       </p>
+      {capture.dropped > 0 && (
+        <p role="alert">
+          Captura truncada: {capture.dropped} frames antigos descartados pelo limite de 10.000 frames ou 2
+          MiB.
+        </p>
+      )}
+      <label>
+        <input
+          type="checkbox"
+          checked={lab.engine.state.capture?.includeControl ?? false}
+          onChange={(e) =>
+            lab.change((engine) => {
+              engine.state.capture ??= {
+                frames: [],
+                dropped: 0,
+                includeControl: false,
+                startedAt: engine.state.clock,
+                bytes: 0,
+              };
+              engine.state.capture.includeControl = e.target.checked;
+            })
+          }
+        />{' '}
+        Capturar também tráfego de controle a partir de agora
+      </label>
+      <button
+        className="button small"
+        onClick={() =>
+          lab.change((engine) => {
+            engine.state.capture = {
+              frames: [],
+              dropped: 0,
+              includeControl: engine.state.capture?.includeControl ?? false,
+              startedAt: engine.state.clock,
+              bytes: 0,
+            };
+          })
+        }
+      >
+        Iniciar nova captura
+      </button>
       <label>
         Enlace da captura
         <select value={link} onChange={(e) => setLink(e.target.value)}>
@@ -31,7 +72,9 @@ export function CaptureDialog({ lab, onClose }: { lab: LabController; onClose: (
           <summary>Motivos das omissões</summary>
           <ul>
             {[...new Set(capture.excluded.map((e) => e.reason))].map((reason) => (
-              <li key={reason}>{reason}</li>
+              <li key={reason}>
+                {reason} — {capture.excluded.filter((e) => e.reason === reason).length} frames
+              </li>
             ))}
           </ul>
         </details>

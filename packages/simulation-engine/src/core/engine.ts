@@ -679,11 +679,18 @@ export class SimulationEngine {
   configureBroker(device: string, input: unknown) {
     configureBroker(this, this.device(device), input);
   }
-  connectIot(device: string, target: string, clientId?: string, port = 1883, keepAlive = 30) {
-    return connectIot(this, this.device(device), target, clientId, port, keepAlive);
+  connectIot(
+    device: string,
+    target: string,
+    clientId?: string,
+    port = 1883,
+    keepAlive = 30,
+    credentials?: { username: string; password: string }
+  ) {
+    return connectIot(this, this.device(device), target, clientId, port, keepAlive, credentials);
   }
-  publishIot(device: string, topic: string, payload: string, retain = false) {
-    publishIot(this, this.device(device), topic, payload, retain);
+  publishIot(device: string, topic: string, payload: string, retain = false, qos: 0 | 1 = 0) {
+    publishIot(this, this.device(device), topic, payload, retain, qos);
   }
   subscribeIot(device: string, topic: string) {
     subscribeIot(this, this.device(device), topic);
@@ -927,6 +934,54 @@ export class SimulationEngine {
     };
     this.state.events.push(event);
     if (this.state.events.length > LIMITS.events) this.state.events.shift();
+    if (type === 'FRAME_SENT' && event.frame) {
+      this.state.capture ??= {
+        frames: [],
+        dropped: 0,
+        includeControl: false,
+        startedAt: this.state.clock,
+        bytes: 0,
+      };
+      const control =
+        event.frame.bpdu ||
+        event.frame.lacp ||
+        ['VRRP', 'OSPF'].includes(event.frame.packet?.protocol ?? '') ||
+        (event.frame.packet?.protocol === 'UDP' && event.frame.packet.payload.protocol === 'RIP');
+      if (!control || this.state.capture.includeControl) {
+        const trace =
+          event.frame.packet?.protocol === 'TCP'
+            ? event.frame.packet.traceId
+            : event.frame.ipv6?.protocol === 'TCP'
+              ? event.frame.ipv6.segment.traceId
+              : undefined;
+        if (trace) {
+          const application = this.state.devices
+            .flatMap((d) => d.tcpConnections ?? [])
+            .find((c) => c.id === trace)?.service;
+          if (application) event.application = application;
+        }
+        this.state.capture.bytes ??= this.state.capture.frames.reduce(
+          (total, e) => total + JSON.stringify(e).length * 2,
+          0
+        );
+        this.state.capture.frames.push(event);
+        this.state.capture.bytes += JSON.stringify(event).length * 2;
+        while (
+          this.state.capture.frames.length > LIMITS.capture ||
+          this.state.capture.bytes > 2 * 1024 * 1024
+        ) {
+          this.state.capture.bytes -= JSON.stringify(this.state.capture.frames.shift()).length * 2;
+          this.state.capture.dropped++;
+        }
+      }
+    } else if (
+      !event.frame &&
+      /SUCCESS|FAILED|TIMEOUT|DROPPED|CHANGED|CANCELLED|ANSWER|UNREACHABLE|EXCEEDED/.test(type)
+    ) {
+      this.state.diagnostics ??= [];
+      this.state.diagnostics.push(event);
+      if (this.state.diagnostics.length > LIMITS.diagnostics) this.state.diagnostics.shift();
+    }
     const d = findDevice(this.state, device);
     if (d) {
       d.logs.push((this.state.clock.toFixed(3) + ' ' + type + ' ' + reason).slice(0, 300));
@@ -1483,9 +1538,12 @@ export class SimulationEngine {
     else if (a.frame.fragment) receiveFragment(this, d, input, a.frame);
     else if (a.frame.packet) receiveIp(this, d, input, a.frame.packet, a.frame.src);
   }
-  advanceTo(time: number, maxSteps = 20000) {
+  advanceTo(time: number, maxSteps = 20000, wallMs?: number) {
     if (!Number.isFinite(time) || time < this.state.clock) throw new Error('Instante virtual inválido.');
     if (!Number.isInteger(maxSteps) || maxSteps < 1) throw new Error('Orçamento de eventos inválido.');
+    if (wallMs !== undefined && (!Number.isFinite(wallMs) || wallMs < 1 || wallMs > 100))
+      throw new Error('Orçamento de tempo inválido.');
+    const started = performance.now();
     refreshPower(this);
     refreshDot1x(this);
     refreshWireless(this);
@@ -1494,10 +1552,16 @@ export class SimulationEngine {
     refreshVrrp(this);
     refreshBgp(this);
     let count = 0;
-    while (this.state.queue.length && this.state.queue[0].at <= time && count < maxSteps) {
+    while (
+      this.state.queue.length &&
+      this.state.queue[0].at <= time &&
+      count < maxSteps &&
+      (wallMs === undefined || performance.now() - started < wallMs)
+    ) {
       this.step();
       count++;
     }
+    if (this.state.queue.length && this.state.queue[0].at <= time && wallMs !== undefined) return count;
     if (this.state.queue.length && this.state.queue[0].at <= time)
       throw new Error('Orçamento de simulação esgotado antes do instante solicitado.');
     this.state.clock = time;

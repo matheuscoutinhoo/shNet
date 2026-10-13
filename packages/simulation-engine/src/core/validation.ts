@@ -1,4 +1,5 @@
 import { validateDatabase } from '../protocols/database';
+import { validateModbus } from '../protocols/modbus';
 import { validateInfrastructure } from '../devices/infrastructure';
 import { validateEnterprise } from '../protocols/enterprise';
 import { validateCapwap } from '../protocols/capwap';
@@ -42,6 +43,15 @@ import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
 export function validateSnapshot(value: unknown): Snapshot {
   const s = snapshotSchema.parse(value);
+  if (s.capture) {
+    if (
+      s.capture.startedAt > s.clock ||
+      s.capture.frames.some((e) => e.type !== 'FRAME_SENT' || !e.frame || e.time > s.clock)
+    )
+      throw new Error('Captura contém frames ou horários inválidos.');
+    s.capture.bytes = s.capture.frames.reduce((total, e) => total + JSON.stringify(e).length * 2, 0);
+    if (s.capture.bytes > 2 * 1024 * 1024) throw new Error('Captura excede o limite de 2 MiB.');
+  }
   validateTelemetry(s);
   validateNtp(s);
   validateRemote(s);
@@ -68,6 +78,7 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateLacp(s);
   validateCanvas(s);
   validateTcp(s);
+  validateModbus(s);
   validateFirewall(s);
   validateInspection(s);
   validateOspf(s);

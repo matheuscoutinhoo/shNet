@@ -19,7 +19,8 @@ export function validateTcp(snapshot: Snapshot) {
     const tuples = new Set<string>();
     for (const connection of connections) {
       if (
-        ['bgp', 'mqtt', 'netconf', 'restconf', 'aaa'].includes(connection.service) !== !!connection.stream ||
+        ['bgp', 'mqtt', 'netconf', 'restconf', 'aaa', 'modbus'].includes(connection.service) !==
+          !!connection.stream ||
         (connection.service === 'bgp') !== !!connection.bgpOpen ||
         (connection.service === 'bgp' &&
           (connection.role === 'client' ? connection.remotePort : connection.localPort) !== 179)
@@ -45,6 +46,8 @@ export function validateTcp(snapshot: Snapshot) {
       if (
         connection.startedAt > connection.updatedAt ||
         connection.updatedAt > snapshot.clock ||
+        (connection.responseAt !== undefined &&
+          (connection.responseAt < connection.startedAt || connection.responseAt > connection.updatedAt)) ||
         connection.bytesReceived !== tcpBytes(connection.received) ||
         connection.bytesSent + tcpBytes(connection.sendBuffer) > TCP.buffer
       )

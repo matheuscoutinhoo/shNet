@@ -14,7 +14,9 @@ export function useLab(project: Project, onExpired: () => void) {
     [error, setError] = useState(''),
     [saveStatus, setSaveStatus] = useState('Salvo'),
     [playing, setPlaying] = useState(false),
-    [speed, setSpeed] = useState(1);
+    [speed, setSpeed] = useState(1),
+    [playbackMode, setPlaybackMode] = useState<'simulation' | 'realtime'>('simulation'),
+    [playbackMetrics, setPlaybackMetrics] = useState({ lagMs: 0, eventsPerSecond: 0, ready: false });
   const undo = useRef<Snapshot[]>([]),
     redo = useRef<Snapshot[]>([]),
     editVersion = useRef(0),
@@ -136,20 +138,52 @@ export function useLab(project: Project, onExpired: () => void) {
   }, []);
   useEffect(() => {
     if (!playing) return;
+    setPlaybackMetrics({ lagMs: 0, eventsPerSecond: 0, ready: false });
     const generation = ++workerGeneration.current;
     const worker = new Worker(new URL('./simulation.worker.ts', import.meta.url), { type: 'module' });
     let ready = false,
       busy = false;
+    let startedAt = 0,
+      initialClock = engine.state.clock,
+      processed = 0;
+    const requestStep = () => {
+      if (!ready || busy || generation !== workerGeneration.current) return;
+      busy = true;
+      worker.postMessage({
+        kind: 'step',
+        generation,
+        maxSteps: engine.state.devices.length > 200 ? 200 : Math.max(1, Math.floor(speed)),
+        ...(playbackMode === 'realtime'
+          ? { until: Math.max(engine.state.clock, initialClock + (performance.now() - startedAt) * speed) }
+          : {}),
+      });
+    };
     worker.onmessage = (
       event: MessageEvent<{ kind: string; generation: number; delta?: SimulationDelta; message?: string }>
     ) => {
       const message = event.data;
       if (message.generation !== workerGeneration.current || message.generation !== generation) return;
-      if (message.kind === 'ready') ready = true;
-      else if (message.kind === 'delta' && message.delta) {
+      if (message.kind === 'ready') {
+        ready = true;
+        startedAt = performance.now();
+        initialClock = engine.state.clock;
+        setPlaybackMetrics({ lagMs: 0, eventsPerSecond: 0, ready: true });
+      } else if (message.kind === 'delta' && message.delta) {
         busy = false;
         applySimulationDelta(engine.state, message.delta);
-        if (message.delta.processed) refresh();
+        processed += message.delta.processed;
+        const elapsed = performance.now() - startedAt;
+        setPlaybackMetrics({
+          lagMs:
+            playbackMode === 'realtime'
+              ? Math.max(0, initialClock + elapsed * speed - engine.state.clock)
+              : 0,
+          eventsPerSecond: elapsed > 0 ? (processed * 1000) / elapsed : 0,
+          ready: true,
+        });
+        refresh();
+        if (playbackMode === 'realtime' && initialClock + elapsed * speed - engine.state.clock > 100)
+          requestStep();
       } else if (message.kind === 'error') {
         setError(message.message ?? 'Falha na simulação.');
         setPlaying(false);
@@ -162,22 +196,13 @@ export function useLab(project: Project, onExpired: () => void) {
       }
     };
     worker.postMessage({ kind: 'load', generation, snapshot: engine.snapshot() });
-    const timer = setInterval(() => {
-      if (ready && !busy) {
-        busy = true;
-        worker.postMessage({
-          kind: 'step',
-          generation,
-          maxSteps: engine.state.devices.length > 200 ? 200 : Math.max(1, Math.floor(speed)),
-        });
-      }
-    }, 650 / speed);
+    const timer = setInterval(requestStep, playbackMode === 'realtime' ? 100 : 650 / speed);
     return () => {
       workerGeneration.current++;
       clearInterval(timer);
       worker.terminate();
     };
-  }, [playing, speed, engine, refresh]);
+  }, [playing, speed, playbackMode, engine, refresh]);
   useEffect(() => {
     const socket = new WebSocket(location.origin.replace(/^http/, 'ws') + '/api/events');
     socket.onmessage = (event) => {
@@ -225,6 +250,9 @@ export function useLab(project: Project, onExpired: () => void) {
     setPlaying,
     speed,
     setSpeed,
+    playbackMode,
+    setPlaybackMode,
+    playbackMetrics,
     change,
     restore,
     history,

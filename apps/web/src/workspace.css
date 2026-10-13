@@ -2519,3 +2519,13 @@ td {
   padding: 8px;
   font-size: 22px;
 }
+
+.simulation-controls .pending-events {
+  width: 72px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.simulation-controls .playback-metrics {
+  width: 245px;
+  text-align: right;
+}

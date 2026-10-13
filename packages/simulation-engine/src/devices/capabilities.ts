@@ -1,5 +1,6 @@
 ﻿import { deviceProfile, deviceProfiles } from './profiles';
 import type { Device } from '../model';
+import { managementEnabled } from '../protocols/layer3';
 
 export function devicePresentationProfile(d: Device) {
   const explicit = deviceProfile(d);
@@ -87,7 +88,12 @@ export function deviceCapabilities(d: Device) {
       ...(server || routing || d.profile === 'ntp' ? (['clock'] as const) : []),
       'ntp' as const,
     ],
-    syslogServer: server || !!d.syslogServer || d.profile === 'syslog' || (routing && d.type === 'router'),
+    syslogServer:
+      server ||
+      !!d.syslogServer ||
+      d.profile === 'syslog' ||
+      (routing && d.type === 'router') ||
+      (switching && managementEnabled(d)),
     active,
     ap,
     controller,

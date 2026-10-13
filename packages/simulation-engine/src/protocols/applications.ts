@@ -96,6 +96,8 @@ export function configurePrinter(e: SimulationEngine, d: Device, input: unknown)
 }
 export function configureBroker(e: SimulationEngine, d: Device, input: unknown) {
   const c = brokerConfigSchema.parse(input);
+  if (c.users && new Set(c.users.map((u) => u.username)).size !== c.users.length)
+    throw new Error('Usuários MQTT duplicados.');
   checkPort(d, c.port, 'mqtt', d.broker?.port);
   configureTcpService(e, d, { port: c.port, kind: 'mqtt', enabled: c.enabled });
   if (d.broker && d.broker.port !== c.port)
@@ -120,35 +122,75 @@ export function connectIot(
   broker: string,
   clientId = d.hostname,
   port = 1883,
-  keepAlive = 30
+  keepAlive = 30,
+  credentials?: { username: string; password: string }
 ) {
   mqttMessageSchema.parse({ type: 'CONNECT', clientId, keepAlive });
   const previous = d.tcpConnections?.find((c) => c.id === d.iot?.connection);
   if (previous && !tcpFinished(previous)) closeTcp(e, d, previous.id, true);
-  return openTcp(e, d, broker, port, encodeMqtt({ type: 'CONNECT', clientId, keepAlive }), false, (c) => {
-    c.service = 'mqtt';
-    c.stream = { readBytes: 0, writtenBytes: 0 };
-    d.iot = {
-      connection: c.id,
-      broker,
-      port,
-      clientId,
-      state: 'CONNECTING',
-      subscriptions: [],
-      readings: [],
-      keepAlive,
-      lastAt: e.state.clock,
-      pingPending: false,
-      token: e.id('iot'),
-      nextAt: e.state.clock + 1000,
-    };
-    schedule(e, d, 'iot');
-  });
+  return openTcp(
+    e,
+    d,
+    broker,
+    port,
+    encodeMqtt({ type: 'CONNECT', clientId, keepAlive, ...credentials }),
+    false,
+    (c) => {
+      c.service = 'mqtt';
+      c.stream = { readBytes: 0, writtenBytes: 0 };
+      d.iot = {
+        connection: c.id,
+        broker,
+        port,
+        clientId,
+        state: 'CONNECTING',
+        subscriptions: [],
+        readings: [],
+        keepAlive,
+        lastAt: e.state.clock,
+        pingPending: false,
+        token: e.id('iot'),
+        nextAt: e.state.clock + 1000,
+      };
+      schedule(e, d, 'iot');
+    }
+  );
 }
-export function publishIot(e: SimulationEngine, d: Device, topic: string, payload: string, retain = false) {
+export function publishIot(
+  e: SimulationEngine,
+  d: Device,
+  topic: string,
+  payload: string,
+  retain = false,
+  qos: 0 | 1 = 0
+) {
   if (!d.iot || d.iot.state !== 'CONNECTED') throw new Error('Conecte o IoT ao broker MQTT.');
   if (!topic || /[+#\0]/.test(topic)) throw new Error('PUBLISH não aceita wildcards.');
-  const m = mqttMessageSchema.parse({ type: 'PUBLISH', topic, payload, retain });
+  if (qos !== 0 && qos !== 1) throw new Error('MQTT: QoS suportado é 0 ou 1.');
+  let id = 1 + (e.state.sequence % 65535);
+  if (qos === 1) {
+    d.iot.publications ??= [];
+    d.iot.publications = d.iot.publications.filter((p) => p.status === 'pending');
+    if (d.iot.publications.length >= 64) throw new Error('MQTT: limite de 64 publicações pendentes.');
+    while (d.iot.publications.some((p) => p.id === id)) id = id === 65535 ? 1 : id + 1;
+  }
+  const m = mqttMessageSchema.parse({
+    type: 'PUBLISH',
+    topic,
+    payload,
+    retain,
+    ...(qos === 1 ? { qos, id } : {}),
+  });
+  if (qos === 1)
+    d.iot.publications!.push({
+      id,
+      topic,
+      payload,
+      retain,
+      attempts: 1,
+      nextAt: e.state.clock + 5000,
+      status: 'pending',
+    });
   mqttSend(
     e,
     d,
@@ -196,6 +238,13 @@ function mqttReceive(e: SimulationEngine, d: Device, c: TcpConnection) {
         iot.readings.push({ topic: m.topic, payload: m.payload, at: e.state.clock });
         if (iot.readings.length > 256) iot.readings.shift();
         e.emit('APPLICATION_DATA', d.id, `MQTT ${m.topic}: ${m.payload.slice(0, 180)}`);
+        if (m.qos === 1) mqttSend(e, d, c, { type: 'PUBACK', id: m.id! });
+      } else if (m.type === 'PUBACK') {
+        const publication = iot.publications?.find((p) => p.id === m.id && p.status === 'pending');
+        if (publication) {
+          publication.status = 'acked';
+          e.emit('APPLICATION_DATA', d.id, 'MQTT PUBACK ' + m.id);
+        }
       } else if (!['SUBACK', 'PINGRESP'].includes(m.type))
         throw new Error('MQTT mensagem incompatível com cliente.');
       continue;
@@ -204,6 +253,14 @@ function mqttReceive(e: SimulationEngine, d: Device, c: TcpConnection) {
     if (!broker?.enabled) throw new Error('Broker desligado.');
     let client = broker.clients.find((s) => s.connection === c.id);
     if (m.type === 'CONNECT' && !client) {
+      if (
+        broker.users?.length &&
+        !broker.users.some((u) => u.username === m.username && u.password === m.password)
+      ) {
+        mqttSend(e, d, c, { type: 'CONNACK', code: 4 });
+        c.closeRequested = true;
+        continue;
+      }
       const duplicate = broker.clients.find((s) => s.clientId === m.clientId);
       if (duplicate) {
         closeTcp(e, d, duplicate.connection, true);
@@ -247,8 +304,10 @@ function mqttReceive(e: SimulationEngine, d: Device, c: TcpConnection) {
         s.subscriptions.some((f) => mqttMatches(f, m.topic))
       )) {
         const target = d.tcpConnections?.find((t) => t.id === subscriber.connection);
-        if (target && !tcpFinished(target)) mqttSend(e, d, target, { ...m, retain: false });
+        if (target && !tcpFinished(target))
+          mqttSend(e, d, target, { type: 'PUBLISH', topic: m.topic, payload: m.payload, retain: false });
       }
+      if (m.qos === 1) mqttSend(e, d, c, { type: 'PUBACK', id: m.id! });
     } else if (m.type === 'PINGREQ') mqttSend(e, d, c, { type: 'PINGRESP' });
     else if (m.type === 'DISCONNECT') {
       client.lastAt = 0;
@@ -334,6 +393,24 @@ export function handleApplicationTick(e: SimulationEngine, a: Extract<Action, { 
           mqttSend(e, d, c, { type: 'PINGREQ' });
           iot.pingPending = true;
           iot.lastAt = e.state.clock;
+        }
+      }
+      for (const p of iot.publications?.filter((p) => p.status === 'pending') ?? []) {
+        if (iot.state === 'DISCONNECTED' || (p.attempts >= 4 && e.state.clock >= p.nextAt)) {
+          p.status = 'failed';
+          e.emit('PACKET_DROPPED', d.id, 'MQTT QoS 1 sem PUBACK: ' + p.id);
+        } else if (c && iot.state === 'CONNECTED' && e.state.clock >= p.nextAt) {
+          mqttSend(e, d, c, {
+            type: 'PUBLISH',
+            topic: p.topic,
+            payload: p.payload,
+            retain: p.retain,
+            qos: 1,
+            id: p.id,
+            dup: true,
+          });
+          p.attempts++;
+          p.nextAt = e.state.clock + 5000;
         }
       }
     }

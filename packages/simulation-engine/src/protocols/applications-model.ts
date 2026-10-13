@@ -84,6 +84,8 @@ export const mqttMessageSchema = z.discriminatedUnion('type', [
       type: z.literal('CONNECT'),
       clientId: z.string().min(1).max(64),
       keepAlive: z.number().int().min(1).max(3600),
+      username: z.string().min(1).max(64).optional(),
+      password: z.string().max(128).optional(),
     })
     .strict(),
   z.object({ type: z.literal('CONNACK'), code: z.number().int().min(0).max(5) }).strict(),
@@ -101,11 +103,24 @@ export const mqttMessageSchema = z.discriminatedUnion('type', [
       topic: z.string().min(1).max(128),
       payload: z.string().max(1024),
       retain: z.boolean(),
+      qos: z.union([z.literal(0), z.literal(1)]).optional(),
+      id: z.number().int().min(1).max(65535).optional(),
+      dup: z.boolean().optional(),
     })
     .strict(),
   z.object({ type: z.enum(['PINGREQ', 'PINGRESP', 'DISCONNECT']) }).strict(),
+  z.object({ type: z.literal('PUBACK'), id: z.number().int().min(1).max(65535) }).strict(),
 ]);
-export const brokerConfigSchema = z.object({ enabled: z.boolean(), port: portNumberSchema }).strict();
+export const brokerConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    port: portNumberSchema,
+    users: z
+      .array(z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(128) }).strict())
+      .max(32)
+      .optional(),
+  })
+  .strict();
 export const brokerStateSchema = brokerConfigSchema
   .extend({
     clients: z
@@ -142,6 +157,22 @@ export const iotStateSchema = z
     keepAlive: z.number().int().min(1).max(3600),
     lastAt: timeSchema,
     pingPending: z.boolean(),
+    publications: z
+      .array(
+        z
+          .object({
+            id: z.number().int().min(1).max(65535),
+            topic: z.string().max(128),
+            payload: z.string().max(1024),
+            retain: z.boolean(),
+            attempts: z.number().int().min(1).max(4),
+            nextAt: timeSchema,
+            status: z.enum(['pending', 'acked', 'failed']),
+          })
+          .strict()
+      )
+      .max(64)
+      .optional(),
     token: idSchema,
     nextAt: timeSchema,
   })

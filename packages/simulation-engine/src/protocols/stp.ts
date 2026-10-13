@@ -362,6 +362,20 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     'BPDU recebido: root ' + bridgeLabel(bpdu.root) + ', custo ' + bpdu.cost + '.',
     { port: port.id, frame }
   );
+  // An agreement acknowledges our designated information. It must not become
+  // a new root candidate: the peer's cost may have been learned through us.
+  if (bpdu.agreement && tree.mode === 'rstp' && bpdu.mode === 'rstp' && port.duplex === 'full') {
+    if (
+      current.role === 'designated' &&
+      compareBridge(bpdu.root, tree.root) === 0 &&
+      bpdu.cost >= tree.cost
+    ) {
+      cancelTransition(engine, device, port);
+      current.agreed = true;
+      setState(engine, device, port, 'forwarding');
+    } else if (current.role === 'designated') send(engine, device, port);
+    return;
+  }
   const wasEdge = port.stpEdge && !current.received;
   forgetInfo(engine, device, port);
   current.received = {
@@ -385,10 +399,11 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
   if (bpdu.changeId) changed = topologyChange(engine, device, bpdu.changeId) || changed;
   if (tree.mode === 'rstp' && bpdu.mode === 'rstp' && port.duplex === 'full') {
     if (current.role === 'root' && bpdu.proposal) {
-      for (const other of switchingPorts(device)) {
-        if (other.id !== port.id && other.spanningTree?.role === 'designated' && !other.stpEdge)
-          beginTransition(engine, device, other);
-      }
+      if (!current.agreed)
+        for (const other of switchingPorts(device)) {
+          if (other.id !== port.id && other.spanningTree?.role === 'designated' && !other.stpEdge)
+            beginTransition(engine, device, other);
+        }
       cancelTransition(engine, device, port);
       current.agreed = true;
       setState(engine, device, port, 'forwarding');

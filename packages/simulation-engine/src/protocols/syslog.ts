@@ -1,13 +1,13 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkEvent, UdpPacket } from '../model';
 import { resolveRoute } from './ipv4';
+import { managementEnabled } from './layer3';
 import { isUnicast } from './dhcp-config';
 import { managementPacket } from './management-wire';
 import { SYSLOG, syslogClientSchema, syslogMessageSchema, type SyslogMessage } from './syslog-model';
 
 export function configureSyslog(engine: SimulationEngine, device: Device, input: unknown) {
-  if (device.type === 'switch' && !device.ipRouting)
-    throw new Error('Switch L2 não possui stack IPv4 de gerenciamento.');
+  if (!managementEnabled(device)) throw new Error('Configure uma SVI IPv4 para gerenciar o switch L2.');
   const config = syslogClientSchema.parse(input);
   if (!isUnicast(config.server)) throw new Error('Coletor syslog deve ser unicast.');
   config.sourcePort ??= device.syslogClient?.sourcePort ?? 49152 + (engine.state.sequence % 16384);
@@ -22,7 +22,11 @@ export function configureSyslog(engine: SimulationEngine, device: Device, input:
   );
 }
 export function setSyslogEnabled(engine: SimulationEngine, device: Device, enabled: boolean) {
-  if (device.type !== 'server' && device.type !== 'router' && !(device.type === 'switch' && device.ipRouting))
+  if (
+    device.type !== 'server' &&
+    device.type !== 'router' &&
+    !(device.type === 'switch' && managementEnabled(device))
+  )
     throw new Error('Coletor syslog requer servidor ou roteador.');
   device.syslogServer ??= { enabled, entries: [] };
   device.syslogServer.enabled = enabled;

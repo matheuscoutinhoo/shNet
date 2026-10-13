@@ -64,7 +64,7 @@ function addConnection(
     ...tuple,
     role,
     service,
-    ...(['mqtt', 'netconf', 'restconf', 'aaa'].includes(service)
+    ...(['mqtt', 'netconf', 'restconf', 'aaa', 'modbus'].includes(service)
       ? { stream: { readBytes: 0, writtenBytes: 0 } }
       : {}),
     ...(service === 'bgp'

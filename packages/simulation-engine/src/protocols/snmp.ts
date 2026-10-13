@@ -5,6 +5,7 @@ import { ipv4Schema } from '../schemas';
 import { random } from '../core/queue';
 import { isUnicast } from './dhcp-config';
 import { resolveRoute } from './ipv4';
+import { managementEnabled } from './layer3';
 import {
   SNMP,
   snmpAgentSchema,
@@ -17,8 +18,7 @@ import { compareOids, snmpMib } from './snmp-mib';
 import { managementPacket } from './management-wire';
 
 export function configureSnmpAgent(engine: SimulationEngine, device: Device, input: unknown) {
-  if (device.type === 'switch' && !device.ipRouting)
-    throw new Error('Switch L2 não possui stack IPv4 de gerenciamento.');
+  if (!managementEnabled(device)) throw new Error('Configure uma SVI IPv4 para gerenciar o switch L2.');
   const fields = snmpAgentSchema.omit({ startedAt: true }).parse(input);
   device.snmpAgent = {
     ...fields,
@@ -84,7 +84,7 @@ export function querySnmp(
   oids: string[],
   operation: 'get' | 'get-next' = 'get'
 ) {
-  if ((device.type === 'switch' && !device.ipRouting) || !device.power)
+  if (!managementEnabled(device) || !device.power)
     throw new Error('SNMP exige equipamento ligado com stack IPv4.');
   const target = ipv4Schema.parse(server);
   if (!isUnicast(target)) throw new Error('Agente SNMP deve ser unicast.');

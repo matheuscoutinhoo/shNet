@@ -12,7 +12,10 @@ self.onmessage = (event: MessageEvent) => {
       self.postMessage({
         kind: 'delta',
         generation,
-        delta: runner.step(message.maxSteps, runner.engine.state.devices.length > 200 ? 50 : 20),
+        delta:
+          message.until !== undefined
+            ? runner.advanceUntil(message.until, 100)
+            : runner.step(message.maxSteps, runner.engine.state.devices.length > 200 ? 50 : 20),
       });
   } catch (error) {
     self.postMessage({

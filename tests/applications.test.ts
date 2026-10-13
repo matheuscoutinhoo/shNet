@@ -20,6 +20,38 @@ function lan() {
   return { e, client, device, a, b };
 }
 describe('Proxy, balanceador, IPP e MQTT', () => {
+  it('autentica MQTT e confirma QoS 1 com PUBACK e restauração pendente', () => {
+    const { e, client, device } = lan();
+    e.configureBroker(device.id, {
+      enabled: true,
+      port: 1883,
+      users: [{ username: 'sensor', password: 'lab-secret' }],
+    });
+    e.connectIot(client.id, '10.0.0.11', 'sensor', 1883, 30, { username: 'sensor', password: 'errada' });
+    e.advanceTo(100);
+    expect(client.iot?.state).toBe('DISCONNECTED');
+    e.connectIot(client.id, '10.0.0.11', 'sensor', 1883, 30, { username: 'sensor', password: 'lab-secret' });
+    e.advanceTo(200);
+    expect(client.iot?.state).toBe('CONNECTED');
+    e.publishIot(client.id, 'fabrica/temperatura', '72.5', true, 1);
+    const restored = new SimulationEngine(e.snapshot());
+    e.advanceTo(1000);
+    restored.advanceTo(1000);
+    expect(restored.snapshot()).toEqual(e.snapshot());
+    expect(client.iot?.publications?.[0].status).toBe('acked');
+    const message = {
+      type: 'PUBLISH' as const,
+      topic: 'fabrica/temperatura',
+      payload: '72.5',
+      retain: true,
+      qos: 1 as const,
+      id: 14,
+      dup: true,
+    };
+    expect(decodeMqtt(encodeMqtt(message).trim())).toEqual(message);
+    expect(decodeMqtt(encodeMqtt({ type: 'PUBACK', id: 14 }).trim())).toEqual({ type: 'PUBACK', id: 14 });
+    validateSnapshot(e.snapshot());
+  });
   it('distribui HTTP pelos backends e recupera indisponibilidade por health checks', () => {
     const { e, client, device, a, b } = lan();
     for (const [i, d] of [a, b].entries())

@@ -1,9 +1,32 @@
 import type { Device, Frame, Link, Snapshot } from '../model';
 
 export function radioDistance(a: Device, b: Device) {
+  if (a.physicalPosition && b.physicalPosition)
+    return Math.max(
+      1,
+      Math.hypot(a.physicalPosition.x - b.physicalPosition.x, a.physicalPosition.y - b.physicalPosition.y)
+    );
   return Math.max(1, Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y) / 4);
 }
-function signal(a: Device, b: Device) {
+export function rfObstacleLoss(s: Snapshot, a: Device, b: Device) {
+  if (!a.physicalPosition || !b.physicalPosition) return 0;
+  const p = a.physicalPosition,
+    q = b.physicalPosition;
+  const cross = (x: { x: number; y: number }, y: { x: number; y: number }) => x.x * y.y - x.y * y.x;
+  const r = { x: q.x - p.x, y: q.y - p.y };
+  let loss = 0;
+  for (const wall of s.rfObstacles ?? []) {
+    const t = { x: wall.b.x - wall.a.x, y: wall.b.y - wall.a.y },
+      offset = { x: wall.a.x - p.x, y: wall.a.y - p.y },
+      den = cross(r, t);
+    if (Math.abs(den) < 1e-9) continue;
+    const u = cross(offset, t) / den,
+      v = cross(offset, r) / den;
+    if (u >= 0 && u <= 1 && v >= 0 && v <= 1) loss += wall.lossDb;
+  }
+  return loss;
+}
+function signal(a: Device, b: Device, s: Snapshot) {
   const x = a.wireless!,
     y = b.wireless!;
   return (
@@ -11,7 +34,8 @@ function signal(a: Device, b: Device) {
     40 -
     30 * Math.log10(radioDistance(a, b)) -
     (x.band === '5' ? 7 : 0) -
-    Math.max(x.attenuation, y.attenuation)
+    Math.max(x.attenuation, y.attenuation) -
+    rfObstacleLoss(s, a, b)
   );
 }
 export function wirelessMetrics(s: Snapshot, l: Link) {
@@ -19,7 +43,7 @@ export function wirelessMetrics(s: Snapshot, l: Link) {
     b = s.devices.find((d) => d.id === l.b.device)!,
     x = a.wireless!,
     y = b.wireless!;
-  const rssi = signal(a, b);
+  const rssi = signal(a, b, s);
   let interference = 0;
   const receiver = x.role === 'client' ? a : b;
   for (const ap of s.devices) {
@@ -39,7 +63,7 @@ export function wirelessMetrics(s: Snapshot, l: Link) {
       x.band === '2.4'
         ? Math.max(0, 1 - Math.abs(w.channel - x.channel) / 5)
         : Number(w.channel === x.channel);
-    if (overlap > 0 && signal(ap, receiver) > -85) interference += overlap * 6;
+    if (overlap > 0 && signal(ap, receiver, s) > -85) interference += overlap * 6;
   }
   const noise = Math.max(x.noise, y.noise) + interference,
     snr = rssi - noise,
