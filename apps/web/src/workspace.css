@@ -2564,3 +2564,28 @@ td {
 .project-recovery p {
   overflow-wrap: anywhere;
 }
+.topology-view-switch {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: min(500px, calc(100% - 32px));
+  padding: 8px 12px;
+  background: var(--surface, #122a3b);
+  color: var(--text, #e4edf5);
+  border: 1px solid var(--border, #3e5c73);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.topology-view-switch select {
+  width: auto;
+  min-width: 90px;
+}
+.topology-view-switch span {
+  flex-basis: 100%;
+  max-width: 300px;
+}

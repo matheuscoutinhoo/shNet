@@ -4,6 +4,7 @@ import { lacpMembers } from './lacp-members';
 import { interfaceSchema, type Device, type Frame, type NetworkInterface, type Snapshot } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { linkOperational } from '../links/physical';
+import { linksAt } from '../core/topology-index';
 import { receiveArp } from './arp';
 import { receiveIp } from './ipv4';
 import { receiveIp6 } from './ipv6';
@@ -138,10 +139,7 @@ export function interfaceOperational(snapshot: Snapshot, device: Device, port: N
     return !!parent && interfaceOperational(snapshot, device, parent);
   }
   const id = port.logical?.parent ?? port.id;
-  return snapshot.links.some(
-    (l) =>
-      [l.a, l.b].some((end) => end.device === device.id && end.port === id) && linkOperational(snapshot, l)
-  );
+  return linksAt(snapshot, device.id, id).some((l) => linkOperational(snapshot, l));
 }
 export function receiveSvi(engine: SimulationEngine, device: Device, vlan: number, frame: Frame) {
   const port = device.interfaces.find((p) => p.logical?.kind === 'svi' && p.logical.vlan === vlan);

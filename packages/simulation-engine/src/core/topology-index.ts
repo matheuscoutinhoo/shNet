@@ -55,6 +55,9 @@ const endKey = (device: string, port: string) => JSON.stringify([device, port]);
 function build(s: Snapshot) {
   const ids = new Map<string, Entry<Link>>(),
     ends = new Map<string, Entry<Link>[]>();
+  // An unconnected, known port is a valid cached result. Otherwise every carrier
+  // check on a spare port rebuilds the entire graph.
+  for (const d of s.devices) for (const p of d.interfaces) ends.set(endKey(d.id, p.id), []);
   s.links.forEach((value, index) => {
     const entry = { value, index };
     ids.set(value.id, entry);
@@ -66,6 +69,10 @@ function build(s: Snapshot) {
   const cache = { array: s.links, length: s.links.length, ids, ends };
   links.set(s, cache);
   return cache;
+}
+/** Call after changing link endpoints in place; normal connect/remove replaces or grows the array. */
+export function invalidateTopologyIndex(s: Snapshot) {
+  links.delete(s);
 }
 export function findLink(s: Snapshot, id: string): Link | undefined {
   let cache = links.get(s),

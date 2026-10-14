@@ -1,3 +1,4 @@
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import { startEnterprise, receiveEnterpriseWifi, tickEnterprise } from './enterprise';
 import { hmacHex } from './security-crypto';
 import type { SimulationEngine } from '../core/engine';
@@ -73,6 +74,7 @@ function clearClient(
   d.neighbors6 = d.neighbors6?.filter((a) => a.port !== w.port);
 }
 export function configureWireless(e: SimulationEngine, d: Device, input: unknown) {
+  invalidateProtocolIndex(e.state);
   const c = wirelessConfigSchema.parse(input);
   if (c.role === 'ap' ? d.type !== 'switch' : !['pc', 'server'].includes(d.type))
     throw new Error('AP exige switch; cliente exige PC/servidor.');
@@ -144,8 +146,9 @@ export function configureWireless(e: SimulationEngine, d: Device, input: unknown
   );
 }
 export function refreshWireless(e: SimulationEngine) {
-  const aps = e.state.devices.filter((d) => d.wireless?.role === 'ap'),
-    clients = e.state.devices.filter((d) => d.wireless?.role === 'client');
+  const devices = protocolDevices(e.state, 'wireless');
+  const aps = devices.filter((d) => d.wireless?.role === 'ap'),
+    clients = devices.filter((d) => d.wireless?.role === 'client');
   for (const ap of aps)
     for (const client of clients) {
       const distance = radioDistance(ap, client);

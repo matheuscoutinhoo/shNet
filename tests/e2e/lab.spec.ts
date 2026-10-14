@@ -4238,6 +4238,65 @@ test('Produto: infraestrutura, formulários guiados, acessibilidade e teclado', 
   expect(errors).toEqual([]);
 });
 
+test('Topologia: vistas, clone de rack com revisão, undo e persistência', async ({ page }) => {
+  await page.goto('/');
+  await registerAndLogin(page, 'topology-clone-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Vistas e clone');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const e = new SimulationEngine(),
+    rack = e.addProfile('rack'),
+    a = e.addDevice('pc'),
+    b = e.addDevice('pc'),
+    sw = e.addDevice('switch');
+  rack.hostname = 'RACK-QA';
+  a.hostname = 'HOST-A';
+  b.hostname = 'HOST-B';
+  Object.assign(a.interfaces[0], { ip: '192.168.70.10', prefix: 24 });
+  Object.assign(b.interfaces[0], { ip: '192.168.70.11', prefix: 24 });
+  e.connect({ device: a.id, port: 'p0' }, { device: sw.id, port: 'p0' });
+  e.connect({ device: b.id, port: 'p0' }, { device: sw.id, port: 'p1' });
+  e.configureInfrastructure(rack.id, {
+    kind: 'rack',
+    units: 42,
+    ambientC: 22,
+    ventilation: 1,
+    slots: [
+      { device: a.id, unit: 1, units: 1 },
+      { device: b.id, unit: 2, units: 1 },
+      { device: sw.id, unit: 3, units: 1 },
+    ],
+  });
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'rack.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  await expect(page.locator('.workspace-status')).toContainText('4/2000');
+  const view = page.getByLabel('Vista da topologia');
+  await view.selectOption('logical');
+  await expect(page.locator('.react-flow__node-device')).toHaveCount(3);
+  await view.selectOption('physical');
+  await expect(page.locator('.react-flow__node-device')).toHaveCount(4);
+  const finder = page.getByRole('textbox', { name: 'Localizar equipamento' });
+  await finder.fill('RACK-QA');
+  await finder.press('Enter');
+  await finder.press('Escape');
+  await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+  await page.getByRole('button', { name: 'Clonar célula ou rack' }).click();
+  await expect(page.getByRole('heading', { name: 'Clonar célula ou rack' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Aplicar clone' })).toBeVisible();
+  await page.getByRole('button', { name: 'Aplicar clone' }).click();
+  await expect(page.locator('.workspace-status')).toContainText('8/2000');
+  await page.getByRole('button', { name: 'Desfazer', exact: true }).click();
+  await expect(page.locator('.workspace-status')).toContainText('4/2000');
+  await page.getByRole('button', { name: 'Refazer', exact: true }).click();
+  await expect(page.locator('.workspace-status')).toContainText('8/2000');
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  const axe = await new AxeBuilder({ page }).analyze();
+  expect(axe.violations).toEqual([]);
+});
 test('Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alterações', async ({
   page,
 }, testInfo) => {
@@ -4266,6 +4325,8 @@ test('Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alteraçõe
                   processed: d.processed,
                   pending: d.pending,
                   changed: d.devices.length,
+                  patches: d.devicePatches?.length ?? 0,
+                  bytes: new TextEncoder().encode(JSON.stringify(d)).length,
                 })
             );
         });
@@ -4307,6 +4368,41 @@ test('Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alteraçõe
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.screenshot({ path: 'test-results/scale-2000.png' });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('HeapProfiler.enable');
+  await cdp.send('HeapProfiler.collectGarbage');
+  const samples = [];
+  for (let i = 0; i < 3; i++) {
+    samples.push(await cdp.send('Runtime.getHeapUsage'));
+    await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+    await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+    await cdp.send('HeapProfiler.collectGarbage');
+  }
+  const retained = samples.map((s) => s.usedSize);
+  expect(Math.max(...retained)).toBeLessThan(256 * 1024 * 1024);
+  expect(retained.at(-1)! - retained[0]).toBeLessThan(32 * 1024 * 1024);
+  await testInfo.attach('browser-heap-2000', {
+    body: JSON.stringify({ samples, budgetMiB: 256, growthMiB: 32 }, null, 2),
+    contentType: 'application/json',
+  });
+  const evidenceDir = process.env.SHLAB_AUDIT_OUTPUT ?? 'artifacts/application-completion-2026-10-13';
+  await mkdir(evidenceDir, { recursive: true });
+  await writeFile(
+    evidenceDir + '/browser-heap-2000-' + testInfo.project.name + '.json',
+    JSON.stringify(
+      {
+        samples,
+        budgetMiB: 256,
+        growthMiB: 32,
+        project: testInfo.project.name,
+        scope:
+          'Heap principal após GC explícito, três ciclos de pausa/retomada do Worker; não representa heap interno do Worker.',
+      },
+      null,
+      2
+    )
+  );
+  await cdp.detach();
   expect(errors).toEqual([]);
 });
 

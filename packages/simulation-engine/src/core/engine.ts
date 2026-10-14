@@ -1,3 +1,4 @@
+import { invalidateProtocolIndex } from './protocol-index';
 import { findDevice, findLink, linksAt } from './topology-index';
 import { interfaceSchema } from '../model';
 import { configureDatabase, queryDatabase } from '../protocols/database';
@@ -977,6 +978,7 @@ export class SimulationEngine {
     reason: string,
     details: Partial<Pick<NetworkEvent, 'port' | 'peer' | 'link' | 'frame' | 'packet'>> = {}
   ) {
+    if (type === 'CONFIG_CHANGED') invalidateProtocolIndex(this.state);
     const event: NetworkEvent = {
       id: this.id('event'),
       time: this.state.clock,
@@ -1374,9 +1376,12 @@ export class SimulationEngine {
     this.state.clock = item.at;
     refreshInfrastructure(this);
     for (const d of this.state.devices) {
-      d.macTable = d.macTable.filter((m) => m.expires > this.state.clock);
-      d.arpTable = d.arpTable.filter((a) => a.expires > this.state.clock);
-      if (d.dnsCache) d.dnsCache = d.dnsCache.filter((entry) => entry.expiresAt > this.state.clock);
+      if (d.macTable.some((m) => m.expires <= this.state.clock))
+        d.macTable = d.macTable.filter((m) => m.expires > this.state.clock);
+      if (d.arpTable.some((a) => a.expires <= this.state.clock))
+        d.arpTable = d.arpTable.filter((a) => a.expires > this.state.clock);
+      if (d.dnsCache?.some((entry) => entry.expiresAt <= this.state.clock))
+        d.dnsCache = d.dnsCache.filter((entry) => entry.expiresAt > this.state.clock);
     }
     const a = item.action;
     if (a.kind === 'telemetry-tick') handleTelemetry(this, a);
@@ -1598,6 +1603,7 @@ export class SimulationEngine {
     else if (a.frame.packet) receiveIp(this, d, input, a.frame.packet, a.frame.src);
   }
   advanceTo(time: number, maxSteps = 20000, wallMs?: number, refreshState = true) {
+    if (refreshState) invalidateProtocolIndex(this.state);
     if (!Number.isFinite(time) || time < this.state.clock) throw new Error('Instante virtual inválido.');
     if (!Number.isInteger(maxSteps) || maxSteps < 1) throw new Error('Orçamento de eventos inválido.');
     if (wallMs !== undefined && (!Number.isFinite(wallMs) || wallMs < 1 || wallMs > 100))
@@ -1641,6 +1647,7 @@ export class SimulationEngine {
     return count;
   }
   run(maxSteps = 20000) {
+    invalidateProtocolIndex(this.state);
     let count = 0;
     while (count < maxSteps && this.step()) count++;
     if (this.state.queue.length) throw new Error('Orçamento de simulação esgotado; revise loops na rede.');

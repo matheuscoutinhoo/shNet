@@ -113,6 +113,8 @@ for (const size of [38, 100, 500, 2000]) {
       p95ChunkMs: percentile(chunks, 0.95),
       maxChunkMs: Math.max(...chunks),
       p95DeltaBytes: percentile(bytes, 0.95),
+      totalDeltaBytes: bytes.reduce((n, b) => n + b, 0),
+      bytesPerEvent: bytes.reduce((n, b) => n + b, 0) / Math.max(1, processed),
       processed,
       responses: complete,
       sent,

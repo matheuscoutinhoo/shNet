@@ -1,4 +1,5 @@
 import type { SimulationEngine } from '../core/engine';
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import type { Device, NetworkInterface, Snapshot } from '../model';
 import { BROADCAST, LIMITS } from '../model';
 import { ipNumber, sameSubnet, subnet, resolveRoute } from './ipv4';
@@ -220,6 +221,7 @@ function sameConfig(a: VrrpGroupConfig, b: VrrpGroupConfig) {
   );
 }
 export function configureVrrp(engine: SimulationEngine, device: Device, input: unknown) {
+  invalidateProtocolIndex(engine.state);
   const config = vrrpConfigSchema.parse(input);
   validateConfig(device, config.groups);
   const previous = device.vrrp;
@@ -257,7 +259,7 @@ export function configureVrrp(engine: SimulationEngine, device: Device, input: u
   );
 }
 export function refreshVrrp(engine: SimulationEngine) {
-  for (const device of engine.state.devices)
+  for (const device of protocolDevices(engine.state, 'vrrp'))
     for (const group of device.vrrp?.groups ?? []) {
       const effective = vrrpEffectivePriority(engine.state, device, group);
       if (group.track?.length && group.effectivePriority !== effective) {

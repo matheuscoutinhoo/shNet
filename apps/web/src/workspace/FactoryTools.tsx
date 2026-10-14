@@ -552,8 +552,30 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                   <>
                     <p>
                       {row.report.samples.filter((s) => s.status === 'failed').length} amostras sem sucesso.
-                      Recuperação observada com resolução de {row.scenario.intervalMs} ms.
+                      Recuperação observada com tentativas a cada {row.scenario.intervalMs} ms; a resposta
+                      utiliza seu timestamp virtual. Percentis e jitter usam respostas bem-sucedidas.
                     </p>
+                    {row.report.faults.length > 0 && (
+                      <details>
+                        <summary>Falhas e recuperação observada</summary>
+                        <ul>
+                          {row.report.faults.flatMap((f, index) =>
+                            f.recovery.map((v) => (
+                              <li key={index + v.flow}>
+                                {f.atMs} ms · {f.target} · {v.flow}:{' '}
+                                {v.recoveryMs === null
+                                  ? 'sem recuperação observada'
+                                  : v.recoveryMs.toFixed(3) + ' ms após a falha'}
+                                {v.recoveryResponseAtMs !== undefined && v.recoveryResponseAtMs !== null
+                                  ? ' · resposta em ' + v.recoveryResponseAtMs.toFixed(3) + ' ms'
+                                  : ''}
+                                {' · tentativas a cada ' + v.resolutionMs + ' ms'}
+                              </li>
+                            ))
+                          )}
+                        </ul>
+                      </details>
+                    )}
                     {row.report.actions && (
                       <ul>
                         {row.report.actions.map((a, i) => (
@@ -596,8 +618,21 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                                   }[s.evidence.cause]
                                 }
                                 {s.evidence.path.length > 0 && (
-                                  <> · Caminho observado: {s.evidence.path.join(' → ')}</>
+                                  <> · Equipamentos observados: {s.evidence.path.join(', ')}</>
                                 )}
+                                {s.evidence.hops?.length ? (
+                                  <details>
+                                    <summary>Sequência de eventos de transporte</summary>
+                                    <ol>
+                                      {s.evidence.hops.map((h) => (
+                                        <li key={h.id}>
+                                          {h.atMs.toFixed(3)} ms · {h.device} {h.port ?? ''} ·{' '}
+                                          {h.direction === 'sent' ? 'envio' : 'recepção'}
+                                        </li>
+                                      ))}
+                                    </ol>
+                                  </details>
+                                ) : null}
                                 {s.evidence.truncated && (
                                   <>
                                     {' '}
@@ -607,7 +642,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                                 )}
                                 {s.evidence.events.map((e) => (
                                   <p key={e.id}>
-                                    {e.device}: {e.reason}
+                                    {e.atMs.toFixed(3)} ms · {e.device}: {e.reason}
                                   </p>
                                 ))}
                               </>

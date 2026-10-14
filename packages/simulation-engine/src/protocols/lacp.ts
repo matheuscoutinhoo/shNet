@@ -1,3 +1,4 @@
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import {
   interfaceSchema,
   LIMITS,
@@ -25,6 +26,7 @@ export function configureLacp(
   members: string[],
   minLinks = 1
 ) {
+  invalidateProtocolIndex(e.state);
   if (
     !['router', 'switch'].includes(d.type) ||
     !Number.isInteger(number) ||
@@ -168,7 +170,7 @@ function send(e: SimulationEngine, d: Device, aggregate: NetworkInterface, membe
   e.sendFrame(d.id, member.id, frame);
 }
 export function refreshLacp(e: SimulationEngine) {
-  for (const d of e.state.devices)
+  for (const d of protocolDevices(e.state, 'lacp'))
     for (const port of d.interfaces.filter((p) => p.aggregate)) {
       const agg = port.aggregate!,
         selected = lacpMembers(e.state, d, port);

@@ -21,7 +21,14 @@ const app = await buildApp({
 });
 const web = runtimePaths.web;
 if (existsSync(web)) {
-  await app.register(staticFiles, { root: web });
+  await app.register(staticFiles, {
+    root: web,
+    preCompressed: true,
+    setHeaders(response, path) {
+      if (/[\\/]assets[\\/][\w.-]+-[\w-]+\.(js|css|woff2)(?:\.(?:br|gz))?$/.test(path))
+        response.header('Cache-Control', 'public, max-age=31536000, immutable');
+    },
+  });
   app.setNotFoundHandler((req, reply) =>
     req.url.startsWith('/api/')
       ? reply.code(404).send({ message: 'Rota não encontrada' })

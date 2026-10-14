@@ -100,7 +100,8 @@ export function openTcp(
   autoClose = false,
   onCreated?: (connection: TcpConnection) => void,
   vrf?: string,
-  scope?: string
+  scope?: string,
+  sourceOverride?: string
 ) {
   transportAddressSchema.parse(target);
   const ipv6 = target.includes(':');
@@ -122,12 +123,23 @@ export function openTcp(
       (ipv6 ? usable6(entry).some((a) => a.ip === target) : entry.ip === target)
   );
   const route6 = ipv6 ? resolveRoute6(device, target, engine.state.clock, vrf, scope) : undefined;
-  const source = ipv6
+  const routedSource = ipv6
     ? local
       ? target
       : route6 && source6(route6.port, target)
     : (local?.ip ?? resolveRoute(device, target, vrf)?.port.ip);
-  if (!source) throw new Error('Configure IP e uma rota para o destino TCP.');
+  const source = sourceOverride ?? routedSource;
+  if (!source || !routedSource) throw new Error('Configure IP e uma rota para o destino TCP.');
+  if (
+    sourceOverride &&
+    !device.interfaces.some(
+      (p) =>
+        interfaceUp(device, p) &&
+        p.vrf === vrf &&
+        (ipv6 ? usable6(p).some((a) => a.ip === sourceOverride) : p.ip === sourceOverride)
+    )
+  )
+    throw new Error('Origem TCP não pertence a uma interface IP ativa.');
   if (ipv6 ? !unicast6(target) : target === '0.0.0.0' || Number(target.split('.')[0]) >= 224)
     throw new Error('TCP exige destino unicast.');
   let localPort = 49152;

@@ -453,7 +453,7 @@ export class ScenarioRunner {
       warnings: this.warnings,
       faults: this.scenario.faults.map((f) => ({
         ...f,
-        recovery: scenarioRecovery(this.scenario, this.samples, f.atMs),
+        recovery: scenarioRecovery(this.scenario, this.samples, f.atMs, true),
       })),
       diagnostics: this.engine.state.diagnostics ?? [],
       captureDropped: (this.engine.state.capture?.dropped ?? 0) + this.restoredCaptureDrops,

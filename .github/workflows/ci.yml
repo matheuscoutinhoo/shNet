@@ -20,6 +20,7 @@ jobs:
       TEST_DATABASE_URL: postgresql://shlab:test_only_password@localhost:5432/shlab_test
       DATABASE_MODE: embedded
       APP_ORIGIN: http://127.0.0.1:5173
+      SHLAB_ROLLBACK_REF: ${{ vars.SHLAB_ROLLBACK_REF || '9ae747b1f20d93f54aa395c2f3f1758142d47de9' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,7 +33,7 @@ jobs:
       - run: npm run typecheck
       - name: Use PostgreSQL 18 backup tools from the test service
         run: chmod +x scripts/ci-pg-dump.sh scripts/ci-pg-restore.sh
-      - run: npm test
+      - run: npm test -- --reporter=default --reporter=json --outputFile=test-results/regression.json
         env:
           POSTGRES_SERVICE_CONTAINER: ${{ job.services.postgres.id }}
           PG_DUMP_PATH: ${{ github.workspace }}/scripts/ci-pg-dump.sh
@@ -48,8 +49,67 @@ jobs:
       - run: npm run benchmark
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Archive historical case coverage
+        run: npm run coverage:matrix -- --results test-results/regression.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-and-coverage
+          path: |
+            benchmarks/scale.json
+            artifacts/container-qualification/qualification.json
+            artifacts/application-completion-2026-10-13/case-coverage.json
+            artifacts/application-completion-2026-10-13/browser-heap-2000-*.json
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: |
+            test-results
+            playwright-report
+
+  containers:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: shlab
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: shlab_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U shlab"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://shlab:test_only_password@localhost:5432/shlab_test
+      DATABASE_MODE: embedded
+      APP_ORIGIN: http://127.0.0.1:5173
+      SHLAB_ROLLBACK_REF: ${{ vars.SHLAB_ROLLBACK_REF || '9ae747b1f20d93f54aa395c2f3f1758142d47de9' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
       - name: Build production image
         run: docker build -t shlab:ci .
+      - name: Build previous release for operational rollback
+        shell: bash
+        run: |
+          git fetch --depth=1 origin "${SHLAB_ROLLBACK_REF}"
+          mkdir -p .data/rollback-source
+          git archive FETCH_HEAD | tar -x -C .data/rollback-source
+          docker build -t shlab:rollback .data/rollback-source
+      - name: Qualify image rollback and database restore over TLS
+        run: |
+          chmod +x scripts/ci-pg-dump.sh scripts/ci-pg-restore.sh
+          npx tsx scripts/qualify-container-release.ts
+        env:
+          POSTGRES_SERVICE_CONTAINER: ${{ job.services.postgres.id }}
+          PG_DUMP_PATH: ${{ github.workspace }}/scripts/ci-pg-dump.sh
+          PG_RESTORE_PATH: ${{ github.workspace }}/scripts/ci-pg-restore.sh
       - name: Validate production and monitoring configuration
         run: |
           docker build -f Dockerfile.backup -t shlab-backup:ci .
@@ -103,12 +163,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: scale-benchmarks
-          path: benchmarks/scale.json
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test-results
-          path: |
-            test-results
-            playwright-report
+          name: container-qualification
+          path: artifacts/container-qualification/qualification.json

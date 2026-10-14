@@ -1,10 +1,16 @@
 import { SimulationEngine } from './engine';
-import { LIMITS, type Device, type Snapshot } from '../model';
+import { LIMITS, type Device, type NetworkInterface, type Snapshot } from '../model';
 import { updateSystem } from '../devices/infrastructure';
 export interface SimulationDelta {
   metadata: Partial<Omit<Snapshot, 'devices' | 'queue' | 'events' | 'diagnostics' | 'capture'>>;
   deletedKeys: (keyof Snapshot)[];
   devices: Device[];
+  devicePatches?: {
+    id: string;
+    values: Partial<Device>;
+    deleted: (keyof Device)[];
+    ports?: { id: string; values: Partial<NetworkInterface>; deleted: (keyof NetworkInterface)[] }[];
+  }[];
   removedDevices: string[];
   queue: Snapshot['queue'];
   removedQueue: number[];
@@ -21,6 +27,7 @@ export interface SimulationDelta {
 export class SimulationRunner {
   readonly engine: SimulationEngine;
   private devices = new Map<string, string>();
+  private deviceFields = new Map<string, Map<keyof Device, string | undefined>>();
   private queue = new Map<number, string>();
   private metadata = new Map<keyof Snapshot, string>();
   private lastEvent?: string;
@@ -66,12 +73,39 @@ export class SimulationRunner {
     const s = this.engine.state,
       devices: Device[] = [],
       ids = new Set(s.devices.map((d) => d.id));
+    const devicePatches: NonNullable<SimulationDelta['devicePatches']> = [];
     const removedDevices = [...this.devices.keys()].filter((id) => !ids.has(id));
-    removedDevices.forEach((id) => this.devices.delete(id));
+    removedDevices.forEach((id) => {
+      this.devices.delete(id);
+      this.deviceFields.delete(id);
+    });
     for (const d of s.devices) {
       const signature = JSON.stringify(d);
-      if (signature !== this.devices.get(d.id)) {
-        devices.push(d);
+      const previous = this.devices.get(d.id);
+      if (signature !== previous) {
+        if (!previous) {
+          devices.push(d);
+          this.deviceFields.set(
+            d.id,
+            new Map((Object.keys(d) as (keyof Device)[]).map((k) => [k, JSON.stringify(d[k])]))
+          );
+        } else {
+          const fields = this.deviceFields.get(d.id)!,
+            oldInterfaces = fields.get('interfaces')!;
+          const patch = signaturePatch(fields, d);
+          let ports: NonNullable<SimulationDelta['devicePatches']>[number]['ports'];
+          const old = patch.values.interfaces ? (JSON.parse(oldInterfaces) as NetworkInterface[]) : undefined;
+          if (old && old.length === d.interfaces.length && old.every((p, i) => p.id === d.interfaces[i].id)) {
+            delete patch.values.interfaces;
+            ports = d.interfaces.flatMap((p, i) => {
+              const changed = fieldPatch(old[i], p);
+              return Object.keys(changed.values).length || changed.deleted.length
+                ? [{ id: p.id, ...changed }]
+                : [];
+            });
+          }
+          devicePatches.push({ id: d.id, ...patch, ...(ports?.length ? { ports } : {}) });
+        }
         this.devices.set(d.id, signature);
       }
     }
@@ -122,6 +156,7 @@ export class SimulationRunner {
       metadata,
       deletedKeys,
       devices,
+      devicePatches,
       removedDevices,
       queue,
       removedQueue,
@@ -137,6 +172,26 @@ export class SimulationRunner {
     };
   }
 }
+function fieldPatch<T extends object>(before: T, after: T) {
+  const values: Partial<T> = {};
+  const deleted = (Object.keys(before) as (keyof T)[]).filter((key) => !(key in after));
+  for (const key of Object.keys(after) as (keyof T)[])
+    if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) values[key] = after[key];
+  return { values, deleted };
+}
+function signaturePatch<T extends object>(before: Map<keyof T, string | undefined>, after: T) {
+  const values: Partial<T> = {};
+  const deleted = [...before.keys()].filter((key) => !(key in after));
+  deleted.forEach((key) => before.delete(key));
+  for (const key of Object.keys(after) as (keyof T)[]) {
+    const signature = JSON.stringify(after[key]);
+    if (signature !== before.get(key)) {
+      values[key] = after[key];
+      before.set(key, signature);
+    }
+  }
+  return { values, deleted };
+}
 export function applySimulationDelta(s: Snapshot, delta: SimulationDelta) {
   const changed = new Map(delta.devices.map((d) => [d.id, d])),
     removed = new Set(delta.removedDevices);
@@ -148,6 +203,25 @@ export function applySimulationDelta(s: Snapshot, delta: SimulationDelta) {
       return next ?? d;
     });
   s.devices.push(...changed.values());
+  const patches = new Map(delta.devicePatches?.map((p) => [p.id, p]) ?? []);
+  if (patches.size)
+    s.devices = s.devices.map((d) => {
+      const patch = patches.get(d.id);
+      if (!patch) return d;
+      const next = { ...d, ...patch.values };
+      for (const key of patch.deleted) delete next[key];
+      if (patch.ports) {
+        const ports = new Map(patch.ports.map((p) => [p.id, p]));
+        next.interfaces = next.interfaces.map((p) => {
+          const update = ports.get(p.id);
+          if (!update) return p;
+          const port = { ...p, ...update.values };
+          for (const key of update.deleted) delete port[key];
+          return port;
+        });
+      }
+      return next;
+    });
   const queue = new Map(s.queue.map((q) => [q.order, q]));
   delta.removedQueue.forEach((id) => queue.delete(id));
   delta.queue.forEach((q) => queue.set(q.order, q));

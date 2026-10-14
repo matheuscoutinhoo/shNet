@@ -1,0 +1,1046 @@
+{
+  "generatedAt": "2026-10-14T11:39:42.174Z",
+  "regression": "artifacts/application-completion-2026-10-13/regression.json",
+  "total": 115,
+  "passed": 114,
+  "deferred": 1,
+  "cases": [
+    {
+      "family": "factory",
+      "id": "S01",
+      "historicalTitle": "HMI-A para PLC-A local",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S01 — HMI-A para PLC-A local",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S02",
+      "historicalTitle": "SCADA para PLC-A autorizado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S02 — SCADA para PLC-A autorizado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S03",
+      "historicalTitle": "SCADA para PLC-B autorizado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S03 — SCADA para PLC-B autorizado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S04",
+      "historicalTitle": "TI para PLC-A bloqueado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S04 — TI para PLC bloqueado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S05",
+      "historicalTitle": "Célula A para B bloqueada",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S05 — Células isoladas por política",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S06",
+      "historicalTitle": "TI para MES HTTP",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S06 — TI para MES HTTP",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S07",
+      "historicalTitle": "Visitante para PLC bloqueado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S07 — Visitante para PLC bloqueado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S08",
+      "historicalTitle": "Visitante para MES HTTP",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S08 — Visitante para MES agora bloqueado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S09",
+      "historicalTitle": "DNS DMZ",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S09 — DNS DMZ",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S10",
+      "historicalTitle": "DHCP por relay",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S10 — DHCP por relay",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S11",
+      "historicalTitle": "MQTT sensor e assinante SCADA",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S11 — MQTT retained e assinatura wildcard",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S12",
+      "historicalTitle": "Falha do uplink principal célula A",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S12 — Perda do uplink primário da célula A",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S13",
+      "historicalTitle": "Falha total de FW-A / VRRP",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S13 — Perda FW-A e VRRP",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S14",
+      "historicalTitle": "Dois uplinks célula A desligados",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S14 — Dois uplinks da célula A indisponíveis",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S15",
+      "historicalTitle": "Restaurar uplink após isolamento",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S15 — Restaurar uplink após isolamento",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S16",
+      "historicalTitle": "DNS desligado e cache limpo",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S16 — DNS indisponível sem cache",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S17",
+      "historicalTitle": "HTTP MES desligado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S17 — MES HTTP indisponível",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S18",
+      "historicalTitle": "Persistência com ping pendente",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S18 — Persistência de ping pendente",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S19",
+      "historicalTitle": "DHCP após perda do primário",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S19 — DHCP após perda do primário corrigido",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S20",
+      "historicalTitle": "Cabeamento cobre 150 m",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S20 — Cobre 150 m inoperante",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S21",
+      "historicalTitle": "CFTV local NVR",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S21 — CFTV para serviço NVR substituto",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S22",
+      "historicalTitle": "CFTV para OT bloqueado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S22 — CFTV para OT bloqueado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S23",
+      "historicalTitle": "NMS consulta SNMP SCADA",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S23 — NMS consulta SNMP do SCADA",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S24",
+      "historicalTitle": "Wi-Fi chave incorreta",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S24 — Wi-Fi com chave incorreta",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S25",
+      "historicalTitle": "MTU / DF 2000 bytes",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S25 — MTU DF 2000 bytes",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S26",
+      "historicalTitle": "TI para suporte WAN HTTP",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S26 — TI para suporte WAN HTTP",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S27",
+      "historicalTitle": "SCADA para PLC TCP/502 echo",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S27 — SCADA para PLC com leitura Modbus real …",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S28",
+      "historicalTitle": "TI para PLC TCP/502 bloqueado",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S28 — TI para PLC Modbus bloqueado",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S29",
+      "historicalTitle": "Snapshot restaura estado convergido",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S29 — Snapshot convergido restaura integralme…",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S30",
+      "historicalTitle": "VRRP retorno / preempção",
+      "history": "artifacts/factory-audit/scenario-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S30 — VRRP retorno e preempção",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S31",
+      "historicalTitle": "WAN após falha de FW-A: rota de retorno estática",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S31 — WAN após falha FW-A com retorno pelo VIP",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S32",
+      "historicalTitle": "Falha de distribuição DIST-A",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S32 — Falha da distribuição primária",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S33",
+      "historicalTitle": "Captura PCAP de HTTP",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S33 — PCAP HTTP decodificável",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S34",
+      "historicalTitle": "Retenção dos eventos após ping e 5 s",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S34 — Retenção após controle RSTP/VRRP",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S35",
+      "historicalTitle": "NTP no segmento de gestão",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S35 — NTP no gerenciamento",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S36",
+      "historicalTitle": "Syslog no segmento de gestão",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S36 — Syslog no gerenciamento",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S37",
+      "historicalTitle": "Switch L2 com SVI: gerência syslog",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S37 — Syslog no switch L2 com SVI",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S38",
+      "historicalTitle": "DHCP redundante corrigido após falha de FW-A",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S38 — Relay backup e pools disjuntos",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S39",
+      "historicalTitle": "WAN corrigida: nova sessão após failover",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S39 — Nova sessão WAN após failover corrigido",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S40",
+      "historicalTitle": "UPS A sem rede elétrica e bateria esgotada",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S40 — UPS A sem rede e bateria",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S41",
+      "historicalTitle": "Patch panel: comunicação SCADA–PLC",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S41 — SCADA PLC pelo patch panel",
+      "status": "passed"
+    },
+    {
+      "family": "factory",
+      "id": "S42",
+      "historicalTitle": "Energia: perda das duas UPS",
+      "history": "artifacts/factory-audit/extended-results.json",
+      "test": "tests/factory-matrix.test.ts",
+      "testTitle": "Matriz de regressão da fábrica auditada S42 — Perda das duas UPS interrompe OT",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E01",
+      "historicalTitle": "Usuário acessa ERP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E01 — Usuário acessa ERP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E02",
+      "historicalTitle": "Visitante não acessa ERP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E02 — Visitante não acessa ERP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E03",
+      "historicalTitle": "Visitante não acessa portal DMZ",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E03 — Visitante não acessa portal DMZ",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E04",
+      "historicalTitle": "Visitante acessa WAN simulada",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E04 — Visitante acessa WAN simulada",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E05",
+      "historicalTitle": "Administrador acessa ERP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E05 — Administrador acessa ERP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E06",
+      "historicalTitle": "Usuário não inicia ICMP para ERP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E06 — Usuário não inicia ICMP para ERP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E07",
+      "historicalTitle": "DNS por firewall",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E07 — DNS por firewall",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E08",
+      "historicalTitle": "DHCP por relay ativo",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E08 — DHCP por relay ativo",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E09",
+      "historicalTitle": "EAP-TLS campus integrado",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E09 — EAP-TLS campus integrado",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E10",
+      "historicalTitle": "Wi-Fi autenticado acessa ERP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E10 — Wi-Fi autenticado acessa ERP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E11",
+      "historicalTitle": "RADIUS indisponível nega nova autenticação",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E11 — RADIUS indisponível nega nova autenticação",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E12",
+      "historicalTitle": "VRRP falha FW-A preserva novas sessões ERP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E12 — VRRP falha FW-A preserva novas sessões ERP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E13",
+      "historicalTitle": "VRRP failover preserva WAN/retorno VIP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E13 — VRRP failover preserva WAN/retorno VIP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E14",
+      "historicalTitle": "DHCP após failover",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E14 — DHCP após failover",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E15",
+      "historicalTitle": "Perda CORE-A com RSTP e VRRP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E15 — Perda CORE-A com RSTP e VRRP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E16",
+      "historicalTitle": "Perda uplink primário de acesso",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E16 — Perda uplink primário de acesso",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E17",
+      "historicalTitle": "LACP com um membro",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E17 — LACP com um membro",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E18",
+      "historicalTitle": "Perda switch de usuários demonstra domínio de falha",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E18 — Perda switch de usuários demonstra domínio de falha",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E19",
+      "historicalTitle": "DNS sem HA interrompe novas consultas",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E19 — DNS sem HA interrompe novas consultas",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E20",
+      "historicalTitle": "SNMP no gateway",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E20 — SNMP no gateway",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "E21",
+      "historicalTitle": "SNMP comunidade inválida",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "E21 — SNMP comunidade inválida",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D01",
+      "historicalTitle": "EVPN três folhas negociam BGP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D01 — EVPN três folhas negociam BGP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D02",
+      "historicalTitle": "HTTP leste-oeste tenant A",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D02 — HTTP leste-oeste tenant A",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D03",
+      "historicalTitle": "HTTP leste-oeste tenant B com IP sobreposto",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D03 — HTTP leste-oeste tenant B com IP sobreposto",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D04",
+      "historicalTitle": "Tenant B não alcança backend exclusivo de A",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D04 — Tenant B não alcança backend exclusivo de A",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D05",
+      "historicalTitle": "HTTP campus → VIP balanceador",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D05 — HTTP campus → VIP balanceador",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D06",
+      "historicalTitle": "Balanceador distribui entre dois backends",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D06 — Balanceador distribui entre dois backends",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D07",
+      "historicalTitle": "Balanceador após perda APP-1",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D07 — Balanceador após perda APP-1",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D08",
+      "historicalTitle": "Balanceador após retorno APP-1",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D08 — Balanceador após retorno APP-1",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D09",
+      "historicalTitle": "Dois backends indisponíveis",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D09 — Dois backends indisponíveis",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D10",
+      "historicalTitle": "SPOF balanceador interrompe VIP",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D10 — SPOF balanceador interrompe VIP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D11",
+      "historicalTitle": "Perda SPINE-2 mantém overlay no SPINE-1",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D11 — Perda SPINE-2 mantém overlay no SPINE-1",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D12",
+      "historicalTitle": "Perda SPINE-1 deveria usar caminho secundário",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D12 — Perda SPINE-1 deveria usar caminho secundário",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D13",
+      "historicalTitle": "Retorno SPINE-1 recupera overlay",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D13 — Retorno SPINE-1 recupera overlay",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D14",
+      "historicalTitle": "MTU overlay 1450 permite ping 1400",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D14 — MTU overlay 1450 permite ping 1400",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D15",
+      "historicalTitle": "MTU overlay 1450 rejeita ping 1500",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D15 — MTU overlay 1450 rejeita ping 1500",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D16",
+      "historicalTitle": "EVPN route target diferente retira importação",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D16 — EVPN route target diferente retira importação",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D17",
+      "historicalTitle": "RT divergente não deve ser tratado como isolamento de dados",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D17 — RT divergente não deve ser tratado como isolamento de dados",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D18",
+      "historicalTitle": "Movimento VM de LEAF-2 para LEAF-3",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D18 — Movimento VM de LEAF-2 para LEAF-3",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D19",
+      "historicalTitle": "UPS sustenta LB durante breve falta de energia",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D19 — UPS sustenta LB durante breve falta de energia",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D20",
+      "historicalTitle": "UPS esgotada interrompe LB",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D20 — UPS esgotada interrompe LB",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D21",
+      "historicalTitle": "Persistência com TCP/EVPN pendentes determinística",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D21 — Persistência com TCP/EVPN pendentes determinística",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "D22",
+      "historicalTitle": "Checkpoint de BGP em convergência determinístico",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "D22 — Checkpoint de BGP em convergência determinístico",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "U01",
+      "historicalTitle": "Executor aceita alvo IPv6",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "U01 — Executor aceita alvo IPv6",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "U02",
+      "historicalTitle": "Executor aceita seleção de VRF",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "U02 — Executor aceita seleção de VRF",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "U03",
+      "historicalTitle": "Executor nativo comprova campus/tenant isolado",
+      "history": "artifacts/enterprise-datacenter-audit/scenario-results.json",
+      "test": "tests/enterprise-network-matrix.test.ts",
+      "testTitle": "U03 — Executor nativo comprova campus/tenant isolado",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-ospf-base",
+      "historicalTitle": "ospf: HTTP após convergência",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-ospf-base — ospf: HTTP após convergência",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-ospf-failover",
+      "historicalTitle": "ospf: falha de um caminho",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-ospf-failover — ospf: falha de um caminho",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-bgp-base",
+      "historicalTitle": "bgp: HTTP após convergência",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-bgp-base — bgp: HTTP após convergência",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-bgp-failover",
+      "historicalTitle": "bgp: falha de um caminho",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-bgp-failover — bgp: falha de um caminho",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-vpn-base",
+      "historicalTitle": "vpn: HTTP após convergência",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-vpn-base — vpn: HTTP após convergência",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-sdwan-base",
+      "historicalTitle": "sdwan: HTTP após convergência",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-sdwan-base — sdwan: HTTP após convergência",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-sdwan-failover",
+      "historicalTitle": "sdwan: falha de um caminho",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-sdwan-failover — sdwan: falha de um caminho",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-VRF-BLUE",
+      "historicalTitle": "TCP em VRF BLUE com IP sobreposto",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-VRF-BLUE — TCP em VRF BLUE com IP sobreposto",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-VRF-RED",
+      "historicalTitle": "TCP em VRF RED com IP sobreposto",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-VRF-RED — TCP em VRF RED com IP sobreposto",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-VRF-default",
+      "historicalTitle": "Tabela default não alcança tenants VRF",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-VRF-default — Tabela default não alcança tenants VRF",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-NTP",
+      "historicalTitle": "NTP em VLAN de gerência",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-NTP — NTP em VLAN de gerência",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-SYSLOG",
+      "historicalTitle": "Syslog entregue ao coletor",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-SYSLOG — Syslog entregue ao coletor",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-DHCP-backup-pool",
+      "historicalTitle": "DHCP após failover com pool giaddr compatível",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-DHCP-backup-pool — DHCP após failover com pool giaddr compatível",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-PREFLIGHT-DHCP",
+      "historicalTitle": "Preflight detecta pool ausente para relay de backup",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-PREFLIGHT-DHCP — Preflight detecta pool ausente para relay de backup",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-PREFLIGHT-RT",
+      "historicalTitle": "Preflight detecta route target divergente no mesmo VNI/peer",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-PREFLIGHT-RT — Preflight detecta route target divergente no mesmo VNI/peer",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-PREFLIGHT-TENANTS",
+      "historicalTitle": "Preflight distingue IP repetido em VNIs isolados",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-PREFLIGHT-TENANTS — Preflight distingue IP repetido em VNIs isolados",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-DUALSTACK-ZONES",
+      "historicalTitle": "Política de zonas GUEST→CORP deve bloquear IPv6 também",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-DUALSTACK-ZONES — Política de zonas GUEST→CORP deve bloquear IPv6 também",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-DUALSTACK-HTTP",
+      "historicalTitle": "HTTP IPv6 GUEST→CORP também deve ser bloqueado",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-DUALSTACK-HTTP — HTTP IPv6 GUEST→CORP também deve ser bloqueado",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-PCAP",
+      "historicalTitle": "PCAP exporta tráfego integrado sem omissões de codec",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-PCAP — PCAP exporta tráfego integrado sem omissões de codec",
+      "status": "deferred-protocol-codecs",
+      "requirement": "R19",
+      "reason": "Captura universal sem exclusões depende de codecs BGP/EVPN e protocolos adicionais, adiados pelo usuário. A integridade/exclusões dos codecs presentes é testada separadamente."
+    },
+    {
+      "family": "enterprise",
+      "id": "P-REPORT-CONSISTENCY",
+      "historicalTitle": "Validador recusa recovery adulterada em relatório",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-REPORT-CONSISTENCY — Validador recusa recovery adulterada em relatório",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-WIFI-DIAGNOSIS",
+      "historicalTitle": "Wi-Fi autenticado: diagnóstico de bridge/VLAN",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-WIFI-DIAGNOSIS — Wi-Fi autenticado: diagnóstico de bridge/VLAN",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-WIFI-INVALID-TRUST",
+      "historicalTitle": "Certificado RADIUS não confiável bloqueia acesso",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-WIFI-INVALID-TRUST — Certificado RADIUS não confiável bloqueia acesso",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-DUALSTACK-ACL",
+      "historicalTitle": "ACL IPv6 explícita bloqueia GUEST→CORP",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-DUALSTACK-ACL — ACL IPv6 explícita bloqueia GUEST→CORP",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-ROGUE-DHCP-false",
+      "historicalTitle": "DHCP indevido vence sem snooping",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-ROGUE-DHCP-false — DHCP indevido vence sem snooping",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-ROGUE-DHCP-true",
+      "historicalTitle": "DHCP indevido bloqueado por snooping",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-ROGUE-DHCP-true — DHCP indevido bloqueado por snooping",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-RSTP-PORT-EDIT",
+      "historicalTitle": "Alterar edge em porta desconectada não deve interromper uplinks",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-RSTP-PORT-EDIT — Alterar edge em porta desconectada não deve interromper uplinks",
+      "status": "passed"
+    },
+    {
+      "family": "enterprise",
+      "id": "P-HA-EXISTING-TCP",
+      "historicalTitle": "Sessão TCP existente precisa sobreviver ao failover de firewall",
+      "history": "artifacts/enterprise-datacenter-audit/protocol-results.json",
+      "test": "tests/enterprise-protocol-matrix.test.ts",
+      "testTitle": "P-HA-EXISTING-TCP — Sessão TCP existente precisa sobreviver ao failover de firewall",
+      "status": "passed"
+    }
+  ]
+}

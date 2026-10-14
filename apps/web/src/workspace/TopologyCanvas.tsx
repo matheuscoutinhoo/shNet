@@ -48,6 +48,7 @@ import { DeviceIcon } from '../components/DeviceIcon';
 import { DeviceActions, type DeviceAction } from './DeviceActions';
 import { availablePorts } from './deviceCatalog';
 import type { LabController } from './useLab';
+import { topologyView, type TopologyView } from './topologyView';
 import '@xyflow/react/dist/style.css';
 type DeviceNode = Node<
   {
@@ -414,6 +415,7 @@ const nodeTypes = {
   },
   edgeTypes = { cable: CableView };
 interface Props {
+  view: TopologyView;
   lab: LabController;
   selected: string[];
   onSelect: (ids: string[]) => void;
@@ -500,6 +502,7 @@ function useCanvasActivities(lab: LabController, visible: boolean) {
   return activities;
 }
 function Canvas({
+  view,
   lab,
   selected,
   onSelect,
@@ -514,8 +517,9 @@ function Canvas({
   onDrawingDone,
 }: Props) {
   const { engine, tick } = lab,
-    { screenToFlowPosition, fitView, setCenter, getViewport, getNode } = useReactFlow();
+    { screenToFlowPosition, fitView, setCenter, getViewport, getNode, setViewport } = useReactFlow();
   const motion = useCanvasMotion();
+  const projection = useMemo(() => topologyView(engine.state, view), [engine, tick, view]);
   const activities = useCanvasActivities(lab, motion.visible);
   const canMove = motion.visible && !motion.reduced;
   const zoom = useStore((state) => state.transform[2]);
@@ -524,7 +528,7 @@ function Canvas({
   // endpoints have measured handles for that rendering mode. This also keeps
   // offscreen nodes unmeasured without hiding cables whose endpoints are ready.
   const measuredEdgeIds = useStore((state) =>
-    engine.state.links
+    projection.links
       .filter((link) =>
         [link.a, link.b].every((end) => {
           const node = state.nodeLookup.get(end.device);
@@ -556,6 +560,16 @@ function Canvas({
     if (actions && !selected.includes(actions.id)) setActions(null);
   }, [actions, selected]);
   const nodesInitialized = useNodesInitialized();
+  const previousView = useRef(view);
+  useEffect(() => {
+    if (previousView.current === view) return;
+    previousView.current = view;
+    const timer = setTimeout(() => {
+      if (view === 'physical' && engine.state.viewport) void setViewport(engine.state.viewport);
+      else void fitView({ padding: 0.2, maxZoom: 1.2 });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [view, engine, fitView, setViewport]);
   useEffect(() => {
     const compact = window.matchMedia('(max-width: 699px)');
     let timer: ReturnType<typeof setTimeout>;
@@ -580,12 +594,12 @@ function Canvas({
       const node = getNode(id);
       onSelect([id]);
       void setCenter(
-        d.position.x + (node?.measured?.width ?? 296) / 2,
-        d.position.y + (node?.measured?.height ?? 154) / 2,
+        (projection.positions.get(id) ?? d.position).x + (node?.measured?.width ?? 296) / 2,
+        (projection.positions.get(id) ?? d.position).y + (node?.measured?.height ?? 154) / 2,
         { zoom: 1.2, duration: motion.reduced ? 0 : 300 }
       );
     },
-    [engine, getNode, onSelect, setCenter, motion.reduced]
+    [engine, getNode, onSelect, setCenter, motion.reduced, projection]
   );
   useEffect(() => {
     if (!query.trim()) {
@@ -637,9 +651,9 @@ function Canvas({
   const activityView = useRef({ activities, canMove, playing: lab.playing });
   activityView.current = { activities, canMove, playing: lab.playing };
   useEffect(() => {
-    const view = activityView.current;
+    const activityState = activityView.current;
     const searchIds = new Set(findDevices(engine.state.devices, query).map((d) => d.id));
-    const items = engine.state.canvasItems ?? [];
+    const items = view === 'physical' ? (engine.state.canvasItems ?? []) : [];
     const parents = new Map<string, CanvasItem>();
     for (const item of items) for (const member of item.members ?? []) parents.set(member, item);
     const annotations: AnnotationNode[] = items.map((item) => ({
@@ -663,22 +677,49 @@ function Canvas({
           }),
       },
     }));
-    const devices: DeviceNode[] = engine.state.devices.map((d) => {
+    const devices: DeviceNode[] = projection.devices.map((d) => {
       const parent = parents.get(d.id);
-      const activity = view.activities.devices.get(d.id);
+      const activity = activityState.activities.devices.get(d.id);
+      const handles = overview
+        ? ['overview']
+        : d.interfaces
+            .filter(
+              (p) => d.infrastructure?.kind !== 'rack' && !p.logical && !p.aggregate && !p.tunnel && !p.vxlan
+            )
+            .map((p) => p.id);
+      const width = overview ? 220 : 204,
+        height = overview ? 50 : detailed ? 154 : 80;
       return {
         id: d.id,
         type: 'device',
+        // Supply dimensions before mounting so viewport culling does not need
+        // to render and measure every node in a large imported topology.
+        initialWidth: overview ? 220 : 204,
+        initialHeight: overview ? 50 : detailed ? 154 : 80,
+        handles: handles.map((id, i) => ({
+          id,
+          type: 'source' as const,
+          position: Position.Bottom,
+          x: (width * (i + 1)) / (handles.length + 1) - 3.5,
+          y: height - 3.5,
+          width: 7,
+          height: 7,
+        })),
         position: parent
           ? { x: d.position.x - parent.position.x, y: d.position.y - parent.position.y }
-          : d.position,
+          : (projection.positions.get(d.id) ?? d.position),
+        draggable: view === 'physical',
         ...(parent ? { parentId: parent.id, extent: 'parent' as const } : {}),
         selected: selected.includes(d.id),
         data: {
           device: d,
           overview,
           activity,
-          moving: !overview && !!activity && view.canMove && (view.playing || activity.manualStep),
+          moving:
+            !overview &&
+            !!activity &&
+            activityState.canMove &&
+            (activityState.playing || activity.manualStep),
           renderKey: JSON.stringify([
             d.hostname,
             d.type,
@@ -725,7 +766,7 @@ function Canvas({
         ? previous
         : next;
     });
-  }, [engine, tick, selected, detailed, highlight, query, lab.change, overview]);
+  }, [engine, tick, selected, detailed, highlight, query, lab.change, overview, view, projection]);
   useEffect(() => {
     // Transient highlights must not rebuild geometry and serialize every device again.
     setNodes((previous) => {
@@ -743,7 +784,7 @@ function Canvas({
   }, [activities.devices, canMove, lab.playing, overview]);
   const baseEdges = useMemo<CableEdge[]>(() => {
     const devicesById = new Map(engine.state.devices.map((device) => [device.id, device]));
-    const next = engine.state.links.map((l) => {
+    const next = projection.links.map((l) => {
       const a = devicesById.get(l.a.device)!,
         b = devicesById.get(l.b.device)!;
       const operational = linkOperational(engine.state, l);
@@ -754,11 +795,13 @@ function Canvas({
         target: l.b.device,
         targetHandle: overview ? 'overview' : l.b.port,
         type: 'cable',
-        label: overview
-          ? ''
-          : a.interfaces.find((p) => p.id === l.a.port)?.name +
-            ' ↔ ' +
-            b.interfaces.find((p) => p.id === l.b.port)?.name,
+        label:
+          projection.labels.get(l.id) ||
+          (overview
+            ? ''
+            : a.interfaces.find((p) => p.id === l.a.port)?.name +
+              ' ↔ ' +
+              b.interfaces.find((p) => p.id === l.b.port)?.name),
         data: {
           cable: l.cable,
           blocked: !operational,
@@ -789,7 +832,7 @@ function Canvas({
     });
     previousEdges.current = new Map(next.map((edge) => [edge.id, edge]));
     return next;
-  }, [engine, tick, overview]);
+  }, [engine, tick, overview, projection]);
   const decoratedEdges = useRef(new Map<string, CableEdge>());
   const edges = useMemo<CableEdge[]>(() => {
     if (overview) return baseEdges;
@@ -858,6 +901,7 @@ function Canvas({
       }}
       onDrop={(e) => {
         e.preventDefault();
+        if (view === 'logical') return;
         const profile = e.dataTransfer.getData('application/shlab-profile');
         if (profile) {
           const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
@@ -894,6 +938,7 @@ function Canvas({
           })
         }
         onMoveEnd={(_event, viewport) => {
+          if (view === 'logical') return;
           const previous = engine.state.viewport;
           if (
             !previous ||
@@ -946,7 +991,9 @@ function Canvas({
         onMoveStart={(event) => {
           if (event) closeActions();
         }}
-        onConnect={onConnect}
+        onConnect={view === 'physical' ? onConnect : undefined}
+        nodesConnectable={view === 'physical'}
+        nodesDraggable={view === 'physical'}
         onEdgeClick={(_e, edge) => onEdge(edge.id)}
         connectionMode={ConnectionMode.Loose}
         onNodesDelete={(deleted) =>
@@ -954,7 +1001,7 @@ function Canvas({
             for (const node of deleted) removeCanvasItem(sim, node.id);
           })
         }
-        deleteKeyCode={['Backspace', 'Delete']}
+        deleteKeyCode={view === 'physical' ? ['Backspace', 'Delete'] : null}
         selectionKeyCode="Shift"
         multiSelectionKeyCode="Shift"
         snapToGrid={engine.state.snapToGrid ?? true}

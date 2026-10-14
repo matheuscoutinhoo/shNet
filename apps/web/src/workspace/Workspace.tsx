@@ -1,15 +1,14 @@
-import { CommentDialog } from './CommentDialog';
+import { DeferredPanel } from './DeferredPanel';
 import { LearningPanel, TutorialPanel } from './LearningPanel';
-import { NetworkConceptGuide } from './NetworkConceptGuide';
+
 import { EquipmentCatalog } from './EquipmentCatalog';
 import { availablePorts } from './deviceCatalog';
 import type { DeviceAction } from './DeviceActions';
 import { labs } from '@shlab/engine';
 import { duplicateDevice } from './duplicateDevice';
 import { ProjectRecovery } from './ProjectRecovery';
-import { CaptureDialog } from './CaptureDialog';
-import { FactoryTools } from './FactoryTools';
-import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useCallback, useEffect, useRef, useState, lazy } from 'react';
 import type { Connection } from '@xyflow/react';
 import {
   ArrowLeft,
@@ -63,10 +62,21 @@ import { useLab, type LabController } from './useLab';
 import { TopologyCanvas } from './TopologyCanvas';
 import { findDevices } from './deviceFinder';
 import { LabPanel } from './LabPanel';
-import { NetworkInspector } from './NetworkInspector';
-import { Inspector } from './Inspector';
+
 import { Timeline } from './Timeline';
 import { ConnectDialog, LinkDialog } from './Connections';
+import type { TopologyView } from './topologyView';
+const CloneReview = lazy(() => import('./CloneReview').then((m) => ({ default: m.CloneReview })));
+const CommentDialog = lazy(() => import('./CommentDialog').then((m) => ({ default: m.CommentDialog })));
+const NetworkConceptGuide = lazy(() =>
+  import('./NetworkConceptGuide').then((m) => ({ default: m.NetworkConceptGuide }))
+);
+const CaptureDialog = lazy(() => import('./CaptureDialog').then((m) => ({ default: m.CaptureDialog })));
+const FactoryTools = lazy(() => import('./FactoryTools').then((m) => ({ default: m.FactoryTools })));
+const NetworkInspector = lazy(() =>
+  import('./NetworkInspector').then((m) => ({ default: m.NetworkInspector }))
+);
+const Inspector = lazy(() => import('./Inspector').then((m) => ({ default: m.Inspector })));
 export function Workspace({
   project,
   user,
@@ -101,6 +111,8 @@ export function Workspace({
     [comment, setComment] = useState(false),
     [capture, setCapture] = useState(false),
     [factoryTools, setFactoryTools] = useState(false),
+    [cloneReview, setCloneReview] = useState(false),
+    [topologyView, setTopologyView] = useState<TopologyView>('physical'),
     [renaming, setRenaming] = useState<Device | null>(null);
   const mode = lab.playbackMode;
   const importRef = useRef<HTMLInputElement>(null),
@@ -670,6 +682,16 @@ export function Workspace({
                   <Ungroup size={16} /> Desagrupar
                 </button>
                 <button
+                  disabled={!selected.length}
+                  onClick={() => {
+                    lab.change(() => {}, false);
+                    setCloneReview(true);
+                    setMore(false);
+                  }}
+                >
+                  <Copy size={16} /> Clonar célula ou rack
+                </button>
+                <button
                   aria-pressed={drawing}
                   onClick={() => {
                     setDrawing(!drawing);
@@ -696,10 +718,38 @@ export function Workspace({
           </div>
         </div>
       </div>
-      {comment && <CommentDialog lab={lab} selected={selected[0]} onClose={() => setComment(false)} />}
-      {capture && <CaptureDialog lab={lab} onClose={() => setCapture(false)} />}
-      {factoryTools && <FactoryTools lab={lab} onClose={() => setFactoryTools(false)} />}
+      {comment && (
+        <DeferredPanel onClose={() => setComment(false)} fallback={<p role="status">Carregando painel…</p>}>
+          <CommentDialog lab={lab} selected={selected[0]} onClose={() => setComment(false)} />
+        </DeferredPanel>
+      )}
+      {capture && (
+        <DeferredPanel onClose={() => setCapture(false)} fallback={<p role="status">Carregando painel…</p>}>
+          <CaptureDialog lab={lab} onClose={() => setCapture(false)} />
+        </DeferredPanel>
+      )}
+      {factoryTools && (
+        <DeferredPanel
+          onClose={() => setFactoryTools(false)}
+          fallback={<p role="status">Carregando painel…</p>}
+        >
+          <FactoryTools lab={lab} onClose={() => setFactoryTools(false)} />
+        </DeferredPanel>
+      )}
       <ProjectRecovery lab={lab} onRecovered={onClose} />
+      {cloneReview && (
+        <DeferredPanel
+          onClose={() => setCloneReview(false)}
+          fallback={<p role="status">Preparando clone…</p>}
+        >
+          <CloneReview
+            lab={lab}
+            selection={selected}
+            onApplied={setSelected}
+            onClose={() => setCloneReview(false)}
+          />
+        </DeferredPanel>
+      )}
       {lab.playing && mode === 'realtime' && lab.playbackMetrics.lagMs > 1000 && (
         <div className="workspace-alert" role="status">
           <span>
@@ -827,7 +877,26 @@ export function Workspace({
                   ))}
               </select>
             </div>
+            <label className="topology-view-switch">
+              Vista da topologia{' '}
+              <select
+                aria-label="Vista da topologia"
+                value={topologyView}
+                onChange={(e) => {
+                  setTopologyView(e.target.value as TopologyView);
+                  setDrawing(false);
+                  setSelected([]);
+                }}
+              >
+                <option value="physical">Física</option>
+                <option value="logical">Lógica</option>
+              </select>
+              {topologyView === 'logical' && (
+                <span>Projeção para consulta; agrupamentos de cabos não representam novos protocolos.</span>
+              )}
+            </label>
             <TopologyCanvas
+              view={topologyView}
               lab={lab}
               onDeviceAction={deviceAction}
               selected={selected}
@@ -858,17 +927,25 @@ export function Workspace({
           <Timeline lab={lab} selected={selected} onSelect={inspect} onClearSelection={() => select([])} />
         </div>
         {device && (
-          <Inspector
-            key={device.id}
-            width={inspectorWidth}
-            onWidth={setInspectorWidth}
-            lab={lab}
-            device={device}
+          <DeferredPanel
             onClose={() => {
               setInspecting(null);
               setSelected([]);
             }}
-          />
+            fallback={<p role="status">Carregando inspector…</p>}
+          >
+            <Inspector
+              key={device.id}
+              width={inspectorWidth}
+              onWidth={setInspectorWidth}
+              lab={lab}
+              device={device}
+              onClose={() => {
+                setInspecting(null);
+                setSelected([]);
+              }}
+            />
+          </DeferredPanel>
         )}
       </div>
       <footer className="workspace-status">
@@ -1030,7 +1107,12 @@ export function Workspace({
         <LabPanel project={project} lab={lab} onClose={() => setShowTasks(false)} />
       )}
       {showNetwork && (
-        <NetworkInspector lab={lab} onClose={() => setShowNetwork(false)} onInspect={inspect} />
+        <DeferredPanel
+          onClose={() => setShowNetwork(false)}
+          fallback={<p role="status">Carregando painel…</p>}
+        >
+          <NetworkInspector lab={lab} onClose={() => setShowNetwork(false)} onInspect={inspect} />
+        </DeferredPanel>
       )}
       {renaming && (
         <Modal title="Renomear equipamento" onClose={() => setRenaming(null)}>
@@ -1083,7 +1165,9 @@ export function Workspace({
                 : labs.find((entry) => entry.id === project.lab_id)?.objective}
             </p>
           </div>
-          <NetworkConceptGuide mode={project.mode} labId={project.lab_id} />
+          <DeferredPanel onClose={() => setHelp(false)} fallback={<p role="status">Carregando painel…</p>}>
+            <NetworkConceptGuide mode={project.mode} labId={project.lab_id} />
+          </DeferredPanel>
           {project.mode === 'free' && (
             <>
               <ol className="help-steps">

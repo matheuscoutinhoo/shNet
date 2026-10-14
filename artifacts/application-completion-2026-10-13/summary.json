@@ -1,0 +1,423 @@
+{
+  "date": "2026-10-14",
+  "engineContract": "2026.10.13.7",
+  "regression": {
+    "passed": 826,
+    "failed": 0,
+    "skipped": 2
+  },
+  "postgres": {
+    "passed": 59,
+    "failed": 0
+  },
+  "coverage": {
+    "total": 115,
+    "passed": 114,
+    "deferred": 1
+  },
+  "builtUI": {
+    "errors": [],
+    "openMs": 1548.1999000000005,
+    "failedDeferredPanelPreservesWorkspace": true,
+    "controlledPanelErrors": [],
+    "continuousAutosave": {
+      "revision": 2,
+      "clock": 3731.899999999441,
+      "manualSaveResolved": true
+    },
+    "build": {
+      "engineBuild": "698d584b7a294cb03bf2aee50c4167e1aec7babd4b491484b454f5c62052b305",
+      "engineContract": "2026.10.13.7",
+      "schemaVersion": 11,
+      "workerArtifact": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d",
+      "clientWorkerHash": "698d584b7a294cb03bf2aee50c4167e1aec7babd4b491484b454f5c62052b305",
+      "workerArtifactHash": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d",
+      "entryBytes": 263895,
+      "entry": "/assets/index-CBANLSgY.js",
+      "replay": "matched"
+    },
+    "doubleFailureVisible": true,
+    "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+    "passed": true
+  },
+  "heap": [
+    59.29267501831055,
+    58.527584075927734,
+    57.668460845947266
+  ],
+  "performance": [
+    {
+      "devices": 38,
+      "workload": "Enterprise/DC nativo: controle BGP/EVPN/VRRP + HTTP ERP/LB; aquecimento fora da medição",
+      "trials": [
+        {
+          "validateMs": 139.8728999999994,
+          "layoutMs": 160.4391000000005,
+          "wallMs": 1942.0096000000003,
+          "simulatedMs": 3000,
+          "realtimeRatio": 1.5447866873578822,
+          "chunks": 77,
+          "p95ChunkMs": 26.28729999999996,
+          "maxChunkMs": 30.160499999999956,
+          "p95DeltaBytes": 195721,
+          "totalDeltaBytes": 11530998,
+          "bytesPerEvent": 8013.202223766504,
+          "processed": 1439,
+          "responses": 12,
+          "sent": 12,
+          "snapshotBytes": 2355253,
+          "captureDropped": 1099,
+          "heapBeforeMiB": 48.16926574707031,
+          "heapDuringMiB": 128.24867248535156
+        },
+        {
+          "validateMs": 90.21720000000096,
+          "layoutMs": 161.04290000000037,
+          "wallMs": 2166.106899999999,
+          "simulatedMs": 3000,
+          "realtimeRatio": 1.3849724944462614,
+          "chunks": 86,
+          "p95ChunkMs": 26.285499999999956,
+          "maxChunkMs": 28.389999999999418,
+          "p95DeltaBytes": 187210,
+          "totalDeltaBytes": 11824028,
+          "bytesPerEvent": 8216.836692147324,
+          "processed": 1439,
+          "responses": 12,
+          "sent": 12,
+          "snapshotBytes": 2355253,
+          "captureDropped": 1099,
+          "heapBeforeMiB": 60.33583068847656,
+          "heapDuringMiB": 123.09379577636719
+        },
+        {
+          "validateMs": 97.89069999999992,
+          "layoutMs": 189.52930000000015,
+          "wallMs": 1987.8310000000001,
+          "simulatedMs": 3000,
+          "realtimeRatio": 1.5091823179772699,
+          "chunks": 80,
+          "p95ChunkMs": 26.195699999998396,
+          "maxChunkMs": 28.444400000000314,
+          "p95DeltaBytes": 189008,
+          "totalDeltaBytes": 11567204,
+          "bytesPerEvent": 8038.36275191105,
+          "processed": 1439,
+          "responses": 12,
+          "sent": 12,
+          "snapshotBytes": 2355253,
+          "captureDropped": 1099,
+          "heapBeforeMiB": 61.569549560546875,
+          "heapDuringMiB": 136.88457489013672
+        }
+      ]
+    },
+    {
+      "devices": 100,
+      "workload": "Árvore L2 com capacidade de hosts e seis ICMP entre extremos; não equivale a fabric enterprise",
+      "trials": [
+        {
+          "validateMs": 13.943199999999706,
+          "layoutMs": 22.646099999999933,
+          "wallMs": 41.58770000000004,
+          "simulatedMs": 3000,
+          "realtimeRatio": 72.13567277334994,
+          "chunks": 6,
+          "p95ChunkMs": 16.81210000000101,
+          "maxChunkMs": 16.81210000000101,
+          "p95DeltaBytes": 237526,
+          "totalDeltaBytes": 543675,
+          "bytesPerEvent": 3071.6101694915255,
+          "processed": 177,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 469433,
+          "captureDropped": 0,
+          "heapBeforeMiB": 56.132301330566406,
+          "heapDuringMiB": 105.79014587402344
+        },
+        {
+          "validateMs": 13.792199999999866,
+          "layoutMs": 25.822000000000116,
+          "wallMs": 37.338700000000244,
+          "simulatedMs": 3000,
+          "realtimeRatio": 80.34451729013938,
+          "chunks": 6,
+          "p95ChunkMs": 14.92149999999856,
+          "maxChunkMs": 14.92149999999856,
+          "p95DeltaBytes": 237526,
+          "totalDeltaBytes": 543675,
+          "bytesPerEvent": 3071.6101694915255,
+          "processed": 177,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 469433,
+          "captureDropped": 0,
+          "heapBeforeMiB": 50.81105041503906,
+          "heapDuringMiB": 100.94344329833984
+        },
+        {
+          "validateMs": 11.55489999999918,
+          "layoutMs": 19.458699999999226,
+          "wallMs": 35.03780000000006,
+          "simulatedMs": 3000,
+          "realtimeRatio": 85.62108105176995,
+          "chunks": 6,
+          "p95ChunkMs": 13.371999999999389,
+          "maxChunkMs": 13.371999999999389,
+          "p95DeltaBytes": 237526,
+          "totalDeltaBytes": 543675,
+          "bytesPerEvent": 3071.6101694915255,
+          "processed": 177,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 469433,
+          "captureDropped": 0,
+          "heapBeforeMiB": 51.2828369140625,
+          "heapDuringMiB": 98.5857925415039
+        }
+      ]
+    },
+    {
+      "devices": 500,
+      "workload": "Árvore L2 com capacidade de hosts e seis ICMP entre extremos; não equivale a fabric enterprise",
+      "trials": [
+        {
+          "validateMs": 51.87280000000101,
+          "layoutMs": 97.65729999999894,
+          "wallMs": 162.78319999999985,
+          "simulatedMs": 3000,
+          "realtimeRatio": 18.42936362793081,
+          "chunks": 9,
+          "p95ChunkMs": 26.983500000000276,
+          "maxChunkMs": 26.983500000000276,
+          "p95DeltaBytes": 394952,
+          "totalDeltaBytes": 2070452,
+          "bytesPerEvent": 3433.585406301824,
+          "processed": 603,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 1594667,
+          "captureDropped": 0,
+          "heapBeforeMiB": 53.02799987792969,
+          "heapDuringMiB": 97.63926696777344
+        },
+        {
+          "validateMs": 51.71270000000004,
+          "layoutMs": 98.85920000000078,
+          "wallMs": 141.0485000000008,
+          "simulatedMs": 3000,
+          "realtimeRatio": 21.269189239775343,
+          "chunks": 8,
+          "p95ChunkMs": 27.69510000000082,
+          "maxChunkMs": 27.69510000000082,
+          "p95DeltaBytes": 506404,
+          "totalDeltaBytes": 2051908,
+          "bytesPerEvent": 3402.832504145937,
+          "processed": 603,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 1594667,
+          "captureDropped": 0,
+          "heapBeforeMiB": 60.342491149902344,
+          "heapDuringMiB": 89.72118377685547
+        },
+        {
+          "validateMs": 53.349599999999555,
+          "layoutMs": 77.27690000000075,
+          "wallMs": 142.39040000000023,
+          "simulatedMs": 3000,
+          "realtimeRatio": 21.068747322513417,
+          "chunks": 8,
+          "p95ChunkMs": 28.019900000001144,
+          "maxChunkMs": 28.019900000001144,
+          "p95DeltaBytes": 525172,
+          "totalDeltaBytes": 2056232,
+          "bytesPerEvent": 3410.0033167495853,
+          "processed": 603,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 1594667,
+          "captureDropped": 0,
+          "heapBeforeMiB": 60.405792236328125,
+          "heapDuringMiB": 88.87443542480469
+        }
+      ]
+    },
+    {
+      "devices": 2000,
+      "workload": "Árvore L2 com capacidade de hosts e seis ICMP entre extremos; não equivale a fabric enterprise",
+      "trials": [
+        {
+          "validateMs": 254.79999999999927,
+          "layoutMs": 457.4901000000009,
+          "wallMs": 850.5378999999994,
+          "simulatedMs": 3000,
+          "realtimeRatio": 3.5271734619230983,
+          "chunks": 25,
+          "p95ChunkMs": 35.74329999999827,
+          "maxChunkMs": 37.810700000001816,
+          "p95DeltaBytes": 560453,
+          "totalDeltaBytes": 7703427,
+          "bytesPerEvent": 3618.33114138093,
+          "processed": 2129,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 4569863,
+          "captureDropped": 0,
+          "heapBeforeMiB": 65.81256103515625,
+          "heapDuringMiB": 151.5378189086914
+        },
+        {
+          "validateMs": 212.03350000000137,
+          "layoutMs": 422.8820999999989,
+          "wallMs": 869.4855000000025,
+          "simulatedMs": 3000,
+          "realtimeRatio": 3.450311942702739,
+          "chunks": 25,
+          "p95ChunkMs": 37.76979999999821,
+          "maxChunkMs": 43.292600000000675,
+          "p95DeltaBytes": 564160,
+          "totalDeltaBytes": 7693708,
+          "bytesPerEvent": 3613.76608736496,
+          "processed": 2129,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 4569863,
+          "captureDropped": 0,
+          "heapBeforeMiB": 88.62183380126953,
+          "heapDuringMiB": 205.2022705078125
+        },
+        {
+          "validateMs": 231.98359999999957,
+          "layoutMs": 445.3610000000008,
+          "wallMs": 874.7050999999992,
+          "simulatedMs": 3000,
+          "realtimeRatio": 3.4297218552737396,
+          "chunks": 25,
+          "p95ChunkMs": 39.32330000000002,
+          "maxChunkMs": 43.14769999999771,
+          "p95DeltaBytes": 564160,
+          "totalDeltaBytes": 7695508,
+          "bytesPerEvent": 3614.611554720526,
+          "processed": 2129,
+          "responses": 6,
+          "sent": 6,
+          "snapshotBytes": 4569863,
+          "captureDropped": 0,
+          "heapBeforeMiB": 88.68478393554688,
+          "heapDuringMiB": 204.73577880859375
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "name": "CaptureDialog-CsLGdJvZ.js",
+      "rawBytes": 2645,
+      "brotliBytes": 1247
+    },
+    {
+      "name": "catalog-labs-NXtBuq2b.js",
+      "rawBytes": 13694,
+      "brotliBytes": 5009
+    },
+    {
+      "name": "CloneReview-DNN2KtNY.js",
+      "rawBytes": 12328,
+      "brotliBytes": 4404
+    },
+    {
+      "name": "CommentDialog-C6AhDNOh.js",
+      "rawBytes": 1477,
+      "brotliBytes": 730
+    },
+    {
+      "name": "ConfigEditor-DTV5LRsy.js",
+      "rawBytes": 10897,
+      "brotliBytes": 4156
+    },
+    {
+      "name": "FactoryTools-CvfforJH.js",
+      "rawBytes": 36943,
+      "brotliBytes": 11401
+    },
+    {
+      "name": "index-B0eh266i.css",
+      "rawBytes": 98688,
+      "brotliBytes": 18361
+    },
+    {
+      "name": "index-DRw5NPnY.js",
+      "rawBytes": 263895,
+      "brotliBytes": 76480
+    },
+    {
+      "name": "Inspector-bpckR1Hc.js",
+      "rawBytes": 190984,
+      "brotliBytes": 42115
+    },
+    {
+      "name": "NetworkConceptGuide-BttQ7KFZ.js",
+      "rawBytes": 35628,
+      "brotliBytes": 12573
+    },
+    {
+      "name": "NetworkInspector-wE8rTI2O.js",
+      "rawBytes": 6671,
+      "brotliBytes": 2437
+    },
+    {
+      "name": "scenario.worker-DONTulb4.js",
+      "rawBytes": 948054,
+      "brotliBytes": 244374
+    },
+    {
+      "name": "SectionEducation-C5V5v-0J.js",
+      "rawBytes": 26733,
+      "brotliBytes": 9712
+    },
+    {
+      "name": "simulation.worker-8NTXcDqD.js",
+      "rawBytes": 912382,
+      "brotliBytes": 234861
+    },
+    {
+      "name": "src-qLl4LTuy.js",
+      "rawBytes": 964940,
+      "brotliBytes": 252410
+    },
+    {
+      "name": "Terminal--FgEEZmZ.js",
+      "rawBytes": 339013,
+      "brotliBytes": 78417
+    },
+    {
+      "name": "Terminal-BrP-ENHg.css",
+      "rawBytes": 3939,
+      "brotliBytes": 865
+    },
+    {
+      "name": "Workspace-CYK7bINN.js",
+      "rawBytes": 353353,
+      "brotliBytes": 101258
+    },
+    {
+      "name": "Workspace-DLioOiRN.css",
+      "rawBytes": 15413,
+      "brotliBytes": 2358
+    }
+  ],
+  "remote": {
+    "origin": "https://shnet.up.railway.app",
+    "build": {
+      "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+      "engineContract": "2026.10.13.6",
+      "schemaVersion": 11,
+      "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039"
+    },
+    "tls": true,
+    "workerMatched": true
+  },
+  "ci": "Prepared; execution evidence will be recorded after publication."
+}

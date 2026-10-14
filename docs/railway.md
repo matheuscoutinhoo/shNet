@@ -76,7 +76,11 @@ Cookies são Secure, HttpOnly e SameSite=Strict. A origem é uma configuração 
 - A migration 007 compartilha rate limits em PostgreSQL; notificações privadas usam LISTEN/NOTIFY. Duas instâncias foram verificadas localmente. Valide proxy, readiness, reconexão dos clientes e capacidade do banco no ambiente antes de aumentar réplicas. A definição IaC conserva uma réplica inicial.
 - O banco embarcado local não é migrado automaticamente para o Railway. Exporte/importe os laboratórios ou planeje uma migração de dados separada.
 
-Nesta máquina foram validados o SDK/IaC, build e testes locais. Docker e Railway CLI não estavam instalados: a imagem Linux, o plano contra uma conta Railway e a entrega real de e-mail precisam ser verificados na CI/implantação. A preparação não cria recursos pagos nem publica commits automaticamente.
+O domínio real é `https://shnet.up.railway.app/`. `npm run qualify:remote` arquiva TLS/certificado, headers, readiness, proteção dos endpoints e identidade dos assets/Worker sem alterar usuários ou projetos. Para exigir a versão pretendida, configure `SHLAB_EXPECT_ENGINE_BUILD` com o hash esperado. Esse smoke não atesta backup, PITR ou rollback do banco Railway.
+
+Em 14/10/2026, a CLI não tinha autenticação e não havia sessão de navegador conectada. O usuário escolheu homologação isolada na CI. O job `containers` constrói a imagem Linux atual e a versão publicada definida por `SHLAB_ROLLBACK_REF`; testa login, ownership, projeto/ensaio/replay, backup criptografado, restore em outro PostgreSQL descartável e rollback de imagem por HTTPS com CA explicitamente confiável. Seus bancos são criados exclusivamente dentro do PostgreSQL 18 do job. O job recusa configuração de banco de produção. O artefato `container-qualification` registra o resultado executado; preparar o roteiro não equivale a aprová-lo.
+
+Para operar a mesma homologação no Railway futuramente, autentique a CLI, vincule o projeto correto e crie um ambiente isolado. Revise todas as referências de variáveis antes de publicar: o banco de testes deve ser outro serviço/instância, nunca uma referência ao PostgreSQL de produção. Não duplicar tráfego, e-mails ou integrações reais. A nova sessão ainda não criou recursos Railway pagos nem efetuou rollback no domínio de produção.
 
 ## Referências oficiais
 

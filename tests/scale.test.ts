@@ -11,8 +11,24 @@ import {
   findPort,
   findLink,
   linksAt,
+  invalidateTopologyIndex,
 } from '../packages/simulation-engine/src/core/topology-index';
 describe('Escala e execução isolada', () => {
+  it('porta sem cabo permanece correta ao conectar/remover e ao remapear endpoints explicitamente', () => {
+    const e = new SimulationEngine(),
+      a = e.addDevice('switch'),
+      b = e.addDevice('pc');
+    expect(linksAt(e.state, a.id, 'p0')).toEqual([]);
+    expect(linksAt(e.state, a.id, 'p1')).toEqual([]);
+    const link = e.connect({ device: a.id, port: 'p0' }, { device: b.id, port: 'p0' });
+    expect(linksAt(e.state, a.id, 'p0')).toEqual([link]);
+    link.a.port = 'p1';
+    invalidateTopologyIndex(e.state);
+    expect(linksAt(e.state, a.id, 'p1')).toEqual([link]);
+    expect(linksAt(e.state, a.id, 'p0')).toEqual([]);
+    e.removeLink(link.id);
+    expect(linksAt(e.state, a.id, 'p1')).toEqual([]);
+  });
   it('deltas do Worker preservam determinismo, timers e objetos que não mudaram', () => {
     const source = new SimulationEngine(makeTemplate('lan'));
     source.addDevice('server');

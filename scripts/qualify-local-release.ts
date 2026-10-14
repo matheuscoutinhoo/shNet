@@ -220,7 +220,8 @@ try {
     sourceHash: manifest.sourceHash,
     assetHash: manifest.assetHash,
     backupRestoreEvidence: 'tests/production.test.ts via npm run test:postgres',
-    remoteDeployment: 'not-requested: local-only qualification',
+    remoteDeployment:
+      'not-executed-by-this-local-script; see remote-release.json and CI container-qualification',
   };
   await writeFile(out + '/local-release-qualification.json', JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));

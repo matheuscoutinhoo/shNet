@@ -1,5 +1,5 @@
 import { enterpriseDefaults } from './protocols/enterprise-defaults';
-import factoryTemplate from './factory-template.json';
+import factoryTemplate from './factory-template.json' with { type: 'json' };
 import { enterpriseDatacenterTemplate } from './enterprise-datacenter-template';
 import { SimulationEngine } from './core/engine';
 import type { Device, Snapshot } from './model';

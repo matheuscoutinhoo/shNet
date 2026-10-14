@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { eventSchema } from './model';
 import { scenarioSchema } from './scenarios-model';
 import { scenarioRecovery } from './scenario-metrics';
+import { ENGINE_CONTRACT_VERSION } from './version';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 const ms = z.number().finite().nonnegative();
@@ -34,6 +35,20 @@ const sampleSchema = z
           )
           .max(16),
         path: z.array(z.string().max(100)).max(64),
+        hops: z
+          .array(
+            z
+              .object({
+                id: z.string().max(100),
+                atMs: ms,
+                device: z.string().max(100),
+                port: z.string().max(80).optional(),
+                direction: z.enum(['sent', 'received']),
+              })
+              .strict()
+          )
+          .max(128)
+          .optional(),
         truncated: z.boolean().optional(),
       })
       .strict()
@@ -101,6 +116,9 @@ export const scenarioReportSchema = z
                     recoveryMs: ms.nullable(),
                     observedFailure: z.boolean(),
                     resolutionMs: ms,
+                    recoveryResponseAtMs: ms.nullable().optional(),
+                    firstFailedAttemptAtMs: ms.nullable().optional(),
+                    measurement: z.literal('response-timestamp').optional(),
                   })
                   .strict()
               )
@@ -264,7 +282,15 @@ export const scenarioReportSchema = z
         canonicalScenarioJson(fault) !== canonicalScenarioJson(r.scenario.faults[i]) ||
         recovery.length !== names.length ||
         canonicalScenarioJson(recovery) !==
-          canonicalScenarioJson(scenarioRecovery(r.scenario, r.samples, f.atMs))
+          canonicalScenarioJson(
+            scenarioRecovery(
+              r.scenario,
+              r.samples,
+              f.atMs,
+              r.engineContract === ENGINE_CONTRACT_VERSION ||
+                recovery.some((v) => v.measurement !== undefined)
+            )
+          )
       )
         ctx.addIssue({ code: 'custom', message: 'Falhas e recuperação divergentes da definição.' });
     });

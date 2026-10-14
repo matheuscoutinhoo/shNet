@@ -1,3 +1,4 @@
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface, Frame, Action } from '../model';
 import { dot1xConfigSchema, supplicantConfigSchema, type Eapol, type AaaQuery } from './aaa-model';
@@ -46,6 +47,7 @@ function reset(e: SimulationEngine, d: Device, p: NetworkInterface) {
   delete a.assignedVlan;
 }
 export function configureDot1x(e: SimulationEngine, d: Device, p: NetworkInterface, input: unknown) {
+  invalidateProtocolIndex(e.state);
   const c = dot1xConfigSchema.parse(input),
     wan = d.interfaces.find((p) => p.id === c.underlay);
   if (
@@ -82,6 +84,7 @@ export function configureDot1x(e: SimulationEngine, d: Device, p: NetworkInterfa
   );
 }
 export function configureSupplicant(e: SimulationEngine, d: Device, p: NetworkInterface, input: unknown) {
+  invalidateProtocolIndex(e.state);
   const c = supplicantConfigSchema.parse(input);
   if (d.type === 'switch' || !physical(p) || p.dot1x)
     throw new Error('Supplicant exige porta Ethernet de endpoint/roteador.');
@@ -234,7 +237,7 @@ export function permitDot1x(
   return permitted;
 }
 export function refreshDot1x(e: SimulationEngine) {
-  for (const d of e.state.devices)
+  for (const d of protocolDevices(e.state, 'dot1x'))
     for (const p of d.interfaces) {
       const a = p.dot1x,
         s = p.supplicant;

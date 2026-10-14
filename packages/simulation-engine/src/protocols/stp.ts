@@ -1,3 +1,4 @@
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import { multiSpanningTreeConfigSchema } from '../model';
 import {
   stpScope,
@@ -286,6 +287,7 @@ function configureClassic(
   mode: 'off' | 'stp' | 'rstp',
   priority = device.spanningTree?.priority ?? 32768
 ) {
+  invalidateProtocolIndex(engine.state);
   if (device.type !== 'switch') throw new Error('Spanning tree exige um switch.');
   if (
     !['off', 'stp', 'rstp'].includes(mode) ||
@@ -464,7 +466,7 @@ function handleClassic(
 }
 
 export function refreshSpanningTree(e: SimulationEngine) {
-  for (const d of e.state.devices)
+  for (const d of protocolDevices(e.state, 'stp'))
     for (const id of stpInstances(d)) withStpInstance(d, id, () => refreshDevice(e, d));
 }
 export function multiStpConfig(d: Device) {
@@ -520,6 +522,7 @@ export function configureSpanningTree(
   mode: 'off' | 'stp' | 'rstp',
   priority?: number
 ) {
+  invalidateProtocolIndex(e.state);
   if (
     !['off', 'stp', 'rstp'].includes(mode) ||
     (priority !== undefined &&
@@ -535,6 +538,7 @@ export function configureSpanningTree(
   configureClassic(e, d, mode, priority);
 }
 export function configureMultiSpanningTree(e: SimulationEngine, d: Device, input: unknown) {
+  invalidateProtocolIndex(e.state);
   if (d.type !== 'switch') throw new Error('PVST/MSTP exige switch.');
   const c = multiSpanningTreeConfigSchema.parse(input);
   const ids =

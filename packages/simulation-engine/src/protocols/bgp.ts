@@ -17,6 +17,7 @@ import {
 } from './bgp-model';
 import { bgpNextHop, bgpPermits, exportedBgpPaths, installedBgpRoutes, validBgpPrefix } from './bgp-routing';
 import { validateBgpConfig } from './bgp-validation';
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 
 export function bgpConfig(device: Device) {
   const state = device.bgp;
@@ -176,6 +177,7 @@ function resetPeer(engine: SimulationEngine, device: Device, peer: BgpPeer, reas
   synchronize(engine, device);
 }
 export function configureBgp(engine: SimulationEngine, device: Device, input: unknown) {
+  invalidateProtocolIndex(engine.state);
   const config = bgpConfigSchema.parse(input);
   validateBgpConfig(device, config);
   if (device.bgp)
@@ -240,7 +242,7 @@ function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer,
   }
 }
 export function refreshBgp(engine: SimulationEngine) {
-  for (const device of engine.state.devices) {
+  for (const device of protocolDevices(engine.state, 'bgp')) {
     if (!device.bgp?.enabled) continue;
     for (const peer of device.bgp.peers) {
       const connection = device.tcpConnections?.find((entry) => entry.id === peer.connection);
@@ -296,13 +298,25 @@ export function handleBgpTick(engine: SimulationEngine, action: BgpTimer) {
     } else if (!active.length && !config.passive && peer.retryAt <= engine.state.clock) {
       peer.retryAt = engine.state.clock + BGP.retryMs;
       try {
-        const source = config.updateSource && device.interfaces.find((p) => p.id === config.updateSource);
+        const source = config.updateSource
+          ? device.interfaces.find((p) => p.id === config.updateSource)
+          : undefined;
         if (source && !interfaceOperational(engine.state, device, source))
           throw new Error('Update source indisponível.');
-        const id = openTcp(engine, device, peer.ip, BGP.port, '', false, (c) => {
-          setup(c);
-          if (source) c.localIp = source.ip!;
-        });
+        const id = openTcp(
+          engine,
+          device,
+          peer.ip,
+          BGP.port,
+          '',
+          false,
+          (c) => {
+            setup(c);
+          },
+          undefined,
+          undefined,
+          source?.ip
+        );
         peer.connection = id;
         peerState(engine, device, peer, 'Connect');
       } catch {

@@ -5,6 +5,7 @@ export interface ScenarioEvidence {
   cause: 'policy' | 'link' | 'transport' | 'response' | 'timeout' | 'unknown';
   events: { id: string; atMs: number; device: string; type: NetworkEvent['type']; reason: string }[];
   path: string[];
+  hops?: { id: string; atMs: number; device: string; port?: string; direction: 'sent' | 'received' }[];
   truncated?: boolean;
 }
 export function scenarioEvidence(
@@ -116,6 +117,7 @@ export function scenarioEvidence(
         .map((event) => e.device(event.device).hostname)
     ),
   ];
+  const hops = related.filter((event) => ['FRAME_SENT', 'FRAME_RECEIVED'].includes(event.type));
   return {
     cause: policy
       ? 'policy'
@@ -136,8 +138,16 @@ export function scenarioEvidence(
       reason: event.reason.slice(0, 500),
     })),
     path: path.slice(0, 64),
+    hops: hops.slice(0, 128).map((event) => ({
+      id: event.id,
+      atMs: event.time - at,
+      device: e.device(event.device).hostname,
+      ...(event.port ? { port: event.port } : {}),
+      direction: event.type === 'FRAME_SENT' ? 'sent' : 'received',
+    })),
     truncated:
       failures.length > 16 ||
+      hops.length > 128 ||
       path.length > 64 ||
       Boolean(e.state.capture?.dropped) ||
       (e.state.diagnostics?.length ?? 0) >= LIMITS.diagnostics,

@@ -1,7 +1,9 @@
 import type { SimulationEngine } from '../core/engine';
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import type { Device, Frame, Snapshot } from '../model';
 import { infrastructureConfigSchema, systemConfigSchema } from './infrastructure-model';
 export function configureInfrastructure(e: SimulationEngine, d: Device, input: unknown) {
+  invalidateProtocolIndex(e.state);
   const value = infrastructureConfigSchema.parse(input);
   const before = d.infrastructure;
   d.infrastructure = value;
@@ -15,6 +17,7 @@ export function configureInfrastructure(e: SimulationEngine, d: Device, input: u
   e.emit('CONFIG_CHANGED', d.id, 'Infraestrutura ' + value.kind + ' configurada.');
 }
 export function configureSystem(e: SimulationEngine, d: Device, input: unknown) {
+  invalidateProtocolIndex(e.state);
   const c = systemConfigSchema.parse(input);
   d.system = {
     ...c,
@@ -77,7 +80,7 @@ export function processingDelay(e: SimulationEngine, d: Device) {
 export function refreshInfrastructure(e: SimulationEngine, metrics = false) {
   const s = e.state;
   const poweredLoads = new Map<string, boolean>();
-  for (const d of s.devices) {
+  for (const d of protocolDevices(s, 'ups')) {
     const ups = d.infrastructure;
     if (ups?.kind !== 'ups') continue;
     const hours = Math.max(0, s.clock - ups.lastAt) / 3600000;
