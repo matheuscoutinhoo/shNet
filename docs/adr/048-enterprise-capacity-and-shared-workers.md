@@ -20,6 +20,8 @@ O comportamento se baseia nas descrições oficiais de [RSTP](https://www.cisco.
 
 A primeira CI passou em regressão, containers e capacidade, mas o navegador encontrou uma segunda mudança de caminho dentro de `tcWhile`. A correção conserva a notificação desse novo caminho até a raiz, sem eco para a porta de recepção, e remove imediatamente MACs de uma porta local bloqueada/desconectada. A limpeza respeita os outros escopos PVST/MSTP. O caso original do navegador passou localmente sem aumentar seu orçamento de 64 eventos; a nova CI precisa concluir os dois temas antes da promoção.
 
+A rodada seguinte aprovou novamente regressão/containers/capacidade. O cadastro rápido do tema escuro atingiu o limite real de oito tentativas por minuto. O roteiro de cadastro agora verifica a resposta 202 e respeita `Retry-After` em uma resposta 429, como o roteiro de login já fazia. A proteção da aplicação foi mantida.
+
 Expiração de MAC/ARP/DNS acompanha o próximo prazo e os aprendizados antecipam esse prazo. Refresh de STP acompanha expirações e mudanças de carrier; BGP acompanha alterações de configuração, rotas, transporte e acesso. Fronteiras públicas invalidam os caches para reconhecer edições em memória. O índice de conexões de captura evita buscar em todas as conexões por frame. O estado final é comparado à execução que faz refresh a cada evento, incluindo perda de core, além dos testes de convergência, failover e restore.
 
 ## Concorrência da API
