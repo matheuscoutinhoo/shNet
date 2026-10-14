@@ -3800,6 +3800,7 @@ test('Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile', a
       Number(await page.locator('[data-telemetry-records]').getAttribute('data-telemetry-records')) > 0,
     160
   );
+  await page.getByRole('button', { name: 'Ver toda a rede', exact: true }).click();
   await page.locator('.event-filters').getByRole('button', { name: 'Gerenciamento', exact: true }).click();
   await advanceSimulation(
     page,
@@ -3932,7 +3933,7 @@ test('Aprendizagem: editor de desafios, tutorial completo, pontuação e mobile'
   await page.getByRole('button', { name: 'Salvar desafio e estado inicial' }).click();
   await expect(page.getByRole('heading', { name: 'Minha LAN funcional' })).toBeVisible();
   await page.getByRole('button', { name: 'Verificar objetivos' }).click();
-  await expect(page.getByRole('status')).toContainText('Pontuação: 100/100');
+  await expect(page.getByRole('dialog').getByRole('status')).toContainText('Pontuação: 100/100');
   await page.getByRole('button', { name: 'Reiniciar topologia do desafio' }).click();
   await expect(page.locator('.workspace-alert')).toHaveCount(0);
   await page.getByRole('dialog').getByRole('button', { name: 'Fechar', exact: true }).click();
