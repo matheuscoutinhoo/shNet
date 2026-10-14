@@ -9,6 +9,7 @@ import {
 import { api, ApiError, type Project } from '../api';
 import { SnapshotHistory } from './snapshot-history';
 import { projectDrafts, storeProjectDraft, removeProjectDraft, type ProjectDraft } from './project-drafts';
+import simulationWorkerUrl from './simulation.worker.ts?execution-worker';
 let tabSession = '';
 export function useLab(project: Project, onExpired: () => void, userId = project.user_id ?? '') {
   const [engine] = useState(() => new SimulationEngine(project.topology));
@@ -297,7 +298,7 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     if (!playing) return;
     setPlaybackMetrics({ lagMs: 0, eventsPerSecond: 0, ready: false });
     const generation = ++workerGeneration.current;
-    const worker = new Worker(new URL('./simulation.worker.ts', import.meta.url), { type: 'module' });
+    const worker = new Worker(simulationWorkerUrl, { type: 'module' });
     let ready = false,
       busy = false;
     let startedAt = 0,

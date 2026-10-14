@@ -12,8 +12,24 @@ import {
 } from './stp-scope';
 import { switchingPorts } from './lacp-members';
 import { interfaceOperational } from './layer3';
-import { STP, type Action, type Bpdu, type Device, type Frame, type NetworkInterface } from '../model';
+import {
+  STP,
+  type Action,
+  type Bpdu,
+  type Device,
+  type Frame,
+  type NetworkInterface,
+  type Snapshot,
+} from '../model';
 import type { SimulationEngine } from '../core/engine';
+const refreshBounds = new WeakMap<Snapshot, number>();
+export function invalidateSpanningRefresh(snapshot: Snapshot) {
+  refreshBounds.delete(snapshot);
+}
+function noteExpiry(snapshot: Snapshot, at: number) {
+  const next = refreshBounds.get(snapshot);
+  if (next !== undefined && at < next) refreshBounds.set(snapshot, at);
+}
 import {
   bridgeId,
   bridgeLabel,
@@ -50,12 +66,19 @@ function forgetInfo(engine: SimulationEngine, device: Device, port: NetworkInter
 
 function topologyChange(engine: SimulationEngine, device: Device, receivedId?: string) {
   const tree = device.spanningTree!;
-  const changeId = receivedId ?? engine.id('stp-change');
-  if (tree.seenChanges.includes(changeId)) return false;
-  tree.seenChanges.push(changeId);
-  if (tree.seenChanges.length > 64) tree.seenChanges.shift();
-  tree.changeId = changeId;
-  tree.changeUntil = engine.state.clock + STP.hello * 2;
+  const active = tree.changeUntil > engine.state.clock;
+  // TC is a timed condition. Repeated local transitions/received flags during
+  // tcWhile must not manufacture and flood a new wave for every port.
+  const changeId = receivedId ?? (active ? tree.changeId : undefined) ?? engine.id('stp-change');
+  const seen = !!receivedId && tree.seenChanges.includes(changeId);
+  if (!seen && !tree.seenChanges.includes(changeId)) {
+    tree.seenChanges.push(changeId);
+    if (tree.seenChanges.length > 64) tree.seenChanges.shift();
+  }
+  if (!active && !seen) {
+    tree.changeId = changeId;
+    tree.changeUntil = engine.state.clock + STP.hello * 2;
+  }
   tree.changes++;
   const boundaryChange =
     device.multiSpanningTree?.mode === 'mstp' &&
@@ -75,7 +98,13 @@ function topologyChange(engine: SimulationEngine, device: Device, receivedId?: s
     device.id,
     'Mudança de topologia: tabela MAC limpa para reaprender o caminho.'
   );
-  return true;
+  // RSTP propagates TC upstream as well as down designated segments. Without
+  // this notification the root retains MACs on the failed access path.
+  if (!active && !seen && tree.mode === 'rstp') {
+    const root = device.interfaces.find((port) => port.id === tree.rootPort);
+    if (root) send(engine, device, root);
+  }
+  return !active && !seen;
 }
 
 function setState(
@@ -91,7 +120,8 @@ function setState(
   engine.emit('STP_PORT_CHANGED', device.id, port.name + ': ' + current.role + ' / ' + state + '.', {
     port: port.id,
   });
-  if (!port.stpEdge && (wasForwarding || state === 'forwarding')) topologyChange(engine, device);
+  if (!port.stpEdge && (state === 'forwarding' || (device.spanningTree!.mode === 'stp' && wasForwarding)))
+    topologyChange(engine, device);
 }
 
 function beginTransition(engine: SimulationEngine, device: Device, port: NetworkInterface) {
@@ -137,6 +167,7 @@ function message(engine: SimulationEngine, device: Device, port: NetworkInterfac
       port.spanningTree!.role === 'designated' &&
       port.spanningTree!.state !== 'forwarding',
     agreement,
+    role: port.spanningTree!.role,
     ...(tree.changeId && tree.changeUntil > engine.state.clock ? { changeId: tree.changeId } : {}),
   };
 }
@@ -145,6 +176,27 @@ function send(engine: SimulationEngine, device: Device, port: NetworkInterface, 
   if (!port.spanningTree?.operational) return;
   const bpdu = message(engine, device, port, agreement);
   if (bpdu.age >= STP.maxAge) return;
+  // Six BPDUs per one-second window, per instance/port. Coalesce deferred
+  // announcements and construct them from current information at transmission.
+  const tx = (port.spanningTree.transmit ??= { count: 0, windowStart: engine.state.clock });
+  if (engine.state.clock >= tx.windowStart + 1000) {
+    tx.count = 0;
+    tx.windowStart = engine.state.clock;
+  }
+  if (tx.count >= 6) {
+    tx.agreement = tx.agreement || agreement;
+    if (tx.pendingAt === undefined) {
+      tx.pendingAt = tx.windowStart + 1000;
+      stpSchedule(engine, tx.pendingAt - engine.state.clock, {
+        kind: 'stp-transmit',
+        device: device.id,
+        port: port.id,
+        at: tx.pendingAt,
+      });
+    }
+    return;
+  }
+  tx.count++;
   const vlan = bpdu.domain === 'pvst' && bpdu.instance ? bpdu.instance : undefined;
   const frame: Frame = {
     src: port.mac,
@@ -201,7 +253,7 @@ function recompute(engine: SimulationEngine, device: Device) {
   if (rootPort) tree.rootPort = rootPort;
   else delete tree.rootPort;
   if (changedRoot) {
-    topologyChange(engine, device);
+    if (tree.mode === 'stp') topologyChange(engine, device);
     engine.emit(
       'STP_ROOT_CHANGED',
       device.id,
@@ -302,7 +354,8 @@ function configureClassic(
       !(
         (action.kind === 'stp-hello' ||
           action.kind === 'stp-transition' ||
-          action.kind === 'stp-info-expire') &&
+          action.kind === 'stp-info-expire' ||
+          action.kind === 'stp-transmit') &&
         action.device === device.id &&
         (action.instance ?? 0) === stpScope(device)
       )
@@ -364,6 +417,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     'BPDU recebido: root ' + bridgeLabel(bpdu.root) + ', custo ' + bpdu.cost + '.',
     { port: port.id, frame }
   );
+  const changedTopology = bpdu.changeId ? topologyChange(engine, device, bpdu.changeId) : false;
   // An agreement acknowledges our designated information. It must not become
   // a new root candidate: the peer's cost may have been learned through us.
   if (bpdu.agreement && tree.mode === 'rstp' && bpdu.mode === 'rstp' && port.duplex === 'full') {
@@ -376,6 +430,30 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
       current.agreed = true;
       setState(engine, device, port, 'forwarding');
     } else if (current.role === 'designated') send(engine, device, port);
+    if (changedTopology) advertise(engine, device);
+    return;
+  }
+  // Root/alternate role flags carry notifications, not designated information.
+  // Recording an upstream TC as a root candidate feeds the dead root back into
+  // its former parent and delays recovery until information expires.
+  if (bpdu.role && bpdu.role !== 'designated') {
+    if (current.role === 'designated') send(engine, device, port);
+    if (changedTopology) advertise(engine, device);
+    return;
+  }
+  // Inferior information on our designated segment cannot replace our own
+  // designated information. Reply with the superior vector. Inferior updates
+  // from the current root/designated neighbor are still accepted below.
+  const local = {
+    root: tree.root,
+    cost: tree.cost,
+    bridge: bridgeId(device),
+    portId: device.interfaces.indexOf(port) + 1,
+    localPort: 0,
+  };
+  if (current.role === 'designated' && compareVector(local, { ...bpdu, localPort: 0 }) < 0) {
+    send(engine, device, port);
+    if (changedTopology) advertise(engine, device);
     return;
   }
   const wasEdge = port.stpEdge && !current.received;
@@ -390,6 +468,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
         tree.mode === 'rstp' && bpdu.mode === 'rstp' ? STP.rapidAge : STP.maxAge
       ),
   };
+  noteExpiry(engine.state, current.received.expiresAt);
   stpSchedule(engine, current.received.expiresAt - engine.state.clock, {
     kind: 'stp-info-expire',
     device: device.id,
@@ -397,8 +476,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     expiresAt: current.received.expiresAt,
   });
   if (wasEdge) beginTransition(engine, device, port);
-  let changed = recompute(engine, device);
-  if (bpdu.changeId) changed = topologyChange(engine, device, bpdu.changeId) || changed;
+  let changed = recompute(engine, device) || changedTopology;
   if (tree.mode === 'rstp' && bpdu.mode === 'rstp' && port.duplex === 'full') {
     if (current.role === 'root' && bpdu.proposal) {
       if (!current.agreed)
@@ -427,12 +505,25 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
 
 function handleClassic(
   engine: SimulationEngine,
-  action: Extract<Action, { kind: 'stp-hello' | 'stp-transition' | 'stp-info-expire' }>
+  action: Extract<Action, { kind: 'stp-hello' | 'stp-transition' | 'stp-info-expire' | 'stp-transmit' }>
 ) {
   const device = engine.device(action.device);
   const tree = device.spanningTree;
   if (!tree?.enabled) return;
-  if (action.kind === 'stp-hello') {
+  if (action.kind === 'stp-transmit') {
+    const port = device.interfaces.find((entry) => entry.id === action.port);
+    const tx = port?.spanningTree?.transmit;
+    if (!port || tx?.pendingAt !== action.at) return;
+    const agreement = tx.agreement && port.spanningTree!.role === 'root';
+    delete tx.pendingAt;
+    delete tx.agreement;
+    if (
+      agreement ||
+      port.spanningTree!.role === 'designated' ||
+      (port.spanningTree!.role === 'root' && tree.changeUntil > engine.state.clock)
+    )
+      send(engine, device, port, !!agreement);
+  } else if (action.kind === 'stp-hello') {
     if (action.token !== tree.token) return;
     refreshDevice(engine, device);
     recompute(engine, device);
@@ -466,8 +557,16 @@ function handleClassic(
 }
 
 export function refreshSpanningTree(e: SimulationEngine) {
+  if ((refreshBounds.get(e.state) ?? -Infinity) > e.state.clock) return;
+  let next = Infinity;
   for (const d of protocolDevices(e.state, 'stp'))
-    for (const id of stpInstances(d)) withStpInstance(d, id, () => refreshDevice(e, d));
+    for (const id of stpInstances(d))
+      withStpInstance(d, id, () => {
+        refreshDevice(e, d);
+        for (const port of switchingPorts(d))
+          if (port.spanningTree?.received) next = Math.min(next, port.spanningTree.received.expiresAt);
+      });
+  refreshBounds.set(e.state, next);
 }
 export function multiStpConfig(d: Device) {
   const c = d.multiSpanningTree;
@@ -598,7 +697,7 @@ export function receiveBpdu(e: SimulationEngine, d: Device, p: NetworkInterface,
 }
 export function handleSpanningTreeAction(
   e: SimulationEngine,
-  a: Extract<Action, { kind: 'stp-hello' | 'stp-transition' | 'stp-info-expire' }>
+  a: Extract<Action, { kind: 'stp-hello' | 'stp-transition' | 'stp-info-expire' | 'stp-transmit' }>
 ) {
   const d = e.device(a.device),
     id = a.instance ?? 0;

@@ -1,4 +1,5 @@
 import { permitDhcpSnooping } from './dhcp-snooping';
+import { noteCacheExpiry } from '../core/cache-expiry';
 import { evpnPort, observeEvpnFrame } from './evpn';
 import { BROADCAST, LIMITS, type Device, type Frame, type NetworkInterface } from '../model';
 import type { SimulationEngine } from '../core/engine';
@@ -24,6 +25,7 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
     (m) => m.expires > e.state.clock && !(m.mac === frame.src && m.vlan === vlan)
   );
   d.macTable.push({ vlan, mac: frame.src, port: input.id, expires: e.state.clock + LIMITS.macAge });
+  noteCacheExpiry(e.state, e.state.clock + LIMITS.macAge);
   observeEvpnFrame(d, input, frame, vlan);
   if (d.macTable.length > 2048) d.macTable.shift();
   e.emit('MAC_LEARNED', d.id, 'MAC ' + frame.src + ' aprendido na VLAN ' + vlan + '.', {

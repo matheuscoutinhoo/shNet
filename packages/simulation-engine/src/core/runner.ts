@@ -1,6 +1,9 @@
 import { SimulationEngine } from './engine';
 import { LIMITS, type Device, type NetworkInterface, type Snapshot } from '../model';
 import { updateSystem } from '../devices/infrastructure';
+import { invalidateCacheExpiry } from './cache-expiry';
+import { invalidateSpanningRefresh } from '../protocols/stp';
+import { invalidateBgpRefresh } from '../protocols/bgp';
 export interface SimulationDelta {
   metadata: Partial<Omit<Snapshot, 'devices' | 'queue' | 'events' | 'diagnostics' | 'capture'>>;
   deletedKeys: (keyof Snapshot)[];
@@ -49,9 +52,12 @@ export class SimulationRunner {
     )
       throw new Error('Orçamento do Worker inválido.');
     const start = performance.now();
+    invalidateCacheExpiry(this.engine.state);
+    invalidateSpanningRefresh(this.engine.state);
+    invalidateBgpRefresh(this.engine.state);
     let processed = 0;
     while (processed < maxSteps && performance.now() - start < wallMs) {
-      if (!this.engine.step()) break;
+      if (!this.engine.step(false)) break;
       processed++;
     }
     for (const d of this.engine.state.devices)

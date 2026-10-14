@@ -4,9 +4,11 @@ Atualizado em 14/10/2026. **Fonte única de prioridades e status:** incorpora to
 
 P0 bloqueia confiança/segurança dos ensaios. P1 afeta disponibilidade, fidelidade contratada ou qualificação. P2 melhora operação/escala e amplia capacidades. As fases são ordem de dependências, não estimativas de calendário. Aceites de HA exigem SLA aprovado por fluxo, carga e resolução explícitos.
 
-## Escopo atual autorizado: funcionamento da aplicação
+## Escopo atual autorizado: dois P2 e retomada das Rs
 
-Por orientação do usuário, a etapa atual prioriza recuperação/persistência, configuração, execução confiável, diagnósticos e operação/limites. Novos protocolos e features industriais ficam para depois. O [ADR-046](adr/046-application-recovery-and-run-integrity.md) preserva a recuperação/persistência entregue. O [ADR-047](adr/047-scale-topology-and-release-qualification.md) define escala, vistas/clones e homologação deste incremento; a [validação atual](../artifacts/application-completion-2026-10-13/VALIDACAO.md) distingue execução local, CI e Railway real.
+O usuário reabriu as ampliações de rede/serviços/indústria com a instrução de implementar primeiro os dois P2, depois seguir com as Rs. Os P2 de carga enterprise concorrente e redução dos bundles foram implementados e medidos localmente; a regressão e os novos gates de CI estão em validação. O [ADR-048](adr/048-enterprise-capacity-and-shared-workers.md) registra implementação, resultados e limites. R08/R10/R17–R20/R25 voltam à fila ativa. Colaboração de equipes/R24 e requisitos condicionais R29/R30 continuam excluídos.
+
+O [ADR-046](adr/046-application-recovery-and-run-integrity.md) preserva recuperação/persistência; o [ADR-047](adr/047-scale-topology-and-release-qualification.md) registra a etapa anterior. A [validação anterior](../artifacts/application-completion-2026-10-13/VALIDACAO.md) distingue execução local, CI e Railway real.
 
 | Prioridade | Parcela da aplicação                   | Correção entregue e aceite                                                                                                                                                                          |
 | ---------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -17,9 +19,9 @@ Por orientação do usuário, a etapa atual prioriza recuperação/persistência
 | P1         | Diagnóstico / R14/R22                  | Quadros VXLAN e frontend/upstream/LB correlacionados, health checks isolados, retenção indicada; regras sombreadas e próximos saltos incoerentes apontados, sem certificar alcance.                 |
 | P2         | Canvas/escala / R21/R23                | Autolayout preserva grupos/RF; clones VTEP/HA válidos e isolados; catálogo leve; CPU/temperatura independentes da fatia de Worker; p95/delta/heap com três repetições e controles de atraso.        |
 
-Continuam adiadas as ampliações de rede/serviços/indústria de R08/R10/R17–R20/R25/R29/R30 e a colaboração/RBAC de equipes. Vistas física/lógica, clones de células/racks, rastreabilidade dos 115 casos e otimizações de escala foram incluídos pelo usuário. O Railway público foi verificado por HTTPS. Como não havia autenticação Railway acessível, o usuário escolheu homologação isolada na CI; PITR/rollback do projeto Railway real continuam exigindo acesso e um ambiente próprio, sem intervenção na produção.
+As parcelas faltantes de R08/R10/R17–R20/R25 permanecem abertas até seus próprios testes de aceite. Os P2 não encerram essas frentes. O Railway público foi verificado por HTTPS na etapa anterior. Como não havia autenticação Railway acessível, o usuário escolheu homologação isolada na CI; PITR/rollback do projeto Railway real continuam exigindo acesso e ambiente próprio, sem intervenção na produção.
 
-## Status após a implementação — contrato 2026.10.13.7
+## Status consolidado — contrato em validação 2026.10.14.1
 
 **Concluída** significa que a correção desta frente está implementada e exercitada no escopo indicado. **Parcial** conserva trabalho do requisito original. **Validada localmente** atende à orientação de preparar e usar o ambiente local, sem certificar um deploy remoto. **Condicional** depende de um requisito adicional ao PLC/HMI Modbus TCP e rede IP já confirmado.
 

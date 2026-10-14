@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { connect } from 'node:tls';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { artifactIdentity } from '../packages/simulation-engine/src/artifact-identity';
 const origin = new URL(process.env.SHLAB_REMOTE_ORIGIN ?? 'https://shnet.up.railway.app');
 if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/')
   throw new Error('Use uma origem HTTPS sem credenciais ou caminho.');
@@ -53,6 +54,7 @@ const build = responses.find((r) => r.path === '/api/build')!.body;
 if (process.env.SHLAB_EXPECT_ENGINE_BUILD && build.engineBuild !== process.env.SHLAB_EXPECT_ENGINE_BUILD)
   throw new Error('O ambiente ainda não executa a fonte esperada.');
 const assets = new Map<string, { sha256: string; bytes: number }>(),
+  executionFiles = new Map<string, Uint8Array>(),
   pending = [...responses[0].html!.matchAll(/(?:src|href)="(\/assets\/[^" ]+\.(?:js|css))"/g)].map(
     (m) => m[1]
   );
@@ -66,15 +68,23 @@ while (pending.length) {
   const bytes = Buffer.from(await r.arrayBuffer()),
     sha256 = createHash('sha256').update(bytes).digest('hex');
   assets.set(path, { sha256, bytes: bytes.length });
-  if (/scenario\.worker-/.test(path)) artifact = sha256;
+  executionFiles.set(path.split('/').at(-1)!, bytes);
+  if (/scenario\.worker-/.test(path)) artifact = path.split('/').at(-1)!;
   if (path.endsWith('.js'))
     for (const m of bytes
       .toString()
       .matchAll(/(?:["'`])(?:\.\/|\/assets\/|assets\/)?([\w.-]+-[\w-]+\.js)(?:["'`])/g))
       pending.push('/assets/' + m[1]);
 }
-if (!artifact || artifact !== build.workerArtifact) {
-  console.error(JSON.stringify({ assets: [...assets.keys()], artifact, expected: build.workerArtifact }));
+const executionIdentity = artifact ? artifactIdentity(artifact, executionFiles) : undefined;
+if (!executionIdentity || executionIdentity !== build.workerArtifact) {
+  console.error(
+    JSON.stringify({
+      assets: [...assets.keys()],
+      artifact: executionIdentity,
+      expected: build.workerArtifact,
+    })
+  );
   throw new Error('O Worker remoto não corresponde à identidade anunciada.');
 }
 await mkdir(out, { recursive: true });

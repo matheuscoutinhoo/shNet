@@ -1,7 +1,7 @@
 import { advertiseEvpn, evpnEnabled, receiveEvpn, withdrawEvpnPeer } from './evpn';
 import { interfaceOperational } from './layer3';
 import type { SimulationEngine } from '../core/engine';
-import type { Device } from '../model';
+import type { Device, Snapshot } from '../model';
 import { tcpBytes, tcpFinished, type TcpConnection, TCP } from './tcp-model';
 import { openTcp, closeTcp, writeTcp } from './tcp';
 import { isUnicast } from './dhcp-config';
@@ -241,7 +241,15 @@ function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer,
     ].sort((a, b) => bgpPrefixKey(a).localeCompare(bgpPrefixKey(b)));
   }
 }
+const refreshed = new WeakSet<Snapshot>();
+export function invalidateBgpRefresh(snapshot: Snapshot) {
+  refreshed.delete(snapshot);
+}
 export function refreshBgp(engine: SimulationEngine) {
+  if (refreshed.has(engine.state)) return;
+  // Mark before refreshing: changes emitted by this refresh keep it dirty for
+  // the following event, including cascaded session/route changes.
+  refreshed.add(engine.state);
   for (const device of protocolDevices(engine.state, 'bgp')) {
     if (!device.bgp?.enabled) continue;
     for (const peer of device.bgp.peers) {

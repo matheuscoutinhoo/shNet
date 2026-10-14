@@ -288,6 +288,7 @@ export const scenarioReportSchema = z
               r.samples,
               f.atMs,
               r.engineContract === ENGINE_CONTRACT_VERSION ||
+                r.engineContract === '2026.10.13.7' ||
                 recovery.some((v) => v.measurement !== undefined)
             )
           )

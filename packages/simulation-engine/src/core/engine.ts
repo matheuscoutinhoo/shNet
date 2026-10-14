@@ -1,4 +1,6 @@
 import { invalidateProtocolIndex } from './protocol-index';
+import { expireDeviceCaches, invalidateCacheExpiry } from './cache-expiry';
+import { traceConnection, invalidateTraceIndex } from './trace-index';
 import { findDevice, findLink, linksAt } from './topology-index';
 import { interfaceSchema } from '../model';
 import { configureDatabase, queryDatabase } from '../protocols/database';
@@ -100,7 +102,7 @@ import {
   handleDhcp6Tick,
   releaseDhcp6,
 } from '../protocols/dhcp6';
-import { bgpConfig, configureBgp, handleBgpTick, refreshBgp } from '../protocols/bgp';
+import { bgpConfig, configureBgp, handleBgpTick, refreshBgp, invalidateBgpRefresh } from '../protocols/bgp';
 import {
   configureLacp,
   removeLacp,
@@ -161,6 +163,7 @@ import {
   handleSpanningTreeAction,
   receiveBpdu,
   refreshSpanningTree,
+  invalidateSpanningRefresh,
 } from '../protocols/stp';
 
 import { configureAcl, permitPacket } from '../protocols/acl';
@@ -663,6 +666,8 @@ export class SimulationEngine {
     if (device.spanningTree?.enabled) updateSpanningTreePort(this, device, port, edgeChanged);
   }
   refreshSpanningTree() {
+    invalidateSpanningRefresh(this.state);
+    invalidateBgpRefresh(this.state);
     refreshPower(this);
     refreshMesh(this);
     refreshDot1x(this);
@@ -879,6 +884,7 @@ export class SimulationEngine {
     configureOspf(this, this.device(deviceId), input);
   }
   refreshBgp() {
+    invalidateBgpRefresh(this.state);
     refreshBgp(this);
   }
   configureBgp(deviceId: string, input: unknown) {
@@ -978,7 +984,25 @@ export class SimulationEngine {
     reason: string,
     details: Partial<Pick<NetworkEvent, 'port' | 'peer' | 'link' | 'frame' | 'packet'>> = {}
   ) {
-    if (type === 'CONFIG_CHANGED') invalidateProtocolIndex(this.state);
+    if (type === 'CONFIG_CHANGED') {
+      invalidateProtocolIndex(this.state);
+      invalidateCacheExpiry(this.state);
+      invalidateTraceIndex(this.state);
+    }
+    if (
+      type === 'CONFIG_CHANGED' ||
+      type === 'LINK_UP' ||
+      type === 'LINK_DOWN' ||
+      /^(LACP_|WIFI_|WIRELESS_|MESH_|POE_|CAPWAP_|TUNNEL_|SNMP_|REMOTE_)/.test(type)
+    )
+      invalidateSpanningRefresh(this.state);
+    if (
+      type === 'CONFIG_CHANGED' ||
+      /^(LINK_|STP_|LACP_|WIFI_|WIRELESS_|MESH_|POE_|CAPWAP_|TUNNEL_|SNMP_|REMOTE_|TCP_|BGP_|OSPF_|RIP_|EVPN_|VRRP_|DOT1X_|UPS_|POWER_)/.test(
+        type
+      )
+    )
+      invalidateBgpRefresh(this.state);
     const event: NetworkEvent = {
       id: this.id('event'),
       time: this.state.clock,
@@ -1010,9 +1034,7 @@ export class SimulationEngine {
               ? event.frame.ipv6.segment.traceId
               : undefined;
         if (trace) {
-          const application = this.state.devices
-            .flatMap((d) => d.tcpConnections ?? [])
-            .find((c) => c.id === trace)?.service;
+          const application = traceConnection(this.state, trace)?.service;
           if (application) event.application = application;
         }
         this.state.capture.bytes ??= this.state.capture.frames.reduce(
@@ -1364,7 +1386,12 @@ export class SimulationEngine {
     }
     return probe.id;
   }
-  step() {
+  step(refreshCaches = true) {
+    if (refreshCaches) {
+      invalidateCacheExpiry(this.state);
+      invalidateSpanningRefresh(this.state);
+      invalidateBgpRefresh(this.state);
+    }
     refreshDot1x(this);
     refreshWireless(this);
     refreshLacp(this);
@@ -1375,14 +1402,7 @@ export class SimulationEngine {
     if (!item) return false;
     this.state.clock = item.at;
     refreshInfrastructure(this);
-    for (const d of this.state.devices) {
-      if (d.macTable.some((m) => m.expires <= this.state.clock))
-        d.macTable = d.macTable.filter((m) => m.expires > this.state.clock);
-      if (d.arpTable.some((a) => a.expires <= this.state.clock))
-        d.arpTable = d.arpTable.filter((a) => a.expires > this.state.clock);
-      if (d.dnsCache?.some((entry) => entry.expiresAt <= this.state.clock))
-        d.dnsCache = d.dnsCache.filter((entry) => entry.expiresAt > this.state.clock);
-    }
+    expireDeviceCaches(this.state);
     const a = item.action;
     if (a.kind === 'telemetry-tick') handleTelemetry(this, a);
     else if (a.kind === 'ntp-tick') handleNtp(this, a);
@@ -1404,7 +1424,12 @@ export class SimulationEngine {
         this.emit('PING_TIMEOUT', q.device, 'IPv6: sem Echo Reply em 30 s virtuais.');
       }
     } else if (a.kind === 'lacp-tick') handleLacpTick(this, a);
-    else if (a.kind === 'stp-hello' || a.kind === 'stp-transition' || a.kind === 'stp-info-expire')
+    else if (
+      a.kind === 'stp-hello' ||
+      a.kind === 'stp-transition' ||
+      a.kind === 'stp-info-expire' ||
+      a.kind === 'stp-transmit'
+    )
       handleSpanningTreeAction(this, a);
     else if (a.kind === 'state-sync-tick' || a.kind === 'state-sync-deliver') handleStateSync(this, a);
     else if (a.kind === 'nat-expire') expireNat(this, this.device(a.device), a.binding, a.expiresAt);
@@ -1613,6 +1638,9 @@ export class SimulationEngine {
     // edits. Refresh only once, so wall-time slicing cannot create extra state
     // transitions or consume the entire budget before processing any event.
     if (refreshState) {
+      invalidateCacheExpiry(this.state);
+      invalidateSpanningRefresh(this.state);
+      invalidateBgpRefresh(this.state);
       refreshPower(this);
       refreshDot1x(this);
       refreshWireless(this);
@@ -1628,7 +1656,7 @@ export class SimulationEngine {
       count < maxSteps &&
       (wallMs === undefined || count === 0 || performance.now() - started < wallMs)
     ) {
-      this.step();
+      this.step(false);
       count++;
     }
     if (this.state.queue.length && this.state.queue[0].at <= time && wallMs !== undefined) return count;
@@ -1649,7 +1677,10 @@ export class SimulationEngine {
   run(maxSteps = 20000) {
     invalidateProtocolIndex(this.state);
     let count = 0;
-    while (count < maxSteps && this.step()) count++;
+    invalidateCacheExpiry(this.state);
+    invalidateSpanningRefresh(this.state);
+    invalidateBgpRefresh(this.state);
+    while (count < maxSteps && this.step(false)) count++;
     if (this.state.queue.length) throw new Error('Orçamento de simulação esgotado; revise loops na rede.');
     return count;
   }

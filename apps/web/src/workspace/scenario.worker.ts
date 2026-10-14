@@ -1,4 +1,4 @@
-import { ScenarioRunner } from '@shlab/engine';
+import { ScenarioRunner } from '@shlab/engine/runtime';
 let run = 0;
 self.onmessage = (event: MessageEvent) => {
   const generation = ++run;

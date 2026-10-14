@@ -1,4 +1,5 @@
 import { fragmentArpPending, flushFragmentArp, clearFragmentWork } from './fragment';
+import { noteCacheExpiry } from '../core/cache-expiry';
 import type { z } from 'zod';
 import type { mplsPayloadSchema } from './mpls-model';
 import {
@@ -222,6 +223,7 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
       expires: engine.state.clock + LIMITS.arpAge,
     });
   if (device.arpTable.length > 2048) device.arpTable.shift();
+  noteCacheExpiry(engine.state, engine.state.clock + LIMITS.arpAge);
   engine.emit(
     'ARP_TABLE_UPDATED',
     device.id,

@@ -2,9 +2,11 @@
   "name": "@shlab/engine",
   "version": "0.1.0",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./catalog": "./src/catalog.ts"
+    "./catalog": "./src/catalog.ts",
+    "./runtime": "./src/runtime.ts"
   },
   "dependencies": {
     "@noble/ciphers": "2.1.1",

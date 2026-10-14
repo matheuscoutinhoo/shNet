@@ -287,6 +287,7 @@ export const bpduSchema = z
     age: finite.min(0).max(20000),
     proposal: z.boolean(),
     agreement: z.boolean(),
+    role: z.enum(['root', 'designated', 'alternate', 'disabled']).optional(),
     changeId: id.optional(),
     instance: z.number().int().min(0).max(4094).optional(),
     domain: z.enum(['pvst', 'mstp']).optional(),
@@ -302,6 +303,15 @@ export const spanningTreePortSchema = z
     transitionAt: finite.nonnegative().optional(),
     proposed: z.boolean().optional(),
     agreed: z.boolean().optional(),
+    transmit: z
+      .object({
+        count: z.number().int().min(0).max(6),
+        windowStart: finite.nonnegative(),
+        pendingAt: finite.nonnegative().optional(),
+        agreement: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
     received: z
       .object({ bpdu: bpduSchema, at: finite.nonnegative(), expiresAt: finite.nonnegative() })
       .strict()
@@ -1098,6 +1108,15 @@ export const actionSchema = z.discriminatedUnion('kind', [
       device: id,
       port: id,
       expiresAt: finite.nonnegative(),
+      instance: z.number().int().min(0).max(4094).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('stp-transmit'),
+      device: id,
+      port: id,
+      at: finite.nonnegative(),
       instance: z.number().int().min(0).max(4094).optional(),
     })
     .strict(),

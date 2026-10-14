@@ -8,6 +8,7 @@ import {
   type UdpPacket,
   type DnsMessage,
 } from '../model';
+import { noteCacheExpiry } from '../core/cache-expiry';
 import type { SimulationEngine } from '../core/engine';
 import { random } from '../core/queue';
 import { verifyDnsResponse, dnsCacheExpiry } from './dnssec';
@@ -367,6 +368,7 @@ export function receiveDnsAnswer(
         ...(query.security === 'secure' ? { proof: message.dnssec } : {}),
       });
       if (device.dnsCache.length > DNS.maxCache) device.dnsCache.shift();
+      noteCacheExpiry(engine.state, device.dnsCache.at(-1)!.expiresAt);
     }
   }
   complete(engine, device, query);

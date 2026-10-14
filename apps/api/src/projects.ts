@@ -1,11 +1,12 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { makeTemplate, templates, validateSnapshot, type TemplateId, type Snapshot } from '@shlab/engine';
+import { makeTemplate, templates, type TemplateId, type Snapshot } from '@shlab/engine';
 import { labs, makeLab, evaluateLab, type LabId } from '@shlab/engine';
 import { recordActivity } from './activity';
 import { checkCsrf, currentUser, error } from './security';
 import type { Database } from './db';
+import { acquireTopologyValidator } from './topology-validation';
 import { databaseJson } from './database-json';
 interface Project {
   id: string;
@@ -23,6 +24,8 @@ export async function registerProjects(
   db: Database,
   notify: (userId: string, data: unknown) => Promise<void>
 ) {
+  const validator = acquireTopologyValidator();
+  app.addHook('onClose', () => validator.close());
   const owner = async (req: FastifyRequest) => {
     const user = await currentUser(db, req);
     if (!user) throw error(401, 'Entre para continuar');
@@ -144,12 +147,17 @@ export async function registerProjects(
       })
       .strict()
       .parse(req.body);
-    let topology: Snapshot;
-    try {
-      topology = validateSnapshot(body.topology);
-    } catch {
-      throw error(400, 'Topologia inválida: verifique interfaces, cabos e configurações');
-    }
+    const [current] = await db.query<{ revision: number }>(
+      'SELECT revision FROM projects WHERE id=$1 AND user_id=$2',
+      [id, user]
+    );
+    if (!current) throw error(404, 'Laboratório não encontrado');
+    if (current.revision !== body.revision)
+      throw error(
+        409,
+        'Uma versão mais recente foi salva em outra aba. Exporte seu trabalho e reabra o laboratório.'
+      );
+    const topology = await validator.validate(body.topology);
     const project = await db.transaction(async (tx) => {
       const project = (
         await tx.query<Project>(

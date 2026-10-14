@@ -25,6 +25,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "benchmark": "tsx scripts/benchmark-scale.ts",
+    "benchmark:enterprise": "node --expose-gc --import tsx scripts/benchmark-enterprise-capacity.ts",
+    "benchmark:api": "node --expose-gc --import tsx scripts/benchmark-api-capacity.ts",
     "backup": "tsx --env-file-if-exists=.env scripts/backup.ts backup",
     "restore": "tsx --env-file-if-exists=.env scripts/backup.ts restore",
     "test:postgres": "tsx scripts/test-postgres.ts",

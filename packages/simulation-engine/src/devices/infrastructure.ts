@@ -45,7 +45,7 @@ export function updateSystem(
   const rack =
     environment !== undefined
       ? environment
-      : s.devices.find(
+      : protocolDevices(s, 'rack').find(
           (r) =>
             r.infrastructure?.kind === 'rack' && r.infrastructure.slots.some((slot) => slot.device === d.id)
         )?.infrastructure;

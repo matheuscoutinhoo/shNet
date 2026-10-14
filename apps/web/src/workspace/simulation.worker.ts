@@ -1,4 +1,4 @@
-import { SimulationRunner } from '@shlab/engine';
+import { SimulationRunner } from '@shlab/engine/runtime';
 let runner: SimulationRunner | undefined,
   generation = 0;
 self.onmessage = (event: MessageEvent) => {

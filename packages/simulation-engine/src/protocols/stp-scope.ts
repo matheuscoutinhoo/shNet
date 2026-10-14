@@ -3,11 +3,14 @@ import type { SimulationEngine } from '../core/engine';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 
-type StpAction = Extract<Action, { kind: 'stp-hello' | 'stp-transition' | 'stp-info-expire' }>;
+type StpAction = Extract<
+  Action,
+  { kind: 'stp-hello' | 'stp-transition' | 'stp-info-expire' | 'stp-transmit' }
+>;
 const scopes = new WeakMap<Device, number>();
 export const stpScope = (device: Device) => scopes.get(device) ?? 0;
 export const isStpAction = (action: Action): action is StpAction =>
-  ['stp-hello', 'stp-transition', 'stp-info-expire'].includes(action.kind);
+  ['stp-hello', 'stp-transition', 'stp-info-expire', 'stp-transmit'].includes(action.kind);
 export function stpSchedule(e: SimulationEngine, delay: number, action: StpAction) {
   const instance = stpScope(e.device(action.device));
   e.schedule(delay, instance ? { ...action, instance } : action);

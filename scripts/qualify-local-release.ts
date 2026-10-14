@@ -35,6 +35,7 @@ const sources = [
   resolve('package-lock.json'),
   resolve('scripts/engine-build.ts'),
   resolve('apps/web/vite.config.ts'),
+  resolve('apps/web/execution-workers.ts'),
   resolve('package.json'),
   resolve('apps/api/package.json'),
   resolve('apps/web/package.json'),

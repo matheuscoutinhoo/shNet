@@ -13,7 +13,10 @@ await migrate(db);
 const app = await buildApp({ db, origin, production: false, mailer: async () => {} });
 await app.register(staticFiles, { root: resolve('apps/web/dist'), preCompressed: true });
 await app.listen({ host: '127.0.0.1', port: 5209 });
-const browser = await chromium.launch({ channel: 'msedge', headless: true }),
+const browser = await chromium.launch({
+    channel: process.platform === 'win32' ? 'msedge' : undefined,
+    headless: true,
+  }),
   context = await browser.newContext({ viewport: { width: 1500, height: 1000 } }),
   page = await context.newPage(),
   errors: string[] = [];

@@ -65,6 +65,42 @@ jobs:
             test-results
             playwright-report
 
+  capacity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: shlab
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: shlab_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U shlab -d shlab_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://shlab:test_only_password@localhost:5432/shlab_test
+      SHLAB_AUDIT_OUTPUT: artifacts/capacity-and-services-2026-10-14/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Enterprise workloads and gateway failure at 100/500/2000 devices
+        run: npm run benchmark:enterprise
+      - name: Concurrent private projects and notifications over PostgreSQL
+        run: npm run benchmark:api
+      - name: Concurrent large enterprise projects
+        run: npm run benchmark:api
+        env:
+          SHLAB_CAPACITY_DEVICES: 2000
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enterprise-capacity
+          path: artifacts/capacity-and-services-2026-10-14/ci/*capacity*.json
+
   browser:
     runs-on: ubuntu-latest
     strategy:
@@ -87,6 +123,13 @@ jobs:
         run: |
           rm -f "artifacts/application-completion-2026-10-13/browser-heap-2000-${{ matrix.appearance }}.json"
           npm run test:e2e -- --project=${{ matrix.appearance }} --max-failures=1 --reporter=list,json,html
+      - name: Verify built module workers and artifact identity
+        if: matrix.appearance == 'sistema-claro'
+        run: |
+          npm run build
+          npx tsx scripts/verify-built-application.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/capacity-and-services-2026-10-14/ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -94,6 +137,7 @@ jobs:
           path: |
             test-results/e2e-${{ matrix.appearance }}.json
             artifacts/application-completion-2026-10-13/browser-heap-2000-${{ matrix.appearance }}.json
+            artifacts/capacity-and-services-2026-10-14/ci/built-application-ui.json
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

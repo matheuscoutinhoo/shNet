@@ -235,7 +235,12 @@ export function validateSnapshot(value: unknown): Snapshot {
           ?.dnsQueries?.some((query) => query.id === a.queryId)
       )
         throw new Error('Timer DNS sem consulta.');
-    } else if (a.kind === 'stp-hello' || a.kind === 'stp-transition' || a.kind === 'stp-info-expire') {
+    } else if (
+      a.kind === 'stp-hello' ||
+      a.kind === 'stp-transition' ||
+      a.kind === 'stp-info-expire' ||
+      a.kind === 'stp-transmit'
+    ) {
       const device = s.devices.find((entry) => entry.id === a.device);
       if (!device?.spanningTree?.enabled) throw new Error('Timer STP sem switch ativo.');
       if (a.kind !== 'stp-hello') endpoint(s, { device: a.device, port: a.port });

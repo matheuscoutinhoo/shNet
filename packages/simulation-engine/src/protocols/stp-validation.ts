@@ -17,6 +17,8 @@ export function validateSpanningTree(snapshot: Snapshot) {
       key = JSON.stringify([action.device, action.instance ?? 0, action.port, action.token, action.state]);
     if (action.kind === 'stp-info-expire')
       key = JSON.stringify([action.device, action.instance ?? 0, action.port, 'info', action.expiresAt]);
+    if (action.kind === 'stp-transmit')
+      key = JSON.stringify([action.device, action.instance ?? 0, action.port, 'transmit', action.at]);
     if (key) {
       if (timers.has(key)) throw new Error('Timer STP duplicado.');
       timers.set(key, at);
@@ -84,6 +86,18 @@ export function validateSpanningTree(snapshot: Snapshot) {
           const state = port.spanningTree;
           if (!state?.token || state.operational === undefined)
             throw new Error('Estado de porta STP incompleto.');
+          const tx = state.transmit;
+          if (
+            tx &&
+            (tx.windowStart > snapshot.clock ||
+              (tx.agreement !== undefined && tx.pendingAt === undefined) ||
+              (tx.pendingAt !== undefined &&
+                (tx.pendingAt < snapshot.clock ||
+                  timers.get(
+                    JSON.stringify([device.id, stpScope(device), port.id, 'transmit', tx.pendingAt])
+                  ) !== tx.pendingAt)))
+          )
+            throw new Error('Transmissão STP adiada sem timer válido.');
           if (['alternate', 'disabled'].includes(state.role) && state.state !== 'discarding')
             throw new Error('Porta STP bloqueada não pode encaminhar.');
           if (state.role === 'root' && port.id !== tree.rootPort)

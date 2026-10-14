@@ -17,6 +17,10 @@ import { engineSourceHash } from '../../../scripts/engine-build';
 import type { Database } from './db';
 import { databaseJson } from './database-json';
 import { currentUser, checkCsrf, error } from './security';
+import {
+  artifactDependencies,
+  artifactIdentity,
+} from '../../../packages/simulation-engine/src/artifact-identity';
 interface Run {
   id: string;
   project_id: string;
@@ -60,11 +64,16 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
     file = existsSync(assets)
       ? readdirSync(assets).find((name) => /^scenario\.worker-[a-zA-Z0-9_-]+\.js$/.test(name))
       : undefined;
-  const installedArtifact = file
-    ? createHash('sha256')
-        .update(readFileSync(new URL(file, assets)))
-        .digest('hex')
-    : undefined;
+  const executionFiles = new Map<string, Uint8Array>();
+  const readExecution = (name: string) => {
+    if (executionFiles.has(name)) return;
+    if (executionFiles.size >= 100) throw new Error('Execution graph exceeds 100 assets.');
+    const bytes = readFileSync(new URL(name, assets));
+    executionFiles.set(name, bytes);
+    for (const dependency of artifactDependencies(bytes.toString('utf8'))) readExecution(dependency);
+  };
+  if (file) readExecution(file);
+  const installedArtifact = file ? artifactIdentity(file, executionFiles) : undefined;
   app.get('/api/build', async () => ({
     engineBuild: serverBuild,
     engineContract: ENGINE_CONTRACT_VERSION,

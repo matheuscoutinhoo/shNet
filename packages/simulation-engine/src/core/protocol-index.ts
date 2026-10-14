@@ -1,5 +1,5 @@
 import type { Device, Snapshot } from '../model';
-type Feature = 'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'dot1x' | 'stp' | 'ups';
+type Feature = 'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'dot1x' | 'stp' | 'ups' | 'rack';
 const caches = new WeakMap<
   Snapshot,
   { array: Device[]; length: number; features: Map<Feature, { device: Device; index: number }[]> }
@@ -13,7 +13,9 @@ const participates = (d: Device, key: Feature) =>
         ? Boolean(d.spanningTree || d.multiSpanningTree)
         : key === 'ups'
           ? d.infrastructure?.kind === 'ups'
-          : Boolean(d[key]);
+          : key === 'rack'
+            ? d.infrastructure?.kind === 'rack'
+            : Boolean(d[key]);
 /** Engine configuration APIs invalidate membership; state fields remain live references. */
 export function invalidateProtocolIndex(s: Snapshot) {
   caches.delete(s);

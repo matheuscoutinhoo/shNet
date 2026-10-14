@@ -86,7 +86,12 @@ export async function buildApp(options: Options) {
       typeof err === 'object' && err !== null && 'statusCode' in err ? Number(err.statusCode) : 500;
     if (status >= 500) req.log.error({ err, event: 'request.failed' }, 'Falha na requisição');
     reply.code(status >= 400 && status <= 599 ? status : 500).send({
-      message: status < 500 && err instanceof Error ? err.message : 'Erro interno. Tente novamente.',
+      message:
+        err && typeof err === 'object' && 'publicMessage' in err && typeof err.publicMessage === 'string'
+          ? err.publicMessage
+          : status < 500 && err instanceof Error
+            ? err.message
+            : 'Erro interno. Tente novamente.',
       requestId: req.id,
     });
   });

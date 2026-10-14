@@ -16,7 +16,7 @@ import { IndustrialPanel } from './IndustrialPanel';
 import { ConfigurationReview } from './ConfigurationReview';
 import { pendingResults, storePendingResult, removePendingResult } from './pending-scenario-results';
 import { ScenarioForm } from './ScenarioForm';
-import scenarioWorkerUrl from './scenario.worker.ts?worker&url';
+import scenarioWorkerUrl from './scenario.worker.ts?execution-worker';
 import { workerArtifact } from './worker-artifact';
 type Report = ReturnType<ScenarioRunner['report']> & { engineArtifact?: string };
 interface ScenarioRun {
