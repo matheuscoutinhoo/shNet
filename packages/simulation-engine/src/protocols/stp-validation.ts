@@ -90,7 +90,8 @@ export function validateSpanningTree(snapshot: Snapshot) {
           if (
             tx &&
             (tx.windowStart > snapshot.clock ||
-              (tx.agreement !== undefined && tx.pendingAt === undefined) ||
+              ((tx.agreement !== undefined || tx.pendingChangeId !== undefined) &&
+                tx.pendingAt === undefined) ||
               (tx.pendingAt !== undefined &&
                 (tx.pendingAt < snapshot.clock ||
                   timers.get(

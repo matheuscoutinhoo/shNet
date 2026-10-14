@@ -1,6 +1,23 @@
 import { expect, it } from 'vitest';
-import { SimulationEngine, validateSnapshot } from '@shlab/engine';
+import { SimulationEngine, validateSnapshot, makeTemplate } from '@shlab/engine';
 import { updateSpanningTreePort } from '../packages/simulation-engine/src/protocols/stp';
+it('reaprende o caminho após outra mudança dentro de tcWhile, sem esperar expiração MAC', () => {
+  const e = new SimulationEngine(makeTemplate('rstp')),
+    source = e.state.devices.find((d) => d.hostname === 'PC-01')!,
+    access = e.state.devices.find((d) => d.hostname === 'SW-03')!;
+  const ping = () => {
+    const id = e.ping(source.id, '192.168.10.20');
+    let steps = 0;
+    while (e.state.probes.find((p) => p.id === id)?.status === 'pending' && steps++ < 64) e.step();
+    expect(e.state.probes.find((p) => p.id === id)?.status).toBe('success');
+  };
+  ping();
+  expect(access.spanningTree!.changeUntil).toBeGreaterThan(e.state.clock);
+  e.setPort(access.id, 'p1', false);
+  ping();
+  expect(e.state.clock).toBeLessThan(1000);
+  expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+});
 
 it('coalesce rajadas BPDU, transmite informação atual e preserva o timer no restore', () => {
   const e = new SimulationEngine(),

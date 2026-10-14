@@ -9,6 +9,7 @@ import {
   mstRegion,
   instancePort,
   portCarriesVlan,
+  stpVlanInstance,
 } from './stp-scope';
 import { switchingPorts } from './lacp-members';
 import { interfaceOperational } from './layer3';
@@ -64,17 +65,23 @@ function forgetInfo(engine: SimulationEngine, device: Device, port: NetworkInter
   if (port.spanningTree) delete port.spanningTree.received;
 }
 
-function topologyChange(engine: SimulationEngine, device: Device, receivedId?: string) {
+function topologyChange(
+  engine: SimulationEngine,
+  device: Device,
+  receivedId?: string,
+  receivedPort?: string
+) {
   const tree = device.spanningTree!;
   const active = tree.changeUntil > engine.state.clock;
-  // TC is a timed condition. Repeated local transitions/received flags during
-  // tcWhile must not manufacture and flood a new wave for every port.
-  const changeId = receivedId ?? (active ? tree.changeId : undefined) ?? engine.id('stp-change');
+  // Coalesce designated advertisements during tcWhile, while retaining the
+  // upstream notification for a new local transition on the current path.
+  const changeId = receivedId ?? engine.id('stp-change');
   const seen = !!receivedId && tree.seenChanges.includes(changeId);
   if (!seen && !tree.seenChanges.includes(changeId)) {
     tree.seenChanges.push(changeId);
     if (tree.seenChanges.length > 64) tree.seenChanges.shift();
   }
+  if (!seen) tree.changeId = changeId;
   if (!active && !seen) {
     tree.changeId = changeId;
     tree.changeUntil = engine.state.clock + STP.hello * 2;
@@ -100,9 +107,9 @@ function topologyChange(engine: SimulationEngine, device: Device, receivedId?: s
   );
   // RSTP propagates TC upstream as well as down designated segments. Without
   // this notification the root retains MACs on the failed access path.
-  if (!active && !seen && tree.mode === 'rstp') {
+  if (!seen && tree.mode === 'rstp') {
     const root = device.interfaces.find((port) => port.id === tree.rootPort);
-    if (root) send(engine, device, root);
+    if (root && root.id !== receivedPort) send(engine, device, root, false, changeId);
   }
   return !active && !seen;
 }
@@ -117,6 +124,14 @@ function setState(
   if (current.state === state) return;
   const wasForwarding = current.state === 'forwarding';
   current.state = state;
+  // Local FDB entries on a disabled/blocked port cannot remain usable until
+  // remote TC propagation completes. Preserve unrelated MST/PVST scopes.
+  if (state !== 'forwarding')
+    device.macTable = device.macTable.filter(
+      (m) =>
+        m.port !== port.id ||
+        (current.operational && !port.mstBoundary && stpVlanInstance(device, m.vlan) !== stpScope(device))
+    );
   engine.emit('STP_PORT_CHANGED', device.id, port.name + ': ' + current.role + ' / ' + state + '.', {
     port: port.id,
   });
@@ -172,9 +187,15 @@ function message(engine: SimulationEngine, device: Device, port: NetworkInterfac
   };
 }
 
-function send(engine: SimulationEngine, device: Device, port: NetworkInterface, agreement = false) {
+function send(
+  engine: SimulationEngine,
+  device: Device,
+  port: NetworkInterface,
+  agreement = false,
+  changeId?: string
+) {
   if (!port.spanningTree?.operational) return;
-  const bpdu = message(engine, device, port, agreement);
+  const bpdu = { ...message(engine, device, port, agreement), ...(changeId ? { changeId } : {}) };
   if (bpdu.age >= STP.maxAge) return;
   // Six BPDUs per one-second window, per instance/port. Coalesce deferred
   // announcements and construct them from current information at transmission.
@@ -185,6 +206,7 @@ function send(engine: SimulationEngine, device: Device, port: NetworkInterface, 
   }
   if (tx.count >= 6) {
     tx.agreement = tx.agreement || agreement;
+    if (changeId) tx.pendingChangeId = changeId;
     if (tx.pendingAt === undefined) {
       tx.pendingAt = tx.windowStart + 1000;
       stpSchedule(engine, tx.pendingAt - engine.state.clock, {
@@ -417,7 +439,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     'BPDU recebido: root ' + bridgeLabel(bpdu.root) + ', custo ' + bpdu.cost + '.',
     { port: port.id, frame }
   );
-  const changedTopology = bpdu.changeId ? topologyChange(engine, device, bpdu.changeId) : false;
+  const changedTopology = bpdu.changeId ? topologyChange(engine, device, bpdu.changeId, port.id) : false;
   // An agreement acknowledges our designated information. It must not become
   // a new root candidate: the peer's cost may have been learned through us.
   if (bpdu.agreement && tree.mode === 'rstp' && bpdu.mode === 'rstp' && port.duplex === 'full') {
@@ -515,14 +537,16 @@ function handleClassic(
     const tx = port?.spanningTree?.transmit;
     if (!port || tx?.pendingAt !== action.at) return;
     const agreement = tx.agreement && port.spanningTree!.role === 'root';
+    const changeId = tx.pendingChangeId;
     delete tx.pendingAt;
     delete tx.agreement;
+    delete tx.pendingChangeId;
     if (
       agreement ||
       port.spanningTree!.role === 'designated' ||
       (port.spanningTree!.role === 'root' && tree.changeUntil > engine.state.clock)
     )
-      send(engine, device, port, !!agreement);
+      send(engine, device, port, !!agreement, changeId);
   } else if (action.kind === 'stp-hello') {
     if (action.token !== tree.token) return;
     refreshDevice(engine, device);

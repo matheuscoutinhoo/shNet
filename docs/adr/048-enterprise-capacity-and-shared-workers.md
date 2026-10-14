@@ -18,6 +18,8 @@ O novo campus de 2.000 equipamentos reproduziu uma multiplicação de BPDUs ante
 
 O comportamento se baseia nas descrições oficiais de [RSTP](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html) e [transmit hold-count](https://www.cisco.com/c/en/us/td/docs/switches/lan/c9000/lyr2-fwd/stp/stp-configuration-guide/m-stp.html). A implementação continua um modelo de simulação, sem alegar equivalência integral ao firmware.
 
+A primeira CI passou em regressão, containers e capacidade, mas o navegador encontrou uma segunda mudança de caminho dentro de `tcWhile`. A correção conserva a notificação desse novo caminho até a raiz, sem eco para a porta de recepção, e remove imediatamente MACs de uma porta local bloqueada/desconectada. A limpeza respeita os outros escopos PVST/MSTP. O caso original do navegador passou localmente sem aumentar seu orçamento de 64 eventos; a nova CI precisa concluir os dois temas antes da promoção.
+
 Expiração de MAC/ARP/DNS acompanha o próximo prazo e os aprendizados antecipam esse prazo. Refresh de STP acompanha expirações e mudanças de carrier; BGP acompanha alterações de configuração, rotas, transporte e acesso. Fronteiras públicas invalidam os caches para reconhecer edições em memória. O índice de conexões de captura evita buscar em todas as conexões por frame. O estado final é comparado à execução que faz refresh a cada evento, incluindo perda de core, além dos testes de convergência, failover e restore.
 
 ## Concorrência da API
