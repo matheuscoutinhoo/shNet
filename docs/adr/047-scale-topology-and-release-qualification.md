@@ -16,6 +16,8 @@ Inspector, ferramentas de ensaio, captura e painéis educativos carregam sob dem
 
 O canvas fornece dimensões e handles iniciais para que a virtualização não precise montar todos os nós antes de calcular visibilidade. Nós visíveis são medidos normalmente; controles e cabos refletem essa medição. Testes de heap no navegador usam teto de 256 MiB e crescimento máximo de 32 MiB entre três ciclos após GC explícito; esse orçamento se aplica ao perfil medido, não a qualquer carga enterprise.
 
+Atualizações de dados dos dispositivos preservam as dimensões já medidas pelo ReactFlow. Depois da medição, os handles iniciais deixam de substituir os limites reais. Selecionar novamente os mesmos IDs conserva a identidade do estado. Essas correções eliminam o ciclo de atualizações observado durante construção e playback de uma LAN; o teste também exige que a inspeção conserve o zoom, que já tinha o duplo clique desativado.
+
 ## Desenho e clones
 
 A vista física conserva coordenadas e anotações. A vista lógica é uma projeção de consulta por camada: esconde objetos passivos, atravessa somente jumpers explícitos de patch panels, agrupa cabos paralelos e indica VRF/VNI. Não altera coordenadas físicas nem prova alcance. Edição de cabos, arraste e exclusão pelo canvas ficam na vista física.

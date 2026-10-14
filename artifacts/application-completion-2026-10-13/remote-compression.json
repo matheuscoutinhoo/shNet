@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-10-14T17:21:10.391Z",
+  "origin": "https://shnet.up.railway.app",
+  "path": "/assets/scenario.worker-DONTulb4.js",
+  "status": 200,
+  "contentEncoding": "br",
+  "cacheControl": "public, max-age=31536000, immutable",
+  "compressedBytes": 244374,
+  "rawBytes": 948054,
+  "sha256": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d",
+  "passed": true
+}

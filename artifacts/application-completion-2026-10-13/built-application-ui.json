@@ -1,11 +1,11 @@
 {
   "errors": [],
-  "openMs": 1548.1999000000005,
+  "openMs": 1438.0114000000003,
   "failedDeferredPanelPreservesWorkspace": true,
   "controlledPanelErrors": [],
   "continuousAutosave": {
     "revision": 2,
-    "clock": 3731.899999999441,
+    "clock": 3900,
     "manualSaveResolved": true
   },
   "build": {
@@ -16,7 +16,7 @@
     "clientWorkerHash": "698d584b7a294cb03bf2aee50c4167e1aec7babd4b491484b454f5c62052b305",
     "workerArtifactHash": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d",
     "entryBytes": 263895,
-    "entry": "/assets/index-CBANLSgY.js",
+    "entry": "/assets/index-C5mAExnp.js",
     "replay": "matched"
   },
   "doubleFailureVisible": true,

@@ -17,12 +17,12 @@
   },
   "builtUI": {
     "errors": [],
-    "openMs": 1548.1999000000005,
+    "openMs": 1438.0114000000003,
     "failedDeferredPanelPreservesWorkspace": true,
     "controlledPanelErrors": [],
     "continuousAutosave": {
       "revision": 2,
-      "clock": 3731.899999999441,
+      "clock": 3900,
       "manualSaveResolved": true
     },
     "build": {
@@ -33,7 +33,7 @@
       "clientWorkerHash": "698d584b7a294cb03bf2aee50c4167e1aec7babd4b491484b454f5c62052b305",
       "workerArtifactHash": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d",
       "entryBytes": 263895,
-      "entry": "/assets/index-CBANLSgY.js",
+      "entry": "/assets/index-C5mAExnp.js",
       "replay": "matched"
     },
     "doubleFailureVisible": true,
@@ -41,9 +41,9 @@
     "passed": true
   },
   "heap": [
-    59.29267501831055,
-    58.527584075927734,
-    57.668460845947266
+    59.91885757446289,
+    59.964603424072266,
+    60.12779235839844
   ],
   "performance": [
     {
@@ -313,9 +313,9 @@
   ],
   "assets": [
     {
-      "name": "CaptureDialog-CsLGdJvZ.js",
+      "name": "CaptureDialog-5v0cn5UP.js",
       "rawBytes": 2645,
-      "brotliBytes": 1247
+      "brotliBytes": 1249
     },
     {
       "name": "catalog-labs-NXtBuq2b.js",
@@ -323,14 +323,14 @@
       "brotliBytes": 5009
     },
     {
-      "name": "CloneReview-DNN2KtNY.js",
+      "name": "CloneReview-CAwY87AC.js",
       "rawBytes": 12328,
       "brotliBytes": 4404
     },
     {
-      "name": "CommentDialog-C6AhDNOh.js",
+      "name": "CommentDialog-D0cA0MQP.js",
       "rawBytes": 1477,
-      "brotliBytes": 730
+      "brotliBytes": 729
     },
     {
       "name": "ConfigEditor-DTV5LRsy.js",
@@ -338,7 +338,7 @@
       "brotliBytes": 4156
     },
     {
-      "name": "FactoryTools-CvfforJH.js",
+      "name": "FactoryTools-BbrV3X1H.js",
       "rawBytes": 36943,
       "brotliBytes": 11401
     },
@@ -348,14 +348,14 @@
       "brotliBytes": 18361
     },
     {
-      "name": "index-DRw5NPnY.js",
+      "name": "index-C5mAExnp.js",
       "rawBytes": 263895,
-      "brotliBytes": 76480
+      "brotliBytes": 76478
     },
     {
-      "name": "Inspector-bpckR1Hc.js",
+      "name": "Inspector-Cimod8ko.js",
       "rawBytes": 190984,
-      "brotliBytes": 42115
+      "brotliBytes": 42113
     },
     {
       "name": "NetworkConceptGuide-BttQ7KFZ.js",
@@ -363,9 +363,9 @@
       "brotliBytes": 12573
     },
     {
-      "name": "NetworkInspector-wE8rTI2O.js",
+      "name": "NetworkInspector-CtyXmjb9.js",
       "rawBytes": 6671,
-      "brotliBytes": 2437
+      "brotliBytes": 2435
     },
     {
       "name": "scenario.worker-DONTulb4.js",
@@ -398,9 +398,9 @@
       "brotliBytes": 865
     },
     {
-      "name": "Workspace-CYK7bINN.js",
-      "rawBytes": 353353,
-      "brotliBytes": 101258
+      "name": "Workspace-BR0H0rkW.js",
+      "rawBytes": 353563,
+      "brotliBytes": 101304
     },
     {
       "name": "Workspace-DLioOiRN.css",
@@ -411,13 +411,455 @@
   "remote": {
     "origin": "https://shnet.up.railway.app",
     "build": {
-      "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
-      "engineContract": "2026.10.13.6",
+      "engineBuild": "698d584b7a294cb03bf2aee50c4167e1aec7babd4b491484b454f5c62052b305",
+      "engineContract": "2026.10.13.7",
       "schemaVersion": 11,
-      "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039"
+      "workerArtifact": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d"
     },
     "tls": true,
     "workerMatched": true
   },
-  "ci": "Prepared; execution evidence will be recorded after publication."
+  "ci": {
+    "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896",
+    "commit": "b51e3f261db2655d3e3162cea44a709cd40616e7",
+    "status": "success",
+    "verification": {
+      "generatedAt": "2026-10-14T17:19:40.700Z",
+      "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896",
+      "commit": "b51e3f261db2655d3e3162cea44a709cd40616e7",
+      "regression": {
+        "total": 829,
+        "passed": 828,
+        "failed": 0,
+        "skipped": 1
+      },
+      "e2e": {
+        "total": 120,
+        "passed": 120,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "projects": [
+          {
+            "appearance": "sistema-claro",
+            "passed": 60,
+            "failed": 0,
+            "skipped": 0,
+            "flaky": 0,
+            "startTime": "2026-10-14T16:54:34.509Z",
+            "durationMs": 1442036.67
+          },
+          {
+            "appearance": "sistema-escuro",
+            "passed": 60,
+            "failed": 0,
+            "skipped": 0,
+            "flaky": 0,
+            "startTime": "2026-10-14T16:54:32.472Z",
+            "durationMs": 1410239.884
+          }
+        ]
+      },
+      "coverage": {
+        "total": 115,
+        "passed": 114,
+        "deferred": 1
+      },
+      "jobs": [
+        {
+          "name": "browser (sistema-claro)",
+          "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236124",
+          "result": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run npm ci",
+              "result": "success"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "result": "success"
+            },
+            {
+              "name": "Complete browser scenarios",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "skipped"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Complete job",
+              "result": "success"
+            }
+          ]
+        },
+        {
+          "name": "containers",
+          "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236128",
+          "result": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "result": "success"
+            },
+            {
+              "name": "Initialize containers",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run npm ci",
+              "result": "success"
+            },
+            {
+              "name": "Build production image",
+              "result": "success"
+            },
+            {
+              "name": "Build previous release for operational rollback",
+              "result": "success"
+            },
+            {
+              "name": "Qualify image rollback and database restore over TLS",
+              "result": "success"
+            },
+            {
+              "name": "Validate production and monitoring configuration",
+              "result": "success"
+            },
+            {
+              "name": "Verify production image",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Stop containers",
+              "result": "success"
+            },
+            {
+              "name": "Complete job",
+              "result": "success"
+            }
+          ]
+        },
+        {
+          "name": "browser (sistema-escuro)",
+          "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236243",
+          "result": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run npm ci",
+              "result": "success"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "result": "success"
+            },
+            {
+              "name": "Complete browser scenarios",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "skipped"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Complete job",
+              "result": "success"
+            }
+          ]
+        },
+        {
+          "name": "verify",
+          "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236795",
+          "result": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "result": "success"
+            },
+            {
+              "name": "Initialize containers",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run npm ci",
+              "result": "success"
+            },
+            {
+              "name": "Run npm run format:check",
+              "result": "success"
+            },
+            {
+              "name": "Run npm run lint",
+              "result": "success"
+            },
+            {
+              "name": "Run npm run typecheck",
+              "result": "success"
+            },
+            {
+              "name": "Use PostgreSQL 18 backup tools from the test service",
+              "result": "success"
+            },
+            {
+              "name": "Run npm test -- --reporter=default --reporter=json --outputFile=test-results/regression.json",
+              "result": "success"
+            },
+            {
+              "name": "Archive historical case coverage",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "result": "success"
+            },
+            {
+              "name": "Independently validate binary captures",
+              "result": "success"
+            },
+            {
+              "name": "Run npm run build",
+              "result": "success"
+            },
+            {
+              "name": "Run npm audit --audit-level=high",
+              "result": "success"
+            },
+            {
+              "name": "Run npm run benchmark",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "result": "skipped"
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "result": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "result": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "result": "success"
+            },
+            {
+              "name": "Stop containers",
+              "result": "success"
+            },
+            {
+              "name": "Complete job",
+              "result": "success"
+            }
+          ]
+        }
+      ],
+      "limits": "Os resultados locais e de CI se sobrepõem. O heap de navegador mede a página principal; o ensaio de containers não é um rollback ou PITR do Railway de produção."
+    },
+    "container": {
+      "generatedAt": "2026-10-14T16:55:39.608Z",
+      "scope": "Containers Linux reais, PostgreSQL isolado da CI, TLS com CA confiável explícita, rollback de imagem e restore em banco separado.",
+      "scenario": {
+        "passed": true,
+        "flows": [
+          {
+            "name": "Ping",
+            "expect": "allow",
+            "sent": 1,
+            "received": 1,
+            "lossPercent": 0,
+            "p95Ms": 16.005136,
+            "p99Ms": 16.005136,
+            "jitterP95Ms": null,
+            "passed": true
+          }
+        ]
+      },
+      "currentBuild": {
+        "engineBuild": "698d584b7a294cb03bf2aee50c4167e1aec7babd4b491484b454f5c62052b305",
+        "engineContract": "2026.10.13.7",
+        "schemaVersion": 11,
+        "workerArtifact": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d"
+      },
+      "tls": {
+        "hsts": "max-age=31536000; includeSubDomains",
+        "cookieSecure": true
+      },
+      "ownershipIsolated": true,
+      "websocket": {
+        "tls": true,
+        "privatePostgresNotification": true
+      },
+      "imageRollback": {
+        "previousBuild": {
+          "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+          "engineContract": "2026.10.13.6",
+          "schemaVersion": 11,
+          "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039"
+        },
+        "projectPreserved": true
+      },
+      "databaseRestore": {
+        "migrations": 11,
+        "projectPreserved": true,
+        "sessionPreserved": true,
+        "reportPreserved": true
+      },
+      "passed": true
+    }
+  },
+  "localBrowser": {
+    "startTime": "2026-10-14T13:46:41.622Z",
+    "duration": 622132.0959999999,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "uiFollowup": {
+    "generatedAt": "2026-10-14T13:58:16.449Z",
+    "scope": "Edge local, nove cenários em cada aparência do sistema; app mantém tema escuro.",
+    "stats": {
+      "startTime": "2026-10-14T13:46:41.622Z",
+      "duration": 622132.0959999999,
+      "expected": 18,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "functionalFixes": [
+      {
+        "problem": "Ciclo de atualizações no React durante construção e playback de uma LAN.",
+        "fix": "Preservar dimensões medidas e handles medidos do ReactFlow ao reconstruir dados de nós; callbacks de seleção idêntica conservam o estado anterior.",
+        "evidence": "LAN do zero com multisseleção, configurações, ping, Worker, save/reload, roteamento e recuperação passa sem pageerror."
+      }
+    ],
+    "testCorrections": [
+      "Catálogo tem nove categorias; filtro HA faz o total de filtros chegar a 23.",
+      "Colagem exige hostname único copy2, preservando a cópia anterior.",
+      "Esperar o painel de conceitos sob demanda antes de ler opções.",
+      "Inspecionar MPLS/QoS no escopo de toda a rede após confirmar HTTP.",
+      "Quadro IPv4/ICMP exige três camadas presentes e campos técnicos visíveis.",
+      "Proposta / acordo RSTP usa o rótulo traduzido."
+    ],
+    "retainedRequirements": [
+      "Bloqueio e liberação ACL/PAT, persistência e inspeção de ICMP.",
+      "Failover RSTP, isolamento, recuperação, BPDU e persistência.",
+      "Inspeção conserva zoom; zoom por duplo clique já estava desativado.",
+      "Clonagem, diff/undo, save e projeções física/lógica.",
+      "Virtualização e heap limitado com 2.000 dispositivos nas duas aparências."
+    ],
+    "ciFollowup": {
+      "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896",
+      "commit": "b51e3f261db2655d3e3162cea44a709cd40616e7",
+      "passed": 120,
+      "corrections": [
+        "Inspeção navega pelo finder e centraliza o equipamento antes de abrir o painel.",
+        "VRRP e LACP usam campos técnicos e rótulos traduzidos atuais.",
+        "Telemetria procura o evento de emissão no escopo de toda a rede após validar recebimento no servidor.",
+        "Pontuação é verificada no status do diálogo de desafio."
+      ]
+    }
+  },
+  "remoteFrontend": {
+    "generatedAt": "2026-10-14T17:21:09.718Z",
+    "origin": "https://shnet.up.railway.app",
+    "path": "/assets/Workspace-BR0H0rkW.js",
+    "sha256": "2703949b6d2537e3e01e5b36a43fbccb04e11f8b47cd2544e8bdc98afa914fa8",
+    "matchedLocalCompiledWorkspace": true,
+    "passed": true
+  },
+  "remoteCompression": {
+    "generatedAt": "2026-10-14T17:21:10.391Z",
+    "origin": "https://shnet.up.railway.app",
+    "path": "/assets/scenario.worker-DONTulb4.js",
+    "status": 200,
+    "contentEncoding": "br",
+    "cacheControl": "public, max-age=31536000, immutable",
+    "compressedBytes": 244374,
+    "rawBytes": 948054,
+    "sha256": "2301d646c01016900c273ceff352b6084a1ef761cb800b75697c92e31af1f10d",
+    "passed": true
+  }
 }

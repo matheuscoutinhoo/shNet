@@ -1,0 +1,747 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\coding\\netlab\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--grep",
+      "Categorias e terminal|Canvas: categorias|MPLS:|QoS:|políticas: PAT|RSTP: redundância|cadastro → LAN|Topologia: vistas|Escala: Worker",
+      "--reporter=list,json",
+      "--max-failures=1"
+    ],
+    "configFile": "C:\\coding\\netlab\\playwright.config.ts",
+    "rootDir": "C:/coding/netlab/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/coding/netlab/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "sistema-claro",
+        "name": "sistema-claro",
+        "testDir": "C:/coding/netlab/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      },
+      {
+        "outputDir": "C:/coding/netlab/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "sistema-escuro",
+        "name": "sistema-escuro",
+        "testDir": "C:/coding/netlab/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://127.0.0.1:5190/api/health",
+      "reuseExistingServer": true,
+      "timeout": 60000,
+      "env": {
+        "DATABASE_MODE": "embedded",
+        "PORT": "3091",
+        "WEB_PORT": "5190",
+        "API_PORT": "3091",
+        "APP_ORIGIN": "http://127.0.0.1:5190"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "lab.spec.ts",
+      "file": "lab.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14883,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:46:50.366Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-6afacd252a28c5f7ee77",
+          "file": "lab.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15775,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:47:05.879Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-96ddc897f903447a1fb3",
+          "file": "lab.spec.ts",
+          "line": 1268,
+          "column": 1
+        },
+        {
+          "title": "MPLS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 19385,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:47:21.666Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-42240f15d67db58ae10b",
+          "file": "lab.spec.ts",
+          "line": 1685,
+          "column": 3
+        },
+        {
+          "title": "QoS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16802,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:47:41.064Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-67316e528c3eed374371",
+          "file": "lab.spec.ts",
+          "line": 1685,
+          "column": 3
+        },
+        {
+          "title": "políticas: PAT, ACL, bloqueio, recuperação e persistência",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 71437,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:47:57.880Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-b22c447ba753200f0547",
+          "file": "lab.spec.ts",
+          "line": 2667,
+          "column": 1
+        },
+        {
+          "title": "RSTP: redundância, BPDUs, falha, recuperação e persistência mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 72216,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:49:09.333Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-9497ba5ec59a909dda56",
+          "file": "lab.spec.ts",
+          "line": 2778,
+          "column": 1
+        },
+        {
+          "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 31893,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:50:21.566Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-7d97be568bdf35c2ea27",
+          "file": "lab.spec.ts",
+          "line": 2976,
+          "column": 1
+        },
+        {
+          "title": "Topologia: vistas, clone de rack com revisão, undo e persistência",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:50:53.476Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-fcc27ef5f51122e5ebc1",
+          "file": "lab.spec.ts",
+          "line": 4264,
+          "column": 1
+        },
+        {
+          "title": "Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alterações",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 19952,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:51:04.665Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "worker-timing",
+                      "contentType": "application/json",
+                      "body": "WwogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6NjczNS42OTk5OTk5OTkyNTUsXCJwcm9jZXNzZWRcIjoxNzcsXCJwZW5kaW5nXCI6MTk2LFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MTc3LFwiYnl0ZXNcIjo1NzY5NDR9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjczNDguNjk5OTk5OTk5MjU1LFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjM4OCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6Njc5OTQ0fSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjo3NzM5LjU5OTk5OTk5OTYyNzUsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6NTkzLFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MjAwLFwiYnl0ZXNcIjo2OTgwNTJ9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjgzMTEuNzk5OTk5OTk4ODgyLFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjY3MyxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6NTk2NjA2fSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjo4NzEyLjUsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6NzYzLFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MjAwLFwiYnl0ZXNcIjo2MTgxODZ9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjkwOTkuNDAwMDAwMDAwMzczLFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjgyNCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6NTc4MzMyfSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjo5NTg2Ljc5OTk5OTk5ODg4MixcInByb2Nlc3NlZFwiOjIwMCxcInBlbmRpbmdcIjo2MjQsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoyMDAsXCJieXRlc1wiOjEzMDU4NX0iLAogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6OTkzMyxcInByb2Nlc3NlZFwiOjIwMCxcInBlbmRpbmdcIjo0MjQsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoyMDAsXCJieXRlc1wiOjEzMDU4NX0iLAogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6MTA1MzUuNTk5OTk5OTk5NjI3LFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjIyNCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6MTMwNjEyfSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjoxMDkyMi40MDAwMDAwMDAzNzMsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6MjQsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoyMDAsXCJieXRlc1wiOjEzMDU4NH0iLAogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6MTE1NDYuNSxcInByb2Nlc3NlZFwiOjUzLFwicGVuZGluZ1wiOjAsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoxNjc1LFwiYnl0ZXNcIjo1NzY0ODN9Igpd"
+                    },
+                    {
+                      "name": "browser-heap-2000",
+                      "contentType": "application/json",
+                      "body": "ewogICJzYW1wbGVzIjogWwogICAgewogICAgICAidXNlZFNpemUiOiA2MzMzNjk1MiwKICAgICAgInRvdGFsU2l6ZSI6IDY1ODUxMzkyLAogICAgICAiZW1iZWRkZXJIZWFwVXNlZFNpemUiOiAxNTg3NzcwNCwKICAgICAgImJhY2tpbmdTdG9yYWdlU2l6ZSI6IDIzMzk4NTY5CiAgICB9LAogICAgewogICAgICAidXNlZFNpemUiOiA2MjI5NzQ2OCwKICAgICAgInRvdGFsU2l6ZSI6IDYzNDkyMDk2LAogICAgICAiZW1iZWRkZXJIZWFwVXNlZFNpemUiOiAxNTkyMTI5NiwKICAgICAgImJhY2tpbmdTdG9yYWdlU2l6ZSI6IDIzMzk4NTY5CiAgICB9LAogICAgewogICAgICAidXNlZFNpemUiOiA2MzQwMDYxMiwKICAgICAgInRvdGFsU2l6ZSI6IDY0ODAyODE2LAogICAgICAiZW1iZWRkZXJIZWFwVXNlZFNpemUiOiAxNTkyMzM0NCwKICAgICAgImJhY2tpbmdTdG9yYWdlU2l6ZSI6IDIzMzk4NTY5CiAgICB9CiAgXSwKICAiYnVkZ2V0TWlCIjogMjU2LAogICJncm93dGhNaUIiOiAzMgp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-4b109745bfe44a557966",
+          "file": "lab.spec.ts",
+          "line": 4323,
+          "column": 1
+        },
+        {
+          "title": "Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9290,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:51:28.254Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-617e75a27d3f0c31a077",
+          "file": "lab.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 20588,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:51:38.192Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-a8c2935e70124429ffdb",
+          "file": "lab.spec.ts",
+          "line": 1268,
+          "column": 1
+        },
+        {
+          "title": "MPLS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 21885,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:51:58.793Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-c01645a509ee37ba4e7d",
+          "file": "lab.spec.ts",
+          "line": 1685,
+          "column": 3
+        },
+        {
+          "title": "QoS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 18861,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:52:20.692Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-b1b541ad7c52bc561932",
+          "file": "lab.spec.ts",
+          "line": 1685,
+          "column": 3
+        },
+        {
+          "title": "políticas: PAT, ACL, bloqueio, recuperação e persistência",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 64584,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:52:39.572Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-3bf3c499bb7b7c311ad2",
+          "file": "lab.spec.ts",
+          "line": 2667,
+          "column": 1
+        },
+        {
+          "title": "RSTP: redundância, BPDUs, falha, recuperação e persistência mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 106756,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:53:44.177Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-c391724059ad4e5f179c",
+          "file": "lab.spec.ts",
+          "line": 2778,
+          "column": 1
+        },
+        {
+          "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 54719,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:55:30.951Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-331b1e116a8555f052cc",
+          "file": "lab.spec.ts",
+          "line": 2976,
+          "column": 1
+        },
+        {
+          "title": "Topologia: vistas, clone de rack com revisão, undo e persistência",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7988,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:56:25.688Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-ebaf912b8aa7d463e016",
+          "file": "lab.spec.ts",
+          "line": 4264,
+          "column": 1
+        },
+        {
+          "title": "Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alterações",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-escuro",
+              "projectName": "sistema-escuro",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 26242,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-14T13:56:33.692Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "worker-timing",
+                      "contentType": "application/json",
+                      "body": "WwogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6ODMzOC44MDAwMDAwMDA3NDUsXCJwcm9jZXNzZWRcIjoxMjEsXCJwZW5kaW5nXCI6MTQwLFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MTIxLFwiYnl0ZXNcIjo0MDEyNzJ9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjg1NTUuMjAwMDAwMDAxMTE4LFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjMzMixcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6NjYxNjAzfSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjo4OTU1LjUsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6NTM4LFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MjAwLFwiYnl0ZXNcIjo3MDAyNTV9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjk2MTIsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6NjQ5LFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MjAwLFwiYnl0ZXNcIjo2MTg3NjB9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjEwMTI3LjUsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6NzM5LFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MjAwLFwiYnl0ZXNcIjo2MTUzMzl9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjEwNjU0LFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjgyNCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6NjE1MjcxfSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjoxMTAxNS4zMDAwMDAwMDA3NDUsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6NjgwLFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MjAwLFwiYnl0ZXNcIjoyMjk3MDl9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjExNjA5LjkwMDAwMDAwMDM3MyxcInByb2Nlc3NlZFwiOjIwMCxcInBlbmRpbmdcIjo0ODAsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoyMDAsXCJieXRlc1wiOjEzMDU4NX0iLAogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6MTIzMjAuNDAwMDAwMDAwMzczLFwicHJvY2Vzc2VkXCI6MjAwLFwicGVuZGluZ1wiOjI4MCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjIwMCxcImJ5dGVzXCI6MTMwNjEyfSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjoxMjk2Ni4yMDAwMDAwMDExMTgsXCJwcm9jZXNzZWRcIjoyMDAsXCJwZW5kaW5nXCI6ODAsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoyMDAsXCJieXRlc1wiOjEzMDU4NH0iLAogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6MTMzOTQuMzAwMDAwMDAwNzQ1LFwicHJvY2Vzc2VkXCI6MTA5LFwicGVuZGluZ1wiOjAsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjoxNjc1LFwiYnl0ZXNcIjo2MTA0MjB9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjEzOTA2LjcwMDAwMDAwMTExOCxcInByb2Nlc3NlZFwiOjAsXCJwZW5kaW5nXCI6MCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjAsXCJieXRlc1wiOjM2OX0iLAogICJ3b3JrZXItc2FtcGxlIHtcImF0XCI6MTQwNzYuNjAwMDAwMDAxNDksXCJwcm9jZXNzZWRcIjowLFwicGVuZGluZ1wiOjAsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjowLFwiYnl0ZXNcIjozNjl9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjE0MjcwLjYwMDAwMDAwMTQ5LFwicHJvY2Vzc2VkXCI6MCxcInBlbmRpbmdcIjowLFwiY2hhbmdlZFwiOjAsXCJwYXRjaGVzXCI6MCxcImJ5dGVzXCI6MzY5fSIsCiAgIndvcmtlci1zYW1wbGUge1wiYXRcIjoxNDQzMy40MDAwMDAwMDAzNzMsXCJwcm9jZXNzZWRcIjowLFwicGVuZGluZ1wiOjAsXCJjaGFuZ2VkXCI6MCxcInBhdGNoZXNcIjowLFwiYnl0ZXNcIjozNjl9IiwKICAid29ya2VyLXNhbXBsZSB7XCJhdFwiOjE0NjY0LjgwMDAwMDAwMDc0NSxcInByb2Nlc3NlZFwiOjAsXCJwZW5kaW5nXCI6MCxcImNoYW5nZWRcIjowLFwicGF0Y2hlc1wiOjAsXCJieXRlc1wiOjM2OX0iCl0="
+                    },
+                    {
+                      "name": "browser-heap-2000",
+                      "contentType": "application/json",
+                      "body": "ewogICJzYW1wbGVzIjogWwogICAgewogICAgICAidXNlZFNpemUiOiA2MjgyOTQ3NiwKICAgICAgInRvdGFsU2l6ZSI6IDY1ODUxMzkyLAogICAgICAiZW1iZWRkZXJIZWFwVXNlZFNpemUiOiAxNTc5NTkwNCwKICAgICAgImJhY2tpbmdTdG9yYWdlU2l6ZSI6IDIzMzk4MTcyCiAgICB9LAogICAgewogICAgICAidXNlZFNpemUiOiA2Mjg3NzQ0NCwKICAgICAgInRvdGFsU2l6ZSI6IDY0Mjc4NTI4LAogICAgICAiZW1iZWRkZXJIZWFwVXNlZFNpemUiOiAxNTUzOTEyMCwKICAgICAgImJhY2tpbmdTdG9yYWdlU2l6ZSI6IDIzMzk4MTcyCiAgICB9LAogICAgewogICAgICAidXNlZFNpemUiOiA2MzA0ODU2MCwKICAgICAgInRvdGFsU2l6ZSI6IDY0NTQwNjcyLAogICAgICAiZW1iZWRkZXJIZWFwVXNlZFNpemUiOiAxNTU0ODc3NiwKICAgICAgImJhY2tpbmdTdG9yYWdlU2l6ZSI6IDIzMzk4MTk5CiAgICB9CiAgXSwKICAiYnVkZ2V0TWlCIjogMjU2LAogICJncm93dGhNaUIiOiAzMgp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-b8913ce2774526cf0a07",
+          "file": "lab.spec.ts",
+          "line": 4323,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-14T13:46:41.622Z",
+    "duration": 622132.0959999999,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

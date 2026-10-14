@@ -1,0 +1,26 @@
+{
+  "samples": [
+    {
+      "usedSize": 63101348,
+      "totalSize": 65064960,
+      "embedderHeapUsedSize": 15299576,
+      "backingStorageSize": 23416805
+    },
+    {
+      "usedSize": 63097388,
+      "totalSize": 64540672,
+      "embedderHeapUsedSize": 15040120,
+      "backingStorageSize": 23416797
+    },
+    {
+      "usedSize": 63137180,
+      "totalSize": 64540672,
+      "embedderHeapUsedSize": 15041600,
+      "backingStorageSize": 23416797
+    }
+  ],
+  "budgetMiB": 256,
+  "growthMiB": 32,
+  "project": "sistema-claro",
+  "scope": "Heap principal após GC explícito, três ciclos de pausa/retomada do Worker; não representa heap interno do Worker."
+}

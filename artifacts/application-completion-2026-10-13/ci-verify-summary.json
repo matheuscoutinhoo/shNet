@@ -1,0 +1,314 @@
+{
+  "generatedAt": "2026-10-14T17:19:40.700Z",
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896",
+  "commit": "b51e3f261db2655d3e3162cea44a709cd40616e7",
+  "regression": {
+    "total": 829,
+    "passed": 828,
+    "failed": 0,
+    "skipped": 1
+  },
+  "e2e": {
+    "total": 120,
+    "passed": 120,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "projects": [
+      {
+        "appearance": "sistema-claro",
+        "passed": 60,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "startTime": "2026-10-14T16:54:34.509Z",
+        "durationMs": 1442036.67
+      },
+      {
+        "appearance": "sistema-escuro",
+        "passed": 60,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "startTime": "2026-10-14T16:54:32.472Z",
+        "durationMs": 1410239.884
+      }
+    ]
+  },
+  "coverage": {
+    "total": 115,
+    "passed": 114,
+    "deferred": 1
+  },
+  "jobs": [
+    {
+      "name": "browser (sistema-claro)",
+      "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236124",
+      "result": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "result": "success"
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "result": "success"
+        },
+        {
+          "name": "Complete browser scenarios",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "skipped"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Complete job",
+          "result": "success"
+        }
+      ]
+    },
+    {
+      "name": "containers",
+      "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236128",
+      "result": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "result": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "result": "success"
+        },
+        {
+          "name": "Build production image",
+          "result": "success"
+        },
+        {
+          "name": "Build previous release for operational rollback",
+          "result": "success"
+        },
+        {
+          "name": "Qualify image rollback and database restore over TLS",
+          "result": "success"
+        },
+        {
+          "name": "Validate production and monitoring configuration",
+          "result": "success"
+        },
+        {
+          "name": "Verify production image",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Stop containers",
+          "result": "success"
+        },
+        {
+          "name": "Complete job",
+          "result": "success"
+        }
+      ]
+    },
+    {
+      "name": "browser (sistema-escuro)",
+      "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236243",
+      "result": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "result": "success"
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "result": "success"
+        },
+        {
+          "name": "Complete browser scenarios",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "skipped"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Complete job",
+          "result": "success"
+        }
+      ]
+    },
+    {
+      "name": "verify",
+      "url": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896/job/115983236795",
+      "result": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "result": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "result": "success"
+        },
+        {
+          "name": "Run npm run format:check",
+          "result": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "result": "success"
+        },
+        {
+          "name": "Run npm run typecheck",
+          "result": "success"
+        },
+        {
+          "name": "Use PostgreSQL 18 backup tools from the test service",
+          "result": "success"
+        },
+        {
+          "name": "Run npm test -- --reporter=default --reporter=json --outputFile=test-results/regression.json",
+          "result": "success"
+        },
+        {
+          "name": "Archive historical case coverage",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "result": "success"
+        },
+        {
+          "name": "Independently validate binary captures",
+          "result": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "result": "success"
+        },
+        {
+          "name": "Run npm audit --audit-level=high",
+          "result": "success"
+        },
+        {
+          "name": "Run npm run benchmark",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "result": "skipped"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "result": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "result": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "result": "success"
+        },
+        {
+          "name": "Stop containers",
+          "result": "success"
+        },
+        {
+          "name": "Complete job",
+          "result": "success"
+        }
+      ]
+    }
+  ],
+  "limits": "Os resultados locais e de CI se sobrepõem. O heap de navegador mede a página principal; o ensaio de containers não é um rollback ou PITR do Railway de produção."
+}

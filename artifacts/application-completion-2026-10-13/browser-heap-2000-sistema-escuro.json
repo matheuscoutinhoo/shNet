@@ -1,22 +1,22 @@
 {
   "samples": [
     {
-      "usedSize": 62172876,
-      "totalSize": 65064960,
-      "embedderHeapUsedSize": 14001016,
-      "backingStorageSize": 23375585
+      "usedSize": 62829476,
+      "totalSize": 65851392,
+      "embedderHeapUsedSize": 15795904,
+      "backingStorageSize": 23398172
     },
     {
-      "usedSize": 61370620,
-      "totalSize": 62705664,
-      "embedderHeapUsedSize": 14325320,
-      "backingStorageSize": 23375612
+      "usedSize": 62877444,
+      "totalSize": 64278528,
+      "embedderHeapUsedSize": 15539120,
+      "backingStorageSize": 23398172
     },
     {
-      "usedSize": 60469764,
-      "totalSize": 61919232,
-      "embedderHeapUsedSize": 14131608,
-      "backingStorageSize": 23375585
+      "usedSize": 63048560,
+      "totalSize": 64540672,
+      "embedderHeapUsedSize": 15548776,
+      "backingStorageSize": 23398199
     }
   ],
   "budgetMiB": 256,

@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-10-14T13:58:16.449Z",
+  "scope": "Edge local, nove cenários em cada aparência do sistema; app mantém tema escuro.",
+  "stats": {
+    "startTime": "2026-10-14T13:46:41.622Z",
+    "duration": 622132.0959999999,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "functionalFixes": [
+    {
+      "problem": "Ciclo de atualizações no React durante construção e playback de uma LAN.",
+      "fix": "Preservar dimensões medidas e handles medidos do ReactFlow ao reconstruir dados de nós; callbacks de seleção idêntica conservam o estado anterior.",
+      "evidence": "LAN do zero com multisseleção, configurações, ping, Worker, save/reload, roteamento e recuperação passa sem pageerror."
+    }
+  ],
+  "testCorrections": [
+    "Catálogo tem nove categorias; filtro HA faz o total de filtros chegar a 23.",
+    "Colagem exige hostname único copy2, preservando a cópia anterior.",
+    "Esperar o painel de conceitos sob demanda antes de ler opções.",
+    "Inspecionar MPLS/QoS no escopo de toda a rede após confirmar HTTP.",
+    "Quadro IPv4/ICMP exige três camadas presentes e campos técnicos visíveis.",
+    "Proposta / acordo RSTP usa o rótulo traduzido."
+  ],
+  "retainedRequirements": [
+    "Bloqueio e liberação ACL/PAT, persistência e inspeção de ICMP.",
+    "Failover RSTP, isolamento, recuperação, BPDU e persistência.",
+    "Inspeção conserva zoom; zoom por duplo clique já estava desativado.",
+    "Clonagem, diff/undo, save e projeções física/lógica.",
+    "Virtualização e heap limitado com 2.000 dispositivos nas duas aparências."
+  ],
+  "ciFollowup": {
+    "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38601980896",
+    "commit": "b51e3f261db2655d3e3162cea44a709cd40616e7",
+    "passed": 120,
+    "corrections": [
+      "Inspeção navega pelo finder e centraliza o equipamento antes de abrir o painel.",
+      "VRRP e LACP usam campos técnicos e rótulos traduzidos atuais.",
+      "Telemetria procura o evento de emissão no escopo de toda a rede após validar recebimento no servidor.",
+      "Pontuação é verificada no status do diálogo de desafio."
+    ]
+  }
+}

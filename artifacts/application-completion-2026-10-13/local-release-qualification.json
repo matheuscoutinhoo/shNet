@@ -30,8 +30,8 @@
     "authoritativeReplay": "matched",
     "localArtifactRollback": true
   },
-  "sourceHash": "e34c4df06903a58788b1b693f5174a57c30935e764cd3c773ace306b6090f4e5",
-  "assetHash": "5eefc5ee12e6e1d31bd7537b0de114ba94371bcd911482443fcf22ddb9ae0e31",
+  "sourceHash": "2a330cb6b8109f58a7f65538adb56c219ed1b83c016daff921662dd08f2bd148",
+  "assetHash": "8058eb7da56efb14cec74254bdbf81cbef4d2d4f51563806da5afa6e1370ecdc",
   "backupRestoreEvidence": "tests/production.test.ts via npm run test:postgres",
   "remoteDeployment": "not-executed-by-this-local-script; see remote-release.json and CI container-qualification"
 }
