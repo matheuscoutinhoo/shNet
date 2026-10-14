@@ -194,7 +194,10 @@ try {
   const run = JSON.parse(begun.body),
     runner = new ScenarioRunner(run.topology, run.scenario);
   while (!runner.step(100));
-  const completed = await http(endpoint + '/' + run.id, 'PUT', { report: runner.report() }, headers);
+  const report = runner.report();
+  assert(report.passed && report.flows.every((flow) => flow.received > 0), 'Fluxo ICMP isolado falhou.');
+  evidence.scenario = { passed: report.passed, flows: report.flows };
+  const completed = await http(endpoint + '/' + run.id, 'PUT', { report }, headers);
   assert(
     completed.status === 200,
     'Relatório isolado não foi salvo: HTTP ' + completed.status + ' ' + completed.body
