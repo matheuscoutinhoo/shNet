@@ -1,6 +1,7 @@
 import { receiveFragment } from './fragment';
 import { spanningPortState } from './stp-scope';
 import { lacpMembers } from './lacp-members';
+import { bondActive } from './bond-members';
 import { interfaceSchema, type Device, type Frame, type NetworkInterface, type Snapshot } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { linkOperational } from '../links/physical';
@@ -133,6 +134,7 @@ export function interfaceOperational(snapshot: Snapshot, device: Device, port: N
     return !!carrier && interfaceOperational(snapshot, device, carrier);
   }
   if (port.aggregate) return lacpMembers(snapshot, device, port).length > 0;
+  if (port.bond) return bondActive(snapshot, device, port) !== undefined;
   if (port.logical?.kind === 'svi') return sviOperational(snapshot, device, port);
   if (port.logical?.parent) {
     const parent = device.interfaces.find((p) => p.id === port.logical!.parent);

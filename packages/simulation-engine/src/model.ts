@@ -118,6 +118,7 @@ import {
 export * from './protocols/wireless-model';
 import { bgpStateSchema, bgpTimerSchema } from './protocols/bgp-model';
 import { aggregateSchema, lacpPduSchema, lacpTimerSchema } from './protocols/lacp-model';
+import { bondStateSchema, bondTimerSchema } from './protocols/bond-model';
 export * from './protocols/lacp-model';
 export * from './protocols/bgp-model';
 import { z } from 'zod';
@@ -523,6 +524,8 @@ export const interfaceSchema = z
       .strict()
       .optional(),
     aggregate: aggregateSchema.optional(),
+    bond: bondStateSchema.optional(),
+    installedNic: z.boolean().optional(),
     tunnel: tunnelStateSchema.optional(),
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
@@ -1024,6 +1027,7 @@ export const eventSchema = z
       'LACP_SENT',
       'LACP_RECEIVED',
       'LACP_STATE_CHANGED',
+      'BOND_STATE_CHANGED',
       'VRRP_ADVERT_SENT',
       'VRRP_ADVERT_RECEIVED',
       'RIP_REQUEST',
@@ -1077,6 +1081,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   ndpTimerSchema,
   probe6TimerSchema,
   lacpTimerSchema,
+  bondTimerSchema,
   tcpTimerSchema,
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),

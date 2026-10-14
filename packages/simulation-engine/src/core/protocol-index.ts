@@ -1,5 +1,5 @@
 import type { Device, Snapshot } from '../model';
-type Feature = 'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'dot1x' | 'stp' | 'ups' | 'rack';
+type Feature = 'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'bond' | 'dot1x' | 'stp' | 'ups' | 'rack';
 const caches = new WeakMap<
   Snapshot,
   { array: Device[]; length: number; features: Map<Feature, { device: Device; index: number }[]> }
@@ -7,6 +7,8 @@ const caches = new WeakMap<
 const participates = (d: Device, key: Feature) =>
   key === 'lacp'
     ? d.interfaces.some((p) => p.aggregate)
+    : key === 'bond'
+      ? d.interfaces.some((p) => p.bond)
     : key === 'dot1x'
       ? d.interfaces.some((p) => p.dot1x || p.supplicant)
       : key === 'stp'

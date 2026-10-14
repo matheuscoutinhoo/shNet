@@ -26,6 +26,7 @@ import { validateDhcp6 } from '../protocols/dhcp6';
 import { validateBgp } from '../protocols/bgp-validation';
 import { validateLayer3 } from '../protocols/layer3';
 import { validateLacp } from '../protocols/lacp';
+import { validateBonds } from '../protocols/bond';
 import { validateVrrp } from '../protocols/vrrp';
 import { snapshotSchema, type Snapshot } from '../model';
 import { endpoint, validateMedia } from '../links/physical';
@@ -77,6 +78,7 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateMesh(s);
   validateCapwap(s);
   validateLacp(s);
+  validateBonds(s);
   validateCanvas(s);
   validateTcp(s);
   validateModbus(s);

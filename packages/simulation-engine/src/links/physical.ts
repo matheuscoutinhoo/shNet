@@ -34,6 +34,8 @@ export function validateConnection(state: Snapshot, link: Link, ignoreId?: strin
     b.port.loopback ||
     a.port.aggregate ||
     b.port.aggregate ||
+    a.port.bond ||
+    b.port.bond ||
     a.port.tunnel ||
     b.port.tunnel ||
     a.port.vxlan ||

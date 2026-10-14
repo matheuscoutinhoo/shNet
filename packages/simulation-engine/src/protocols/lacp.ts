@@ -254,7 +254,7 @@ export function validateLacp(snapshot: Snapshot) {
   const used = new Set<object>();
   for (const d of snapshot.devices) {
     for (const p of d.interfaces) {
-      if (p.channel && !d.interfaces.some((a) => a.id === p.channel && a.aggregate?.members.includes(p.id)))
+      if (p.channel && !d.interfaces.some((a) => a.id === p.channel && (a.aggregate?.members.includes(p.id) || a.bond?.members.includes(p.id))))
         throw new Error('Membro sem EtherChannel.');
       const agg = p.aggregate;
       if (!agg) continue;
