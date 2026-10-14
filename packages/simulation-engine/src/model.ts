@@ -309,6 +309,7 @@ export const spanningTreePortSchema = z
         windowStart: finite.nonnegative(),
         pendingAt: finite.nonnegative().optional(),
         agreement: z.boolean().optional(),
+        pendingChangeId: id.optional(),
       })
       .strict()
       .optional(),
