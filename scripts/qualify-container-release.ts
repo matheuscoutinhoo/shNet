@@ -194,13 +194,11 @@ try {
   const run = JSON.parse(begun.body),
     runner = new ScenarioRunner(run.topology, run.scenario);
   while (!runner.step(100));
-  const completed = await http(
-    endpoint + '/' + run.id,
-    'PUT',
-    { status: 'complete', report: runner.report() },
-    headers
+  const completed = await http(endpoint + '/' + run.id, 'PUT', { report: runner.report() }, headers);
+  assert(
+    completed.status === 200,
+    'Relatório isolado não foi salvo: HTTP ' + completed.status + ' ' + completed.body
   );
-  assert(completed.status === 200, 'Relatório isolado não foi salvo.');
   const verified = await http(endpoint + '/' + run.id + '/verify', 'POST', {}, headers);
   assert(
     verified.status === 200 && JSON.parse(verified.body).verification.replay.status === 'matched',
@@ -328,8 +326,12 @@ try {
     await db.close();
   }
   evidence.passed = true;
-  await writeFile(out + '/qualification.json', JSON.stringify(evidence, null, 2));
+} catch (error) {
+  evidence.passed = false;
+  evidence.error = error instanceof Error ? error.message : String(error);
+  throw error;
 } finally {
+  await writeFile(out + '/qualification.json', JSON.stringify(evidence, null, 2));
   for (const container of ['shlab-release', 'shlab-release-tls'])
     try {
       docker(['rm', '-f', container]);
