@@ -125,11 +125,13 @@ export function Workspace({
     setFocusRequest((previous) => ({ id, sequence: (previous?.sequence ?? 0) + 1 }));
   const device = lab.engine.state.devices.find((d) => d.id === inspecting);
   const select = useCallback((ids: string[]) => {
-    setSelected(ids);
+    setSelected((previous) =>
+      previous.length === ids.length && previous.every((id, i) => id === ids[i]) ? previous : ids
+    );
     setInspecting((current) => (ids.length ? current : null));
   }, []);
   function inspect(id: string) {
-    setSelected([id]);
+    select([id]);
     setInspecting(id);
   }
   const duplicate = (ids = selected, fromClipboard = false) =>

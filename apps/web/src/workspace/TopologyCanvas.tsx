@@ -760,6 +760,18 @@ function Canvas({
           old.data.moving === node.data.moving
         )
           return old;
+        if (old?.type === 'device' && node.type === 'device') {
+          // Retain ReactFlow measurements across data/activity changes. Dropping
+          // them makes the store repeatedly alternate between initialized and
+          // uninitialized while selection and playback are being synchronized.
+          return {
+            ...node,
+            measured: old.measured,
+            width: old.width,
+            height: old.height,
+            handles: old.measured?.width && old.measured?.height ? undefined : node.handles,
+          };
+        }
         return node;
       });
       return next.length === previous.length && next.every((node, i) => node === previous[i])

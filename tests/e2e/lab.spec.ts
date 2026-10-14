@@ -283,7 +283,8 @@ test('Categorias e terminal: capacidades, troca de filtro e texto sem cortes em 
   await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
   await expect(filters.getByRole('button', { name: 'OSPF', exact: true })).toHaveCount(1);
   await expect(filters.getByRole('button', { name: 'STP', exact: true })).toHaveCount(1);
-  await expect(filters.getByRole('button')).toHaveCount(22);
+  await expect(filters.getByRole('button', { name: 'Sincronização HA', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button')).toHaveCount(23);
   expect(errors).toEqual([]);
 });
 
@@ -1301,7 +1302,8 @@ test('Canvas: categorias recolhíveis, ações com botão direito e dicas por la
   await search.fill('xyz equipamento inexistente');
   await expect(catalog.getByRole('status')).toContainText('Nenhum equipamento');
   await search.clear();
-  await expect(catalog.locator('.equipment-category')).toHaveCount(8);
+  await expect(catalog.getByRole('region', { name: 'Industrial', exact: true })).toBeVisible();
+  await expect(catalog.locator('.equipment-category')).toHaveCount(9);
   await catalog
     .locator('.equipment-card')
     .filter({ has: page.getByText('Computador', { exact: true }) })
@@ -1354,7 +1356,8 @@ test('Canvas: categorias recolhíveis, ações com botão direito e dicas por la
   await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy-copy');
   await page.keyboard.press('Control+v');
   await expect(page.locator('.network-device')).toHaveCount(4);
-  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy');
+  await expect(page.locator('.inspector-device h2')).toHaveText('HOST-TESTE-copy2');
+  await expect(node('HOST-TESTE-copy2')).toHaveCount(1);
   await page.getByRole('button', { name: 'Excluir seleção', exact: true }).click();
   await expect(page.locator('.network-device')).toHaveCount(3);
   await node('HOST-TESTE-copy-copy').click({ button: 'right' });
@@ -1429,6 +1432,7 @@ test('Canvas: categorias recolhíveis, ações com botão direito e dicas por la
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   await page.getByRole('button', { name: 'Ajuda', exact: true }).click();
   const scoped = page.getByRole('dialog').getByRole('combobox', { name: 'Conceito de rede', exact: true });
+  await expect(scoped).toBeVisible();
   expect(
     await scoped
       .locator('option')
@@ -1442,6 +1446,7 @@ test('Canvas: categorias recolhíveis, ações com botão direito e dicas por la
   await page.locator('.lesson-card').filter({ hasText: 'A credencial abre o rádio' }).click();
   await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
   await page.getByRole('button', { name: 'Ajuda', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'Conceito de rede', exact: true })).toBeVisible();
   expect(
     await page
       .getByRole('combobox', { name: 'Conceito de rede', exact: true })
@@ -1719,6 +1724,7 @@ for (const scenario of [
         async () => (await page.locator('.tcp-result').innerText()).includes(scenario.body),
         350
       );
+      await page.getByRole('button', { name: 'Ver toda a rede', exact: true }).click();
       await page.locator('.event-filters').getByRole('button', { name: 'QoS / MPLS', exact: true }).click();
       await page
         .locator('.event-table-wrap tr')
@@ -2523,7 +2529,8 @@ async function switchTerminal(page: Page, hostname: string, commands: string[]) 
   await page
     .locator('.network-device')
     .filter({ has: page.getByText(hostname, { exact: true }) })
-    .dblclick();
+    .getByText(hostname, { exact: true })
+    .click();
   await page.getByRole('button', { name: 'Terminal', exact: true }).click();
   await page.locator('.xterm-helper-textarea').focus();
   for (const command of commands) {
@@ -2686,7 +2693,11 @@ test('políticas: PAT, ACL, bloqueio, recuperação e persistência', async ({ p
     .getByRole('button', { name: 'Fechar', exact: true })
     .click();
   await page.locator('.event-table').getByRole('row').filter({ hasText: 'FRAME_RECEIVED' }).first().click();
-  await expect(page.locator('.osi-stack > div')).toHaveCount(7);
+  await page.getByRole('dialog').locator('.event-technical > summary').click();
+  await expect(page.locator('.osi-stack')).toBeVisible();
+  await expect(page.locator('.osi-stack > div')).toHaveCount(3);
+  await expect(page.locator('.osi-stack > div')).toContainText(['IPv4', 'Ethernet', 'Cabo de cobre']);
+  await expect(page.getByRole('dialog')).toContainText('ICMP');
   await page.screenshot({ path: 'test-results/osi-packet-desktop.png', fullPage: true });
   await page
     .getByRole('dialog')
@@ -2782,7 +2793,13 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   await page.screenshot({ path: 'test-results/rstp-workspace-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
   await rstpPing(page, 'Resposta em');
+  const viewportZoom = () =>
+    page
+      .locator('.react-flow__viewport')
+      .evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a);
+  const zoomBeforeInspection = await viewportZoom();
   await switchTerminal(page, 'SW-03', ['enable', 'configure terminal', 'interface Gi0/2', 'shutdown']);
+  expect(await viewportZoom()).toBeCloseTo(zoomBeforeInspection, 5);
   await page.locator('.inspector-tabs').getByRole('button', { name: 'STP', exact: true }).click();
   await advanceSimulation(
     page,
@@ -2806,8 +2823,9 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   await rstpPing(page, 'Resposta em');
   await page.locator('.event-filters').getByRole('button', { name: 'STP', exact: true }).click();
   await page.locator('.event-table').getByRole('row').filter({ hasText: 'BPDU_RECEIVED' }).first().click();
+  await page.getByRole('dialog').locator('.event-technical > summary').click();
   await expect(page.getByRole('dialog')).toContainText('RSTP BPDU');
-  await expect(page.getByRole('dialog')).toContainText('Proposal / Agreement');
+  await expect(page.getByRole('dialog')).toContainText('Proposta / acordo RSTP');
   await page.screenshot({ path: 'test-results/rstp-bpdu-desktop.png', fullPage: true });
   await page
     .getByRole('dialog')
@@ -2818,7 +2836,12 @@ test('RSTP: redundância, BPDUs, falha, recuperação e persistência mobile', a
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.reload();
   await page.getByRole('button', { name: /^LABORATÓRIO LIVRE RSTP E2E/ }).click();
-  await page.locator('.network-device').filter({ hasText: 'SW-03' }).dblclick();
+  const finder = page.getByRole('textbox', { name: 'Localizar equipamento' });
+  await finder.fill('SW-03');
+  await finder.press('Enter');
+  await finder.press('Escape');
+  await page.locator('.network-device').getByText('SW-03', { exact: true }).click();
+  await expect(page.locator('.inspector-device h2')).toHaveText('SW-03');
   await page.locator('.inspector-tabs').getByRole('button', { name: 'STP', exact: true }).click();
   await expect(page.locator('.stp-ports tr[data-port="p2"]')).toHaveAttribute('data-role', 'root');
   await page.setViewportSize({ width: 390, height: 844 });

@@ -38,6 +38,8 @@ jobs:
           POSTGRES_SERVICE_CONTAINER: ${{ job.services.postgres.id }}
           PG_DUMP_PATH: ${{ github.workspace }}/scripts/ci-pg-dump.sh
           PG_RESTORE_PATH: ${{ github.workspace }}/scripts/ci-pg-restore.sh
+      - name: Archive historical case coverage
+        run: npm run coverage:matrix -- --results test-results/regression.json
       - uses: actions/setup-python@v5
         with: { python-version: '3.14' }
       - name: Independently validate binary captures
@@ -48,14 +50,13 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run benchmark
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - name: Archive historical case coverage
-        run: npm run coverage:matrix -- --results test-results/regression.json
+      - run: npm run test:e2e -- --max-failures=1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: qualification-and-coverage
           path: |
+            test-results/regression.json
             benchmarks/scale.json
             artifacts/container-qualification/qualification.json
             artifacts/application-completion-2026-10-13/case-coverage.json
