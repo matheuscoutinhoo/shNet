@@ -49,8 +49,6 @@ jobs:
       - run: npm run build
       - run: npm audit --audit-level=high
       - run: npm run benchmark
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- --max-failures=1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -58,13 +56,48 @@ jobs:
           path: |
             test-results/regression.json
             benchmarks/scale.json
-            artifacts/container-qualification/qualification.json
             artifacts/application-completion-2026-10-13/case-coverage.json
-            artifacts/application-completion-2026-10-13/browser-heap-2000-*.json
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: test-results
+          path: |
+            test-results
+            playwright-report
+
+  browser:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        appearance: [sistema-claro, sistema-escuro]
+    env:
+      DATABASE_MODE: embedded
+      APP_ORIGIN: http://127.0.0.1:5173
+      PLAYWRIGHT_JSON_OUTPUT_FILE: test-results/e2e-${{ matrix.appearance }}.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Complete browser scenarios
+        run: |
+          rm -f "artifacts/application-completion-2026-10-13/browser-heap-2000-${{ matrix.appearance }}.json"
+          npm run test:e2e -- --project=${{ matrix.appearance }} --max-failures=1 --reporter=list,json,html
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-${{ matrix.appearance }}
+          path: |
+            test-results/e2e-${{ matrix.appearance }}.json
+            artifacts/application-completion-2026-10-13/browser-heap-2000-${{ matrix.appearance }}.json
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results-${{ matrix.appearance }}
           path: |
             test-results
             playwright-report
