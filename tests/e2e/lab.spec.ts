@@ -42,6 +42,21 @@ async function submitLogin(page: Page) {
   }
   throw new Error('Login continua limitado após o intervalo informado pelo servidor');
 }
+async function submitRegistration(page: Page) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const pending = page.waitForResponse(
+      (response) => response.url().endsWith('/api/auth/register') && response.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Criar conta', exact: true }).click();
+    const response = await pending;
+    if (response.status() !== 429) {
+      expect(response.status()).toBe(202);
+      return;
+    }
+    await waitForLoginRetry(response.headers()['retry-after']);
+  }
+  throw new Error('Cadastro continua limitado após o intervalo informado pelo servidor');
+}
 async function verificationLink(address = email) {
   const dir = resolve('.data/mail');
   const files = await readdir(dir);
@@ -57,7 +72,7 @@ async function registerAndLogin(page: Page, address: string) {
   await page.getByLabel('Seu nome').fill('Network Explorer');
   await page.getByLabel('E-mail', { exact: true }).fill(address);
   await page.getByLabel('Senha', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Criar conta', exact: true }).click();
+  await submitRegistration(page);
   const capabilities = await (await page.request.get('/api/auth/capabilities')).json();
   if (capabilities.emailEnabled) {
     await expect(page.getByRole('status')).toContainText('verificação');
