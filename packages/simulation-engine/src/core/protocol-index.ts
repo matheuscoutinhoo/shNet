@@ -9,15 +9,15 @@ const participates = (d: Device, key: Feature) =>
     ? d.interfaces.some((p) => p.aggregate)
     : key === 'bond'
       ? d.interfaces.some((p) => p.bond)
-    : key === 'dot1x'
-      ? d.interfaces.some((p) => p.dot1x || p.supplicant)
-      : key === 'stp'
-        ? Boolean(d.spanningTree || d.multiSpanningTree)
-        : key === 'ups'
-          ? d.infrastructure?.kind === 'ups'
-          : key === 'rack'
-            ? d.infrastructure?.kind === 'rack'
-            : Boolean(d[key]);
+      : key === 'dot1x'
+        ? d.interfaces.some((p) => p.dot1x || p.supplicant)
+        : key === 'stp'
+          ? Boolean(d.spanningTree || d.multiSpanningTree)
+          : key === 'ups'
+            ? d.infrastructure?.kind === 'ups'
+            : key === 'rack'
+              ? d.infrastructure?.kind === 'rack'
+              : Boolean(d[key]);
 /** Engine configuration APIs invalidate membership; state fields remain live references. */
 export function invalidateProtocolIndex(s: Snapshot) {
   caches.delete(s);

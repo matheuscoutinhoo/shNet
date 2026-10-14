@@ -1,6 +1,13 @@
 import { invalidateProtocolIndex } from './protocol-index';
 import { expireDeviceCaches, invalidateCacheExpiry } from './cache-expiry';
-import { configureBond, removeBond, refreshBonds, handleBondTick, receiveBondProbe, bondOutput } from '../protocols/bond';
+import {
+  configureBond,
+  removeBond,
+  refreshBonds,
+  handleBondTick,
+  receiveBondProbe,
+  bondOutput,
+} from '../protocols/bond';
 import { bondActive } from '../protocols/bond-members';
 import type { BondMonitor } from '../protocols/bond-model';
 import { traceConnection, invalidateTraceIndex } from './trace-index';
@@ -266,19 +273,48 @@ export class SimulationEngine {
   removeLacp(deviceId: string, portId: string) {
     removeLacp(this, this.device(deviceId), endpoint(this.state, { device: deviceId, port: portId }).port);
   }
-  configureBond(deviceId:string, number:number, members:string[], primary:string, monitor?:BondMonitor) {
-    return configureBond(this,this.device(deviceId),number,members,primary,monitor);
+  configureBond(deviceId: string, number: number, members: string[], primary: string, monitor?: BondMonitor) {
+    return configureBond(this, this.device(deviceId), number, members, primary, monitor);
   }
-  removeBond(deviceId:string,portId:string) {
-    removeBond(this,this.device(deviceId),endpoint(this.state,{device:deviceId,port:portId}).port);
+  removeBond(deviceId: string, portId: string) {
+    removeBond(this, this.device(deviceId), endpoint(this.state, { device: deviceId, port: portId }).port);
   }
-  installNic(deviceId:string) {
-    const d=this.device(deviceId);
-    if(!['pc','server'].includes(d.type)||d.profile==='smartphone'||d.interfaces.length>=48) throw new Error('NIC adicional exige host Ethernet com espaço disponível.');
-    const used=new Set(this.state.devices.flatMap(v=>v.interfaces.map(p=>p.mac)));
-    let n=0; while(d.interfaces.some(p=>p.id==='nic'+n)||used.has(d.interfaces[0].mac.split(':').slice(0,4).join(':')+':08:'+n.toString(16).padStart(2,'0'))) n++;
-    const p=interfaceSchema.parse({id:'nic'+n,name:'NIC'+(n+1),mac:d.interfaces[0].mac.split(':').slice(0,4).join(':')+':08:'+n.toString(16).padStart(2,'0'),installedNic:true,media:'rj45',adminUp:true,speed:1000,duplex:'full',mtu:1500,mode:'routed',accessVlan:1,nativeVlan:1,allowedVlans:[1],rx:0,tx:0,errors:0});
-    d.interfaces.push(p); this.emit('CONFIG_CHANGED',d.id,p.name+' instalada.',{port:p.id}); return p;
+  installNic(deviceId: string) {
+    const d = this.device(deviceId);
+    if (!['pc', 'server'].includes(d.type) || d.profile === 'smartphone' || d.interfaces.length >= 48)
+      throw new Error('NIC adicional exige host Ethernet com espaço disponível.');
+    const used = new Set(this.state.devices.flatMap((v) => v.interfaces.map((p) => p.mac)));
+    let n = 0;
+    while (
+      d.interfaces.some((p) => p.id === 'nic' + n) ||
+      used.has(
+        d.interfaces[0].mac.split(':').slice(0, 4).join(':') + ':08:' + n.toString(16).padStart(2, '0')
+      )
+    )
+      n++;
+    if (n > 255) throw new Error('Sem MAC disponível para instalar a NIC.');
+    const p = interfaceSchema.parse({
+      id: 'nic' + n,
+      name: 'NIC' + (n + 1),
+      description: 'NIC Ethernet adicional',
+      mac: d.interfaces[0].mac.split(':').slice(0, 4).join(':') + ':08:' + n.toString(16).padStart(2, '0'),
+      installedNic: true,
+      media: 'rj45',
+      adminUp: true,
+      speed: 1000,
+      duplex: 'full',
+      mtu: 1500,
+      mode: 'routed',
+      accessVlan: 1,
+      nativeVlan: 1,
+      allowedVlans: [1],
+      rx: 0,
+      tx: 0,
+      errors: 0,
+    });
+    d.interfaces.push(p);
+    this.emit('CONFIG_CHANGED', d.id, p.name + ' instalada.', { port: p.id });
+    return p;
   }
   configureTelemetry(deviceId: string, input: unknown) {
     configureTelemetry(this, this.device(deviceId), input);
@@ -563,6 +599,7 @@ export class SimulationEngine {
     this.state.queue = this.state.queue.filter((q) =>
       q.action.kind === 'probe-timeout' ? !removed.has(q.action.probeId) : q.action.device !== id
     );
+    refreshBonds(this);
   }
   connect(
     a: Link['a'],
@@ -597,6 +634,7 @@ export class SimulationEngine {
         link: link.id,
       }
     );
+    refreshBonds(this);
     return link;
   }
   removeLink(id: string) {
@@ -633,6 +671,7 @@ export class SimulationEngine {
       port.name + ' administrativamente ' + (up ? 'ativa' : 'desligada'),
       { port: portId }
     );
+    refreshBonds(this);
   }
   configureDhcpPool(deviceId: string, input: unknown) {
     const device = this.device(deviceId);
@@ -718,9 +757,11 @@ export class SimulationEngine {
   }
   configurePoe(device: string, supply: unknown, load?: unknown) {
     configurePoe(this, this.device(device), supply, load);
+    refreshBonds(this);
   }
   configureInfrastructure(device: string, input: unknown) {
     configureInfrastructure(this, this.device(device), input);
+    refreshBonds(this);
   }
   configureSystem(device: string, input: unknown) {
     configureSystem(this, this.device(device), input);
@@ -728,6 +769,7 @@ export class SimulationEngine {
   setDevicePower(device: string, power: boolean) {
     setInfrastructurePower(this, this.device(device), power);
     setDevicePower(this, this.device(device), power);
+    refreshBonds(this);
   }
   addHardwarePort(device: string, media: 'serial' | 'console', input?: unknown) {
     return addHardwarePort(this, this.device(device), media, input);
@@ -1139,10 +1181,17 @@ export class SimulationEngine {
       lacpOutput(this, d, port, frame);
       return;
     }
-    if(port.bond) {
-      if((frame.packet?.bytes??frame.fragment?.bytes??frame.ipv6?.bytes??frame.mpls?.bytes??28)>port.mtu) {this.drop(d,'MTU do bond excedida.',port.id,frame);return;}
-      if(frame.packet&&!permitPacket(this,d,port,'out',frame.packet)) return;
-      bondOutput(this,d,port,frame); return;
+    if (port.bond) {
+      if (
+        (frame.packet?.bytes ?? frame.fragment?.bytes ?? frame.ipv6?.bytes ?? frame.mpls?.bytes ?? 28) >
+        port.mtu
+      ) {
+        this.drop(d, 'MTU do bond excedida.', port.id, frame);
+        return;
+      }
+      if (frame.packet && !permitPacket(this, d, port, 'out', frame.packet)) return;
+      bondOutput(this, d, port, frame);
+      return;
     }
     if (port.logical) {
       if (!d.power || !interfaceUp(d, port)) {
@@ -1582,8 +1631,13 @@ export class SimulationEngine {
     }
     if (physical.channel) {
       const aggregate = d.interfaces.find((p) => p.id === physical.channel);
-      if (aggregate?.bond && receiveBondProbe(this,d,physical,a.frame)) return;
-      if (!aggregate || (aggregate.bond ? bondActive(this.state,d,aggregate)!==physical.id : !lacpMembers(this.state, d, aggregate).includes(physical.id))) {
+      if (aggregate?.bond && receiveBondProbe(this, d, physical, a.frame)) return;
+      if (
+        !aggregate ||
+        (aggregate.bond
+          ? bondActive(this.state, d, aggregate) !== physical.id
+          : !lacpMembers(this.state, d, aggregate).includes(physical.id))
+      ) {
         this.drop(d, 'LACP: membro não sincronizado.', physical.id, a.frame);
         return;
       }
@@ -1695,6 +1749,7 @@ export class SimulationEngine {
     refreshDot1x(this);
     refreshWireless(this);
     refreshLacp(this);
+    refreshBonds(this);
     for (const device of this.state.devices) {
       device.macTable = device.macTable.filter((entry) => entry.expires > time);
       device.arpTable = device.arpTable.filter((entry) => entry.expires > time);
