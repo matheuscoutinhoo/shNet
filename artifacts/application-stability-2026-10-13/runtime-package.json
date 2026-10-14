@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "dockerEngine": "not executed; isolated filesystem package using Dockerfile runtime COPY declarations",
+  "files": [
+    "package.json",
+    "package-lock.json",
+    "apps/api/package.json",
+    "apps/web/package.json",
+    "packages/simulation-engine/package.json",
+    "scripts/engine-build.ts"
+  ],
+  "directories": [
+    "apps/api/src",
+    "apps/api/migrations",
+    "packages/simulation-engine/src",
+    "apps/web/dist"
+  ],
+  "build": {
+    "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+    "engineContract": "2026.10.13.6",
+    "schemaVersion": 11,
+    "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039"
+  },
+  "migrations": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
+}

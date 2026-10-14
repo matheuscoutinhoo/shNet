@@ -1,4 +1,5 @@
 import { scenarioSchema } from './scenarios-model';
+import { routeEntrySchema } from './schemas';
 import { databaseStateSchema } from './protocols/database-model';
 import { infrastructureConfigSchema, systemStateSchema } from './devices/infrastructure-model';
 import {
@@ -721,18 +722,7 @@ export const frameSchema = z
       return !!f.bpdu && (f.vlan === undefined || (f.bpdu.domain === 'pvst' && f.bpdu.instance === f.vlan));
     return f.etherType === 'ARP' ? !!f.arp : f.etherType === 'IPv6' ? !!f.ipv6 : !!f.packet || !!f.fragment;
   }, 'Payload incompatível com EtherType');
-export const routeSchema = z
-  .object({
-    network: ipv4Schema,
-    prefix: z.number().int().min(0).max(32),
-    nextHop: ipv4Schema,
-    metric: z.number().int().min(0).max(65535),
-    vrf: z
-      .string()
-      .regex(/^[a-zA-Z0-9_-]{1,32}$/)
-      .optional(),
-  })
-  .strict();
+export const routeSchema = routeEntrySchema;
 export const deviceSchema = z
   .object({
     id,

@@ -11,3 +11,15 @@ export const idSchema = z.string().min(1).max(80);
 export const uint32Schema = z.number().int().min(0).max(4294967295);
 export const portNumberSchema = z.number().int().min(1).max(65535);
 export const timeSchema = z.number().finite().nonnegative();
+export const routeEntrySchema = z
+  .object({
+    network: ipv4Schema,
+    prefix: z.number().int().min(0).max(32),
+    nextHop: ipv4Schema,
+    metric: z.number().int().min(0).max(65535),
+    vrf: z
+      .string()
+      .regex(/^[a-zA-Z0-9_-]{1,32}$/)
+      .optional(),
+  })
+  .strict();

@@ -1,5 +1,5 @@
 import { SimulationEngine } from './core/engine';
-import { ENGINE_CONTRACT_VERSION } from './version';
+import { ENGINE_CONTRACT_VERSION, ENGINE_BUILD } from './version';
 import { observeAssertion } from './scenario-assertions';
 import { canonicalScenarioJson } from './canonical-json';
 import { sha256 } from '@noble/hashes/sha2.js';
@@ -11,6 +11,8 @@ export { scenarioSchema, type Scenario } from './scenarios-model';
 import { preflight } from './preflight';
 import { scenarioRecovery } from './scenario-metrics';
 import { scenarioEvidence, type ScenarioEvidence } from './scenario-evidence';
+import { applyConfigurationPatch } from './configuration-patch';
+import type { ConfigurationPatch } from './configuration-patch-model';
 import {
   applyScenarioFault,
   validateScenarioFault,
@@ -44,14 +46,18 @@ export class ScenarioRunner {
   private advanceTarget?: number;
   private restoredCaptureDrops = 0;
   private checkpoints = new Map<string, { snapshot: Snapshot; hash: string; bytes: number }>();
+  private configurations = new Map<string, { rollback: ConfigurationPatch; hash: string; bytes: number }>();
   private actionResults: {
     atMs: number;
-    kind: 'checkpoint' | 'restore';
+    kind: 'checkpoint' | 'restore' | 'configure' | 'rollback';
     checkpoint: string;
+    changes?: ConfigurationPatch;
     epoch: number;
     beforeClock: number;
     afterClock: number;
     snapshotHash: string;
+    configurationHash?: string;
+    changedObjects?: number;
   }[] = [];
   private assertionResults: {
     name: string;
@@ -260,7 +266,36 @@ export class ScenarioRunner {
       if (task.action !== undefined) {
         const action = this.scenario.actions![task.action],
           beforeClock = this.engine.state.clock;
-        if (action.kind === 'checkpoint') {
+        let configurationHash: string | undefined, changedObjects: number | undefined, snapshotHash: string;
+        if (action.kind === 'configure' || action.kind === 'rollback') {
+          const proposal =
+            action.kind === 'configure'
+              ? action.changes!
+              : this.configurations.get(action.checkpoint)!.rollback;
+          const candidate = new SimulationEngine(this.engine.snapshot());
+          const result = applyConfigurationPatch(candidate, proposal);
+          const encoded = new TextEncoder().encode(canonicalScenarioJson(result.rollback));
+          if (
+            encoded.length + [...this.configurations.values()].reduce((n, c) => n + c.bytes, 0) >
+            8 * 1024 * 1024
+          )
+            throw new Error('Reversões de configuração excedem 8 MiB. Divida o ensaio.');
+          const hash = bytesToHex(sha256(encoded));
+          if (action.kind === 'configure')
+            this.configurations.set(action.checkpoint, {
+              rollback: result.rollback,
+              hash,
+              bytes: encoded.length,
+            });
+          snapshotHash = this.configurations.get(action.checkpoint)!.hash;
+          configurationHash =
+            action.kind === 'rollback'
+              ? snapshotHash
+              : bytesToHex(sha256(new TextEncoder().encode(canonicalScenarioJson(proposal))));
+          changedObjects = result.diff.length;
+          this.engine.state = candidate.state;
+          if (action.kind === 'rollback') this.configurations.delete(action.checkpoint);
+        } else if (action.kind === 'checkpoint') {
           const snapshot = this.engine.snapshot(),
             encoded = new TextEncoder().encode(canonicalScenarioJson(snapshot));
           if (
@@ -273,6 +308,7 @@ export class ScenarioRunner {
             bytes: encoded.length,
             hash: bytesToHex(sha256(encoded)),
           });
+          snapshotHash = this.checkpoints.get(action.checkpoint)!.hash;
         } else {
           for (const sample of this.samples.filter((s) => s.status === 'pending')) {
             sample.status = 'failed';
@@ -286,13 +322,15 @@ export class ScenarioRunner {
           this.restoredCaptureDrops += Math.max(0, priorDrops - (this.engine.state.capture?.dropped ?? 0));
           this.started = this.engine.state.clock - task.at;
           this.epoch++;
+          snapshotHash = this.checkpoints.get(action.checkpoint)!.hash;
         }
         this.actionResults.push({
           ...action,
           epoch: this.epoch,
           beforeClock,
           afterClock: this.engine.state.clock,
-          snapshotHash: this.checkpoints.get(action.checkpoint)!.hash,
+          snapshotHash,
+          ...(configurationHash ? { configurationHash, changedObjects } : {}),
         });
       } else if (task.fault !== undefined) {
         const f = this.scenario.faults[task.fault];
@@ -402,6 +440,7 @@ export class ScenarioRunner {
       format: 'shlab-scenario-v1',
       engineVersion: '0.1.0',
       engineContract: ENGINE_CONTRACT_VERSION,
+      engineBuild: ENGINE_BUILD,
       integrityVersion: 2 as const,
       name: this.scenario.name,
       clock: 'virtual-ms',

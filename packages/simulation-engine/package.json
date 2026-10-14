@@ -2,7 +2,10 @@
   "name": "@shlab/engine",
   "version": "0.1.0",
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./catalog": "./src/catalog.ts"
+  },
   "dependencies": {
     "@noble/ciphers": "2.1.1",
     "@noble/curves": "2.4.0",

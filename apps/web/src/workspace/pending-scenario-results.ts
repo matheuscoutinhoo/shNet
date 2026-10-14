@@ -1,10 +1,21 @@
 const databaseName = 'shlab-pending-scenario-results';
 function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
+    let blocked = false;
     const request = indexedDB.open(databaseName, 1);
     request.onupgradeneeded = () => request.result.createObjectStore('results', { keyPath: 'key' });
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      if (blocked) request.result.close();
+      else {
+        request.result.onversionchange = () => request.result.close();
+        resolve(request.result);
+      }
+    };
     request.onerror = () => reject(request.error);
+    request.onblocked = () => {
+      blocked = true;
+      reject(new Error('Resultados locais bloqueados por outra aba. Exporte o ensaio.'));
+    };
   });
 }
 export async function pendingResults<T>(project: string): Promise<T[]> {

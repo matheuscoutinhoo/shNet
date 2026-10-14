@@ -5,6 +5,7 @@ import {
   scenarioSchema,
   factoryScenarios,
   enterpriseScenarios,
+  ENGINE_BUILD,
   type ScenarioRunner,
   type Snapshot,
 } from '@shlab/engine';
@@ -15,7 +16,9 @@ import { IndustrialPanel } from './IndustrialPanel';
 import { ConfigurationReview } from './ConfigurationReview';
 import { pendingResults, storePendingResult, removePendingResult } from './pending-scenario-results';
 import { ScenarioForm } from './ScenarioForm';
-type Report = ReturnType<ScenarioRunner['report']>;
+import scenarioWorkerUrl from './scenario.worker.ts?worker&url';
+import { workerArtifact } from './worker-artifact';
+type Report = ReturnType<ScenarioRunner['report']> & { engineArtifact?: string };
 interface ScenarioRun {
   id: string;
   revision: number;
@@ -36,6 +39,7 @@ interface ScenarioRun {
   scenario: Report['scenario'];
   report: Report | null;
   topology?: Snapshot;
+  build_identity?: { client: string; server: string; engineContract: string; schemaVersion: number } | null;
 }
 export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: () => void }) {
   const first =
@@ -78,16 +82,24 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
   const worker = useRef<Worker | null>(null);
   const active = useRef<ScenarioRun | null>(null),
     operation = useRef(0);
+  const mounted = useRef(true),
+    watchdog = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const endpoint = '/projects/' + lab.projectId + '/scenario-runs';
-  const upsert = (row: ScenarioRun) =>
+  const upsert = (row: ScenarioRun) => {
+    if (!mounted.current) return;
     setRuns((previous) =>
       [{ ...row, topology: undefined }, ...previous.filter((r) => r.id !== row.id)].slice(0, 50)
     );
+  };
   useEffect(() => {
-    let mounted = true;
+    mounted.current = true;
     void api<ScenarioRun[]>(endpoint + '?limit=50')
       .then(async (rows) => {
-        const pending = await pendingResults<ScenarioRun>(lab.projectId).catch(() => []);
+        const pending = await pendingResults<ScenarioRun>(lab.projectId).catch((cause) => {
+          if (mounted.current)
+            setError('Não foi possível consultar os resultados locais: ' + (cause as Error).message);
+          return [];
+        });
         rows = rows.map((row) =>
           row.status === 'complete' || row.status === 'cancelled'
             ? row
@@ -95,14 +107,15 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
         );
         for (const row of rows.filter((row) => row.status === 'complete' || row.status === 'cancelled'))
           void removePendingResult(lab.projectId, row.id).catch(() => {});
-        if (mounted)
+        if (mounted.current)
           setRuns((previous) => [...previous, ...rows.filter((r) => !previous.some((p) => p.id === r.id))]);
       })
       .catch((e) => {
-        if (mounted) setError(e.message);
+        if (mounted.current) setError(e.message);
       });
     return () => {
-      mounted = false;
+      mounted.current = false;
+      clearTimeout(watchdog.current);
       operation.current++;
       worker.current?.terminate();
       if (active.current)
@@ -113,7 +126,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
     };
   }, [endpoint]);
   const issues = preflight(lab.engine.state);
-  const persist = async (row: ScenarioRun, localError = '') => {
+  const persist = async (row: ScenarioRun, localError = '', generation = operation.current) => {
     try {
       const saved = await api<ScenarioRun>(endpoint + '/' + row.id, {
         method: 'PUT',
@@ -121,15 +134,16 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
       });
       upsert(saved);
       await removePendingResult(lab.projectId, row.id).catch(() => {});
-      setError('');
+      if (mounted.current && generation === operation.current) setError('');
     } catch (e) {
-      setError(
-        'Resultado calculado, mas não salvo: ' +
-          (e as Error).message +
-          (localError
-            ? '. Armazenamento local indisponível: ' + localError + '. Exporte o ensaio antes de fechar.'
-            : '')
-      );
+      if (mounted.current && generation === operation.current)
+        setError(
+          'Resultado calculado, mas não salvo: ' +
+            (e as Error).message +
+            (localError
+              ? '. Armazenamento local indisponível: ' + localError + '. Exporte o ensaio antes de fechar.'
+              : '')
+        );
     }
   };
   const run = async (baseline = false) => {
@@ -138,6 +152,8 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
       const scenario = scenarioSchema.parse(JSON.parse(text));
       if (baseline) {
         scenario.faults = [];
+        delete scenario.actions;
+        delete scenario.assertions;
         scenario.name += ' — baseline';
       }
       worker.current?.terminate();
@@ -147,9 +163,17 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
       lab.change(() => {}, false);
       await lab.save();
       if (generation !== operation.current) return;
+      const artifact = ENGINE_BUILD === 'development' ? undefined : await workerArtifact(scenarioWorkerUrl);
+      if (generation !== operation.current) return;
       const row = await api<ScenarioRun>(endpoint, {
         method: 'POST',
-        body: { revision: lab.getRevision(), kind: baseline ? 'baseline' : 'scenario', scenario },
+        body: {
+          revision: lab.getRevision(),
+          kind: baseline ? 'baseline' : 'scenario',
+          scenario,
+          clientBuild: ENGINE_BUILD,
+          clientArtifact: artifact,
+        },
       });
       if (generation !== operation.current) {
         await api(endpoint + '/' + row.id, { method: 'PATCH', body: { status: 'cancelled' } });
@@ -157,14 +181,16 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
       }
       active.current = row;
       upsert(row);
-      const w = new Worker(new URL('./scenario.worker.ts', import.meta.url), { type: 'module' });
+      const w = new Worker(scenarioWorkerUrl, { type: 'module' });
       worker.current = w;
       setError('');
       setProgress(0);
       setRunning(true);
       w.onmessage = (event) => {
+        if (generation !== operation.current || !mounted.current) return;
         if (event.data.kind === 'progress') setProgress(event.data.progress);
         else {
+          clearTimeout(watchdog.current);
           setRunning(false);
           w.terminate();
           worker.current = null;
@@ -178,7 +204,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                 () => '',
                 (e) => (e as Error).message
               )
-              .then((localError) => persist(result, localError));
+              .then((localError) => persist(result, localError, generation));
           } else {
             active.current = null;
             setError(event.data.message);
@@ -189,6 +215,8 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
         }
       };
       w.onerror = () => {
+        if (generation !== operation.current || !mounted.current) return;
+        clearTimeout(watchdog.current);
         setRunning(false);
         setError('Falha ao executar o cenário.');
         w.terminate();
@@ -198,8 +226,23 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
           .then(upsert)
           .catch((e) => setError(e.message));
       };
-      w.postMessage({ snapshot: row.topology, scenario });
+      watchdog.current = setTimeout(() => {
+        if (generation !== operation.current || !mounted.current) return;
+        operation.current++;
+        w.terminate();
+        worker.current = null;
+        active.current = null;
+        setRunning(false);
+        setError('Execução excedeu três minutos. Divida o cenário; nenhum relatório parcial será aprovado.');
+        void api<ScenarioRun>(endpoint + '/' + row.id, { method: 'PATCH', body: { status: 'cancelled' } })
+          .then(upsert)
+          .catch((cause) => {
+            if (mounted.current) setError((cause as Error).message);
+          });
+      }, 180000);
+      w.postMessage({ snapshot: row.topology, scenario, artifact });
     } catch (e) {
+      if (generation !== operation.current || !mounted.current) return;
       setRunning(false);
       setError((e as Error).message);
     }
@@ -279,7 +322,8 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
             <p>
               Execute em uma cópia isolada da topologia. Compare baseline e falhas; tempos e SLAs são
               virtuais. Até 180 amostras por cenário. Os ensaios guardam a revisão e a topologia de origem no
-              laboratório.
+              laboratório. O baseline conserva fluxos e SLAs e remove falhas, ações agendadas e verificações
+              dependentes das intervenções.
             </p>
             <label>
               Carregar cenário
@@ -384,6 +428,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                   className="button"
                   onClick={() => {
                     operation.current++;
+                    clearTimeout(watchdog.current);
                     worker.current?.terminate();
                     worker.current = null;
                     setRunning(false);
@@ -422,6 +467,15 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                   {row.kind === 'baseline' ? 'Baseline' : 'Cenário'} ·{' '}
                   {new Date(row.created_at).toLocaleString()} · SHA-256: {row.source_hash}
                 </p>
+                {row.build_identity && (
+                  <details>
+                    <summary>Origem e versão do motor</summary>
+                    <p>
+                      Build do cliente: {row.build_identity.client} · motor do servidor:{' '}
+                      {row.build_identity.server} · migrações {row.build_identity.schemaVersion}.
+                    </p>
+                  </details>
+                )}
                 <p>
                   Execução no cliente ·{' '}
                   {row.verification?.samples === 'samples-v2'
@@ -543,6 +597,13 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                                 }
                                 {s.evidence.path.length > 0 && (
                                   <> · Caminho observado: {s.evidence.path.join(' → ')}</>
+                                )}
+                                {s.evidence.truncated && (
+                                  <>
+                                    {' '}
+                                    · Evidência limitada pela retenção; consulte a origem e repita com captura
+                                    adequada.
+                                  </>
                                 )}
                                 {s.evidence.events.map((e) => (
                                   <p key={e.id}>

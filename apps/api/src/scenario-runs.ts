@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { createHash, randomUUID } from 'node:crypto';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { z } from 'zod';
 import {
   ScenarioRunner,
@@ -12,6 +13,7 @@ import {
   ENGINE_CONTRACT_VERSION,
 } from '@shlab/engine';
 import { replayScenario } from './scenario-replay';
+import { engineSourceHash } from '../../../scripts/engine-build';
 import type { Database } from './db';
 import { databaseJson } from './database-json';
 import { currentUser, checkCsrf, error } from './security';
@@ -27,6 +29,13 @@ interface Run {
   report: ScenarioReport | null;
   created_at: string;
   finished_at: string | null;
+  build_identity?: {
+    client: string;
+    clientArtifact?: string;
+    server: string;
+    engineContract: string;
+    schemaVersion: number;
+  } | null;
   server_verification?: {
     status: 'matched' | 'mismatch';
     engineContract: string;
@@ -46,6 +55,22 @@ const verified = (row: Run) => ({
   },
 });
 export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
+  const serverBuild = engineSourceHash();
+  const assets = new URL('../../web/dist/assets/', import.meta.url),
+    file = existsSync(assets)
+      ? readdirSync(assets).find((name) => /^scenario\.worker-[a-zA-Z0-9_-]+\.js$/.test(name))
+      : undefined;
+  const installedArtifact = file
+    ? createHash('sha256')
+        .update(readFileSync(new URL(file, assets)))
+        .digest('hex')
+    : undefined;
+  app.get('/api/build', async () => ({
+    engineBuild: serverBuild,
+    engineContract: ENGINE_CONTRACT_VERSION,
+    schemaVersion: 11,
+    workerArtifact: installedArtifact ?? null,
+  }));
   const owner = async (req: FastifyRequest) => {
     const user = await currentUser(db, req);
     if (!user) throw error(401, 'Entre para continuar');
@@ -55,7 +80,7 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
   const params = (req: FastifyRequest) =>
     z.object({ id: z.uuid(), run: z.uuid().optional() }).strict().parse(req.params);
   const columns =
-    'r.id,r.project_id,r.revision,r.source_hash,r.scenario,r.kind,r.status,r.report,r.created_at,r.finished_at,r.server_verification';
+    'r.id,r.project_id,r.revision,r.source_hash,r.scenario,r.kind,r.status,r.report,r.created_at,r.finished_at,r.server_verification,r.build_identity';
   const owned = async (tx: Database, id: string, user: string) => {
     const [p] = await tx.query<{ id: string; revision: number; topology: Snapshot }>(
       'SELECT id,revision,topology FROM projects WHERE id=$1 AND user_id=$2 FOR UPDATE',
@@ -79,11 +104,31 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
           revision: z.number().int().positive(),
           kind: z.enum(['scenario', 'baseline']),
           scenario: scenarioSchema,
+          clientBuild: z
+            .union([z.literal('development'), z.string().regex(/^[a-f0-9]{64}$/)])
+            .default('development'),
+          clientArtifact: z
+            .string()
+            .regex(/^[a-f0-9]{64}$/)
+            .optional(),
         })
         .strict()
         .parse(req.body);
-      if (body.kind === 'baseline' && body.scenario.faults.length)
-        throw error(400, 'Baseline não permite falhas agendadas.');
+      if (body.clientBuild !== 'development' && body.clientBuild !== serverBuild)
+        throw error(
+          409,
+          'O motor desta aba pertence a outro build. Exporte as alterações e recarregue antes do ensaio.'
+        );
+      if (
+        body.clientBuild !== 'development' &&
+        (!body.clientArtifact || body.clientArtifact !== installedArtifact)
+      )
+        throw error(
+          409,
+          'O arquivo do motor desta aba não corresponde ao instalado. Recarregue antes do ensaio.'
+        );
+      if (body.kind === 'baseline' && (body.scenario.faults.length || body.scenario.actions?.length))
+        throw error(400, 'Baseline não permite falhas ou ações agendadas.');
       const run = await db.transaction(async (tx) => {
         const project = await owned(tx, id, user);
         if (body.revision !== project.revision)
@@ -102,7 +147,7 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
         const hash = createHash('sha256').update(canonicalScenarioJson(project.topology)).digest('hex');
         return (
           await tx.query<Run>(
-            'INSERT INTO scenario_runs(id,project_id,revision,source_hash,topology,scenario,kind) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',
+            'INSERT INTO scenario_runs(id,project_id,revision,source_hash,topology,scenario,kind,build_identity) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
             [
               randomUUID(),
               id,
@@ -111,6 +156,13 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
               databaseJson(project.topology),
               databaseJson(body.scenario),
               body.kind,
+              databaseJson({
+                client: body.clientBuild,
+                ...(body.clientArtifact ? { clientArtifact: body.clientArtifact } : {}),
+                server: serverBuild,
+                engineContract: ENGINE_CONTRACT_VERSION,
+                schemaVersion: 11,
+              }),
             ]
           )
         )[0];
@@ -172,6 +224,10 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
       if (!row) throw error(404, 'Ensaio não encontrado');
       if (canonicalScenarioJson(body.report.scenario) !== canonicalScenarioJson(row.scenario))
         throw error(400, 'Relatório pertence a outro cenário.');
+      if (row.build_identity && (body.report.engineBuild ?? 'development') !== row.build_identity.client)
+        throw error(400, 'Relatório pertence a outro build do cliente.');
+      if (row.build_identity?.clientArtifact !== body.report.engineArtifact)
+        throw error(400, 'Relatório pertence a outro arquivo do motor.');
       if (
         row.status === 'complete' &&
         canonicalScenarioJson(row.report) === canonicalScenarioJson(body.report)
@@ -202,12 +258,33 @@ export async function registerScenarioRuns(app: FastifyInstance, db: Database) {
       if (row.status !== 'complete' || !row.report) throw error(409, 'Salve o resultado antes de verificar.');
       if (row.report.engineContract !== ENGINE_CONTRACT_VERSION)
         throw error(409, 'Contrato do motor diferente. Execute um novo ensaio com a versão atual.');
-      const authoritative = scenarioReportSchema.parse(await replayScenario(row.topology, row.scenario));
+      if (row.build_identity && row.build_identity.server !== serverBuild)
+        throw error(409, 'O código do motor mudou desde a origem deste ensaio. Execute um novo ensaio.');
+      const token = randomUUID();
+      const admission = await db.query(
+        "INSERT INTO scenario_verification_leases(name,token,expires_at) VALUES('replay',$1,now() + interval '45 seconds') ON CONFLICT(name) DO UPDATE SET token=EXCLUDED.token,expires_at=EXCLUDED.expires_at WHERE scenario_verification_leases.expires_at <= now() RETURNING token",
+        [token]
+      );
+      if (!admission.length)
+        throw error(503, 'Verificação ocupada em outra instância. Tente novamente em alguns segundos.');
+      let authoritative: ScenarioReport;
+      try {
+        authoritative = scenarioReportSchema.parse(
+          await replayScenario(row.topology, row.scenario, row.report.engineBuild, row.report.engineArtifact)
+        );
+      } finally {
+        await db.query('DELETE FROM scenario_verification_leases WHERE name=$1 AND token=$2', [
+          'replay',
+          token,
+        ]);
+      }
       const reportHash = createHash('sha256').update(canonicalScenarioJson(row.report)).digest('hex');
       const verification = {
         status:
           canonicalScenarioJson(authoritative) === canonicalScenarioJson(row.report) ? 'matched' : 'mismatch',
         engineContract: ENGINE_CONTRACT_VERSION,
+        engineBuild: serverBuild,
+        originBuild: row.build_identity ?? null,
         verifiedAt: new Date().toISOString(),
         reportHash,
       };

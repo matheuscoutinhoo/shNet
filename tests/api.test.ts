@@ -32,6 +32,24 @@ describe('configuração de implantação', () => {
       vi.unstubAllGlobals();
     }
   });
+  it('torna falhas de rede, JSON incompleto e páginas HTML inesperadas recuperáveis', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError('network'))
+      .mockResolvedValueOnce(new Response('{', { headers: { 'Content-Type': 'application/json' } }))
+      .mockResolvedValueOnce(
+        new Response('<html>proxy</html>', { status: 200, headers: { 'Content-Type': 'text/html' } })
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      await expect(browserApi('/projects')).rejects.toMatchObject({ status: 0 });
+      await expect(browserApi('/projects')).rejects.toMatchObject({ status: 502 });
+      await expect(browserApi('/projects')).rejects.toMatchObject({ status: 502 });
+      expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
   it('declara Railway sem credenciais em código e com migration e healthcheck', async () => {
     const definition = await railwayConfig(
       createRailwayContext({ environment: 'production' }),
@@ -346,9 +364,36 @@ describe('Ensaios persistidos por laboratório', () => {
     expect(started.statusCode).toBe(201);
     const row = started.json();
     expect(row.source_hash).toMatch(/^[a-f0-9]{64}$/);
+    const build = (await request('/build')).json();
+    expect(row.build_identity).toEqual({
+      client: 'development',
+      server: build.engineBuild,
+      engineContract: build.engineContract,
+      schemaVersion: 11,
+    });
+    expect(
+      (
+        await request(
+          endpoint,
+          'POST',
+          { revision: 1, kind: 'scenario', scenario, clientBuild: '0'.repeat(64) },
+          owner
+        )
+      ).statusCode
+    ).toBe(409);
     const runner = new ScenarioRunner(row.topology, row.scenario);
     while (!runner.step(100));
     const report = runner.report();
+    expect(
+      (
+        await request(
+          endpoint + '/' + row.id,
+          'PUT',
+          { report: { ...report, engineBuild: '0'.repeat(64) } },
+          owner
+        )
+      ).statusCode
+    ).toBe(400);
     expect(report.passed).toBe(true);
     const expiring = (
       await request(endpoint, 'POST', { revision: 1, kind: 'scenario', scenario }, owner)
@@ -390,9 +435,21 @@ describe('Ensaios persistidos por laboratório', () => {
       (await request(endpoint + '/' + row.id + '/verify', 'POST', undefined, owner, { 'x-csrf-token': '' }))
         .statusCode
     ).toBe(403);
+    await db.query(
+      "INSERT INTO scenario_verification_leases(name,token,expires_at) VALUES('replay',$1,now() + interval '1 minute')",
+      ['00000000-0000-4000-8000-000000000001']
+    );
+    expect((await request(endpoint + '/' + row.id + '/verify', 'POST', undefined, owner)).statusCode).toBe(
+      503
+    );
+    await db.query(
+      "UPDATE scenario_verification_leases SET expires_at=now() - interval '1 second' WHERE name='replay'"
+    );
     const verified = await request(endpoint + '/' + row.id + '/verify', 'POST', undefined, owner);
     expect(verified.statusCode, verified.body).toBe(200);
     expect(verified.json().verification.replay.status).toBe('matched');
+    expect(verified.json().verification.replay.engineBuild).toBe(build.engineBuild);
+    expect(await db.query('SELECT * FROM scenario_verification_leases')).toHaveLength(0);
     // A self-consistent client report can still fabricate samples. Replay must detect it.
     const forgedRun = (
       await request(endpoint, 'POST', { revision: 2, kind: 'scenario', scenario }, owner)

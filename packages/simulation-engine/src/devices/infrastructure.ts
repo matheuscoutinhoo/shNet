@@ -30,15 +30,23 @@ export function configureSystem(e: SimulationEngine, d: Device, input: unknown) 
   };
   e.emit('CONFIG_CHANGED', d.id, 'Capacidade, memória e modelo térmico configurados.');
 }
-export function updateSystem(s: Snapshot, d: Device) {
+export function updateSystem(
+  s: Snapshot,
+  d: Device,
+  environment?: { ambientC: number; ventilation: number } | null
+) {
   const c = d.system;
   if (!c?.enabled) return;
-  const rack = s.devices.find(
-    (r) => r.infrastructure?.kind === 'rack' && r.infrastructure.slots.some((slot) => slot.device === d.id)
-  )?.infrastructure;
-  const ambient = rack?.kind === 'rack' ? rack.ambientC + (1 - rack.ventilation) * 15 : c.ambientC;
   const elapsed = Math.max(0, s.clock - c.lastAt);
   if (!elapsed) return;
+  const rack =
+    environment !== undefined
+      ? environment
+      : s.devices.find(
+          (r) =>
+            r.infrastructure?.kind === 'rack' && r.infrastructure.slots.some((slot) => slot.device === d.id)
+        )?.infrastructure;
+  const ambient = rack && 'ventilation' in rack ? rack.ambientC + (1 - rack.ventilation) * 15 : c.ambientC;
   const cpu = d.power
     ? Math.min(100, (100 * c.work * 1000) / (c.capacityPps * Math.max(1, s.clock - c.windowAt)))
     : 0;
@@ -102,7 +110,14 @@ export function refreshInfrastructure(e: SimulationEngine, metrics = false) {
       );
     }
   }
-  if (metrics) for (const d of s.devices) updateSystem(s, d);
+  if (metrics) {
+    const environments = new Map<string, { ambientC: number; ventilation: number }>();
+    for (const rack of s.devices)
+      if (rack.infrastructure?.kind === 'rack')
+        for (const slot of rack.infrastructure.slots)
+          if (!environments.has(slot.device)) environments.set(slot.device, rack.infrastructure);
+    for (const d of s.devices) updateSystem(s, d, environments.get(d.id) ?? null);
+  }
 }
 export function setDevicePower(e: SimulationEngine, d: Device, on: boolean) {
   for (const supply of e.state.devices)

@@ -87,12 +87,31 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     tx: 0,
     errors: 0,
   }));
+  const reserved = new Set(e.state.devices.flatMap((d) => d.interfaces.flatMap((p) => (p.ip ? [p.ip] : []))));
+  let addressIndex = 1;
+  const isolatedAddress = () => {
+    while (addressIndex < 65535) {
+      const ip = `10.255.${addressIndex >> 8}.${addressIndex++ & 255}`;
+      if (!reserved.has(ip)) {
+        reserved.add(ip);
+        return ip;
+      }
+    }
+    throw new Error('Sem endereço livre para o transporte isolado do clone.');
+  };
+  const transports = new Set(
+    sourcePorts.flatMap((p) => (p.vxlan ? [portMapping.get(p.vxlan.underlay)!] : []))
+  );
   copy.interfaces.forEach((p) => {
     if (p.dot1x) p.accessVlan = p.dot1x.baseVlan;
     delete p.dot1x;
     delete p.supplicant;
     delete p.ip;
     delete p.prefix;
+    if (p.loopback || transports.has(p.id)) {
+      p.ip = isolatedAddress();
+      p.prefix = 32;
+    }
     delete p.gateway;
     delete p.dns;
     delete p.dhcp;
@@ -176,6 +195,8 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
   if (d.udp6Services) copy.udp6Services = structuredClone(d.udp6Services);
   if (d.firewall) {
     copy.firewall = { ...structuredClone(d.firewall), sessions: [], dropped: 0 };
+    // A duplicate must not join the original HA pair until explicitly configured.
+    delete copy.stateSync;
     if (copy.firewall.application) copy.firewall.application.flows = [];
     copy.firewall.trustedPorts = copy.firewall.trustedPorts.map((p) => portMapping.get(p)!);
     if (copy.firewall.zonePolicy)

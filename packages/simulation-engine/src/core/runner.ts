@@ -26,6 +26,7 @@ export class SimulationRunner {
   private lastEvent?: string;
   private lastDiagnostic?: string;
   private lastFrame?: string;
+  private advanceTarget?: number;
   constructor(snapshot: unknown) {
     this.engine = new SimulationEngine(snapshot);
     this.delta(0);
@@ -51,9 +52,14 @@ export class SimulationRunner {
     return this.delta(processed);
   }
   advanceUntil(time: number, wallMs = 20) {
-    const processed = this.engine.advanceTo(time, 20000, wallMs);
-    for (const d of this.engine.state.devices)
-      if (d.system && this.engine.state.clock - d.system.lastAt >= 1000) updateSystem(this.engine.state, d);
+    if (!Number.isFinite(time) || time < this.engine.state.clock)
+      throw new Error('Instante virtual inválido.');
+    const fresh = this.advanceTarget === undefined,
+      target = this.advanceTarget ?? time;
+    this.advanceTarget = target;
+    const processed = this.engine.advanceTo(target, 20000, wallMs, fresh);
+    if (this.engine.state.clock >= target && (this.engine.state.queue[0]?.at ?? Infinity) > target)
+      this.advanceTarget = undefined;
     return this.delta(processed);
   }
   private delta(processed: number): SimulationDelta {

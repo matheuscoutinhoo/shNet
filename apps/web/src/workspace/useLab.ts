@@ -3,11 +3,14 @@ import {
   SimulationEngine,
   validateSnapshot,
   applySimulationDelta,
+  canonicalScenarioJson,
   type SimulationDelta,
-  type Snapshot,
 } from '@shlab/engine';
 import { api, ApiError, type Project } from '../api';
-export function useLab(project: Project, onExpired: () => void) {
+import { SnapshotHistory } from './snapshot-history';
+import { projectDrafts, storeProjectDraft, removeProjectDraft, type ProjectDraft } from './project-drafts';
+let tabSession = '';
+export function useLab(project: Project, onExpired: () => void, userId = project.user_id ?? '') {
   const [engine] = useState(() => new SimulationEngine(project.topology));
   const [tick, setTick] = useState(0),
     [simulationRevision, setSimulationRevision] = useState(0),
@@ -18,8 +21,7 @@ export function useLab(project: Project, onExpired: () => void) {
     [speed, setSpeed] = useState(1),
     [playbackMode, setPlaybackMode] = useState<'simulation' | 'realtime'>('simulation'),
     [playbackMetrics, setPlaybackMetrics] = useState({ lagMs: 0, eventsPerSecond: 0, ready: false });
-  const undo = useRef<Snapshot[]>([]),
-    redo = useRef<Snapshot[]>([]),
+  const snapshots = useRef(new SnapshotHistory(project.topology.devices.length > 200 ? 5 : 30)),
     editVersion = useRef(0),
     savedVersion = useRef(0),
     revision = useRef(project.revision),
@@ -27,6 +29,82 @@ export function useLab(project: Project, onExpired: () => void) {
     saving = useRef<Promise<void> | null>(null),
     conflict = useRef(false),
     saveError = useRef<string | null>(null);
+  const epoch = useRef(0),
+    draftSaving = useRef<Promise<void> | null>(null),
+    lastDraftVersion = useRef(-1);
+  const [drafts, setDrafts] = useState<ProjectDraft[]>([]),
+    [draftWarning, setDraftWarning] = useState(''),
+    [conflicted, setConflicted] = useState(false),
+    [liveStatus, setLiveStatus] = useState('Conectando');
+  const [session] = useState(() => (tabSession ||= crypto.randomUUID()));
+  const recoveredDraft = useRef<ProjectDraft | null>(null);
+  const owner = userId,
+    draftKey = owner + '/' + project.id + '/' + session;
+  const persistDraft = useCallback(
+    async (archive = false) => {
+      if (draftSaving.current) await draftSaving.current;
+      if (
+        editVersion.current === savedVersion.current ||
+        (!archive && lastDraftVersion.current === editVersion.current)
+      )
+        return true;
+      let saved = false;
+      const version = editVersion.current,
+        generation = epoch.current;
+      const pending = storeProjectDraft({
+        owner,
+        project: project.id,
+        session: archive ? session + '-' + crypto.randomUUID() : session,
+        name: nameRef.current,
+        revision: revision.current,
+        editVersion: version,
+        updatedAt: Date.now(),
+        topology: engine.snapshot(),
+      })
+        .then(async () => {
+          saved = true;
+          if (epoch.current === generation) {
+            if (!archive) lastDraftVersion.current = version;
+            setDraftWarning('');
+            if (archive) setDrafts(await projectDrafts(owner, project.id));
+          }
+        })
+        .catch((cause) => {
+          if (epoch.current === generation)
+            setDraftWarning(
+              'Recuperação local indisponível: ' +
+                (cause as Error).message +
+                ' Exporte as alterações se o servidor também falhar.'
+            );
+        });
+      draftSaving.current = pending;
+      try {
+        await pending;
+      } finally {
+        if (draftSaving.current === pending) draftSaving.current = null;
+      }
+      return saved;
+    },
+    [engine, owner, project.id, session]
+  );
+  useEffect(() => {
+    let active = true;
+    void projectDrafts(owner, project.id)
+      .then((rows) => {
+        const original = canonicalScenarioJson(project.topology);
+        if (active)
+          setDrafts(
+            rows.filter((d) => d.name !== project.name || canonicalScenarioJson(d.topology) !== original)
+          );
+      })
+      .catch((cause) => {
+        if (active)
+          setDraftWarning('Não foi possível consultar os rascunhos locais: ' + (cause as Error).message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [owner, project.id, project.name, project.topology]);
   const workerGeneration = useRef(0);
   const refresh = useCallback(() => {
     editVersion.current++;
@@ -48,9 +126,7 @@ export function useLab(project: Project, onExpired: () => void) {
         engine.refreshBgp();
         if (before) {
           validateSnapshot(engine.state);
-          undo.current.push(before);
-          if (undo.current.length > (engine.state.devices.length > 200 ? 5 : 30)) undo.current.shift();
-          redo.current = [];
+          snapshots.current.checkpoint(before);
         }
         refresh();
         return result;
@@ -64,70 +140,149 @@ export function useLab(project: Project, onExpired: () => void) {
   );
   const restore = useCallback(
     (snapshot: unknown) => {
-      change((e) => {
+      const applied = change((e) => {
         e.state = validateSnapshot(snapshot);
+        return true;
       });
       setPlaying(false);
+      return applied;
     },
     [change]
   );
   const history = useCallback(
     (direction: 'undo' | 'redo') => {
-      const source = direction === 'undo' ? undo : redo,
-        target = direction === 'undo' ? redo : undo;
-      const previous = source.current.pop();
-      if (!previous) return;
-      target.current.push(engine.snapshot());
-      workerGeneration.current++;
-      engine.state = previous;
-      setPlaying(false);
-      refresh();
+      try {
+        const previous = snapshots.current.restore(direction, engine.snapshot());
+        if (!previous) return;
+        workerGeneration.current++;
+        engine.state = previous;
+        setPlaying(false);
+        refresh();
+      } catch (cause) {
+        setError((cause as Error).message);
+      }
     },
     [engine, refresh]
   );
-  const save = useCallback(async (): Promise<void> => {
-    if (conflict.current) throw new Error('Conflito de versão: exporte e reabra o laboratório.');
-    if (saving.current) {
-      await saving.current;
-      if (editVersion.current !== savedVersion.current) return save();
-      return;
-    }
-    if (editVersion.current === savedVersion.current) return;
-    const version = editVersion.current;
-    setSaveStatus('Salvando…');
-    const promise = api<Project>('/projects/' + project.id, {
-      method: 'PUT',
-      body: { name: nameRef.current, revision: revision.current, topology: engine.snapshot() },
-    })
-      .then((p) => {
-        revision.current = p.revision;
-        savedVersion.current = version;
-        setSaveStatus(version === editVersion.current ? 'Salvo' : 'Alterações pendentes');
-        const previousError = saveError.current;
-        if (previousError) setError((message) => (message === previousError ? '' : message));
-        saveError.current = null;
+  const save = useCallback(
+    async (requestedVersion = editVersion.current): Promise<void> => {
+      if (conflict.current) throw new Error('Conflito de versão: exporte e reabra o laboratório.');
+      if (saving.current) {
+        await saving.current;
+        if (savedVersion.current < requestedVersion) return save(requestedVersion);
+        return;
+      }
+      if (editVersion.current === savedVersion.current) return;
+      const version = editVersion.current;
+      const generation = epoch.current;
+      const restoredDraft = recoveredDraft.current;
+      setSaveStatus('Salvando…');
+      const promise = api<Project>('/projects/' + project.id, {
+        method: 'PUT',
+        body: { name: nameRef.current, revision: revision.current, topology: engine.snapshot() },
       })
-      .catch((e) => {
-        setSaveStatus('Falha ao salvar');
-        saveError.current = e.message;
-        setError(e.message);
-        if (e instanceof ApiError && e.status === 409) conflict.current = true;
-        if (e instanceof ApiError && e.status === 401) onExpired();
-        throw e;
-      })
-      .finally(() => {
-        saving.current = null;
-      });
-    saving.current = promise;
-    return promise;
-  }, [engine, project.id, onExpired]);
+        .then((p) => {
+          if (epoch.current !== generation) return;
+          revision.current = p.revision;
+          savedVersion.current = version;
+          setSaveStatus(version === editVersion.current ? 'Salvo' : 'Alterações pendentes');
+          const previousError = saveError.current;
+          if (previousError) setError((message) => (message === previousError ? '' : message));
+          saveError.current = null;
+          setDraftWarning('');
+          void (async () => {
+            await draftSaving.current;
+            await removeProjectDraft(draftKey, version);
+            if (restoredDraft) {
+              await removeProjectDraft(restoredDraft.key, restoredDraft.editVersion);
+              if (recoveredDraft.current === restoredDraft) recoveredDraft.current = null;
+              setDrafts((rows) => rows.filter((d) => d.key !== restoredDraft.key));
+            }
+          })().catch(() => {});
+        })
+        .catch(async (e) => {
+          if (epoch.current !== generation) throw e;
+          setSaveStatus('Falha ao salvar');
+          saveError.current = e.message;
+          setError(e.message);
+          if (e instanceof ApiError && e.status === 409) {
+            conflict.current = true;
+            setConflicted(true);
+          }
+          if (e instanceof ApiError && e.status === 401) {
+            workerGeneration.current++;
+            setPlaying(false);
+          }
+          const protectedWork = await persistDraft();
+          if (e instanceof ApiError && e.status === 401) {
+            if (protectedWork) onExpired();
+            else {
+              saveError.current =
+                'Sessão expirada e recuperação local indisponível. Exporte o trabalho antes de entrar novamente.';
+              setError(saveError.current);
+            }
+          }
+          throw e;
+        })
+        .finally(() => {
+          if (saving.current === promise) saving.current = null;
+        });
+      saving.current = promise;
+      return promise;
+    },
+    [engine, project.id, onExpired, draftKey, persistDraft]
+  );
+  const acceptProject = useCallback(
+    (next: Project) => {
+      const validated = validateSnapshot(next.topology);
+      epoch.current++;
+      workerGeneration.current++;
+      engine.state = validated;
+      revision.current = next.revision;
+      nameRef.current = next.name;
+      snapshots.current.clear();
+      savedVersion.current = editVersion.current;
+      conflict.current = false;
+      saveError.current = null;
+      setConflicted(false);
+      lastDraftVersion.current = -1;
+      recoveredDraft.current = null;
+      setNameState(next.name);
+      setError('');
+      setPlaying(false);
+      setSaveStatus('Salvo');
+      setTick((n) => n + 1);
+    },
+    [engine]
+  );
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void persistDraft();
+      if (editVersion.current !== savedVersion.current && !conflict.current) void save().catch(() => {});
+    }, 5000);
+    const flush = () => {
+      void persistDraft();
+    };
+    const hidden = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', hidden);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', hidden);
+      flush();
+    };
+  }, [persistDraft, save]);
   useEffect(() => {
     if (!tick || conflict.current) return;
     const timer = setTimeout(() => {
+      void persistDraft();
       void save().catch(() => {});
     }, 1500);
     return () => clearTimeout(timer);
-  }, [tick, save]);
+  }, [tick, save, persistDraft]);
   useEffect(() => {
     const warning = (e: BeforeUnloadEvent) => {
       if (editVersion.current !== savedVersion.current) {
@@ -147,8 +302,16 @@ export function useLab(project: Project, onExpired: () => void) {
       busy = false;
     let startedAt = 0,
       initialClock = engine.state.clock,
-      processed = 0;
+      processed = 0,
+      lastResponse = performance.now();
     const requestStep = () => {
+      if ((!ready || busy) && performance.now() - lastResponse > 30000) {
+        setError(
+          'O processamento não respondeu em 30 segundos. A simulação foi pausada; você pode salvar e retomar.'
+        );
+        setPlaying(false);
+        return;
+      }
       if (!ready || busy || generation !== workerGeneration.current) return;
       busy = true;
       worker.postMessage({
@@ -165,6 +328,7 @@ export function useLab(project: Project, onExpired: () => void) {
     ) => {
       const message = event.data;
       if (message.generation !== workerGeneration.current || message.generation !== generation) return;
+      lastResponse = performance.now();
       if (message.kind === 'ready') {
         ready = true;
         startedAt = performance.now();
@@ -206,44 +370,96 @@ export function useLab(project: Project, onExpired: () => void) {
     };
   }, [playing, speed, playbackMode, engine, refresh, simulationRevision]);
   useEffect(() => {
-    const socket = new WebSocket(location.origin.replace(/^http/, 'ws') + '/api/events');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.id === project.id && data.type === 'project.deleted') {
-        conflict.current = true;
-        setError('Este laboratório foi excluído em outra aba. Exporte seu trabalho.');
-      } else if (
-        data.id === project.id &&
-        data.type === 'project.updated' &&
-        data.revision > revision.current &&
-        !saving.current
-      ) {
-        conflict.current = true;
-        setError('Outra aba salvou uma versão mais recente. Exporte suas alterações e reabra o laboratório.');
+    let closed = false,
+      socket: WebSocket | undefined,
+      reconnect: ReturnType<typeof setTimeout> | undefined,
+      delay = 1000;
+    const reconcile = async () => {
+      try {
+        const generation = epoch.current,
+          remote = await api<Project>('/projects/' + project.id);
+        if (closed || generation !== epoch.current || remote.revision <= revision.current || saving.current)
+          return;
+        if (editVersion.current === savedVersion.current) acceptProject(remote);
+        else {
+          conflict.current = true;
+          setConflicted(true);
+          void persistDraft();
+          setError('Outra aba salvou alterações. Compare ou crie uma cópia antes de continuar.');
+        }
+      } catch (cause) {
+        if (!closed && cause instanceof ApiError && cause.status === 401) {
+          workerGeneration.current++;
+          setPlaying(false);
+          if (await persistDraft()) onExpired();
+          else
+            setError(
+              'Sessão expirada e recuperação local indisponível. Exporte o trabalho antes de entrar novamente.'
+            );
+        } else if (!closed && !(cause instanceof ApiError))
+          setError('Não foi possível atualizar o laboratório: ' + (cause as Error).message);
+        if (!closed && cause instanceof ApiError && cause.status === 404) {
+          conflict.current = true;
+          setConflicted(true);
+          setError('Laboratório excluído; recupere o rascunho em uma cópia.');
+        }
       }
     };
-    return () => socket.close();
-  }, [project.id]);
+    const connect = () => {
+      if (closed) return;
+      setLiveStatus('Reconectando');
+      socket = new WebSocket(location.origin.replace(/^http/, 'ws') + '/api/events');
+      socket.onopen = () => {
+        delay = 1000;
+        setLiveStatus('Conectado');
+        void reconcile();
+      };
+      socket.onclose = () => {
+        if (!closed) {
+          setLiveStatus('Desconectado');
+          reconnect = setTimeout(connect, delay);
+          delay = Math.min(30000, delay * 2);
+        }
+      };
+      socket.onmessage = (event) => {
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+        if (data.id === project.id && data.type === 'project.deleted') {
+          conflict.current = true;
+          setConflicted(true);
+          setError('Este laboratório foi excluído em outra aba. Exporte seu trabalho.');
+        } else if (
+          data.id === project.id &&
+          data.type === 'project.updated' &&
+          data.revision > revision.current &&
+          !saving.current
+        ) {
+          void reconcile();
+        }
+      };
+    };
+    connect();
+    const online = () => {
+      void reconcile();
+    };
+    window.addEventListener('online', online);
+    return () => {
+      closed = true;
+      clearTimeout(reconnect);
+      socket?.close();
+      window.removeEventListener('online', online);
+    };
+  }, [project.id, acceptProject, persistDraft, onExpired]);
   return {
     engine,
     projectId: project.id,
     revision: revision.current,
     getRevision: () => revision.current,
-    acceptProject: (next: Project) => {
-      workerGeneration.current++;
-      engine.state = validateSnapshot(next.topology);
-      revision.current = next.revision;
-      nameRef.current = next.name;
-      undo.current = [];
-      redo.current = [];
-      savedVersion.current = editVersion.current;
-      conflict.current = false;
-      setNameState(next.name);
-      setError('');
-      setPlaying(false);
-      setSaveStatus('Salvo');
-      setTick((value) => value + 1);
-    },
+    acceptProject,
     tick,
     name,
     error,
@@ -265,8 +481,31 @@ export function useLab(project: Project, onExpired: () => void) {
       nameRef.current = value;
       refresh();
     },
-    canUndo: undo.current.length > 0,
-    canRedo: redo.current.length > 0,
+    canUndo: snapshots.current.canUndo,
+    canRedo: snapshots.current.canRedo,
+    drafts,
+    draftWarning,
+    conflicted,
+    liveStatus,
+    persistDraft,
+    recoverDraft: (draft: ProjectDraft) => {
+      if (draft.project !== project.id || draft.owner !== owner) return;
+      if (
+        change((e) => {
+          e.state = validateSnapshot(draft.topology);
+          return true;
+        })
+      ) {
+        recoveredDraft.current = draft;
+        nameRef.current = draft.name;
+        setNameState(draft.name);
+      }
+    },
+    discardDraft: async (draft: ProjectDraft) => {
+      if (draft.project !== project.id || draft.owner !== owner) return;
+      await removeProjectDraft(draft.key);
+      setDrafts((rows) => rows.filter((d) => d.key !== draft.key));
+    },
   };
 }
 export type LabController = ReturnType<typeof useLab>;

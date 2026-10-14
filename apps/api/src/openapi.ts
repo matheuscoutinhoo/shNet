@@ -153,11 +153,40 @@ export const openapi = {
       get: op('List persisted browser scenario results, latest first', undefined, true),
       post: op(
         'Capture immutable source topology and revision before a scenario run',
-        json({
-          revision: { type: 'integer', minimum: 1 },
-          kind: { type: 'string', enum: ['scenario', 'baseline'] },
-          scenario: { type: 'object' },
-        }),
+        json(
+          {
+            revision: { type: 'integer', minimum: 1 },
+            kind: { type: 'string', enum: ['scenario', 'baseline'] },
+            scenario: { type: 'object' },
+            clientBuild: {
+              type: 'string',
+              default: 'development',
+              description: 'Engine source fingerprint or development; checked against installed source.',
+            },
+            clientArtifact: {
+              type: 'string',
+              pattern: '^[a-f0-9]{64}$',
+              description: 'SHA-256 of the actual browser scenario Worker; required for built clients.',
+            },
+          },
+          ['revision', 'kind', 'scenario']
+        ),
+        true
+      ),
+    },
+    '/api/build': {
+      get: op(
+        'Read installed engine source, scenario Worker artifact, contract and database migration version'
+      ),
+    },
+    '/api/projects/{id}/scenario-runs/{run}/verify': {
+      parameters: [
+        idParam,
+        { name: 'run', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+      ],
+      post: op(
+        'Replay a saved run on the server; shared database admission, bounded execution and origin build checks',
+        undefined,
         true
       ),
     },

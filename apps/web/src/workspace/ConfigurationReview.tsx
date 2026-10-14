@@ -1,15 +1,27 @@
-import { useState } from 'react';
-import { configurationDiff, validateSnapshot, preflight, type Snapshot } from '@shlab/engine';
+import { useRef, useState } from 'react';
+import {
+  configurationDiff,
+  validateSnapshot,
+  preflight,
+  applyConfigurationPatch,
+  SimulationEngine,
+  type Snapshot,
+  type ConfigurationPatch,
+} from '@shlab/engine';
 import { download } from '../api';
 import type { LabController } from './useLab';
+import { normalizeBulkConfiguration } from './configuration-bulk';
 export function ConfigurationReview({ lab }: { lab: LabController }) {
   const [candidate, setCandidate] = useState<Snapshot | null>(null),
     [error, setError] = useState(''),
     [bulk, setBulk] = useState('');
+  const base = useRef<Snapshot | null>(null),
+    patch = useRef<ConfigurationPatch | null>(null);
   const changes = candidate ? configurationDiff(lab.engine.state, candidate) : [];
   const inspect = (value: unknown) => {
     try {
       setCandidate(validateSnapshot(value));
+      base.current = lab.engine.snapshot();
       setError('');
     } catch (e) {
       setError((e as Error).message);
@@ -30,8 +42,10 @@ export function ConfigurationReview({ lab }: { lab: LabController }) {
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            if (file.size > 5 * 1024 * 1024) {
-              setError('Arquivo excede 5 MiB.');
+            setCandidate(null);
+            patch.current = null;
+            if (file.size > 16 * 1024 * 1024) {
+              setError('Arquivo excede 16 MiB.');
               return;
             }
             try {
@@ -49,7 +63,7 @@ export function ConfigurationReview({ lab }: { lab: LabController }) {
           value={bulk}
           onChange={(e) => setBulk(e.target.value)}
           placeholder={
-            '[{"hostname":"PC-ERP","port":"p0","ip":"10.20.10.15","prefix":24,"gateway":"10.20.10.1"}]'
+            '[{"device":"PC-ERP","ports":[{"port":"p0","ip":"10.20.10.15","prefix":24,"gateway":"10.20.10.1"}]}]'
           }
         />
       </label>
@@ -57,40 +71,12 @@ export function ConfigurationReview({ lab }: { lab: LabController }) {
         className="button"
         onClick={() => {
           try {
-            const entries: unknown = JSON.parse(bulk);
-            if (!Array.isArray(entries) || entries.length > 2000)
-              throw new Error('Informe uma lista de até 2000 alterações.');
-            const snapshot = lab.engine.snapshot();
-            for (const entry of entries) {
-              if (
-                !entry ||
-                typeof entry !== 'object' ||
-                Object.keys(entry).some(
-                  (key) =>
-                    !['hostname', 'port', 'ip', 'prefix', 'gateway', 'dns', 'description'].includes(key)
-                )
-              )
-                throw new Error('Campos permitidos: hostname, port, ip, prefix, gateway, dns, description.');
-              const d = snapshot.devices.find((d) => d.hostname === entry.hostname),
-                p = d?.interfaces.find((p) => p.id === entry.port || p.name === entry.port);
-              if (!d || !p)
-                throw new Error('Equipamento/interface inexistente: ' + entry.hostname + '/' + entry.port);
-              if (p.dhcp || p.ipv4Mode === 'dhcp')
-                throw new Error('Desabilite DHCP antes de editar o endereço: ' + d.hostname);
-              for (const key of ['ip', 'prefix', 'dns', 'description'] as const)
-                if (key in entry) Object.assign(p, { [key]: entry[key] });
-              if ('gateway' in entry) {
-                if (d.type === 'pc' || d.type === 'server') d.gateway = entry.gateway;
-                else p.gateway = entry.gateway;
-              }
-              d.arpTable = [];
-              d.pending = [];
-              delete d.arpResolutions;
-              snapshot.queue = snapshot.queue.filter(
-                (q) => q.action.kind !== 'arp-timeout' || q.action.device !== d.id
-              );
-            }
-            inspect(snapshot);
+            lab.change(() => {}, false);
+            const proposed = normalizeBulkConfiguration(JSON.parse(bulk), lab.engine.state);
+            const preview = new SimulationEngine(lab.engine.snapshot());
+            applyConfigurationPatch(preview, proposed);
+            patch.current = proposed;
+            inspect(preview.snapshot());
           } catch (e) {
             setError((e as Error).message);
             setCandidate(null);
@@ -107,6 +93,11 @@ export function ConfigurationReview({ lab }: { lab: LabController }) {
             {preflight(candidate).filter((i) => i.severity === 'warning').length} avisos de revisão. Tráfego e
             contadores não entram no diff.
           </p>
+          <p>
+            {patch.current
+              ? 'O lote aplica apenas os campos revisados ao estado atual. A simulação foi pausada para a revisão.'
+              : 'A importação restaura a topologia inteira, incluindo relógio, filas e captura do arquivo.'}
+          </p>
           {changes.map((c) => (
             <details key={c.kind + c.id}>
               <summary>
@@ -122,8 +113,17 @@ export function ConfigurationReview({ lab }: { lab: LabController }) {
             <button
               className="button primary"
               onClick={() => {
-                lab.restore(candidate);
-                setCandidate(null);
+                if (base.current && configurationDiff(base.current, lab.engine.state).length) {
+                  setError('A configuração mudou durante a revisão. Prepare a proposta novamente.');
+                  return;
+                }
+                const applied = patch.current
+                  ? lab.change((engine) => {
+                      applyConfigurationPatch(engine, patch.current!);
+                      return true;
+                    })
+                  : lab.restore(candidate);
+                if (applied) setCandidate(null);
               }}
             >
               Aplicar proposta

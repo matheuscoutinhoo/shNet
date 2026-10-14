@@ -2,7 +2,12 @@ import { Worker } from 'node:worker_threads';
 import type { Scenario, ScenarioReport, Snapshot } from '@shlab/engine';
 import { error } from './security';
 let busy = false;
-export async function replayScenario(topology: Snapshot, scenario: Scenario): Promise<ScenarioReport> {
+export async function replayScenario(
+  topology: Snapshot,
+  scenario: Scenario,
+  engineBuild?: string,
+  engineArtifact?: string
+): Promise<ScenarioReport> {
   if (busy) throw error(503, 'Verificação ocupada. Tente novamente em alguns segundos.');
   busy = true;
   let worker: Worker | undefined;
@@ -12,6 +17,8 @@ export async function replayScenario(topology: Snapshot, scenario: Scenario): Pr
       workerData: {
         topology,
         scenario,
+        engineBuild,
+        engineArtifact,
         engine: new URL('../../../packages/simulation-engine/src/index.ts', import.meta.url).href,
       },
       execArgv: [],

@@ -14,7 +14,8 @@ import {
   Activity,
   SlidersHorizontal,
 } from 'lucide-react';
-import { templates, labs, type LabId, type TemplateId, type LearningScore } from '@shlab/engine';
+import { templates, labs, type LabId, type TemplateId } from '@shlab/engine/catalog';
+import type { LearningScore } from '@shlab/engine';
 import { api, type User, type Project, type ProjectSummary } from './api';
 import { Brand } from './components/Brand';
 import { Modal } from './components/Modal';
@@ -23,6 +24,7 @@ import { CatalogCard } from './components/CatalogCard';
 import { searchText, templateCategories } from './catalog';
 import { ActivityHistory } from './ActivityHistory';
 import { Account } from './Account';
+import { LocalDrafts } from './LocalDrafts';
 
 const categories = [
   ...new Set([...Object.values(templateCategories), ...labs.map((lab) => lab.category)]),
@@ -234,6 +236,7 @@ export function Dashboard({
             <strong>{section === 'labs' ? 'Laboratórios' : 'Templates e trilhas'}</strong>
           </span>
           <div className="topbar-preferences">
+            <LocalDrafts owner={user.id} onOpen={onOpen} />
             <span className="private-label">
               <span className="status-dot" /> Privado
             </span>

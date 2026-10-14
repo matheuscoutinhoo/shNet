@@ -1,5 +1,7 @@
 # Persistência
 
+A migração 011 acrescenta `scenario_runs.build_identity` (origem imutável de fontes/artefato do motor, contrato e migração) e `scenario_verification_leases` (admissão compartilhada de replay com token/expiração). Backups incluem a identidade de origem; leases são efêmeros e expiram se uma instância parar. Rascunhos de trabalho ficam no IndexedDB do navegador, com ownership local, limites e recuperação; não substituem o banco. Detalhes no [ADR-046](adr/046-application-recovery-and-run-integrity.md).
+
 Registros de servidor DNS, consultas pendentes/finalizadas e cache também são campos opcionais do agregado JSONB. O backend rejeita timers ausentes, CNAMEs conflitantes e cache incompatível com a pergunta ou TTL. Snapshots v1 antigos continuam aceitos; não há alteração de DDL nem migration SQL nesta extensão. Leitores anteriores não conhecem os novos payloads/ações DNS.
 
 Migrations SQL versionadas em apps/api/migrations; schema_migrations registra aplicação em transação com bloqueio. Produção exige PostgreSQL servidor. PGlite utiliza PostgreSQL WASM para desenvolvimento/testes e roda exatamente a mesma migration.

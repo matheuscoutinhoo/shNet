@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { eventSchema } from './model';
 import { scenarioSchema } from './scenarios-model';
 import { scenarioRecovery } from './scenario-metrics';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex } from '@noble/hashes/utils.js';
 const ms = z.number().finite().nonnegative();
 const name = z.string().min(1).max(100);
 const sampleSchema = z
@@ -32,6 +34,7 @@ const sampleSchema = z
           )
           .max(16),
         path: z.array(z.string().max(100)).max(64),
+        truncated: z.boolean().optional(),
       })
       .strict()
       .optional(),
@@ -42,6 +45,11 @@ export const scenarioReportSchema = z
     format: z.literal('shlab-scenario-v1'),
     engineVersion: z.string().min(1).max(32),
     engineContract: z.string().min(1).max(32).optional(),
+    engineBuild: z.union([z.literal('development'), z.string().regex(/^[a-f0-9]{64}$/)]).optional(),
+    engineArtifact: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     integrityVersion: z.literal(2).optional(),
     name,
     clock: z.literal('virtual-ms'),
@@ -112,6 +120,11 @@ export const scenarioReportSchema = z
             beforeClock: ms,
             afterClock: ms,
             snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
+            configurationHash: z
+              .string()
+              .regex(/^[a-f0-9]{64}$/)
+              .optional(),
+            changedObjects: z.number().int().nonnegative().max(200000).optional(),
           })
           .strict()
       )
@@ -138,20 +151,39 @@ export const scenarioReportSchema = z
     const actions = [...(r.scenario.actions ?? [])].sort((a, b) => a.atMs - b.atMs);
     if (actions.length !== (r.actions?.length ?? 0))
       ctx.addIssue({ code: 'custom', message: 'Ações incompletas.' });
-    const hashes = new Map<string, string>();
+    const hashes = new Map<string, string>(),
+      configurations = new Map<string, string>();
     let epoch = 0;
     r.actions?.forEach((result, i) => {
       const expected = actions[i],
-        { beforeClock, afterClock, snapshotHash, epoch: recordedEpoch, ...action } = result;
+        {
+          beforeClock,
+          afterClock,
+          snapshotHash,
+          configurationHash,
+          changedObjects,
+          epoch: recordedEpoch,
+          ...action
+        } = result;
       if (action.kind === 'checkpoint') hashes.set(action.checkpoint, snapshotHash);
-      else epoch++;
+      else if (action.kind === 'restore') epoch++;
+      else if (action.kind === 'configure') configurations.set(action.checkpoint, snapshotHash);
+      const patch = ['configure', 'rollback'].includes(action.kind);
       if (
         canonicalScenarioJson(expected) !== canonicalScenarioJson(action) ||
         recordedEpoch !== epoch ||
-        (action.kind === 'checkpoint' && beforeClock !== afterClock) ||
-        (action.kind === 'restore' && hashes.get(action.checkpoint) !== snapshotHash)
+        (action.kind !== 'restore' && beforeClock !== afterClock) ||
+        (action.kind === 'restore' && hashes.get(action.checkpoint) !== snapshotHash) ||
+        (patch && (configurationHash === undefined || changedObjects === undefined)) ||
+        (action.kind === 'configure' &&
+          configurationHash !==
+            bytesToHex(sha256(new TextEncoder().encode(canonicalScenarioJson(action.changes))))) ||
+        (!patch && (configurationHash !== undefined || changedObjects !== undefined)) ||
+        (action.kind === 'rollback' &&
+          (configurations.get(action.checkpoint) !== snapshotHash || configurationHash !== snapshotHash))
       )
         ctx.addIssue({ code: 'custom', message: 'Evidência de checkpoint divergente.' });
+      if (action.kind === 'rollback') configurations.delete(action.checkpoint);
     });
     if (
       r.scenario.actions &&

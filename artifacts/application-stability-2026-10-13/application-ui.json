@@ -1,0 +1,25 @@
+{
+  "checks": [
+    "Falha 503 → rascunho → recarga → comparação → recuperação → persistência sem rascunho obsoleto",
+    "Duas abas → conflito de revisão → cópia completa → versão remota preservada",
+    "Carregar versão remota arquiva alterações anteriores e nova edição conserva o arquivo",
+    "Autolayout/undo/redo, nove serviços no formulário, ações/assertions, execução, identidade do build e replay matched",
+    "Lote antigo validado/revisado/aplicado; gerenciador mobile recupera rascunho de projeto excluído"
+  ],
+  "accessibility": [
+    {
+      "viewport": "desktop",
+      "violations": []
+    },
+    {
+      "viewport": "mobile",
+      "violations": []
+    },
+    {
+      "viewport": "mobile-local-drafts",
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

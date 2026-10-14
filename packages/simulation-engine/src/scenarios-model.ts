@@ -6,6 +6,7 @@ import { modbusRequestSchema } from './protocols/modbus-model';
 import { dnsNameSchema } from './protocols/dns-model';
 import { oidSchema, snmpVarbindSchema } from './protocols/snmp-model';
 import { scenarioAssertionSchema } from './scenario-assertions';
+import { configurationPatchSchema } from './configuration-patch-model';
 export const scenarioServiceSchema = z.enum([
   'dns',
   'dhcp',
@@ -20,8 +21,9 @@ const ref = z.string().min(1).max(80);
 export const scenarioActionSchema = z
   .object({
     atMs: z.number().int().nonnegative(),
-    kind: z.enum(['checkpoint', 'restore']),
+    kind: z.enum(['checkpoint', 'restore', 'configure', 'rollback']),
     checkpoint: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
+    changes: configurationPatchSchema.optional(),
   })
   .strict();
 export const scenarioSchema = z
@@ -144,11 +146,25 @@ export const scenarioSchema = z
       new Set(s.assertions?.map((a) => a.name)).size !== (s.assertions?.length ?? 0)
     )
       ctx.addIssue({ code: 'custom', message: 'Assertion fora da duração ou nome repetido.' });
-    const checkpoints = new Set<string>();
+    const checkpoints = new Set<string>(),
+      configurations = new Set<string>();
     for (const action of [...(s.actions ?? [])].sort((a, b) => a.atMs - b.atMs)) {
       if (action.atMs > s.durationMs)
         ctx.addIssue({ code: 'custom', message: 'Ação fora da duração do cenário.' });
-      if (action.kind === 'checkpoint') {
+      if ((action.kind === 'configure') !== Boolean(action.changes))
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Configure exige changes; outras ações não aceitam changes.',
+        });
+      if (action.kind === 'configure') {
+        if (configurations.has(action.checkpoint) || configurations.size >= 4)
+          ctx.addIssue({ code: 'custom', message: 'Proposta repetida ou limite de quatro excedido.' });
+        configurations.add(action.checkpoint);
+      } else if (action.kind === 'rollback') {
+        if (!configurations.has(action.checkpoint))
+          ctx.addIssue({ code: 'custom', message: 'Rollback exige configure anterior.' });
+        configurations.delete(action.checkpoint);
+      } else if (action.kind === 'checkpoint') {
         if (checkpoints.has(action.checkpoint) || checkpoints.size >= 4)
           ctx.addIssue({ code: 'custom', message: 'Checkpoint repetido ou limite de quatro excedido.' });
         checkpoints.add(action.checkpoint);

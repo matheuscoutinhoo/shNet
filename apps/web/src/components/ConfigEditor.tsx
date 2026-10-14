@@ -18,9 +18,57 @@ type Props = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'val
   schema?: z.ZodType;
   onChange?: (event: { target: { value: string } }) => void;
   choices?: Record<string, Choice[]>;
+  structuredOnly?: boolean;
 };
 const labels: Record<string, string> = {
   enabled: 'Habilitado',
+  atMs: 'Instante (ms)',
+  checkpoint: 'Rótulo da ação',
+  changes: 'Proposta de configuração',
+  expected: 'Valor esperado',
+  expect: 'Resultado esperado',
+  maxLossPercent: 'Perda máxima (%)',
+  maxLatencyMs: 'Latência máxima (ms)',
+  requireFinalSuccess: 'Exigir sucesso final',
+  denyEvidence: 'Evidência de bloqueio',
+  up: 'Restaurar disponibilidade',
+  service: 'Serviço',
+  servicePort: 'Porta do serviço',
+  vrf: 'VRF',
+  scope: 'Escopo IPv6',
+  transaction: 'Transação',
+  unit: 'Unidade',
+  function: 'Função',
+  quantity: 'Quantidade',
+  values: 'Valores',
+  expectedRegisters: 'Registradores esperados',
+  expectedBits: 'Bits esperados',
+  interface: 'Interface',
+  fresh: 'Nova concessão',
+  expectedAddress: 'Endereço esperado',
+  expectedServer: 'Servidor esperado',
+  expectedAnswers: 'Respostas esperadas',
+  clearCache: 'Limpar cache',
+  community: 'Comunidade',
+  oids: 'OIDs',
+  maxOffsetMs: 'Desvio máximo (ms)',
+  severity: 'Severidade',
+  text: 'Texto',
+  adminUp: 'Interface habilitada',
+  accessVlan: 'VLAN de acesso',
+  nativeVlan: 'VLAN nativa',
+  allowedVlans: 'VLANs permitidas',
+  routes: 'Rotas',
+  nextHop: 'Próximo salto',
+  description: 'Descrição',
+  ip: 'IPv4',
+  gateway: 'Gateway',
+  mtu: 'MTU',
+  receiver: 'Receptor',
+  filter: 'Filtro',
+  topic: 'Tópico',
+  payload: 'Conteúdo',
+  retain: 'Reter publicação',
   port: 'Porta',
   device: 'Equipamento',
   name: 'Nome',
@@ -174,6 +222,43 @@ function Field({
   const key = path.split('.').at(-1) ?? path,
     id = useId();
   if (depth > 12) return <p>Estrutura profunda: use o editor avançado.</p>;
+  let nullable = schema;
+  while (
+    nullable instanceof z.ZodOptional ||
+    nullable instanceof z.ZodDefault ||
+    nullable instanceof z.ZodReadonly
+  )
+    nullable = nullable.unwrap() as z.ZodType;
+  if (nullable instanceof z.ZodNullable) {
+    const inner = nullable.unwrap() as z.ZodType;
+    return (
+      <div className="config-field">
+        {value === null ? (
+          <>
+            <p>{label}: valor removido</p>
+            <button type="button" className="button small" onClick={() => change(seed(inner, key))}>
+              Definir {label.toLowerCase()}
+            </button>
+          </>
+        ) : (
+          <>
+            <Field
+              value={value}
+              schema={inner}
+              path={path}
+              label={label}
+              change={change}
+              choices={choices}
+              depth={depth + 1}
+            />
+            <button type="button" className="button small" onClick={() => change(null)}>
+              Limpar {label.toLowerCase()}
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
   if (path.includes('.wireless.') && key === 'noise')
     return (
       <label htmlFor={id}>
@@ -312,7 +397,7 @@ function Field({
               ) : (
                 <>
                   <Field
-                    value={object[k] ?? seed(child, k)}
+                    value={k in object ? object[k] : seed(child, k)}
                     schema={child}
                     path={path + '.' + k}
                     label={title(k)}
@@ -425,6 +510,7 @@ export function ConfigEditor({
   defaultValue = '',
   onChange,
   choices = {},
+  structuredOnly = false,
   ...props
 }: Props) {
   const [local, setLocal] = useState(defaultValue),
@@ -466,21 +552,23 @@ export function ConfigEditor({
             .join(' · ')}
         </p>
       ) : null}
-      <details open={advanced || Boolean(error)} onToggle={(ev) => setAdvanced(ev.currentTarget.open)}>
-        <summary>Editor avançado JSON · {label}</summary>
-        <label htmlFor={id}>
-          {label}
-          <textarea
-            {...props}
-            aria-label={props['aria-label'] ?? label}
-            id={id}
-            name={undefined}
-            className="config-json"
-            value={text}
-            onChange={(ev) => update(ev.target.value)}
-          />
-        </label>
-      </details>
+      {!structuredOnly && (
+        <details open={advanced || Boolean(error)} onToggle={(ev) => setAdvanced(ev.currentTarget.open)}>
+          <summary>Editor avançado JSON · {label}</summary>
+          <label htmlFor={id}>
+            {label}
+            <textarea
+              {...props}
+              aria-label={props['aria-label'] ?? label}
+              id={id}
+              name={undefined}
+              className="config-json"
+              value={text}
+              onChange={(ev) => update(ev.target.value)}
+            />
+          </label>
+        </details>
+      )}
       {props.name && <input type="hidden" name={props.name} value={text} />}
     </div>
   );

@@ -225,8 +225,14 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('Backup/restauração em Postgre
         reportHash: createHash('sha256').update(canonicalScenarioJson(scenarioReport)).digest('hex'),
         verifiedAt: '2026-10-13T12:00:00.000Z',
       };
+      const buildIdentity = {
+        client: 'development',
+        server: 'a'.repeat(64),
+        engineContract: scenarioReport.engineContract,
+        schemaVersion: 11,
+      };
       await source.query(
-        "INSERT INTO scenario_runs(id,project_id,revision,source_hash,topology,scenario,kind,status,report,finished_at,server_verification) VALUES($1,$2,1,$3,$4,$5,'scenario','complete',$6,now(),$7)",
+        "INSERT INTO scenario_runs(id,project_id,revision,source_hash,topology,scenario,kind,status,report,finished_at,server_verification,build_identity) VALUES($1,$2,1,$3,$4,$5,'scenario','complete',$6,now(),$7,$8)",
         [
           run,
           project,
@@ -235,6 +241,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('Backup/restauração em Postgre
           databaseJson(runner.scenario),
           databaseJson(scenarioReport),
           JSON.stringify(verification),
+          JSON.stringify(buildIdentity),
         ]
       );
       const report = await backupDatabase(sourceUrl, archive, key);
@@ -275,11 +282,17 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('Backup/restauração em Postgre
       );
       expect(
         await restored.query(
-          'SELECT revision,source_hash,report,server_verification FROM scenario_runs WHERE id=$1',
+          'SELECT revision,source_hash,report,server_verification,build_identity FROM scenario_runs WHERE id=$1',
           [run]
         )
       ).toEqual([
-        { revision: 1, source_hash: sourceHash, report: scenarioReport, server_verification: verification },
+        {
+          revision: 1,
+          source_hash: sourceHash,
+          report: scenarioReport,
+          server_verification: verification,
+          build_identity: buildIdentity,
+        },
       ]);
       expect(
         (await restored.query<{ user_id: string }>('SELECT user_id FROM projects WHERE id=$1', [project]))[0]

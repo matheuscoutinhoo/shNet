@@ -1,4 +1,5 @@
-import type { Snapshot, Scenario } from '@shlab/engine';
+import { scenarioSchema, type Snapshot, type Scenario } from '@shlab/engine';
+import { ConfigEditor } from '../components/ConfigEditor';
 export function ScenarioForm({
   text,
   setText,
@@ -108,6 +109,7 @@ export function ScenarioForm({
           <label>
             Protocolo{' '}
             <select
+              aria-label="Protocolo"
               value={f.protocol}
               onChange={(e) =>
                 edit((s) => {
@@ -134,14 +136,52 @@ export function ScenarioForm({
                       quantity: 1,
                       values: [],
                     };
+                  if (flow.protocol === 'dns')
+                    flow.dns = { name: 'erp.example.test', type: 'A', clearCache: true };
+                  if (flow.protocol === 'dhcp')
+                    flow.dhcp = {
+                      interface:
+                        snapshot.devices.find((d) => d.id === flow.source || d.hostname === flow.source)
+                          ?.interfaces[0]?.id ?? 'p0',
+                      fresh: true,
+                    };
+                  if (flow.protocol === 'mqtt') flow.mqtt = { operation: 'connect', retain: false };
+                  if (flow.protocol === 'snmp')
+                    flow.snmp = { community: 'public', oids: ['1.3.6.1.2.1.1.1.0'], operation: 'get' };
+                  if (flow.protocol === 'ntp') flow.ntp = { maxOffsetMs: 1 };
+                  if (flow.protocol === 'syslog')
+                    flow.syslog = { text: 'Teste de conectividade', severity: 6 };
                 })
               }
             >
-              {[...new Set(['icmp', 'http', 'modbus', f.protocol])].map((p) => (
+              {scenarioSchema.shape.flows.element.shape.protocol.options.map((p) => (
                 <option key={p}>{p}</option>
               ))}
             </select>
           </label>
+          <details>
+            <summary>Parâmetros e critérios do fluxo {i + 1}</summary>
+            <ConfigEditor
+              structuredOnly
+              label={'Configuração do fluxo ' + (i + 1)}
+              schema={scenarioSchema.shape.flows.element}
+              value={JSON.stringify(f)}
+              choices={{
+                source: snapshot.devices.map((d) => ({ value: d.hostname, label: d.hostname })),
+                receiver: snapshot.devices.map((d) => ({ value: d.hostname, label: d.hostname })),
+              }}
+              onChange={(event) => {
+                try {
+                  const value = JSON.parse(event.target.value);
+                  edit((s) => {
+                    s.flows[i] = value;
+                  });
+                } catch {
+                  /* The JSON editor preserves invalid text locally. */
+                }
+              }}
+            />
+          </details>
           <label>
             VRF (vazio = padrão){' '}
             <input
@@ -243,6 +283,22 @@ export function ScenarioForm({
           <legend>
             Falha {i + 1}: {f.kind}
           </legend>
+          <ConfigEditor
+            structuredOnly
+            label={'Configuração da falha ' + (i + 1)}
+            schema={scenarioSchema.shape.faults.element}
+            value={JSON.stringify(f)}
+            onChange={(event) => {
+              try {
+                const value = JSON.parse(event.target.value);
+                edit((s) => {
+                  s.faults[i] = value;
+                });
+              } catch {
+                /* Use the main JSON editor for syntax corrections. */
+              }
+            }}
+          />
           <label>
             Instante (ms){' '}
             <input
@@ -307,9 +363,45 @@ export function ScenarioForm({
       >
         Adicionar falha de equipamento
       </button>
+      <ConfigEditor
+        structuredOnly
+        label="Ações agendadas"
+        schema={scenarioSchema.shape.actions}
+        value={JSON.stringify(draft.actions ?? [])}
+        choices={{ device: snapshot.devices.map((d) => ({ value: d.id, label: d.hostname })) }}
+        onChange={(event) => {
+          try {
+            const value = JSON.parse(event.target.value);
+            edit((s) => {
+              s.actions = value;
+            });
+          } catch {
+            /* Use the main JSON editor for syntax corrections. */
+          }
+        }}
+      />
+      <ConfigEditor
+        structuredOnly
+        label="Verificações de estado"
+        schema={scenarioSchema.shape.assertions}
+        value={JSON.stringify(draft.assertions ?? [])}
+        choices={{ device: snapshot.devices.map((d) => ({ value: d.id, label: d.hostname })) }}
+        onChange={(event) => {
+          try {
+            const value = JSON.parse(event.target.value);
+            edit((s) => {
+              s.assertions = value;
+            });
+          } catch {
+            /* Use the main JSON editor for syntax corrections. */
+          }
+        }}
+      />
       <p className="muted">
         Os limites são critérios deste ensaio. Defina o SLA de produção por fluxo. Edite parâmetros avançados
-        de serviço, portas, enlaces e alimentação no JSON abaixo.
+        de serviço, portas, enlaces e alimentação nos formulários ou no JSON abaixo. Configure aplica uma
+        proposta validada; rollback reverte somente os campos alterados, sem retroceder o relógio.
+        Checkpoint/restore restaura a simulação inteira.
       </p>
     </div>
   );

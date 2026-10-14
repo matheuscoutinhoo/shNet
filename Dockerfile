@@ -25,6 +25,7 @@ COPY --from=build --chown=node:node /app/apps/api/src ./apps/api/src
 COPY --from=build --chown=node:node /app/apps/api/migrations ./apps/api/migrations
 COPY --from=build --chown=node:node /app/packages/simulation-engine/src ./packages/simulation-engine/src
 COPY --from=build --chown=node:node /app/apps/web/dist ./apps/web/dist
+COPY --from=build --chown=node:node /app/scripts/engine-build.ts ./scripts/engine-build.ts
 RUN mkdir -p /backup-status && chown node:node /backup-status
 USER node
 EXPOSE 8080

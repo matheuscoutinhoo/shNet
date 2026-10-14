@@ -6,6 +6,7 @@ import { availablePorts } from './deviceCatalog';
 import type { DeviceAction } from './DeviceActions';
 import { labs } from '@shlab/engine';
 import { duplicateDevice } from './duplicateDevice';
+import { ProjectRecovery } from './ProjectRecovery';
 import { CaptureDialog } from './CaptureDialog';
 import { FactoryTools } from './FactoryTools';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -48,6 +49,7 @@ import {
   deviceProfiles,
   addCanvasItem,
   groupDevices,
+  layoutTopology,
   removeCanvasItem,
   type CanvasItem,
   type Device,
@@ -76,7 +78,7 @@ export function Workspace({
   onClose: () => void;
   onExpired: () => void;
 }) {
-  const lab = useLab(project, onExpired),
+  const lab = useLab(project, onExpired, user.id),
     [selected, setSelected] = useState<string[]>([]),
     [inspecting, setInspecting] = useState<string | null>(null),
     [inspectorWidth, setInspectorWidth] = useState(360),
@@ -296,7 +298,8 @@ export function Workspace({
             onChange={(e) => lab.setName(e.target.value)}
           />
           <span>
-            <span className="status-dot" /> Laboratório privado <span>·</span> {lab.saveStatus}
+            <span className="status-dot" /> Laboratório privado <span>·</span> {lab.saveStatus} <span>·</span>{' '}
+            {lab.liveStatus}
           </span>
         </div>
         <div className="workspace-header-actions">
@@ -505,6 +508,17 @@ export function Workspace({
             {more && (
               <div className="dropdown">
                 <button
+                  disabled={!lab.engine.state.devices.length}
+                  onClick={() => {
+                    lab.change((engine) => {
+                      engine.state = layoutTopology(engine.state).snapshot;
+                    });
+                    setMore(false);
+                  }}
+                >
+                  Organizar topologia
+                </button>
+                <button
                   onClick={() => {
                     setFactoryTools(true);
                     setMore(false);
@@ -685,6 +699,25 @@ export function Workspace({
       {comment && <CommentDialog lab={lab} selected={selected[0]} onClose={() => setComment(false)} />}
       {capture && <CaptureDialog lab={lab} onClose={() => setCapture(false)} />}
       {factoryTools && <FactoryTools lab={lab} onClose={() => setFactoryTools(false)} />}
+      <ProjectRecovery lab={lab} onRecovered={onClose} />
+      {lab.playing && mode === 'realtime' && lab.playbackMetrics.lagMs > 1000 && (
+        <div className="workspace-alert" role="status">
+          <span>
+            A carga está acima da velocidade solicitada. O relógio virtual está atrasado; reduza a velocidade
+            para acompanhar a simulação.
+          </span>
+          <button
+            className="button"
+            disabled={lab.speed <= 0.25}
+            onClick={() => lab.setSpeed(lab.speed > 1 ? 1 : lab.speed > 0.5 ? 0.5 : 0.25)}
+          >
+            Reduzir velocidade
+          </button>
+          <button className="button" onClick={() => lab.setPlaying(false)}>
+            Pausar
+          </button>
+        </div>
+      )}
       {lab.error && (
         <div className="workspace-alert" role="alert">
           <span>{lab.error}</span>

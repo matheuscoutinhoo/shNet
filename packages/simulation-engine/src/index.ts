@@ -1,4 +1,5 @@
 export * from './model';
+export * from './configuration-patch';
 export * from './core/engine';
 export * from './core/validation';
 export * from './cli/terminal';
@@ -101,4 +102,5 @@ export * from './wire/pcap';
 export * from './factory-scenarios';
 export * from './enterprise-scenarios';
 export * from './version';
+export * from './topology-layout';
 export * from './scenario-assertions';

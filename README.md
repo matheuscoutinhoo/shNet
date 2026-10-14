@@ -1,5 +1,7 @@
 # shLab
 
+Recuperação de rascunhos/conflitos, lotes com revisão/rollback, formulários de cenários, identidade do Worker e limites operacionais estão descritos no [ADR-046](docs/adr/046-application-recovery-and-run-integrity.md). O [plano consolidado](docs/consolidated-remediation-plan.md) separa o funcionamento da aplicação das ampliações de protocolos/indústria adiadas.
+
 <img src="apps/web/public/shlab-mark.svg" alt="Logo shLab: um terminal com prompt e conexão de rede" width="80" height="80" />
 
 Um laboratório de redes web em português, com motor determinístico de eventos discretos. O canvas, os terminais por perfil e o inspetor consomem o mesmo estado.

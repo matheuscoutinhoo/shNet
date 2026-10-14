@@ -1,0 +1,64 @@
+{
+  "engineContract": "2026.10.13.6",
+  "regression": {
+    "passed": 738,
+    "failed": 0,
+    "skipped": 1
+  },
+  "postgres": {
+    "passed": 57,
+    "failed": 0,
+    "skipped": 0
+  },
+  "ui": {
+    "checks": [
+      "Falha 503 → rascunho → recarga → comparação → recuperação → persistência sem rascunho obsoleto",
+      "Duas abas → conflito de revisão → cópia completa → versão remota preservada",
+      "Carregar versão remota arquiva alterações anteriores e nova edição conserva o arquivo",
+      "Autolayout/undo/redo, nove serviços no formulário, ações/assertions, execução, identidade do build e replay matched",
+      "Lote antigo validado/revisado/aplicado; gerenciador mobile recupera rascunho de projeto excluído"
+    ],
+    "accessibility": [
+      {
+        "viewport": "desktop",
+        "violations": []
+      },
+      {
+        "viewport": "mobile",
+        "violations": []
+      },
+      {
+        "viewport": "mobile-local-drafts",
+        "violations": []
+      }
+    ],
+    "errors": [],
+    "passed": true
+  },
+  "built": {
+    "errors": [],
+    "openMs": 1094.7273999999998,
+    "continuousAutosave": {
+      "revision": 2,
+      "clock": 4738.5999999996275,
+      "manualSaveResolved": true
+    },
+    "build": {
+      "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+      "engineContract": "2026.10.13.6",
+      "schemaVersion": 11,
+      "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039",
+      "clientWorkerHash": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+      "workerArtifactHash": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039",
+      "entryBytes": 277533,
+      "entry": "/assets/index-BZBwfcTv.js",
+      "replay": "matched"
+    },
+    "doubleFailureVisible": true,
+    "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+    "passed": true
+  },
+  "sourceHash": "c9644c1719eb3f432a08c6d954e49deba2ec94b4a8c0bba194945a4324bc4084",
+  "assetHash": "049fdbb9c724aafddc45ad72b681367ebcade47034ebc9b97f2d8cbb3af1d70d",
+  "scope": "application operation; industrial/protocol extensions deferred"
+}

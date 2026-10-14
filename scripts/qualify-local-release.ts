@@ -33,6 +33,14 @@ const sources = [
   ...(await files(resolve('apps/api/migrations'))),
   ...(await files(resolve('apps/web/src'))),
   resolve('package-lock.json'),
+  resolve('scripts/engine-build.ts'),
+  resolve('apps/web/vite.config.ts'),
+  resolve('package.json'),
+  resolve('apps/api/package.json'),
+  resolve('apps/web/package.json'),
+  resolve('packages/simulation-engine/package.json'),
+  resolve('Dockerfile'),
+  resolve('.dockerignore'),
 ].sort();
 const sourceEntries = await Promise.all(
   sources.map(async (p) => ({

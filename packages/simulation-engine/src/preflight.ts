@@ -1,7 +1,8 @@
 import type { Snapshot } from './model';
 import { linkOperational } from './links/physical';
 import { networkDomains } from './network-domains';
-import { ipNumber } from './protocols/ipv4';
+import { ipNumber, sameSubnet, subnet } from './protocols/ipv4';
+import { sameSubnet6, linkLocal6 } from './protocols/ipv6-address';
 import { stateSyncStatus, stateSyncPending } from './protocols/state-sync';
 export interface PreflightIssue {
   code: string;
@@ -12,13 +13,17 @@ export interface PreflightIssue {
 }
 export function preflight(s: Snapshot): PreflightIssue[] {
   const issues: PreflightIssue[] = [];
+  let omittedIssues = 0;
   const add = (
     code: string,
     severity: PreflightIssue['severity'],
     devices: string[],
     message: string,
     recommendation: string
-  ) => issues.push({ code, severity, devices, message, recommendation });
+  ) => {
+    if (issues.length < 4999) issues.push({ code, severity, devices, message, recommendation });
+    else omittedIssues++;
+  };
   const addresses = new Map<string, string[]>();
   const domain = networkDomains(s);
   for (const d of s.devices) {
@@ -161,6 +166,26 @@ export function preflight(s: Snapshot): PreflightIssue[] {
       );
     for (const route of d.routes) {
       const gateway = route.nextHop;
+      if (subnet(route.network, route.prefix).network !== route.network)
+        add(
+          'ROUTE_HOST_BITS',
+          'warning',
+          [d.id],
+          `${d.hostname}: rota ${route.network}/${route.prefix} contém bits de host.`,
+          'Use o endereço de rede canônico para tornar a revisão inequívoca.'
+        );
+      if (
+        !d.interfaces.some(
+          (p) => p.vrf === route.vrf && p.ip && p.prefix !== undefined && sameSubnet(p.ip, gateway, p.prefix)
+        )
+      )
+        add(
+          'ROUTE_UNRESOLVED_NEXT_HOP',
+          'warning',
+          [d.id],
+          `${d.hostname}: próximo salto ${gateway} sem interface IPv4 na sub-rede/VRF da rota.`,
+          'Corrija endereço, máscara ou VRF. O motor resolve rotas estáticas por interface conectada; a revisão não comprova disponibilidade.'
+        );
       if (!gateway) continue;
       const peer = s.devices.find(
         (x) =>
@@ -176,6 +201,69 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'Avalie usar o VIP como próximo salto e valide o caminho de retorno após failover.'
         );
     }
+    for (const route of d.routes6 ?? []) {
+      const port = d.interfaces.find((p) => p.id === route.port);
+      if (
+        !linkLocal6(route.nextHop) &&
+        !port?.ipv6?.addresses.some((a) => sameSubnet6(a.ip, route.nextHop, a.prefix))
+      )
+        add(
+          'ROUTE6_OFF_LINK_NEXT_HOP',
+          'warning',
+          [d.id],
+          `${d.hostname}: próximo salto IPv6 ${route.nextHop} fora dos prefixos da interface ${route.port}.`,
+          'Confira a interface e o escopo NDP; link-local deve pertencer ao enlace indicado. A revisão estática não certifica alcance.'
+        );
+    }
+    for (const acl of d.accessLists ?? [])
+      for (let index = 1; index < acl.rules.length; index++) {
+        const rule = acl.rules[index];
+        const shadow = acl.rules
+          .slice(0, index)
+          .find(
+            (earlier) =>
+              (earlier.protocol === 'ip' || earlier.protocol === rule.protocol) &&
+              earlier.source.prefix <= rule.source.prefix &&
+              sameSubnet(earlier.source.network, rule.source.network, earlier.source.prefix) &&
+              earlier.destination.prefix <= rule.destination.prefix &&
+              sameSubnet(earlier.destination.network, rule.destination.network, earlier.destination.prefix) &&
+              (earlier.sourcePort === undefined || earlier.sourcePort === rule.sourcePort) &&
+              (earlier.destinationPort === undefined || earlier.destinationPort === rule.destinationPort)
+          );
+        if (shadow)
+          add(
+            'ACL_SHADOWED_RULE',
+            'warning',
+            [d.id],
+            `${d.hostname}: ACL ${acl.name}, regra ${rule.sequence} coberta pela regra anterior ${shadow.sequence}.`,
+            'A primeira regra correspondente decide. Revise a ordem e execute ensaios positivos/negativos antes de concluir isolamento.'
+          );
+      }
+    for (const port of d.interfaces)
+      for (const direction of ['aclIn', 'aclOut'] as const) {
+        const rules = port.ipv6?.[direction] ?? [];
+        for (let index = 1; index < rules.length; index++) {
+          const rule = rules[index],
+            shadow = rules
+              .slice(0, index)
+              .find(
+                (earlier) =>
+                  (earlier.kind === 'any' || earlier.kind === rule.kind) &&
+                  earlier.sourcePrefix <= rule.sourcePrefix &&
+                  sameSubnet6(earlier.source, rule.source, earlier.sourcePrefix) &&
+                  earlier.destinationPrefix <= rule.destinationPrefix &&
+                  sameSubnet6(earlier.destination, rule.destination, earlier.destinationPrefix)
+              );
+          if (shadow)
+            add(
+              'ACL6_SHADOWED_RULE',
+              'warning',
+              [d.id],
+              `${d.hostname}/${port.name}: regra IPv6 ${index + 1} de ${direction === 'aclIn' ? 'entrada' : 'saída'} coberta por regra anterior.`,
+              'Revise a ordem de primeira correspondência e teste dados, NDP e erros ICMPv6 separadamente.'
+            );
+        }
+      }
     for (const group of d.vrrp?.groups ?? []) {
       const p = d.interfaces.find((p) => p.id === group.port);
       if (!p?.dhcpRelay?.length) continue;
@@ -365,5 +453,13 @@ export function preflight(s: Snapshot): PreflightIssue[] {
       'Posições físicas RF não configuradas em todos os rádios.',
       'Configure todos os pares em metros; pares incompletos ainda usam as coordenadas do desenho.'
     );
+  if (omittedIssues)
+    issues.push({
+      code: 'PREFLIGHT_TRUNCATED',
+      severity: 'error',
+      devices: [],
+      message: `${omittedIssues} achados adicionais excederam o limite da revisão.`,
+      recommendation: 'Divida a topologia ou corrija os achados existentes antes de concluir a revisão.',
+    });
   return issues;
 }

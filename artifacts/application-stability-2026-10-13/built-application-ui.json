@@ -1,0 +1,23 @@
+{
+  "errors": [],
+  "openMs": 1094.7273999999998,
+  "continuousAutosave": {
+    "revision": 2,
+    "clock": 4738.5999999996275,
+    "manualSaveResolved": true
+  },
+  "build": {
+    "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+    "engineContract": "2026.10.13.6",
+    "schemaVersion": 11,
+    "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039",
+    "clientWorkerHash": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+    "workerArtifactHash": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039",
+    "entryBytes": 277533,
+    "entry": "/assets/index-BZBwfcTv.js",
+    "replay": "matched"
+  },
+  "doubleFailureVisible": true,
+  "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+  "passed": true
+}
