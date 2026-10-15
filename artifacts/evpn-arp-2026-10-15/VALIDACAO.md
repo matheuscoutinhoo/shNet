@@ -13,4 +13,6 @@ Incremento R18, contrato `2026.10.15.5`, aprovado nos cinco gates da [CI 3877406
 
 Fonte `132e488242e751038d12f6c9a795292494f43855437761270948066657b719ad`; Worker `fba3a421378ea3dc2d8d801aa312aa5637e1be2737c3b12e14f79dcc019c3fc3`. JS/CSS: 2.463.797 bytes brutos e 651.318 bytes Brotli. Esse orçamento continua com o motor compartilhado entre os contextos; não representa a soma dos heaps.
 
+Produção Railway confirmada em 15/10/2026: contrato `.5`, fonte e Worker correspondentes, 21 assets íntegros, TLS e endpoints privados protegidos. [Consulta somente de leitura](railway/remote-release.json). Nenhum teste de rollback/restore foi executado no banco de produção; esses ensaios passaram no ambiente isolado da CI.
+
 Os limites, a distinção entre binding e saúde da VM e o restante de R18 estão no [ADR-053](../../docs/adr/053-evpn-arp-suppression-and-route-target-clones.md) e no [plano consolidado](../../docs/consolidated-remediation-plan.md).

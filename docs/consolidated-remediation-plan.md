@@ -10,6 +10,8 @@ O usuário reabriu as ampliações de rede/serviços/indústria com a instruçã
 
 O [ADR-046](adr/046-application-recovery-and-run-integrity.md) preserva recuperação/persistência; o [ADR-047](adr/047-scale-topology-and-release-qualification.md) registra a etapa anterior. A [validação anterior](../artifacts/application-completion-2026-10-13/VALIDACAO.md) distingue execução local, CI e Railway real.
 
+Produção verificada em 15/10/2026: contrato `2026.10.15.5`, com PLC/HMI, BGP/EVPN binário e supressão ARP disponíveis. A CI do último incremento aprovou 899 testes e 130 cenários de navegador; fonte/Worker, assets, TLS e endpoints privados foram conferidos no Railway por consultas de leitura. [Evidências atuais](../artifacts/evpn-arp-2026-10-15/VALIDACAO.md).
+
 | Prioridade | Parcela da aplicação                   | Correção entregue e aceite                                                                                                                                                                          |
 | ---------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | P0         | Recuperação de trabalho / R15/R24      | Rascunhos IndexedDB por usuário/aba, recuperação após recarga, arquivo protegido ao carregar versão remota, cópia em conflito, acesso a rascunhos de projetos excluídos e falha de quota explícita. |
