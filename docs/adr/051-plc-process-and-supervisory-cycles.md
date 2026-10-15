@@ -1,6 +1,6 @@
 # ADR-051 — processo PLC e ciclos de supervisão por Modbus
 
-Data: 15/10/2026. Contrato em qualificação: `2026.10.15.3`.
+Data: 15/10/2026. Contrato qualificado: `2026.10.15.3`, integrado à `main`. A [CI 38746375043](https://github.com/matheuscoutinhoo/shNet/actions/runs/38746375043) aprovou 880 testes, 126 cenários de navegador e os gates de capacidade/containers. [Evidências](../../artifacts/industrial-process-2026-10-15/VALIDACAO.md).
 
 ## Modelo de processo
 

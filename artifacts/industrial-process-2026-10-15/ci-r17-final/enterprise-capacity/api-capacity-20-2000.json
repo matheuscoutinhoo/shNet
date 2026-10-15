@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-10-15T13:59:33.844Z",
+  "node": "v24.21.0",
+  "platform": "linux",
+  "engineContract": "2026.10.15.3",
+  "engineSourceHash": "cbb0d7ea7c008214df7c963bfa5185e0b07a6f9315d163c2a34aa17cf7bafa85",
+  "database": "PostgreSQL isolado criado e removido pelo ensaio",
+  "users": 20,
+  "devicesPerProject": 2000,
+  "apiInstances": 2,
+  "transport": "HTTP/WS real em loopback; sessões sintéticas provisionadas no banco isolado",
+  "rounds": [
+    {
+      "wallMs": 17015.828189,
+      "heapBeforeMiB": 71.16484069824219,
+      "heapAfterMiB": 68.84346008300781,
+      "rssMiB": 1228.2421875
+    },
+    {
+      "wallMs": 15348.598799,
+      "heapBeforeMiB": 68.7204360961914,
+      "heapAfterMiB": 68.79341125488281,
+      "rssMiB": 1226.68359375
+    },
+    {
+      "wallMs": 15043.590639000002,
+      "heapBeforeMiB": 68.77408599853516,
+      "heapAfterMiB": 68.85162353515625,
+      "rssMiB": 1256.1640625
+    }
+  ],
+  "routes": {
+    "PUT /api/projects/:id [200]": {
+      "count": 60,
+      "p50Ms": 10214.8239,
+      "p95Ms": 15194.94474,
+      "maxMs": 16113.051002
+    },
+    "GET /api/projects/:id [200]": {
+      "count": 60,
+      "p50Ms": 1772.677341999999,
+      "p95Ms": 3308.1691100000025,
+      "maxMs": 3661.8474730000016
+    },
+    "GET /api/projects [200]": {
+      "count": 60,
+      "p50Ms": 626.0778920000012,
+      "p95Ms": 1737.8653290000002,
+      "maxMs": 3242.0836560000007
+    },
+    "PUT /api/projects/:id [409]": {
+      "count": 1,
+      "p50Ms": 107.4822770000028,
+      "p95Ms": 107.4822770000028,
+      "maxMs": 107.4822770000028
+    },
+    "GET /api/projects/:id [404]": {
+      "count": 1,
+      "p50Ms": 2.8576970000067377,
+      "p95Ms": 2.8576970000067377,
+      "maxMs": 2.8576970000067377
+    }
+  },
+  "eventLoop": {
+    "p95Ms": 328.204287,
+    "maxMs": 1040.711679
+  },
+  "ownerIsolation": true,
+  "staleRevisionRejected": true,
+  "privateNotifications": true,
+  "passed": true,
+  "limits": "Gerador de carga em processo separado; heap e event loop da API, RSS inclui seus Workers de validação. Mede saves/listagem/reabertura e WS concorrentes; não mede login sob ataque, SLA Railway, replay paralelo ou Workers de 20 navegadores."
+}
