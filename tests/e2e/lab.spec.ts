@@ -307,7 +307,9 @@ test('Categorias e terminal: capacidades, troca de filtro e texto sem cortes em 
   await expect(filters.getByRole('button', { name: 'OSPF', exact: true })).toHaveCount(1);
   await expect(filters.getByRole('button', { name: 'STP', exact: true })).toHaveCount(1);
   await expect(filters.getByRole('button', { name: 'Sincronização HA', exact: true })).toHaveCount(1);
-  await expect(filters.getByRole('button')).toHaveCount(23);
+  await expect(filters.getByRole('button', { name: 'NICs redundantes', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button', { name: 'PLC / HMI / Processo', exact: true })).toHaveCount(1);
+  await expect(filters.getByRole('button')).toHaveCount(25);
   expect(errors).toEqual([]);
 });
 
