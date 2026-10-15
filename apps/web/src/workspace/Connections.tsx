@@ -68,6 +68,7 @@ export function ConnectDialog({
         (p) =>
           !p.logical &&
           !p.aggregate &&
+          !p.bond &&
           !p.tunnel &&
           !p.vxlan &&
           !p.capwapPeer &&

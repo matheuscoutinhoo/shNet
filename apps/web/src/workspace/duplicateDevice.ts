@@ -56,25 +56,33 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
   const portMapping = new Map(
     sourcePorts.map((p, i) => [
       p.id,
-      p.logical ? e.id('interface') : p.aggregate || p.tunnel || p.vxlan ? p.id : (physical[i]?.id ?? p.id),
+      p.logical
+        ? e.id('interface')
+        : p.aggregate || p.bond || p.tunnel || p.vxlan
+          ? p.id
+          : (physical[i]?.id ?? p.id),
     ])
   );
   copy.interfaces = sourcePorts.map((p, i) => ({
     ...structuredClone(p),
     id: portMapping.get(p.id)!,
-    mac: p.aggregate
+    mac: p.bond
       ? physical[0].mac.split(':').slice(0, 4).join(':') +
-        ':02:' +
-        p.aggregate.number.toString(16).padStart(2, '0')
-      : p.vxlan
-        ? physical[0].mac.split(':').slice(0, 4).join(':') + ':05:' + i.toString(16).padStart(2, '0')
-        : p.tunnel
-          ? physical[0].mac.split(':').slice(0, 4).join(':') +
-            ':04:' +
-            p.tunnel.number.toString(16).padStart(2, '0')
-          : p.logical
-            ? physical[0].mac.split(':').slice(0, 4).join(':') + ':01:' + i.toString(16).padStart(2, '0')
-            : (physical[i]?.mac ?? physical[0].mac.slice(0, -2) + i.toString(16).padStart(2, '0')),
+        ':07:' +
+        p.bond.number.toString(16).padStart(2, '0')
+      : p.aggregate
+        ? physical[0].mac.split(':').slice(0, 4).join(':') +
+          ':02:' +
+          p.aggregate.number.toString(16).padStart(2, '0')
+        : p.vxlan
+          ? physical[0].mac.split(':').slice(0, 4).join(':') + ':05:' + i.toString(16).padStart(2, '0')
+          : p.tunnel
+            ? physical[0].mac.split(':').slice(0, 4).join(':') +
+              ':04:' +
+              p.tunnel.number.toString(16).padStart(2, '0')
+            : p.logical
+              ? physical[0].mac.split(':').slice(0, 4).join(':') + ':01:' + i.toString(16).padStart(2, '0')
+              : (physical[i]?.mac ?? physical[0].mac.slice(0, -2) + i.toString(16).padStart(2, '0')),
     ...(p.logical
       ? {
           logical: {
@@ -171,6 +179,22 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
         tickAt: e.state.clock + 0.001,
       };
       e.schedule(0.001, { kind: 'lacp-tick', device: copy.id, port: p.id, token: p.aggregate.token });
+    }
+    if (p.bond) {
+      p.bond = {
+        ...p.bond,
+        members: p.bond.members.map((id) => portMapping.get(id)!),
+        primary: portMapping.get(p.bond.primary)!,
+        active: undefined,
+        startedAt: e.state.clock,
+        nextProbeAt: e.state.clock,
+        health: p.bond.members.map((id) => ({ port: portMapping.get(id)! })),
+        token: e.id('bond'),
+        tickAt: e.state.clock + 100,
+        announcements: 0,
+        announceAt: e.state.clock,
+      };
+      e.schedule(100, { kind: 'bond-tick', device: copy.id, port: p.id, token: p.bond.token });
     }
     if (p.ipv4Mode === 'dhcp') e.requestDhcp(copy.id, p.id);
   });

@@ -110,6 +110,7 @@ export function deviceCapabilities(d: Device) {
     vrf: routing || !!d.vrfs?.length,
     lacp:
       active && (switching || (d.type === 'router' && generic) || d.interfaces.some((p) => !!p.aggregate)),
+    bond: endpoint && d.profile !== 'smartphone',
     vxlan:
       active &&
       ((switching && (generic || profile?.feature === 'l3')) || d.interfaces.some((p) => !!p.vxlan)),
@@ -140,6 +141,7 @@ export function inspectorTabIds(d: Device): string[] {
     'overview',
     'interfaces',
     ...(c.lacp ? ['lacp'] : []),
+    ...(c.bond ? ['bond'] : []),
     ...(c.layer3 ? ['layer3'] : []),
     'cli',
     'tables',
@@ -176,6 +178,8 @@ export function deviceIntegrityIssues(d: Device): string[] {
     (p) =>
       !p.logical &&
       !p.aggregate &&
+      !p.bond &&
+      !p.installedNic &&
       !p.tunnel &&
       !p.vxlan &&
       !p.capwapPeer &&

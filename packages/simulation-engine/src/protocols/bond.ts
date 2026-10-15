@@ -28,6 +28,8 @@ export function configureBond(
   const watched = monitor === undefined ? undefined : bondMonitorSchema.parse(monitor);
   if (
     !['pc', 'server'].includes(d.type) ||
+    !!d.infrastructure ||
+    d.profile === 'smartphone' ||
     !Number.isInteger(number) ||
     number < 1 ||
     number > 64 ||
@@ -262,6 +264,8 @@ export function validateBonds(s: Snapshot) {
   const used = new Set<object>();
   for (const d of s.devices)
     for (const p of d.interfaces) {
+      if ((p.bond || p.installedNic) && (d.infrastructure || d.profile === 'smartphone'))
+        throw new Error('NIC/bond incompatível com o perfil.');
       if (
         p.installedNic &&
         (!['pc', 'server'].includes(d.type) ||

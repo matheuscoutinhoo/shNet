@@ -281,7 +281,12 @@ export class SimulationEngine {
   }
   installNic(deviceId: string) {
     const d = this.device(deviceId);
-    if (!['pc', 'server'].includes(d.type) || d.profile === 'smartphone' || d.interfaces.length >= 48)
+    if (
+      !['pc', 'server'].includes(d.type) ||
+      d.infrastructure ||
+      d.profile === 'smartphone' ||
+      d.interfaces.length >= 48
+    )
       throw new Error('NIC adicional exige host Ethernet com espaço disponível.');
     const used = new Set(this.state.devices.flatMap((v) => v.interfaces.map((p) => p.mac)));
     let n = 0;
@@ -315,6 +320,11 @@ export class SimulationEngine {
     d.interfaces.push(p);
     this.emit('CONFIG_CHANGED', d.id, p.name + ' instalada.', { port: p.id });
     return p;
+  }
+  removeNic(deviceId: string, portId: string) {
+    const port = endpoint(this.state, { device: deviceId, port: portId }).port;
+    if (!port.installedNic) throw new Error('Somente NICs adicionais podem ser removidas.');
+    this.removeLogicalInterface(deviceId, portId);
   }
   configureTelemetry(deviceId: string, input: unknown) {
     configureTelemetry(this, this.device(deviceId), input);
@@ -460,8 +470,26 @@ export class SimulationEngine {
   }
   removeLogicalInterface(deviceId: string, portId: string) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
-    if (!port.logical && !port.tunnel && !port.vxlan && !port.loopback)
+    if (!port.logical && !port.tunnel && !port.vxlan && !port.loopback && !port.installedNic)
       throw new Error('Somente interfaces lógicas/túneis podem ser removidos.');
+    if (
+      port.installedNic &&
+      (port.channel ||
+        port.ip ||
+        port.ipv6 ||
+        port.dhcp ||
+        port.dhcp6 ||
+        port.qos ||
+        port.dot1x ||
+        port.supplicant ||
+        this.state.links.some((l) =>
+          [l.a, l.b].some((end) => end.device === deviceId && end.port === portId)
+        ) ||
+        device.interfaces.some((p) => p.bond?.members.includes(portId)))
+    )
+      throw new Error(
+        'Desconecte a NIC e remova endereços, protocolos e participação em grupos antes de removê-la.'
+      );
     if (
       device.interfaces.some(
         (p) => p.tunnel?.underlay === portId || p.vxlan?.underlay === portId || p.dot1x?.underlay === portId
@@ -659,6 +687,7 @@ export class SimulationEngine {
           p.qos.queues = p.qos.queues.filter((f) => f.link !== id);
         }
     }
+    refreshBonds(this);
   }
   setPort(deviceId: string, portId: string, up: boolean) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
@@ -1638,7 +1667,12 @@ export class SimulationEngine {
           ? bondActive(this.state, d, aggregate) !== physical.id
           : !lacpMembers(this.state, d, aggregate).includes(physical.id))
       ) {
-        this.drop(d, 'LACP: membro não sincronizado.', physical.id, a.frame);
+        this.drop(
+          d,
+          aggregate?.bond ? 'Bond: entrada pela NIC de reserva.' : 'LACP: membro não sincronizado.',
+          physical.id,
+          a.frame
+        );
         return;
       }
       port = aggregate;

@@ -41,6 +41,7 @@ export function availablePorts(snapshot: Snapshot, device: Device) {
     (port) =>
       !port.logical &&
       !port.aggregate &&
+      !port.bond &&
       !port.tunnel &&
       !port.vxlan &&
       !port.capwapPeer &&

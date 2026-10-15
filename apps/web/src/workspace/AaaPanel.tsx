@@ -66,7 +66,14 @@ export function AaaPanel({ lab, device }: { lab: LabController; device: Device }
           <select value={port} onChange={(e) => setPort(e.target.value)}>
             {device.interfaces
               .filter(
-                (p) => p.media !== 'wifi' && !p.logical && !p.aggregate && !p.channel && !p.tunnel && !p.vxlan
+                (p) =>
+                  p.media !== 'wifi' &&
+                  !p.logical &&
+                  !p.aggregate &&
+                  !p.bond &&
+                  !p.channel &&
+                  !p.tunnel &&
+                  !p.vxlan
               )
               .map((p) => (
                 <option key={p.id} value={p.id}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SimulationEngine, validateSnapshot, interfaceOperational, defaultDhcpPool } from '@shlab/engine';
-function topology(monitored = false) {
+function topology(monitored = false, migrateKnownNeighbor = false) {
   const e = new SimulationEngine(),
     host = e.addDevice('pc'),
     spare = e.installNic(host.id),
@@ -18,6 +18,11 @@ function topology(monitored = false) {
   Object.assign(host.interfaces[0], { ip: '192.0.2.10', prefix: 24 });
   Object.assign(server.interfaces[0], { ip: '192.0.2.1', prefix: 24 });
   e.configureTcpService(server.id, { kind: 'echo', port: 7, enabled: true });
+  if (migrateKnownNeighbor) {
+    const probe = e.ping(server.id, '192.0.2.10');
+    e.advanceTo(500, 100000);
+    expect(e.state.probes.find((p) => p.id === probe)?.status).toBe('success');
+  }
   const bond = e.configureBond(
     host.id,
     1,
@@ -34,6 +39,14 @@ function topology(monitored = false) {
   return { e, host, spare, a, b, core, server, bond, ping };
 }
 describe('Bond ativo/backup de hosts', () => {
+  it('anuncia o MAC lógico a um vizinho que já conhecia o IPv4 físico', () => {
+    const { e, host, server, bond } = topology(false, true);
+    expect(server.arpTable.find((row) => row.ip === bond.ip)?.mac).toBe(bond.mac);
+    const id = e.ping(server.id, bond.ip!);
+    e.advanceTo(e.state.clock + 500, 100000);
+    expect(e.state.probes.find((p) => p.id === id)?.status).toBe('success');
+    expect(host.interfaces[0].ip).toBeUndefined();
+  });
   it('conserva IPv4 e a mesma conexão TCP após perda de switch e failback', () => {
     const { e, host, spare, a, bond, ping } = topology();
     expect(host.interfaces[0].ip).toBeUndefined();

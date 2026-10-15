@@ -5,7 +5,7 @@ import { qosConfig, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function ForwardingPanel({ lab, device }: { lab: LabController; device: Device }) {
   const ports = device.interfaces.filter(
-      (p) => !p.logical && !p.aggregate && !p.tunnel && !p.vxlan && p.media !== 'wifi'
+      (p) => !p.logical && !p.aggregate && !p.bond && !p.tunnel && !p.vxlan && p.media !== 'wifi'
     ),
     [id, setId] = useState(ports[0]?.id ?? ''),
     p = ports.find((p) => p.id === id);

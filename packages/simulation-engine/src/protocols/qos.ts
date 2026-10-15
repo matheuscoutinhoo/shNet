@@ -26,6 +26,7 @@ export function configureQos(e: SimulationEngine, d: Device, p: NetworkInterface
   if (
     p.logical ||
     p.aggregate ||
+    p.bond ||
     p.tunnel ||
     p.vxlan ||
     p.media === 'wifi' ||
@@ -192,6 +193,7 @@ export function validateQos(s: Snapshot) {
       if (
         p.logical ||
         p.aggregate ||
+        p.bond ||
         p.tunnel ||
         p.vxlan ||
         p.media === 'wifi' ||

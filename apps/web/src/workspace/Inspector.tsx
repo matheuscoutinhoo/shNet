@@ -18,6 +18,7 @@ import { Ipv6Panel } from './Ipv6Panel';
 import { interfaceOperational } from '@shlab/engine';
 import { Layer3Panel } from './Layer3Panel';
 import { LacpPanel } from './LacpPanel';
+import { BondPanel } from './BondPanel';
 import { BgpPanel } from './BgpPanel';
 import { VrrpPanel } from './VrrpPanel';
 import { useState, lazy, Suspense, type FormEvent } from 'react';
@@ -131,6 +132,7 @@ export function Inspector({
           { id: 'overview', name: 'Resumo', icon: Info },
           { id: 'interfaces', name: 'Portas', icon: Network },
           { id: 'lacp', name: 'LACP', icon: Network },
+          { id: 'bond', name: 'Redundância NIC', icon: Network },
           { id: 'layer3', name: capabilities.vrf ? 'VLAN / VRF' : 'VLAN / SVI', icon: Network },
           { id: 'cli', name: 'Terminal', icon: TerminalSquare },
           { id: 'tables', name: 'Tabelas', icon: Table2 },
@@ -443,6 +445,9 @@ export function Inspector({
         {activeTab === 'aaa' && <AaaPanel lab={lab} device={device} />}
         {activeTab === 'ipv6' && <Ipv6Panel key={device.id} lab={lab} device={device} />}
         {activeTab === 'lacp' && <LacpPanel key={device.id} lab={lab} device={device} />}
+        {activeTab === 'bond' && (
+          <BondPanel key={device.id} lab={lab} device={device} onConfigure={setPort} />
+        )}
         {activeTab === 'dhcp' && <DhcpPanel lab={lab} device={device} />}
         {activeTab === 'dns' && <DnsPanel lab={lab} device={device} />}
         {activeTab === 'advancedNetwork' && (
@@ -535,6 +540,7 @@ function PortEditor({
     try {
       const automatic =
         layer3 &&
+        !port.channel &&
         !port.logical &&
         !port.tunnel &&
         !port.vrf &&
@@ -639,6 +645,12 @@ function PortEditor({
         </label>
         {layer3 ? (
           <>
+            {port.channel && (
+              <p className="muted">
+                Configure endereços na interface {device.interfaces.find((p) => p.id === port.channel)?.name};
+                esta NIC pertence ao grupo.
+              </p>
+            )}
             <fieldset className="ipv4-mode">
               <legend>Endereçamento IPv4</legend>
               <label>
@@ -647,6 +659,7 @@ function PortEditor({
                   name="ipv4Mode"
                   value="static"
                   checked={addressMode === 'static'}
+                  disabled={!!port.channel}
                   onChange={() => setAddressMode('static')}
                 />{' '}
                 Estático
@@ -659,6 +672,7 @@ function PortEditor({
                   checked={addressMode === 'dhcp'}
                   onChange={() => setAddressMode('dhcp')}
                   disabled={
+                    !!port.channel ||
                     !!port.logical ||
                     !!port.tunnel ||
                     !!port.vrf ||
@@ -676,7 +690,7 @@ function PortEditor({
                   name="ip"
                   defaultValue={port.ip ?? ''}
                   placeholder="192.168.10.10"
-                  disabled={addressMode === 'dhcp'}
+                  disabled={addressMode === 'dhcp' || !!port.channel}
                 />
               </label>
               <label>
@@ -687,7 +701,7 @@ function PortEditor({
                   min="0"
                   max="32"
                   defaultValue={port.prefix ?? 24}
-                  disabled={addressMode === 'dhcp'}
+                  disabled={addressMode === 'dhcp' || !!port.channel}
                 />
               </label>
             </div>

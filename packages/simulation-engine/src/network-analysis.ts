@@ -37,6 +37,14 @@ export function networkAnalysis(s: Snapshot, view: string): AnalysisRow[] {
       if (d.rip) add('RIP', d.rip.enabled ? 'ativo' : 'desativado', d.rip.table.length + ' entradas');
       if (d.vrrp) for (const g of d.vrrp.groups) add('VRRP ' + g.vrid, g.state, 'VIP ' + g.vip);
       for (const p of d.interfaces) {
+        if (p.bond)
+          add(
+            'Bond ' + p.name,
+            p.bond.active ? 'up' : 'down',
+            'ativo/backup · NIC ' +
+              (p.bond.active ?? 'indisponível') +
+              (p.bond.monitor ? ' · ARP ' + p.bond.monitor.target : ' · carrier local')
+          );
         if (p.aggregate)
           add(
             'LACP ' + p.name,

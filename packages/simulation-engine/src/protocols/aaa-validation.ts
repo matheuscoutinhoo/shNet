@@ -76,6 +76,7 @@ export function validateAaa(s: Snapshot) {
         (a && client) ||
         p.media === 'wifi' ||
         p.aggregate ||
+        p.bond ||
         p.channel ||
         p.logical ||
         p.tunnel ||

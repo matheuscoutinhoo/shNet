@@ -203,10 +203,14 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
   const detachedRelease =
     !!resolution &&
     pending.some((entry) => isDhcpRelease(entry.packet) && entry.packet.src === resolution.sourceIp);
+  const announcement = arp.kind === 'request' && arp.senderIp === arp.targetIp && isUnicast(arp.senderIp);
+  const knownAnnouncement =
+    announcement && device.arpTable.some((entry) => entry.port === port.id && entry.ip === arp.senderIp);
   if (
     arp.targetIp !== port.ip &&
     !virtual &&
     !natOwnsAddress(device, port, arp.targetIp) &&
+    !knownAnnouncement &&
     !(arp.kind === 'reply' && detachedRelease)
   )
     return;
@@ -230,7 +234,7 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
     arp.senderIp + ' → ' + arp.senderMac + ' armazenado por 60 s virtuais.',
     { port: port.id, frame }
   );
-  if (arp.kind === 'request' && port.ip) {
+  if (arp.kind === 'request' && port.ip && !announcement) {
     const natVirtual = natOwnsAddress(device, port, arp.targetIp)
       ? activeVrrpGroup(engine.state, device, port)
       : undefined;

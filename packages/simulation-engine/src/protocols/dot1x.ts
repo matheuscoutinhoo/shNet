@@ -7,7 +7,7 @@ import { interfaceOperational } from './layer3';
 import { isUnicast } from './dhcp-config';
 const destination = '01:80:c2:00:00:03';
 function physical(p: NetworkInterface) {
-  return p.media !== 'wifi' && !p.logical && !p.aggregate && !p.channel && !p.tunnel && !p.vxlan;
+  return p.media !== 'wifi' && !p.logical && !p.aggregate && !p.bond && !p.channel && !p.tunnel && !p.vxlan;
 }
 export function dot1xConfig(p: NetworkInterface) {
   const a = p.dot1x;
