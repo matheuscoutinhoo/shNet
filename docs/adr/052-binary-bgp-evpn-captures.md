@@ -1,6 +1,6 @@
 # ADR-052 — BGP/EVPN binário e captura independente
 
-Data: 15/10/2026. Contrato `2026.10.15.4`; incremento R19 em qualificação.
+Data: 15/10/2026. Contrato `2026.10.15.4`; incremento binário de R19 qualificado nos cinco gates da [CI 38771544113](https://github.com/matheuscoutinhoo/shNet/actions/runs/38771544113), com 891 testes e 128 cenários de navegador aprovados.
 
 ## Transporte e captura
 
@@ -22,6 +22,6 @@ RT usa ASN de 16 bits/local de 32 bits ou ASN de 32 bits/local de 16 bits. Combi
 
 Vetores fixos, casos inválidos e ensaios reais verificam AS32, reflexão, retirada, reconvergência, mobilidade, restauração, legado e segmentação TCP. Os testes geram capturas BGP/EVPN; `scripts/verify-bgp-captures.py` usa Scapy para recomputar checksums e TShark/Wireshark para decodificar capacidades, atributos, MAC/IP, IMET e retiradas. A CI exige essa validação independente e publica os PCAPs e o relatório. Os resultados ficam em [evidências R19](../../artifacts/bgp-evpn-codecs-2026-10-15/VALIDACAO.md).
 
-O codec é um subconjunto deliberado: exige AS4 nas novas sessões binárias, IPv4 unicast e EVPN IPv4 com um RT por anúncio. Não aceita AS_SET/confederações, ESI/DF, Type 5, VNI local, next-hop IPv6 ou arbitrary RD. Esses recursos pertencem às ampliações R18. Não há conexão BGP com roteadores externos; a interoperabilidade demonstrada é a decodificação da captura. Codecs de outras aplicações e gestão continuam pendentes; a captura universal P-PCAP permanece adiada e todas as omissões continuam visíveis.
+O codec é um subconjunto deliberado: exige AS4 nas novas sessões binárias, IPv4 unicast e EVPN IPv4 com um RT por anúncio. Não aceita AS_SET/confederações, ESI/DF, Type 5, VNI local, next-hop IPv6 ou RD arbitrário. Esses recursos pertencem às ampliações R18. Não há conexão BGP com roteadores externos; a interoperabilidade demonstrada é a decodificação da captura. Codecs de outras aplicações e gestão continuam pendentes; a captura universal P-PCAP permanece adiada e todas as omissões continuam visíveis.
 
 Referências do formato: [BGP-4 / RFC 4271](https://www.rfc-editor.org/rfc/rfc4271), [AS4 / RFC 6793](https://www.rfc-editor.org/rfc/rfc6793), [MP-BGP / RFC 4760](https://www.rfc-editor.org/rfc/rfc4760), [EVPN / RFC 7432](https://www.rfc-editor.org/rfc/rfc7432), [PMSI / RFC 6514](https://www.rfc-editor.org/rfc/rfc6514).

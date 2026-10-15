@@ -1,0 +1,58 @@
+{
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38771544113",
+  "head": "011c5bcb3d5af0cb57a2458b835b57c04495fdb1",
+  "build": {
+    "engineBuild": "9428fa9f928311eba4049cfe1ae19195e1c15798023cf2433f70d20c43c99502",
+    "engineContract": "2026.10.15.4",
+    "schemaVersion": 11,
+    "workerArtifact": "be9ecd5589b668fe2de7179746948753ff16c4e9db54ebd388c02a5c7c9b5148"
+  },
+  "regression": {
+    "total": 892,
+    "passed": 891,
+    "failed": 0,
+    "skipped": 1
+  },
+  "browser": [
+    {
+      "theme": "sistema-claro",
+      "startTime": "2026-10-15T16:45:28.382Z",
+      "duration": 1536253.9449999998,
+      "expected": 64,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    {
+      "theme": "sistema-escuro",
+      "startTime": "2026-10-15T16:45:19.341Z",
+      "duration": 1485321.112,
+      "expected": 64,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  ],
+  "gates": [
+    {
+      "name": "capacity",
+      "conclusion": "success"
+    },
+    {
+      "name": "verify",
+      "conclusion": "success"
+    },
+    {
+      "name": "browser (sistema-escuro)",
+      "conclusion": "success"
+    },
+    {
+      "name": "browser (sistema-claro)",
+      "conclusion": "success"
+    },
+    {
+      "name": "containers",
+      "conclusion": "success"
+    }
+  ]
+}
