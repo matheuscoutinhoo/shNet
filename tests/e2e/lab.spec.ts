@@ -2701,7 +2701,10 @@ test('Processo industrial: ciclos PLC/HMI, alarmes, persistência e mobile', asy
   await expect(panel.getByRole('status', { name: 'Estado do ciclo HMI' })).toContainText('950');
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await panel.getByRole('status', { name: 'Estado do processo PLC' }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/process-mobile.png', fullPage: true });
+  await panel.getByRole('status', { name: 'Estado do ciclo HMI' }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/hmi-mobile.png', fullPage: true });
   expect(errors).toEqual([]);
 });
 async function configureIp(page: Page, hostname: string, ip: string) {

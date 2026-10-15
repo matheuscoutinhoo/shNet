@@ -14,7 +14,7 @@ Esse é um modelo didático de processo e rede. Não executa ladder ou firmware,
 
 Hosts PC/servidor podem executar leituras periódicas Modbus TCP IPv4, funções 03/04, com intervalo, deadline, faixa de endereços e limiar de leituras perdidas. Cada tentativa usa MBAP/PDU binários e passa pelo TCP e pelos enlaces. Valores e latência vêm da resposta recebida; nenhuma amostra é copiada diretamente do PLC para a HMI.
 
-Falhas consecutivas geram alarme de comunicação. A última amostra permanece visível com timestamp, idade/qualidade e erro; uma resposta válida limpa o alarme. Limiares opcionais aplicam alarme ao valor lido. O deadline usa o timestamp real da resposta; o painel e a coleta do ciclo têm resolução de 100 ms. Os formulários ficam em **Validar rede e cenários → PLC / HMI**. Reconhecer um alarme preserva a execução que estava ativa, reiniciando o Worker com a geração atualizada.
+Falhas consecutivas geram alarme de comunicação. A última amostra permanece visível com timestamp, qualidade e erro; uma resposta válida limpa o alarme. Limiares opcionais aplicam alarme ao primeiro registrador lido. O deadline usa o timestamp real da resposta; o painel e a coleta do ciclo têm resolução de 100 ms. Os formulários ficam em **Validar rede e cenários → PLC / HMI**. Reconhecer um alarme preserva a execução que estava ativa, reiniciando o Worker com a geração atualizada.
 
 No modelo nativo **Processo PLC, HMI, SCADA e MES**, dez equipamentos têm acesso e alimentação A/B. O PLC usa scan de 100 ms; HMI e SCADA leem a cada 1 s, MES a cada 2 s, deadline de 800 ms. As cargas representam leitura de supervisão e comando de setpoint pelo MES, sem simular todo o software de gestão industrial. Vídeo continua fora do requisito confirmado.
 

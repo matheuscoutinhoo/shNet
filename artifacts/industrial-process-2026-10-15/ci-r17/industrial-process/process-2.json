@@ -1,0 +1,5859 @@
+{
+  "format": "shlab-scenario-v1",
+  "engineVersion": "0.1.0",
+  "engineContract": "2026.10.15.3",
+  "engineBuild": "development",
+  "integrityVersion": 2,
+  "name": "Processo — falha só do serviço Modbus",
+  "clock": "virtual-ms",
+  "complete": true,
+  "passed": true,
+  "scenario": {
+    "name": "Processo — falha só do serviço Modbus",
+    "durationMs": 14000,
+    "intervalMs": 1000,
+    "deadlineMs": 800,
+    "warmupMs": 5000,
+    "assertions": [
+      {
+        "name": "HMI-PROCESS detecta falha",
+        "atMs": 6000,
+        "target": "device-1",
+        "kind": "hmi-alarm",
+        "alarm": "communication",
+        "expected": true
+      },
+      {
+        "name": "SCADA-PROCESS detecta falha",
+        "atMs": 6000,
+        "target": "device-55",
+        "kind": "hmi-alarm",
+        "alarm": "communication",
+        "expected": true
+      },
+      {
+        "name": "MES-PROCESS detecta falha",
+        "atMs": 6000,
+        "target": "device-70",
+        "kind": "hmi-alarm",
+        "alarm": "communication",
+        "expected": true
+      },
+      {
+        "name": "HMI-PROCESS comunicando",
+        "atMs": 12000,
+        "target": "device-1",
+        "kind": "hmi-alarm",
+        "alarm": "communication",
+        "expected": false
+      },
+      {
+        "name": "SCADA-PROCESS comunicando",
+        "atMs": 12000,
+        "target": "device-55",
+        "kind": "hmi-alarm",
+        "alarm": "communication",
+        "expected": false
+      },
+      {
+        "name": "MES-PROCESS comunicando",
+        "atMs": 12000,
+        "target": "device-70",
+        "kind": "hmi-alarm",
+        "alarm": "communication",
+        "expected": false
+      }
+    ],
+    "flows": [
+      {
+        "name": "HMI-PROCESS → sensor",
+        "source": "device-1",
+        "target": "192.0.2.11",
+        "protocol": "modbus",
+        "modbus": {
+          "transaction": 1,
+          "unit": 1,
+          "function": 4,
+          "address": 0,
+          "quantity": 1,
+          "values": []
+        },
+        "expect": "allow",
+        "maxLossPercent": 50,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "SCADA-PROCESS → sensor",
+        "source": "device-55",
+        "target": "192.0.2.11",
+        "protocol": "modbus",
+        "modbus": {
+          "transaction": 1,
+          "unit": 1,
+          "function": 4,
+          "address": 0,
+          "quantity": 1,
+          "values": []
+        },
+        "expect": "allow",
+        "maxLossPercent": 50,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "MES-PROCESS → sensor",
+        "source": "device-70",
+        "target": "192.0.2.11",
+        "protocol": "modbus",
+        "modbus": {
+          "transaction": 1,
+          "unit": 1,
+          "function": 4,
+          "address": 0,
+          "quantity": 1,
+          "values": []
+        },
+        "expect": "allow",
+        "maxLossPercent": 50,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-3",
+        "kind": "service",
+        "up": false,
+        "service": "modbus"
+      },
+      {
+        "atMs": 8000,
+        "target": "device-3",
+        "kind": "service",
+        "up": true,
+        "service": "modbus"
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "HMI-PROCESS → sensor",
+      "expect": "allow",
+      "sent": 14,
+      "received": 8,
+      "lossPercent": 42.857142857142854,
+      "p95Ms": 16.07448000000295,
+      "p99Ms": 16.07448000000295,
+      "jitterP95Ms": 1.2732925824820995e-11,
+      "passed": true
+    },
+    {
+      "name": "SCADA-PROCESS → sensor",
+      "expect": "allow",
+      "sent": 14,
+      "received": 8,
+      "lossPercent": 42.857142857142854,
+      "p95Ms": 16.034480000002077,
+      "p99Ms": 16.034480000002077,
+      "jitterP95Ms": 5.4569682106375694e-12,
+      "passed": true
+    },
+    {
+      "name": "MES-PROCESS → sensor",
+      "expect": "allow",
+      "sent": 14,
+      "received": 8,
+      "lossPercent": 42.857142857142854,
+      "p95Ms": 16.054480000002513,
+      "p99Ms": 16.054480000002513,
+      "jitterP95Ms": 9.094947017729282e-12,
+      "passed": true
+    }
+  ],
+  "samples": [
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 0,
+      "id": "tcp-5496",
+      "status": "success",
+      "elapsedMs": 16.07448000000295,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 0,
+      "id": "tcp-5504",
+      "status": "success",
+      "elapsedMs": 16.034480000002077,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 0,
+      "id": "tcp-5512",
+      "status": "success",
+      "elapsedMs": 16.054480000002513,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 1000,
+      "id": "tcp-6809",
+      "status": "success",
+      "elapsedMs": 16.07448000000295,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 1000,
+      "id": "tcp-6817",
+      "status": "success",
+      "elapsedMs": 16.034480000002077,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 1000,
+      "id": "tcp-6825",
+      "status": "success",
+      "elapsedMs": 16.054480000002513,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 2000,
+      "id": "tcp-8281",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "HMI-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-8287",
+            "atMs": 0,
+            "device": "HMI-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8313",
+            "atMs": 2.010514000000512,
+            "device": "ACCESS-DUAL-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-8315",
+            "atMs": 2.010514000000512,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8331",
+            "atMs": 4.011028000000806,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 2000,
+      "id": "tcp-8289",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SCADA-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-8295",
+            "atMs": 0,
+            "device": "SCADA-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8305",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-8307",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8317",
+            "atMs": 4.001028000000588,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 2000,
+      "id": "tcp-8297",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "MES-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-8303",
+            "atMs": 0,
+            "device": "MES-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8309",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p4",
+            "direction": "received"
+          },
+          {
+            "id": "event-8311",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8324",
+            "atMs": 4.001028000000588,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 3000,
+      "id": "tcp-8947",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "HMI-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-8953",
+            "atMs": 0,
+            "device": "HMI-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8979",
+            "atMs": 2.010514000000512,
+            "device": "ACCESS-DUAL-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-8981",
+            "atMs": 2.010514000000512,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8997",
+            "atMs": 4.011028000000806,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 3000,
+      "id": "tcp-8955",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SCADA-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-8961",
+            "atMs": 0,
+            "device": "SCADA-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8971",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-8973",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8983",
+            "atMs": 4.001028000000588,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 3000,
+      "id": "tcp-8963",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "MES-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-8969",
+            "atMs": 0,
+            "device": "MES-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8975",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p4",
+            "direction": "received"
+          },
+          {
+            "id": "event-8977",
+            "atMs": 2.000514000000294,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-8990",
+            "atMs": 4.001028000000588,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 4000,
+      "id": "tcp-9641",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "HMI-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-9647",
+            "atMs": 0,
+            "device": "HMI-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-9673",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-9675",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-9691",
+            "atMs": 4.011027999998987,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 4000,
+      "id": "tcp-9649",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SCADA-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-9655",
+            "atMs": 0,
+            "device": "SCADA-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-9665",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-9667",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-9677",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 4000,
+      "id": "tcp-9657",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "MES-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-9663",
+            "atMs": 0,
+            "device": "MES-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-9669",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p4",
+            "direction": "received"
+          },
+          {
+            "id": "event-9671",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-9684",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 5000,
+      "id": "tcp-10309",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "HMI-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-10315",
+            "atMs": 0,
+            "device": "HMI-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-10341",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-10343",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-10359",
+            "atMs": 4.011027999998987,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 5000,
+      "id": "tcp-10317",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SCADA-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-10323",
+            "atMs": 0,
+            "device": "SCADA-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-10333",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-10335",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-10345",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 5000,
+      "id": "tcp-10325",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "MES-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-10331",
+            "atMs": 0,
+            "device": "MES-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-10337",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p4",
+            "direction": "received"
+          },
+          {
+            "id": "event-10339",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-10352",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 6000,
+      "id": "tcp-11004",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "HMI-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-11010",
+            "atMs": 0,
+            "device": "HMI-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11036",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-11038",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11054",
+            "atMs": 4.011027999998987,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 6000,
+      "id": "tcp-11012",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SCADA-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-11018",
+            "atMs": 0,
+            "device": "SCADA-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11028",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-11030",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11040",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 6000,
+      "id": "tcp-11020",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "MES-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-11026",
+            "atMs": 0,
+            "device": "MES-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11032",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p4",
+            "direction": "received"
+          },
+          {
+            "id": "event-11034",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11047",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 7000,
+      "id": "tcp-11670",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "HMI-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-11676",
+            "atMs": 0,
+            "device": "HMI-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11702",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-11704",
+            "atMs": 2.0105139999996027,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11720",
+            "atMs": 4.011027999998987,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 7000,
+      "id": "tcp-11678",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SCADA-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-11684",
+            "atMs": 0,
+            "device": "SCADA-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11694",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-11696",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11706",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 7000,
+      "id": "tcp-11686",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "MES-PROCESS",
+          "ACCESS-DUAL-A",
+          "PLC-PROCESS"
+        ],
+        "hops": [
+          {
+            "id": "event-11692",
+            "atMs": 0,
+            "device": "MES-PROCESS",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11698",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p4",
+            "direction": "received"
+          },
+          {
+            "id": "event-11700",
+            "atMs": 2.0005139999993844,
+            "device": "ACCESS-DUAL-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-11713",
+            "atMs": 4.001027999998769,
+            "device": "PLC-PROCESS",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 8000,
+      "id": "tcp-12365",
+      "status": "success",
+      "elapsedMs": 16.074479999997493,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 8000,
+      "id": "tcp-12373",
+      "status": "success",
+      "elapsedMs": 16.03447999999662,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 8000,
+      "id": "tcp-12381",
+      "status": "success",
+      "elapsedMs": 16.054479999997056,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 9000,
+      "id": "tcp-13680",
+      "status": "success",
+      "elapsedMs": 16.074479999997493,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 9000,
+      "id": "tcp-13688",
+      "status": "success",
+      "elapsedMs": 16.03447999999662,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 9000,
+      "id": "tcp-13696",
+      "status": "success",
+      "elapsedMs": 16.054479999997056,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 10000,
+      "id": "tcp-15152",
+      "status": "success",
+      "elapsedMs": 16.074479999997493,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 10000,
+      "id": "tcp-15160",
+      "status": "success",
+      "elapsedMs": 16.03447999999662,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 10000,
+      "id": "tcp-15168",
+      "status": "success",
+      "elapsedMs": 16.054479999997056,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 11000,
+      "id": "tcp-16465",
+      "status": "success",
+      "elapsedMs": 16.074479999997493,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 11000,
+      "id": "tcp-16473",
+      "status": "success",
+      "elapsedMs": 16.03447999999662,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 11000,
+      "id": "tcp-16481",
+      "status": "success",
+      "elapsedMs": 16.054479999997056,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 12000,
+      "id": "tcp-17936",
+      "status": "success",
+      "elapsedMs": 16.07447999998476,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 12000,
+      "id": "tcp-17944",
+      "status": "success",
+      "elapsedMs": 16.034479999991163,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 12000,
+      "id": "tcp-17952",
+      "status": "success",
+      "elapsedMs": 16.05447999998796,
+      "responseReceived": true
+    },
+    {
+      "flow": "HMI-PROCESS → sensor",
+      "atMs": 13000,
+      "id": "tcp-19249",
+      "status": "success",
+      "elapsedMs": 16.07447999998476,
+      "responseReceived": true
+    },
+    {
+      "flow": "SCADA-PROCESS → sensor",
+      "atMs": 13000,
+      "id": "tcp-19257",
+      "status": "success",
+      "elapsedMs": 16.034479999991163,
+      "responseReceived": true
+    },
+    {
+      "flow": "MES-PROCESS → sensor",
+      "atMs": 13000,
+      "id": "tcp-19265",
+      "status": "success",
+      "elapsedMs": 16.05447999998796,
+      "responseReceived": true
+    }
+  ],
+  "warnings": [
+    {
+      "code": "SWITCH_FAILURE_DOMAIN",
+      "severity": "info",
+      "devices": [
+        "device-6"
+      ],
+      "message": "ACCESS-DUAL-A: múltiplos enlaces compartilham o mesmo equipamento.",
+      "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+    },
+    {
+      "code": "SWITCH_FAILURE_DOMAIN",
+      "severity": "info",
+      "devices": [
+        "device-7"
+      ],
+      "message": "ACCESS-DUAL-B: múltiplos enlaces compartilham o mesmo equipamento.",
+      "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+    }
+  ],
+  "faults": [
+    {
+      "atMs": 2000,
+      "target": "device-3",
+      "kind": "service",
+      "up": false,
+      "service": "modbus",
+      "recovery": [
+        {
+          "flow": "HMI-PROCESS → sensor",
+          "recoveryMs": 6016.0744799999975,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 8016.0744799999975,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "SCADA-PROCESS → sensor",
+          "recoveryMs": 6016.034479999997,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 8016.034479999997,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "MES-PROCESS → sensor",
+          "recoveryMs": 6016.054479999997,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 8016.054479999997,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        }
+      ]
+    },
+    {
+      "atMs": 8000,
+      "target": "device-3",
+      "kind": "service",
+      "up": true,
+      "service": "modbus",
+      "recovery": [
+        {
+          "flow": "HMI-PROCESS → sensor",
+          "recoveryMs": null,
+          "observedFailure": false,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": null,
+          "firstFailedAttemptAtMs": null,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "SCADA-PROCESS → sensor",
+          "recoveryMs": null,
+          "observedFailure": false,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": null,
+          "firstFailedAttemptAtMs": null,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "MES-PROCESS → sensor",
+          "recoveryMs": null,
+          "observedFailure": false,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": null,
+          "firstFailedAttemptAtMs": null,
+          "measurement": "response-timestamp"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "event-2",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Capacidade, memória e modelo térmico configurados."
+    },
+    {
+      "id": "event-4",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço modbus TCP/502 ativado."
+    },
+    {
+      "id": "event-5",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Capacidade, memória e modelo térmico configurados."
+    },
+    {
+      "id": "event-10",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-18",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "port": "bond-port-16",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-19",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-1",
+      "port": "bond-port-16",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-22",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-30",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-28",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-31",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-28",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-34",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço modbus TCP/502 ativado."
+    },
+    {
+      "id": "event-36",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-35",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-37",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-35",
+      "reason": "Perfil UPS aplicado: Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento."
+    },
+    {
+      "id": "event-38",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-35",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-40",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-39",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-41",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-39",
+      "reason": "Perfil Rack aplicado: Unidades de rack, montagem e ventilação influenciam a temperatura."
+    },
+    {
+      "id": "event-42",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-39",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-44",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-43",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-45",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-43",
+      "reason": "Perfil UPS aplicado: Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento."
+    },
+    {
+      "id": "event-46",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-43",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-48",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-47",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-49",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-47",
+      "reason": "Perfil Rack aplicado: Unidades de rack, montagem e ventilação influenciam a temperatura."
+    },
+    {
+      "id": "event-50",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-47",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-51",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço modbus TCP/502 ativado."
+    },
+    {
+      "id": "event-54",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Processo de tanque e ciclo PLC configurados; nível em milésimos da capacidade."
+    },
+    {
+      "id": "event-56",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-55",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-64",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-55",
+      "port": "bond-port-62",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-65",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-55",
+      "port": "bond-port-62",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-68",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-35",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-69",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-43",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-71",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-70",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-79",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-70",
+      "port": "bond-port-77",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-80",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-70",
+      "port": "bond-port-77",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-83",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-35",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-84",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-43",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-87",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Varredura periódica HMI/SCADA/MES por Modbus TCP configurada."
+    },
+    {
+      "id": "event-90",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-55",
+      "reason": "Varredura periódica HMI/SCADA/MES por Modbus TCP configurada."
+    },
+    {
+      "id": "event-93",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-70",
+      "reason": "Varredura periódica HMI/SCADA/MES por Modbus TCP configurada."
+    },
+    {
+      "id": "event-290",
+      "time": 100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-288: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-302",
+      "time": 100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-300: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-314",
+      "time": 100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-312: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-967",
+      "time": 116.04372799999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-300: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-981",
+      "time": 116.05372799999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-312: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-995",
+      "time": 116.08372800000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-288: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-1033",
+      "time": 120.04475599999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-924: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-1053",
+      "time": 120.05475599999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-934: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-1073",
+      "time": 120.094756,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-944: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-1118",
+      "time": 124.05597599999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-300: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-1138",
+      "time": 124.07597599999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-312: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-1158",
+      "time": 124.115976,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-288: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-1202",
+      "time": 128.05700399999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-924: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-1212",
+      "time": 128.06717999999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-924: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-1223",
+      "time": 128.077004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-934: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-1233",
+      "time": 128.08718,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-934: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-1244",
+      "time": 128.127004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-944: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-1254",
+      "time": 128.13718000000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-944: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-1288",
+      "time": 132.068032,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-300: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-1295",
+      "time": 132.078208,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-300: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-1304",
+      "time": 132.08820799999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-312: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-1311",
+      "time": 132.098208,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-312: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-1320",
+      "time": 132.138032,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-288: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-1327",
+      "time": 132.14820800000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-288: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-1347",
+      "time": 136.079236,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-924: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-1351",
+      "time": 136.09923600000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-934: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-1355",
+      "time": 136.15923600000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-944: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-1650",
+      "time": 1100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1648: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-1659",
+      "time": 1100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-1657: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-2106",
+      "time": 1108.0318640000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-1657: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-2121",
+      "time": 1108.0518640000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1648: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-2171",
+      "time": 1112.0328920000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1894: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-2191",
+      "time": 1112.0628920000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1992: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-2228",
+      "time": 1116.0441120000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-1657: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-2248",
+      "time": 1116.0841120000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1648: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-2284",
+      "time": 1120.0451400000006,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1894: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-2294",
+      "time": 1120.0553160000006,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1894: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-2305",
+      "time": 1120.0951400000006,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1992: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-2315",
+      "time": 1120.1053160000006,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1992: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-2341",
+      "time": 1124.0561680000008,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-1657: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-2348",
+      "time": 1124.0663440000008,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-1657: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-2357",
+      "time": 1124.1061680000007,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1648: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-2364",
+      "time": 1124.1163440000007,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1648: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-2380",
+      "time": 1128.067372000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1894: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-2384",
+      "time": 1128.1273720000008,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-1992: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-2678",
+      "time": 2100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2676: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-2687",
+      "time": 2100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-2685: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-2696",
+      "time": 2100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-2694: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-3160",
+      "time": 2108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-2685: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-3174",
+      "time": 2108.0418640000007,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-2694: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-3189",
+      "time": 2108.061864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2676: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-3247",
+      "time": 2112.032892,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2934: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-3267",
+      "time": 2112.0428920000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2944: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-3287",
+      "time": 2112.072892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3042: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-3332",
+      "time": 2116.0441120000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-2685: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-3352",
+      "time": 2116.064112000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-2694: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-3372",
+      "time": 2116.0941120000016,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2676: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-3416",
+      "time": 2120.04514,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2934: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-3426",
+      "time": 2120.055316000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2934: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-3437",
+      "time": 2120.0651400000006,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2944: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-3447",
+      "time": 2120.0753160000013,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2944: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-3458",
+      "time": 2120.1051400000015,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3042: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-3468",
+      "time": 2120.115316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3042: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-3502",
+      "time": 2124.056168,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-2685: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-3509",
+      "time": 2124.0663440000008,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-2685: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-3518",
+      "time": 2124.076344000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-2694: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-3525",
+      "time": 2124.086344000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-2694: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-3534",
+      "time": 2124.1161680000014,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2676: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-3541",
+      "time": 2124.126344000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2676: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-3561",
+      "time": 2128.0673720000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2934: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-3565",
+      "time": 2128.087372000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-2944: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-3569",
+      "time": 2128.137372000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3042: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-3678",
+      "time": 3100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3676: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-3687",
+      "time": 3100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-3685: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-4134",
+      "time": 3108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-3685: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4149",
+      "time": 3108.051864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3676: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4199",
+      "time": 3112.032892,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3922: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4219",
+      "time": 3112.062892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4020: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4256",
+      "time": 3116.0441120000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-3685: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4276",
+      "time": 3116.0841120000014,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3676: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4312",
+      "time": 3120.04514,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3922: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4322",
+      "time": 3120.055316000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3922: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4333",
+      "time": 3120.0951400000013,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4020: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4343",
+      "time": 3120.105316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4020: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4369",
+      "time": 3124.056168,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-3685: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4376",
+      "time": 3124.0663440000008,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-3685: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4385",
+      "time": 3124.106168000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3676: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4392",
+      "time": 3124.116344000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3676: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4408",
+      "time": 3128.0673720000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3922: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4412",
+      "time": 3128.1273720000017,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4020: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4520",
+      "time": 4100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4518: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-4529",
+      "time": 4100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-4527: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-4538",
+      "time": 4100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-4536: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-5002",
+      "time": 4108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-4527: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5016",
+      "time": 4108.041864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-4536: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5031",
+      "time": 4108.061864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4518: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5089",
+      "time": 4112.032892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4776: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5109",
+      "time": 4112.042892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4786: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5129",
+      "time": 4112.072892000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4884: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5174",
+      "time": 4116.044112000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-4527: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5194",
+      "time": 4116.064112000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-4536: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5214",
+      "time": 4116.0941120000025,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4518: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5258",
+      "time": 4120.045140000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4776: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5268",
+      "time": 4120.055316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4776: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5279",
+      "time": 4120.065140000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4786: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5289",
+      "time": 4120.075316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4786: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5300",
+      "time": 4120.105140000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4884: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5310",
+      "time": 4120.115316000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4884: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5344",
+      "time": 4124.056168000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-4527: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5351",
+      "time": 4124.066344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-4527: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5360",
+      "time": 4124.076344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-4536: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5367",
+      "time": 4124.086344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-4536: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5376",
+      "time": 4124.116168000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4518: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5383",
+      "time": 4124.126344000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4518: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5403",
+      "time": 4128.067372000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4776: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5407",
+      "time": 4128.087372000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4786: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5411",
+      "time": 4128.137372000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4884: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5498",
+      "time": 5000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5496: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-5506",
+      "time": 5000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5504: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-5514",
+      "time": 5000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-5512: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-5578",
+      "time": 5008.012056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5504: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5592",
+      "time": 5008.022056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-5512: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5606",
+      "time": 5008.032056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5496: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5644",
+      "time": 5012.013084000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5535: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5664",
+      "time": 5012.023084000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5545: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5684",
+      "time": 5012.043084000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5555: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5729",
+      "time": 5016.024304000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5504: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5749",
+      "time": 5016.044304000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-5512: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5769",
+      "time": 5016.064304000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5496: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5813",
+      "time": 5020.025332000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5535: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5823",
+      "time": 5020.035508000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5535: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5834",
+      "time": 5020.045332000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5545: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5844",
+      "time": 5020.055508000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5545: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5855",
+      "time": 5020.075332000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5555: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5865",
+      "time": 5020.085508000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5555: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5899",
+      "time": 5024.036360000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5504: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5906",
+      "time": 5024.0465360000035,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5504: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5915",
+      "time": 5024.056536000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-5512: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5922",
+      "time": 5024.066536000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-5512: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5931",
+      "time": 5024.086360000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5496: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5938",
+      "time": 5024.096536000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5496: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5958",
+      "time": 5028.047564000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5535: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5962",
+      "time": 5028.0675640000045,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5545: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5966",
+      "time": 5028.107564000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5555: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5991",
+      "time": 5100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5989: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-6000",
+      "time": 5100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5998: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-6447",
+      "time": 5108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5998: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6462",
+      "time": 5108.051864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5989: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6512",
+      "time": 5112.032892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6235: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6532",
+      "time": 5112.062892000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6333: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6569",
+      "time": 5116.044112000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5998: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-6589",
+      "time": 5116.084112000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5989: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-6625",
+      "time": 5120.045140000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6235: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-6635",
+      "time": 5120.055316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6235: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-6646",
+      "time": 5120.095140000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6333: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-6656",
+      "time": 5120.105316000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6333: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-6682",
+      "time": 5124.056168000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5998: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-6689",
+      "time": 5124.066344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-5998: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-6698",
+      "time": 5124.106168000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5989: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-6705",
+      "time": 5124.116344000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5989: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-6721",
+      "time": 5128.067372000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6235: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-6725",
+      "time": 5128.1273720000045,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6333: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-6811",
+      "time": 6000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6809: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-6819",
+      "time": 6000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-6817: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-6827",
+      "time": 6000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-6825: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-6891",
+      "time": 6008.012056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-6817: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6905",
+      "time": 6008.022056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-6825: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6919",
+      "time": 6008.032056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6809: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6957",
+      "time": 6012.013084000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6848: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6977",
+      "time": 6012.023084000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6858: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6997",
+      "time": 6012.043084000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6868: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-7042",
+      "time": 6016.024304000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-6817: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-7062",
+      "time": 6016.044304000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-6825: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-7082",
+      "time": 6016.064304000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6809: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-7126",
+      "time": 6020.025332000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6848: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-7136",
+      "time": 6020.035508000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6848: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-7147",
+      "time": 6020.045332000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6858: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-7157",
+      "time": 6020.055508000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6858: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-7168",
+      "time": 6020.075332000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6868: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-7178",
+      "time": 6020.085508000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6868: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-7212",
+      "time": 6024.036360000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-6817: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-7219",
+      "time": 6024.0465360000035,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-6817: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-7228",
+      "time": 6024.056536000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-6825: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-7235",
+      "time": 6024.066536000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-6825: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-7244",
+      "time": 6024.086360000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6809: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-7251",
+      "time": 6024.096536000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6809: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-7271",
+      "time": 6028.047564000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6848: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-7275",
+      "time": 6028.0675640000045,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6858: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-7279",
+      "time": 6028.107564000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6868: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-7304",
+      "time": 6100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-7302: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-7313",
+      "time": 6100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-7311: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-7322",
+      "time": 6100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-7320: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-7786",
+      "time": 6108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-7311: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-7800",
+      "time": 6108.041864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-7320: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-7815",
+      "time": 6108.061864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-7302: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-7873",
+      "time": 6112.032892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7560: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-7893",
+      "time": 6112.042892000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7570: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-7913",
+      "time": 6112.072892000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7668: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-7958",
+      "time": 6116.044112000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-7311: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-7978",
+      "time": 6116.064112000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-7320: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-7998",
+      "time": 6116.0941120000025,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-7302: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-8042",
+      "time": 6120.045140000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7560: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-8052",
+      "time": 6120.055316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7560: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-8063",
+      "time": 6120.065140000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7570: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-8073",
+      "time": 6120.075316000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7570: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-8084",
+      "time": 6120.105140000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7668: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-8094",
+      "time": 6120.115316000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7668: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-8128",
+      "time": 6124.056168000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-7311: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-8135",
+      "time": 6124.066344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-7311: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-8144",
+      "time": 6124.076344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-7320: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-8151",
+      "time": 6124.086344000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-7320: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-8160",
+      "time": 6124.116168000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-7302: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-8167",
+      "time": 6124.126344000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-7302: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-8187",
+      "time": 6128.067372000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7560: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-8191",
+      "time": 6128.087372000004,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7570: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-8195",
+      "time": 6128.137372000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-7668: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-8280",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço modbus TCP/502 desativado."
+    },
+    {
+      "id": "event-8283",
+      "time": 7000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-8281: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8291",
+      "time": 7000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-8289: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8299",
+      "time": 7000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-8297: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8353",
+      "time": 7008.012056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-8289: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-8358",
+      "time": 7008.022056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-8297: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-8363",
+      "time": 7008.032056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-8281: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-8389",
+      "time": 7100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-8387: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8398",
+      "time": 7100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-8396: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8838",
+      "time": 7108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-8396: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-8844",
+      "time": 7108.051864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-8387: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-8949",
+      "time": 8000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-8947: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8957",
+      "time": 8000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-8955: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-8965",
+      "time": 8000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-8963: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9019",
+      "time": 8008.012056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-8955: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9024",
+      "time": 8008.022056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-8963: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9029",
+      "time": 8008.032056000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-8947: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9055",
+      "time": 8100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-9053: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9064",
+      "time": 8100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-9062: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9073",
+      "time": 8100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-9071: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9527",
+      "time": 8108.0318640000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-9062: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9532",
+      "time": 8108.041864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-9071: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9538",
+      "time": 8108.061864000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-9053: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9643",
+      "time": 9000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-9641: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9651",
+      "time": 9000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-9649: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9659",
+      "time": 9000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-9657: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9713",
+      "time": 9008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-9649: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9718",
+      "time": 9008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-9657: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9723",
+      "time": 9008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-9641: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-9749",
+      "time": 9100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-9747: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-9758",
+      "time": 9100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-9756: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10198",
+      "time": 9108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-9756: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10204",
+      "time": 9108.051864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-9747: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10232",
+      "time": 9200,
+      "type": "HMI_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "Alarme de comunicação: 3 leituras consecutivas perdidas."
+    },
+    {
+      "id": "event-10234",
+      "time": 9200,
+      "type": "HMI_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "Alarme de comunicação: 3 leituras consecutivas perdidas."
+    },
+    {
+      "id": "event-10311",
+      "time": 10000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-10309: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10319",
+      "time": 10000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-10317: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10327",
+      "time": 10000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-10325: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10381",
+      "time": 10008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-10317: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10386",
+      "time": 10008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-10325: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10391",
+      "time": 10008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-10309: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10417",
+      "time": 10100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-10415: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10426",
+      "time": 10100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-10424: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10435",
+      "time": 10100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-10433: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-10889",
+      "time": 10108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-10424: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10894",
+      "time": 10108.041863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-10433: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10900",
+      "time": 10108.061864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-10415: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-10930",
+      "time": 10200,
+      "type": "HMI_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "Alarme de comunicação: 2 leituras consecutivas perdidas."
+    },
+    {
+      "id": "event-11006",
+      "time": 11000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11004: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11014",
+      "time": 11000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11012: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11022",
+      "time": 11000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-11020: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11076",
+      "time": 11008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11012: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11081",
+      "time": 11008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-11020: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11086",
+      "time": 11008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11004: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11112",
+      "time": 11100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11110: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11121",
+      "time": 11100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11119: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11561",
+      "time": 11108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11119: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11567",
+      "time": 11108.051864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11110: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11672",
+      "time": 12000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11670: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11680",
+      "time": 12000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11678: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11688",
+      "time": 12000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-11686: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11742",
+      "time": 12008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11678: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11747",
+      "time": 12008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-11686: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11752",
+      "time": 12008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11670: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-11778",
+      "time": 12100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11776: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11787",
+      "time": 12100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11785: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-11796",
+      "time": 12100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-11794: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-12250",
+      "time": 12108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-11785: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-12255",
+      "time": 12108.041863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-11794: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-12261",
+      "time": 12108.061864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-11776: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-12364",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço modbus TCP/502 ativado."
+    },
+    {
+      "id": "event-12367",
+      "time": 13000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12365: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-12375",
+      "time": 13000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12373: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-12383",
+      "time": 13000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-12381: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-12447",
+      "time": 13008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12373: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-12461",
+      "time": 13008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-12381: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-12475",
+      "time": 13008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12365: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-12513",
+      "time": 13012.013083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12404: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-12533",
+      "time": 13012.023083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12414: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-12553",
+      "time": 13012.043083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12424: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-12598",
+      "time": 13016.024303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12373: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-12618",
+      "time": 13016.044303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-12381: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-12638",
+      "time": 13016.064303999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12365: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-12682",
+      "time": 13020.025331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12404: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-12692",
+      "time": 13020.035507999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12404: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-12703",
+      "time": 13020.045331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12414: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-12713",
+      "time": 13020.055507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12414: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-12724",
+      "time": 13020.075331999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12424: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-12734",
+      "time": 13020.085507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12424: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-12768",
+      "time": 13024.036359999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12373: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-12775",
+      "time": 13024.046535999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12373: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-12784",
+      "time": 13024.056535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-12381: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-12791",
+      "time": 13024.066535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-12381: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-12800",
+      "time": 13024.086359999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12365: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-12807",
+      "time": 13024.096535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12365: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-12827",
+      "time": 13028.047563999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12404: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-12831",
+      "time": 13028.067563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12414: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-12835",
+      "time": 13028.107563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-12424: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-12860",
+      "time": 13100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12858: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-12869",
+      "time": 13100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12867: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-13316",
+      "time": 13108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12867: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-13331",
+      "time": 13108.051864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12858: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-13381",
+      "time": 13112.032891999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13104: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-13401",
+      "time": 13112.062891999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13202: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-13438",
+      "time": 13116.044111999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12867: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-13458",
+      "time": 13116.084111999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12858: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-13494",
+      "time": 13120.045139999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13104: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-13504",
+      "time": 13120.055315999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13104: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-13515",
+      "time": 13120.095139999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13202: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-13525",
+      "time": 13120.105315999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13202: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-13551",
+      "time": 13124.056167999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12867: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-13558",
+      "time": 13124.066343999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-12867: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-13567",
+      "time": 13124.106167999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12858: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-13574",
+      "time": 13124.116343999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-12858: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-13590",
+      "time": 13128.067371999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13104: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-13594",
+      "time": 13128.127371999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13202: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-13601",
+      "time": 13200,
+      "type": "HMI_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "Comunicação recuperada; alarme do valor amostrado: false."
+    },
+    {
+      "id": "event-13604",
+      "time": 13200,
+      "type": "HMI_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "Comunicação recuperada; alarme do valor amostrado: false."
+    },
+    {
+      "id": "event-13682",
+      "time": 14000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-13680: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-13690",
+      "time": 14000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-13688: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-13698",
+      "time": 14000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-13696: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-13762",
+      "time": 14008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-13688: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-13776",
+      "time": 14008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-13696: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-13790",
+      "time": 14008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-13680: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-13828",
+      "time": 14012.013083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13719: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-13848",
+      "time": 14012.023083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13729: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-13868",
+      "time": 14012.043083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13739: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-13913",
+      "time": 14016.024303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-13688: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-13933",
+      "time": 14016.044303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-13696: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-13953",
+      "time": 14016.064303999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-13680: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-13997",
+      "time": 14020.025331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13719: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-14007",
+      "time": 14020.035507999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13719: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-14018",
+      "time": 14020.045331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13729: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-14028",
+      "time": 14020.055507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13729: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-14039",
+      "time": 14020.075331999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13739: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-14049",
+      "time": 14020.085507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13739: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-14083",
+      "time": 14024.036359999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-13688: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-14090",
+      "time": 14024.046535999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-13688: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-14099",
+      "time": 14024.056535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-13696: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-14106",
+      "time": 14024.066535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-13696: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-14115",
+      "time": 14024.086359999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-13680: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-14122",
+      "time": 14024.096535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-13680: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-14142",
+      "time": 14028.047563999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13719: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-14146",
+      "time": 14028.067563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13729: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-14150",
+      "time": 14028.107563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-13739: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-14175",
+      "time": 14100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-14173: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-14184",
+      "time": 14100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-14182: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-14193",
+      "time": 14100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-14191: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-14657",
+      "time": 14108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-14182: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-14671",
+      "time": 14108.041863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-14191: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-14686",
+      "time": 14108.061864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-14173: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-14744",
+      "time": 14112.032891999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14431: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-14764",
+      "time": 14112.042891999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14441: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-14784",
+      "time": 14112.072891999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14539: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-14829",
+      "time": 14116.044111999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-14182: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-14849",
+      "time": 14116.064111999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-14191: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-14869",
+      "time": 14116.094111999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-14173: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-14913",
+      "time": 14120.045139999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14431: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-14923",
+      "time": 14120.055315999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14431: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-14934",
+      "time": 14120.065139999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14441: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-14944",
+      "time": 14120.075315999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14441: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-14955",
+      "time": 14120.105139999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14539: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-14965",
+      "time": 14120.115315999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14539: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-14999",
+      "time": 14124.056167999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-14182: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-15006",
+      "time": 14124.066343999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-14182: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-15015",
+      "time": 14124.076343999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-14191: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-15022",
+      "time": 14124.086343999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-14191: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-15031",
+      "time": 14124.116167999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-14173: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-15038",
+      "time": 14124.126343999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-14173: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-15058",
+      "time": 14128.067371999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14431: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-15062",
+      "time": 14128.087371999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14441: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-15066",
+      "time": 14128.137371999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-14539: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-15077",
+      "time": 14200,
+      "type": "HMI_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "Comunicação recuperada; alarme do valor amostrado: false."
+    },
+    {
+      "id": "event-15154",
+      "time": 15000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15152: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-15162",
+      "time": 15000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15160: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-15170",
+      "time": 15000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-15168: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-15234",
+      "time": 15008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15160: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-15248",
+      "time": 15008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-15168: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-15262",
+      "time": 15008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15152: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-15300",
+      "time": 15012.013083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15191: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-15320",
+      "time": 15012.023083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15201: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-15340",
+      "time": 15012.043083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15211: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-15385",
+      "time": 15016.024303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15160: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-15405",
+      "time": 15016.044303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-15168: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-15425",
+      "time": 15016.064303999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15152: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-15469",
+      "time": 15020.025331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15191: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-15479",
+      "time": 15020.035507999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15191: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-15490",
+      "time": 15020.045331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15201: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-15500",
+      "time": 15020.055507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15201: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-15511",
+      "time": 15020.075331999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15211: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-15521",
+      "time": 15020.085507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15211: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-15555",
+      "time": 15024.036359999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15160: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-15562",
+      "time": 15024.046535999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15160: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-15571",
+      "time": 15024.056535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-15168: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-15578",
+      "time": 15024.066535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-15168: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-15587",
+      "time": 15024.086359999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15152: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-15594",
+      "time": 15024.096535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15152: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-15614",
+      "time": 15028.047563999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15191: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-15618",
+      "time": 15028.067563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15201: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-15622",
+      "time": 15028.107563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15211: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-15647",
+      "time": 15100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15645: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-15656",
+      "time": 15100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15654: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-16103",
+      "time": 15108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15654: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-16118",
+      "time": 15108.051864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15645: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-16168",
+      "time": 15112.032891999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15891: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-16188",
+      "time": 15112.062891999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15989: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-16225",
+      "time": 15116.044111999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15654: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-16245",
+      "time": 15116.084111999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15645: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-16281",
+      "time": 15120.045139999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15891: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-16291",
+      "time": 15120.055315999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15891: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-16302",
+      "time": 15120.095139999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15989: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-16312",
+      "time": 15120.105315999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15989: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-16338",
+      "time": 15124.056167999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15654: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-16345",
+      "time": 15124.066343999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-15654: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-16354",
+      "time": 15124.106167999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15645: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-16361",
+      "time": 15124.116343999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-15645: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-16377",
+      "time": 15128.067371999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15891: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-16381",
+      "time": 15128.127371999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-15989: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-16467",
+      "time": 16000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16465: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-16475",
+      "time": 16000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16473: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-16483",
+      "time": 16000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16481: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-16547",
+      "time": 16008.012055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16473: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-16561",
+      "time": 16008.022055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16481: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-16575",
+      "time": 16008.032055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16465: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-16613",
+      "time": 16012.013083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16504: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-16633",
+      "time": 16012.023083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16514: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-16653",
+      "time": 16012.043083999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16524: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-16698",
+      "time": 16016.024303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16473: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-16718",
+      "time": 16016.044303999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16481: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-16738",
+      "time": 16016.064303999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16465: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-16782",
+      "time": 16020.025331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16504: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-16792",
+      "time": 16020.035507999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16504: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-16803",
+      "time": 16020.045331999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16514: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-16813",
+      "time": 16020.055507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16514: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-16824",
+      "time": 16020.075331999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16524: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-16834",
+      "time": 16020.085507999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16524: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-16868",
+      "time": 16024.036359999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16473: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-16875",
+      "time": 16024.046535999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16473: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-16884",
+      "time": 16024.056535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16481: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-16891",
+      "time": 16024.066535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16481: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-16900",
+      "time": 16024.086359999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16465: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-16907",
+      "time": 16024.096535999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16465: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-16927",
+      "time": 16028.047563999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16504: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-16931",
+      "time": 16028.067563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16514: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-16935",
+      "time": 16028.107563999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-16524: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-16960",
+      "time": 16100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16958: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-16969",
+      "time": 16100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16967: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-16978",
+      "time": 16100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16976: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-17442",
+      "time": 16108.031863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16967: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-17456",
+      "time": 16108.041863999999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16976: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-17471",
+      "time": 16108.061864,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16958: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-17529",
+      "time": 16112.032891999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17216: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-17549",
+      "time": 16112.042891999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17226: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-17569",
+      "time": 16112.072891999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17324: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-17614",
+      "time": 16116.044111999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16967: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-17634",
+      "time": 16116.064111999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16976: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-17654",
+      "time": 16116.094111999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16958: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-17698",
+      "time": 16120.045139999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17216: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-17708",
+      "time": 16120.055315999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17216: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-17719",
+      "time": 16120.065139999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17226: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-17729",
+      "time": 16120.075315999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17226: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-17740",
+      "time": 16120.105139999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17324: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-17750",
+      "time": 16120.115315999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17324: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-17784",
+      "time": 16124.056167999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16967: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-17791",
+      "time": 16124.066343999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-16967: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-17800",
+      "time": 16124.076343999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16976: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-17807",
+      "time": 16124.086343999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-16976: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-17816",
+      "time": 16124.116167999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16958: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-17823",
+      "time": 16124.126343999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-16958: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-17843",
+      "time": 16128.067371999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17216: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-17847",
+      "time": 16128.087371999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17226: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-17851",
+      "time": 16128.137371999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17324: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-17938",
+      "time": 17000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-17936: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-17946",
+      "time": 17000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-17944: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-17954",
+      "time": 17000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-17952: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-18018",
+      "time": 17008.012055999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-17944: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-18032",
+      "time": 17008.022055999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-17952: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-18046",
+      "time": 17008.032055999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-17936: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-18084",
+      "time": 17012.013083999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17975: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-18104",
+      "time": 17012.023083999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17985: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-18124",
+      "time": 17012.04308399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17995: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-18169",
+      "time": 17016.02430399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-17944: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-18189",
+      "time": 17016.04430399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-17952: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-18209",
+      "time": 17016.064303999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-17936: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-18253",
+      "time": 17020.02533199999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17975: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-18263",
+      "time": 17020.03550799999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17975: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-18274",
+      "time": 17020.045331999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17985: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-18284",
+      "time": 17020.055507999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17985: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-18295",
+      "time": 17020.075331999982,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17995: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-18305",
+      "time": 17020.085507999982,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17995: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-18339",
+      "time": 17024.036359999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-17944: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-18346",
+      "time": 17024.046535999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-17944: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-18355",
+      "time": 17024.056535999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-17952: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-18362",
+      "time": 17024.066535999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-17952: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-18371",
+      "time": 17024.08635999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-17936: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-18378",
+      "time": 17024.09653599998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-17936: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-18398",
+      "time": 17028.047563999986,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17975: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-18402",
+      "time": 17028.067563999983,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17985: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-18406",
+      "time": 17028.107563999976,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-17995: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-18431",
+      "time": 17100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-18429: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-18440",
+      "time": 17100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-18438: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-18887",
+      "time": 17108.031863999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-18438: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-18902",
+      "time": 17108.05186399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-18429: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-18952",
+      "time": 17112.032891999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18675: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-18972",
+      "time": 17112.062891999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18773: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-19009",
+      "time": 17116.04411199999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-18438: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-19029",
+      "time": 17116.084111999982,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-18429: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-19065",
+      "time": 17120.045139999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18675: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-19075",
+      "time": 17120.055315999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18675: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-19086",
+      "time": 17120.09513999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18773: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-19096",
+      "time": 17120.10531599998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18773: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-19122",
+      "time": 17124.056167999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-18438: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-19129",
+      "time": 17124.066343999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-18438: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-19138",
+      "time": 17124.106167999977,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-18429: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-19145",
+      "time": 17124.116343999976,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-18429: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-19161",
+      "time": 17128.067371999983,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18675: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-19165",
+      "time": 17128.127371999974,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-18773: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-19251",
+      "time": 18000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19249: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-19259",
+      "time": 18000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19257: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-19267",
+      "time": 18000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19265: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-19331",
+      "time": 18008.012055999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19257: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-19345",
+      "time": 18008.022055999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19265: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-19359",
+      "time": 18008.032055999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19249: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-19397",
+      "time": 18012.013083999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19288: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-19417",
+      "time": 18012.023083999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19298: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-19437",
+      "time": 18012.04308399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19308: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-19482",
+      "time": 18016.02430399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19257: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-19502",
+      "time": 18016.04430399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19265: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-19522",
+      "time": 18016.064303999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19249: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-19566",
+      "time": 18020.02533199999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19288: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-19576",
+      "time": 18020.03550799999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19288: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-19587",
+      "time": 18020.045331999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19298: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-19597",
+      "time": 18020.055507999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19298: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-19608",
+      "time": 18020.075331999982,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19308: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-19618",
+      "time": 18020.085507999982,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19308: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-19652",
+      "time": 18024.036359999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19257: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-19659",
+      "time": 18024.046535999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19257: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-19668",
+      "time": 18024.056535999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19265: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-19675",
+      "time": 18024.066535999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19265: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-19684",
+      "time": 18024.08635999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19249: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-19691",
+      "time": 18024.09653599998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19249: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-19711",
+      "time": 18028.047563999986,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19288: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-19715",
+      "time": 18028.067563999983,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19298: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-19719",
+      "time": 18028.107563999976,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-19308: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-19744",
+      "time": 18100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19742: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-19753",
+      "time": 18100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19751: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-19762",
+      "time": 18100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19760: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-20226",
+      "time": 18108.031863999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19751: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-20240",
+      "time": 18108.04186399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19760: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-20255",
+      "time": 18108.06186399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19742: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-20313",
+      "time": 18112.032891999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20000: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-20333",
+      "time": 18112.04289199999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20010: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-20353",
+      "time": 18112.072891999986,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20108: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-20398",
+      "time": 18116.04411199999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19751: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-20418",
+      "time": 18116.064111999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19760: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-20438",
+      "time": 18116.09411199998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19742: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-20482",
+      "time": 18120.045139999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20000: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-20492",
+      "time": 18120.055315999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20000: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-20503",
+      "time": 18120.065139999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20010: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-20513",
+      "time": 18120.075315999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20010: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-20524",
+      "time": 18120.105139999978,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20108: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-20534",
+      "time": 18120.115315999978,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20108: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-20568",
+      "time": 18124.056167999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19751: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-20575",
+      "time": 18124.066343999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-19751: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-20584",
+      "time": 18124.076343999983,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19760: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-20591",
+      "time": 18124.08634399998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-70",
+      "reason": "tcp-19760: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-20600",
+      "time": 18124.116167999975,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19742: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-20607",
+      "time": 18124.126343999975,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-19742: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-20627",
+      "time": 18128.067371999983,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20000: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-20631",
+      "time": 18128.08737199998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20010: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-20635",
+      "time": 18128.137371999972,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20108: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-20744",
+      "time": 19100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-20742: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-20753",
+      "time": 19100,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-20751: abertura ativa SYN-SENT para 192.0.2.11:502."
+    },
+    {
+      "id": "event-21200",
+      "time": 19108.031863999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-20751: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-21215",
+      "time": 19108.05186399999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-20742: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-21265",
+      "time": 19112.032891999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20988: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-21285",
+      "time": 19112.062891999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-21086: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-21322",
+      "time": 19116.04411199999,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-20751: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-21342",
+      "time": 19116.084111999982,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-20742: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-21378",
+      "time": 19120.045139999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20988: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-21388",
+      "time": 19120.055315999987,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20988: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-21399",
+      "time": 19120.09513999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-21086: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-21409",
+      "time": 19120.10531599998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-21086: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-21435",
+      "time": 19124.056167999985,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-20751: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-21442",
+      "time": 19124.066343999984,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-55",
+      "reason": "tcp-20751: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-21451",
+      "time": 19124.106167999977,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-20742: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-21458",
+      "time": 19124.116343999976,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-20742: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-21474",
+      "time": 19128.067371999983,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-20988: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-21478",
+      "time": 19128.127371999974,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-21086: LAST-ACK → CLOSED."
+    }
+  ],
+  "captureDropped": 1058,
+  "assertions": [
+    {
+      "name": "HMI-PROCESS detecta falha",
+      "atMs": 6000,
+      "epoch": 0,
+      "observed": "true",
+      "passed": true
+    },
+    {
+      "name": "SCADA-PROCESS detecta falha",
+      "atMs": 6000,
+      "epoch": 0,
+      "observed": "true",
+      "passed": true
+    },
+    {
+      "name": "MES-PROCESS detecta falha",
+      "atMs": 6000,
+      "epoch": 0,
+      "observed": "true",
+      "passed": true
+    },
+    {
+      "name": "HMI-PROCESS comunicando",
+      "atMs": 12000,
+      "epoch": 0,
+      "observed": "false",
+      "passed": true
+    },
+    {
+      "name": "SCADA-PROCESS comunicando",
+      "atMs": 12000,
+      "epoch": 0,
+      "observed": "false",
+      "passed": true
+    },
+    {
+      "name": "MES-PROCESS comunicando",
+      "atMs": 12000,
+      "epoch": 0,
+      "observed": "false",
+      "passed": true
+    }
+  ]
+}

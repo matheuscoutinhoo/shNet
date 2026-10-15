@@ -1,0 +1,852 @@
+{
+  "generatedAt": "2026-10-15T13:29:21.198Z",
+  "engineContract": "2026.10.15.3",
+  "engineSourceHash": "cbb0d7ea7c008214df7c963bfa5185e0b07a6f9315d163c2a34aa17cf7bafa85",
+  "passed": true,
+  "scope": "Native access/power A/B and service VIP scenarios; new requests, not replicated service sessions/data.",
+  "samplingMs": 1000,
+  "responseDeadlineMs": 800,
+  "ntpToleranceMs": 10,
+  "results": [
+    {
+      "template": "dual-access",
+      "name": "Acesso dual — baseline",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI → PLC redundante",
+          "expect": "allow",
+          "sent": 10,
+          "received": 10,
+          "lossPercent": 0,
+          "p95Ms": 24.086184000001595,
+          "p99Ms": 24.086184000001595,
+          "jitterP95Ms": 8.021671999998944,
+          "passed": true
+        }
+      ],
+      "faults": [],
+      "report": "dual-access-0.json"
+    },
+    {
+      "template": "dual-access",
+      "name": "Perda e retorno do rack A",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI → PLC redundante",
+          "expect": "allow",
+          "sent": 10,
+          "received": 10,
+          "lossPercent": 0,
+          "p95Ms": 24.086184000001595,
+          "p99Ms": 24.086184000001595,
+          "jitterP95Ms": 8.021671999998944,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-35",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 2000,
+          "target": "device-6",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 7000,
+          "target": "device-35",
+          "kind": "device",
+          "up": true,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 7000,
+          "target": "device-6",
+          "kind": "device",
+          "up": true,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "dual-access-1.json"
+    },
+    {
+      "template": "dual-access",
+      "name": "Perda e retorno do rack B",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI → PLC redundante",
+          "expect": "allow",
+          "sent": 10,
+          "received": 10,
+          "lossPercent": 0,
+          "p95Ms": 24.086184000001595,
+          "p99Ms": 24.086184000001595,
+          "jitterP95Ms": 8.021671999998944,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-43",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 2000,
+          "target": "device-7",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 7000,
+          "target": "device-43",
+          "kind": "device",
+          "up": true,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 7000,
+          "target": "device-7",
+          "kind": "device",
+          "up": true,
+          "recovery": [
+            {
+              "flow": "HMI → PLC redundante",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "dual-access-2.json"
+    },
+    {
+      "template": "service-ha",
+      "name": "Serviços HA — baseline",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HTTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 32.01067200000034,
+          "p99Ms": 32.01067200000034,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "DNS no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.00494399999843,
+          "p99Ms": 16.00494399999843,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "NTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.004879999996774,
+          "p99Ms": 16.004879999996774,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        },
+        {
+          "name": "Syslog no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 12.00476399999934,
+          "p99Ms": 12.00476399999934,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        }
+      ],
+      "faults": [],
+      "report": "service-ha-0.json"
+    },
+    {
+      "template": "service-ha",
+      "name": "Serviços HA — perda da instância A",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HTTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 8,
+          "lossPercent": 33.333333333333336,
+          "p95Ms": 32.01067200000034,
+          "p99Ms": 32.01067200000034,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "DNS no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 8,
+          "lossPercent": 33.333333333333336,
+          "p95Ms": 16.00494399999843,
+          "p99Ms": 16.00494399999843,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "NTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 8,
+          "lossPercent": 33.333333333333336,
+          "p95Ms": 16.004879999996774,
+          "p99Ms": 16.004879999996774,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        },
+        {
+          "name": "Syslog no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 8,
+          "lossPercent": 33.333333333333336,
+          "p95Ms": 12.00476399999934,
+          "p99Ms": 12.00476399999934,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-2",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": 4032.010671999993,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 6032.010671999993,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": 4016.0045919999975,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 6016.0045919999975,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": 4016.0043039999982,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 6016.004303999998,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": 4004.004108000001,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 6004.004108000001,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "service-ha-1.json"
+    },
+    {
+      "template": "service-ha",
+      "name": "Serviços HA — parada de dns",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HTTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 32.01067200000034,
+          "p99Ms": 32.01067200000034,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "DNS no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 8,
+          "lossPercent": 33.333333333333336,
+          "p95Ms": 16.00494399999843,
+          "p99Ms": 16.00494399999843,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "NTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.004879999996774,
+          "p99Ms": 16.004879999996774,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        },
+        {
+          "name": "Syslog no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 12.00476399999934,
+          "p99Ms": 12.00476399999934,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-2",
+          "kind": "service",
+          "up": false,
+          "service": "dns",
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": 4016.0045919999975,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 6016.0045919999975,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "service-ha-2.json"
+    },
+    {
+      "template": "service-ha",
+      "name": "Serviços HA — parada de http",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HTTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 8,
+          "lossPercent": 33.333333333333336,
+          "p95Ms": 32.01067200000034,
+          "p99Ms": 32.01067200000034,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "DNS no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.00494399999843,
+          "p99Ms": 16.00494399999843,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "NTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.004879999996774,
+          "p99Ms": 16.004879999996774,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        },
+        {
+          "name": "Syslog no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 12.00476399999934,
+          "p99Ms": 12.00476399999934,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-2",
+          "kind": "service",
+          "up": false,
+          "service": "http",
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": 4032.010671999993,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 6032.010671999993,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "service-ha-3.json"
+    },
+    {
+      "template": "service-ha",
+      "name": "Serviços HA — perda do acesso/rack A",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HTTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 32.01067200000034,
+          "p99Ms": 32.01067200000034,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "DNS no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.00494399999843,
+          "p99Ms": 16.00494399999843,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "NTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.004879999996774,
+          "p99Ms": 16.004879999996774,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        },
+        {
+          "name": "Syslog no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 12.00476399999934,
+          "p99Ms": 12.00476399999934,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-64",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 2000,
+          "target": "device-4",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "service-ha-4.json"
+    },
+    {
+      "template": "service-ha",
+      "name": "Serviços HA — perda do acesso/rack B",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HTTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 32.01067200000034,
+          "p99Ms": 32.01067200000034,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "DNS no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.00494399999843,
+          "p99Ms": 16.00494399999843,
+          "jitterP95Ms": 8.001671999998507,
+          "passed": true
+        },
+        {
+          "name": "NTP no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 16.004879999996774,
+          "p99Ms": 16.004879999996774,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        },
+        {
+          "name": "Syslog no VIP",
+          "expect": "allow",
+          "sent": 12,
+          "received": 12,
+          "lossPercent": 0,
+          "p95Ms": 12.00476399999934,
+          "p99Ms": 12.00476399999934,
+          "jitterP95Ms": 8.000671999998303,
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-72",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 2000,
+          "target": "device-5",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HTTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "DNS no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "NTP no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "Syslog no VIP",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "service-ha-5.json"
+    }
+  ]
+}

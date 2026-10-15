@@ -65,10 +65,13 @@ try {
   await page.getByLabel('Modo de simulação', { exact: true }).selectOption('realtime');
   await expect
     .poll(
-      async () => (await (await context.request.get(origin + '/api/projects/' + project.id)).json()).revision,
+      async () => {
+        const saved = await (await context.request.get(origin + '/api/projects/' + project.id)).json();
+        return saved.revision > 1 && saved.topology.clock > 0;
+      },
       { timeout: 15000 }
     )
-    .toBeGreaterThan(1);
+    .toBe(true);
   const live = await (await context.request.get(origin + '/api/projects/' + project.id)).json();
   expect(live.topology.clock).toBeGreaterThan(0);
   const savedResponse = page.waitForResponse(

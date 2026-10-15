@@ -1,0 +1,704 @@
+{
+  "generatedAt": "2026-10-15T13:27:08.980Z",
+  "engineContract": "2026.10.15.3",
+  "engineSourceHash": "cbb0d7ea7c008214df7c963bfa5185e0b07a6f9315d163c2a34aa17cf7bafa85",
+  "passed": true,
+  "scope": "Educational tank/PLC scan and binary Modbus HMI/SCADA/MES loads; no firmware or functional-safety certification.",
+  "results": [
+    {
+      "name": "Processo PLC/HMI/SCADA/MES — baseline",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.07448000000295,
+          "p99Ms": 16.07448000000295,
+          "jitterP95Ms": 1.2732925824820995e-11,
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.034480000002077,
+          "p99Ms": 16.034480000002077,
+          "jitterP95Ms": 5.4569682106375694e-12,
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.054480000002513,
+          "p99Ms": 16.054480000002513,
+          "jitterP95Ms": 9.094947017729282e-12,
+          "passed": true
+        }
+      ],
+      "assertions": [
+        {
+          "name": "HMI-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        }
+      ],
+      "faults": [],
+      "report": "process-0.json",
+      "actors": [
+        {
+          "name": "HMI-PROCESS",
+          "samples": 20,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.094287999982043
+        },
+        {
+          "name": "SCADA-PROCESS",
+          "samples": 20,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.054287999988446
+        },
+        {
+          "name": "MES-PROCESS",
+          "samples": 10,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.074287999985245
+        }
+      ]
+    },
+    {
+      "name": "Processo — desligamento e retorno do PLC",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 7,
+          "lossPercent": 50,
+          "p95Ms": 16.254480000001422,
+          "p99Ms": 16.254480000001422,
+          "jitterP95Ms": 0.17999999999847205,
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 7,
+          "lossPercent": 50,
+          "p95Ms": 16.15447999999924,
+          "p99Ms": 16.15447999999924,
+          "jitterP95Ms": 0.11999999999716238,
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 7,
+          "lossPercent": 50,
+          "p95Ms": 16.174479999999676,
+          "p99Ms": 16.174479999999676,
+          "jitterP95Ms": 0.11999999999716238,
+          "passed": true
+        }
+      ],
+      "assertions": [
+        {
+          "name": "HMI-PROCESS detecta falha",
+          "atMs": 6000,
+          "epoch": 0,
+          "observed": "true",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS detecta falha",
+          "atMs": 6000,
+          "epoch": 0,
+          "observed": "true",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS detecta falha",
+          "atMs": 6000,
+          "epoch": 0,
+          "observed": "true",
+          "passed": true
+        },
+        {
+          "name": "HMI-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-3",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HMI-PROCESS → sensor",
+              "recoveryMs": 7016.254480000001,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 9016.254480000001,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "SCADA-PROCESS → sensor",
+              "recoveryMs": 7016.154479999999,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 9016.15448,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "MES-PROCESS → sensor",
+              "recoveryMs": 7016.17448,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 9016.17448,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 8000,
+          "target": "device-3",
+          "kind": "device",
+          "up": true,
+          "recovery": [
+            {
+              "flow": "HMI-PROCESS → sensor",
+              "recoveryMs": 1016.2544800000014,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 9016.254480000001,
+              "firstFailedAttemptAtMs": 8000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "SCADA-PROCESS → sensor",
+              "recoveryMs": 1016.1544799999992,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 9016.15448,
+              "firstFailedAttemptAtMs": 8000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "MES-PROCESS → sensor",
+              "recoveryMs": 1016.1744799999997,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 9016.17448,
+              "firstFailedAttemptAtMs": 8000,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "process-1.json",
+      "actors": [
+        {
+          "name": "HMI-PROCESS",
+          "samples": 13,
+          "missed": 7,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.094287999982043
+        },
+        {
+          "name": "SCADA-PROCESS",
+          "samples": 13,
+          "missed": 7,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.054287999988446
+        },
+        {
+          "name": "MES-PROCESS",
+          "samples": 7,
+          "missed": 3,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.074287999985245
+        }
+      ]
+    },
+    {
+      "name": "Processo — falha só do serviço Modbus",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 8,
+          "lossPercent": 42.857142857142854,
+          "p95Ms": 16.07448000000295,
+          "p99Ms": 16.07448000000295,
+          "jitterP95Ms": 1.2732925824820995e-11,
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 8,
+          "lossPercent": 42.857142857142854,
+          "p95Ms": 16.034480000002077,
+          "p99Ms": 16.034480000002077,
+          "jitterP95Ms": 5.4569682106375694e-12,
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 8,
+          "lossPercent": 42.857142857142854,
+          "p95Ms": 16.054480000002513,
+          "p99Ms": 16.054480000002513,
+          "jitterP95Ms": 9.094947017729282e-12,
+          "passed": true
+        }
+      ],
+      "assertions": [
+        {
+          "name": "HMI-PROCESS detecta falha",
+          "atMs": 6000,
+          "epoch": 0,
+          "observed": "true",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS detecta falha",
+          "atMs": 6000,
+          "epoch": 0,
+          "observed": "true",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS detecta falha",
+          "atMs": 6000,
+          "epoch": 0,
+          "observed": "true",
+          "passed": true
+        },
+        {
+          "name": "HMI-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-3",
+          "kind": "service",
+          "up": false,
+          "service": "modbus",
+          "recovery": [
+            {
+              "flow": "HMI-PROCESS → sensor",
+              "recoveryMs": 6016.0744799999975,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 8016.0744799999975,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "SCADA-PROCESS → sensor",
+              "recoveryMs": 6016.034479999997,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 8016.034479999997,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "MES-PROCESS → sensor",
+              "recoveryMs": 6016.054479999997,
+              "observedFailure": true,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": 8016.054479999997,
+              "firstFailedAttemptAtMs": 2000,
+              "measurement": "response-timestamp"
+            }
+          ]
+        },
+        {
+          "atMs": 8000,
+          "target": "device-3",
+          "kind": "service",
+          "up": true,
+          "service": "modbus",
+          "recovery": [
+            {
+              "flow": "HMI-PROCESS → sensor",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "SCADA-PROCESS → sensor",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "MES-PROCESS → sensor",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "process-2.json",
+      "actors": [
+        {
+          "name": "HMI-PROCESS",
+          "samples": 14,
+          "missed": 6,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.094287999982043
+        },
+        {
+          "name": "SCADA-PROCESS",
+          "samples": 14,
+          "missed": 6,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.054287999988446
+        },
+        {
+          "name": "MES-PROCESS",
+          "samples": 7,
+          "missed": 3,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.074287999985245
+        }
+      ]
+    },
+    {
+      "name": "Processo — perda do acesso A",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.07448000000295,
+          "p99Ms": 16.07448000000295,
+          "jitterP95Ms": 1.2732925824820995e-11,
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.034480000002077,
+          "p99Ms": 16.034480000002077,
+          "jitterP95Ms": 5.4569682106375694e-12,
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.054480000002513,
+          "p99Ms": 16.054480000002513,
+          "jitterP95Ms": 9.094947017729282e-12,
+          "passed": true
+        }
+      ],
+      "assertions": [
+        {
+          "name": "HMI-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        }
+      ],
+      "faults": [
+        {
+          "atMs": 2000,
+          "target": "device-6",
+          "kind": "device",
+          "up": false,
+          "recovery": [
+            {
+              "flow": "HMI-PROCESS → sensor",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "SCADA-PROCESS → sensor",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            },
+            {
+              "flow": "MES-PROCESS → sensor",
+              "recoveryMs": null,
+              "observedFailure": false,
+              "resolutionMs": 1000,
+              "recoveryResponseAtMs": null,
+              "firstFailedAttemptAtMs": null,
+              "measurement": "response-timestamp"
+            }
+          ]
+        }
+      ],
+      "report": "process-3.json",
+      "actors": [
+        {
+          "name": "HMI-PROCESS",
+          "samples": 20,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.094287999982043
+        },
+        {
+          "name": "SCADA-PROCESS",
+          "samples": 20,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.054287999988446
+        },
+        {
+          "name": "MES-PROCESS",
+          "samples": 10,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.074287999985245
+        }
+      ]
+    },
+    {
+      "name": "Processo — MES altera setpoint pela rede",
+      "passed": true,
+      "complete": true,
+      "flows": [
+        {
+          "name": "HMI-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.094480000003387,
+          "p99Ms": 16.094480000003387,
+          "jitterP95Ms": 1.6370904631912708e-11,
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.034480000002077,
+          "p99Ms": 16.034480000002077,
+          "jitterP95Ms": 5.4569682106375694e-12,
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS → sensor",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.054480000002513,
+          "p99Ms": 16.054480000002513,
+          "jitterP95Ms": 9.094947017729282e-12,
+          "passed": true
+        },
+        {
+          "name": "MES → setpoint",
+          "expect": "allow",
+          "sent": 14,
+          "received": 14,
+          "lossPercent": 0,
+          "p95Ms": 16.07449600000291,
+          "p99Ms": 16.07449600000291,
+          "jitterP95Ms": 1.2732925824820995e-11,
+          "passed": true
+        }
+      ],
+      "assertions": [
+        {
+          "name": "HMI-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "SCADA-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "MES-PROCESS comunicando",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "false",
+          "passed": true
+        },
+        {
+          "name": "Setpoint recebido",
+          "atMs": 12000,
+          "epoch": 0,
+          "observed": "300",
+          "passed": true
+        }
+      ],
+      "faults": [],
+      "report": "process-4.json",
+      "actors": [
+        {
+          "name": "HMI-PROCESS",
+          "samples": 20,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.094287999982043
+        },
+        {
+          "name": "SCADA-PROCESS",
+          "samples": 20,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.054287999988446
+        },
+        {
+          "name": "MES-PROCESS",
+          "samples": 10,
+          "missed": 0,
+          "communicationAlarm": false,
+          "processAlarm": false,
+          "latencyMs": 16.074287999985245
+        }
+      ]
+    }
+  ]
+}
