@@ -42,6 +42,25 @@ function topology(monitored = false, migrateKnownNeighbor = false, type: 'pc' | 
   return { e, host, spare, a, b, core, server, bond, ping };
 }
 describe('Bond ativo/backup de hosts', () => {
+  it('dois bonds com monitor ARP mútuo recuperam após ambos perderem todas as sondagens', () => {
+    const e = new SimulationEngine(makeTemplate('dual-access'));
+    const hmi = e.state.devices.find((d) => d.hostname === 'HMI-DUAL')!;
+    const plc = e.state.devices.find((d) => d.hostname === 'PLC-DUAL')!;
+    e.advanceTo(5000, 100000);
+    e.setDevicePower(plc.id, false);
+    e.advanceTo(10000, 100000);
+    expect(hmi.interfaces.find((p) => p.bond)!.bond!.active).toBeUndefined();
+    const restored = new SimulationEngine(e.snapshot());
+    for (const run of [e, restored]) {
+      run.setDevicePower(plc.id, true);
+      run.advanceTo(13000, 100000);
+      const id = run.ping(hmi.id, '192.0.2.11');
+      run.advanceTo(13500, 100000);
+      expect(run.state.probes.find((p) => p.id === id)?.status).toBe('success');
+      validateSnapshot(run.snapshot());
+    }
+    expect(restored.snapshot()).toEqual(e.snapshot());
+  });
   it('executa o modelo nativo com perda e retorno de cada rack/UPS/acesso', () => {
     const snapshot = makeTemplate('dual-access');
     expect(snapshot.devices).toHaveLength(8);

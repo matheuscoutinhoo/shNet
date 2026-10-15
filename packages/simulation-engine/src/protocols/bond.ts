@@ -202,6 +202,35 @@ export function receiveBondProbe(e: SimulationEngine, d: Device, member: Network
   const port = d.interfaces.find((p) => p.id === member.channel),
     b = port?.bond,
     arp = frame.arp;
+  // Probe reachability must not depend on having already elected a healthy member.
+  // Reply on the physical ingress with its MAC, keeping the logical data MAC off standby paths.
+  if (
+    b &&
+    port?.ip &&
+    d.power &&
+    port.adminUp &&
+    member.adminUp &&
+    frame.etherType === 'ARP' &&
+    arp?.kind === 'request' &&
+    arp.senderIp === '0.0.0.0' &&
+    arp.targetIp === port.ip &&
+    arp.senderMac === frame.src &&
+    frame.dst === BROADCAST
+  ) {
+    const reply: Frame = {
+      src: member.mac,
+      dst: arp.senderMac,
+      etherType: 'ARP',
+      hops: LIMITS.l2Hops,
+      arp: { kind: 'reply', senderIp: port.ip, senderMac: member.mac, targetIp: '0.0.0.0' },
+    };
+    e.emit('ARP_REPLY', d.id, 'Resposta à sondagem ARP pela NIC física do bond.', {
+      port: member.id,
+      frame: reply,
+    });
+    e.sendFrame(d.id, member.id, reply);
+    return true;
+  }
   if (
     !b?.monitor ||
     !arp ||
