@@ -244,6 +244,10 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
     copy.vlans = d.vlans.map((v) => ({ ...v, id: vlans.get(v.id)! }));
     copy.routes = remap(d.routes, d);
     if (d.gateway) copy.gateway = address(d.gateway);
+    if (copy.hmiScan) {
+      copy.hmiScan.target = address(copy.hmiScan.target);
+      copy.hmiScan.enabled = d.hmiScan!.enabled;
+    }
     for (const p of d.interfaces) {
       const q = copy.interfaces.find((v) => v.id === ports.get(d.id)!.get(p.id));
       if (!q) continue;

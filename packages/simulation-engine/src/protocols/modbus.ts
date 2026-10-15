@@ -1,4 +1,5 @@
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
+import { validatePlcBindings } from './plc-process';
 import { modbusConfigSchema, modbusRequestSchema, type ModbusRequest } from './modbus-model';
 import type { SimulationEngine } from '../core/engine';
 import type { Device, Snapshot } from '../model';
@@ -75,6 +76,7 @@ export function configureModbus(e: SimulationEngine, d: Device, input: unknown) 
   if (d.type !== 'server' && d.type !== 'router')
     throw new Error('Servidor Modbus exige PLC/servidor ou roteador.');
   const config = modbusConfigSchema.parse(input);
+  validatePlcBindings(d, config);
   if (d.tcpServices?.some((s) => s.port === config.port && s.kind !== 'modbus' && s.enabled))
     throw new Error('Porta Modbus ocupada por outro serviço.');
   if (d.modbus && d.modbus.port !== config.port)

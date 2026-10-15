@@ -42,6 +42,20 @@ function topology(monitored = false, migrateKnownNeighbor = false, type: 'pc' | 
   return { e, host, spare, a, b, core, server, bond, ping };
 }
 describe('Bond ativo/backup de hosts', () => {
+  it('uma NIC de reserva do destino não certifica um caminho sem acesso à NIC ativa', () => {
+    const e = new SimulationEngine(makeTemplate('dual-access'));
+    const hmi = e.state.devices.find((d) => d.hostname === 'HMI-DUAL')!;
+    const plc = e.state.devices.find((d) => d.hostname === 'PLC-DUAL')!;
+    const sw = e.state.devices.find((d) => d.hostname === 'ACCESS-DUAL-A')!;
+    const remote = plc.interfaces.find((p) => p.bond)!;
+    e.configureBond(plc.id, 1, remote.bond!.members, remote.bond!.primary);
+    e.advanceTo(5000, 100000);
+    e.setPort(sw.id, 'p2', false);
+    e.advanceTo(10000, 100000);
+    e.setPort(hmi.id, 'p0', false);
+    expect(hmi.interfaces.find((p) => p.bond)!.bond!.active).toBeUndefined();
+    validateSnapshot(e.snapshot());
+  });
   it('dois bonds com monitor ARP mútuo recuperam após ambos perderem todas as sondagens', () => {
     const e = new SimulationEngine(makeTemplate('dual-access'));
     const hmi = e.state.devices.find((d) => d.hostname === 'HMI-DUAL')!;

@@ -46,6 +46,7 @@ function addConnection(
     const old = device.tcpConnections.findIndex(
       (entry) =>
         tcpFinished(entry) &&
+        entry.id !== device.hmiScan?.pending?.connection &&
         entry.id !== device.iot?.connection &&
         !device.broker?.clients.some((client) => client.connection === entry.id) &&
         !device.proxy?.requests.some(

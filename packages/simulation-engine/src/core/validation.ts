@@ -1,5 +1,7 @@
 import { validateDatabase } from '../protocols/database';
 import { validateModbus } from '../protocols/modbus';
+import { validatePlcProcesses } from '../protocols/plc-process';
+import { validateHmiScans } from '../protocols/hmi-scan';
 import { validateInfrastructure } from '../devices/infrastructure';
 import { validateEnterprise } from '../protocols/enterprise';
 import { validateCapwap } from '../protocols/capwap';
@@ -82,6 +84,8 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateCanvas(s);
   validateTcp(s);
   validateModbus(s);
+  validatePlcProcesses(s);
+  validateHmiScans(s);
   validateFirewall(s);
   validateStateSync(s);
   validateInspection(s);

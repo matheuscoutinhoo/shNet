@@ -47,7 +47,7 @@ export const fidelityMatrix = [
     feature: 'Modbus TCP',
     status: 'Parcial',
     limit:
-      'MBAP/PDU binários sobre TCP e PCAP: funções 01/02/03/04/05/06/15/16. Coils, entradas discretas, holding/input registers e amostragem periódica por cenário. Sem ladder, processo físico ou firmware PLC. Conexões antigas hex/newline continuam legadas e são excluídas do PCAP.',
+      'MBAP/PDU binários sobre TCP e PCAP: funções 01/02/03/04/05/06/15/16. Processo de tanque simplificado, scans PLC e ciclos HMI/SCADA/MES com alarmes e deadlines. Sem ladder, firmware ou física certificada. Conexões antigas hex/newline são legadas e excluídas do PCAP.',
   },
   {
     feature: 'PROFINET, EtherNet/IP, OPC UA',
@@ -67,7 +67,8 @@ export const fidelityMatrix = [
   {
     feature: 'SCADA, MES, câmeras e processo',
     status: 'Representado',
-    limit: 'Serviços e cargas de rede substitutos; lógica de processo e codecs de vídeo não executados.',
+    limit:
+      'Cargas Modbus periódicas, setpoint e processo de tanque educacional. Não executa aplicações MES/SCADA completas, firmware ou codecs de vídeo.',
   },
   {
     feature: 'VXLAN / EVPN / underlay',

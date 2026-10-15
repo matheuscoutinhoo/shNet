@@ -44,6 +44,8 @@ const stages: Record<string, string> = {
   EXPIRED: 'validade encerrada',
   STATE: 'estado registrado',
   CHANGED: 'estado alterado',
+  SCAN: 'ciclo executado',
+  SAMPLE: 'amostra recebida',
   SELECTED: 'caminho escolhido',
   UPDATED: 'informação atualizada',
   ADDED: 'informação instalada',
@@ -139,6 +141,18 @@ const families: [RegExp, string, string, string][] = [
     'Aprendizado e escolha de rotas',
     'Roteadores anunciam e comparam caminhos. Ter um vizinho não garante que a rota desejada foi anunciada ou instalada.',
     'Confira vizinhos, anúncios e tabela de rotas, incluindo o caminho de retorno.',
+  ],
+  [
+    /^(PLC|HMI|PROCESS)/,
+    'Ciclo de processo e supervisão',
+    'O PLC atualiza o processo no seu ciclo. HMI, SCADA e MES recebem valores por Modbus; o último valor pode estar desatualizado após falhas de comunicação.',
+    'Compare nível, setpoint, atuador, estado do alarme, última recepção e prazo de leitura.',
+  ],
+  [
+    /^BOND/,
+    'NICs ativo/backup',
+    'Uma NIC encaminha os dados do grupo. Carrier e, quando configurado, sondagens ARP determinam os caminhos elegíveis.',
+    'Confira NIC ativa, respostas das sondagens, alvo ARP e falhas dos switches ou uplinks.',
   ],
   [
     /^VRRP/,

@@ -1,4 +1,6 @@
 import { invalidateProtocolIndex } from './protocol-index';
+import { configurePlcProcess, acknowledgeProcessAlarm, handlePlcProcess } from '../protocols/plc-process';
+import { configureHmiScan, handleHmiScan } from '../protocols/hmi-scan';
 import { expireDeviceCaches, invalidateCacheExpiry } from './cache-expiry';
 import {
   configureBond,
@@ -236,6 +238,15 @@ export class SimulationEngine {
   }
   snapshot(): Snapshot {
     return structuredClone(this.state);
+  }
+  configurePlcProcess(deviceId: string, input: unknown) {
+    configurePlcProcess(this, this.device(deviceId), input);
+  }
+  acknowledgeProcessAlarm(deviceId: string) {
+    acknowledgeProcessAlarm(this, this.device(deviceId));
+  }
+  configureHmiScan(deviceId: string, input: unknown) {
+    configureHmiScan(this, this.device(deviceId), input);
   }
   id(prefix: string) {
     return prefix + '-' + ++this.state.sequence;
@@ -1539,6 +1550,8 @@ export class SimulationEngine {
       }
     } else if (a.kind === 'lacp-tick') handleLacpTick(this, a);
     else if (a.kind === 'bond-tick') handleBondTick(this, a);
+    else if (a.kind === 'plc-process-tick') handlePlcProcess(this, a);
+    else if (a.kind === 'hmi-scan-tick') handleHmiScan(this, a);
     else if (
       a.kind === 'stp-hello' ||
       a.kind === 'stp-transition' ||

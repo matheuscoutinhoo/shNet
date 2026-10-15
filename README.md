@@ -86,6 +86,8 @@ O template **Um gateway, dois roteadores** demonstra VRRP IPv4. Faça ping ou HT
 
 O template **Três zonas, caminhos controlados** permite comparar acessos HTTP da LAN/WAN para a DMZ, bloqueios por serviço e traceroute através de PAT/firewall. Configure zonas e regras em **Políticas**; a timeline inspeciona o cabeçalho citado em erros ICMP. Limites em [ADR-015](docs/adr/015-firewall-zones-and-related-icmp.md).
 
+**Processo PLC, HMI, SCADA e MES** acrescenta tanque simplificado, controle manual/automático, scans PLC e leituras Modbus periódicas com deadline e alarmes. Configure em **Validar rede e cenários → PLC / HMI**; os cinco presets cobrem cargas, perda/retorno, acesso e escrita de setpoint. Execute `npx tsx scripts/verify-industrial-process.ts` para arquivar resultados. Não executa ladder, firmware ou segurança funcional de hardware. [ADR-051](docs/adr/051-plc-process-and-supervisory-cycles.md).
+
 ### Experimento TCP / HTTP
 
 Os templates **Rotas que se adaptam** e **Rotas por distância** acrescentam OSPF e RIPv2, com caminhos alternativos após falhas. Configure e inspecione os protocolos nas abas dos roteadores. Para DNS sobre TCP, abra **Nomes na rede** e selecione o transporte no painel DNS; o modo automático repete respostas UDP truncadas. Comandos e limites estão em [protocols.md](docs/protocols.md).

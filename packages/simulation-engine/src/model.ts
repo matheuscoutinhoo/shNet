@@ -124,6 +124,12 @@ export * from './protocols/bgp-model';
 import { z } from 'zod';
 import { modbusConfigSchema } from './protocols/modbus-model';
 import {
+  plcProcessStateSchema,
+  hmiScanStateSchema,
+  plcProcessTimerSchema,
+  hmiScanTimerSchema,
+} from './protocols/industrial-process-model';
+import {
   ipv6InterfaceSchema,
   packet6Schema,
   route6Schema,
@@ -747,6 +753,8 @@ export const deviceSchema = z
       .optional(),
     hostname: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
     modbus: modbusConfigSchema.optional(),
+    plcProcess: plcProcessStateSchema.optional(),
+    hmiScan: hmiScanStateSchema.optional(),
     position: z.object({ x: finite.min(-100000).max(100000), y: finite.min(-100000).max(100000) }).strict(),
     physicalPosition: z
       .object({ x: finite.min(-100000).max(100000), y: finite.min(-100000).max(100000) })
@@ -1029,6 +1037,10 @@ export const eventSchema = z
       'LACP_RECEIVED',
       'LACP_STATE_CHANGED',
       'BOND_STATE_CHANGED',
+      'PLC_SCAN',
+      'PROCESS_ALARM_CHANGED',
+      'HMI_SAMPLE',
+      'HMI_STATE_CHANGED',
       'VRRP_ADVERT_SENT',
       'VRRP_ADVERT_RECEIVED',
       'RIP_REQUEST',
@@ -1083,6 +1095,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
   probe6TimerSchema,
   lacpTimerSchema,
   bondTimerSchema,
+  plcProcessTimerSchema,
+  hmiScanTimerSchema,
   tcpTimerSchema,
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),

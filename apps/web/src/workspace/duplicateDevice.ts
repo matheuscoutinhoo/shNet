@@ -6,6 +6,8 @@ import {
   aaaServerConfig,
   ntpConfig,
   sdwanConfig,
+  plcProcessConfig,
+  hmiScanConfig,
   type Device,
   type SimulationEngine,
 } from '@shlab/engine';
@@ -346,5 +348,11 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     });
   else if (d.spanningTree?.enabled)
     e.configureSpanningTree(copy.id, d.spanningTree.mode, d.spanningTree.priority);
+  if (d.plcProcess)
+    e.configurePlcProcess(copy.id, {
+      ...plcProcessConfig(d),
+      initialLevel: Math.round(d.plcProcess.levelMilli / 1000),
+    });
+  if (d.hmiScan) e.configureHmiScan(copy.id, { ...hmiScanConfig(d), enabled: false });
   return { device: copy, portMapping };
 }

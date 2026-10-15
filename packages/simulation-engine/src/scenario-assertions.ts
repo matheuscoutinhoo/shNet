@@ -6,6 +6,15 @@ const ref = z.string().min(1).max(80);
 const base = { name: z.string().min(1).max(80), atMs: z.number().int().nonnegative(), target: ref };
 export const scenarioAssertionSchema = z.discriminatedUnion('kind', [
   z.object({ ...base, kind: z.literal('power'), expected: z.boolean() }).strict(),
+  z
+    .object({
+      ...base,
+      kind: z.literal('hmi-alarm'),
+      alarm: z.enum(['communication', 'process']),
+      expected: z.boolean(),
+    })
+    .strict(),
+  z.object({ ...base, kind: z.literal('plc-alarm'), expected: z.boolean() }).strict(),
   z.object({ ...base, kind: z.literal('port'), port: ref, expected: z.boolean() }).strict(),
   z
     .object({ ...base, kind: z.literal('mtu'), port: ref, expected: z.number().int().min(64).max(9216) })
@@ -79,6 +88,12 @@ export function observeAssertion(engine: SimulationEngine, assertion: ScenarioAs
   switch (assertion.kind) {
     case 'power':
       return String(d.power);
+    case 'hmi-alarm':
+      return d.hmiScan
+        ? String(assertion.alarm === 'communication' ? d.hmiScan.communicationAlarm : d.hmiScan.processAlarm)
+        : 'not-configured';
+    case 'plc-alarm':
+      return d.plcProcess ? String(d.plcProcess.alarms.latched) : 'not-configured';
     case 'port':
       return port ? String(port.adminUp) : 'not-configured';
     case 'mtu':

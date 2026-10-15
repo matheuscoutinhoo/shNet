@@ -71,6 +71,9 @@ export * from './fidelity';
 export * from './configuration-review';
 export * from './protocols/modbus';
 export * from './protocols/modbus-model';
+export * from './protocols/industrial-process-model';
+export { plcProcessConfig } from './protocols/plc-process';
+export { hmiScanConfig } from './protocols/hmi-scan';
 export { advancedLabs } from './advanced-labs';
 
 export { dnssecAnchor } from './protocols/dnssec';
@@ -105,6 +108,7 @@ export * from './wire/pcap';
 export * from './factory-scenarios';
 export { dualAccessScenarios } from './dual-access-template';
 export { serviceHaScenarios } from './service-ha-template';
+export { industrialProcessScenarios } from './industrial-process-template';
 export * from './enterprise-scenarios';
 export * from './version';
 export * from './topology-layout';

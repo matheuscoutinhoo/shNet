@@ -292,6 +292,7 @@ export const scenarioReportSchema = z
                 r.engineContract === '2026.10.14.1' ||
                 r.engineContract === '2026.10.14.2' ||
                 r.engineContract === '2026.10.15.1' ||
+                r.engineContract === '2026.10.15.2' ||
                 recovery.some((v) => v.measurement !== undefined)
             )
           )

@@ -2644,6 +2644,66 @@ test('Serviços HA: configuração do VIP, tracking, presets e persistência mob
   await page.getByLabel('Carregar cenário').selectOption({ label: 'Modelo: Serviços HA — parada de dns' });
   expect(errors).toEqual([]);
 });
+test('Processo industrial: ciclos PLC/HMI, alarmes, persistência e mobile', async ({ page }) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'process-ui-' + Date.now() + '@example.test');
+  const me = await (await page.request.get('/api/auth/me')).json();
+  const created = await page.request.post('/api/projects', {
+    headers: { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken },
+    data: { name: 'Processo UI', template: 'industrial-process' },
+  });
+  expect(created.status()).toBe(201);
+  await page.reload();
+  await page.getByRole('heading', { name: 'Processo UI', exact: true }).click();
+  const open = async () => {
+    await page.getByRole('button', { name: 'Opções do laboratório', exact: true }).click();
+    await page.getByRole('button', { name: 'Validar rede e cenários', exact: true }).click();
+    await page.getByRole('button', { name: 'PLC / HMI', exact: true }).click();
+  };
+  const close = async () =>
+    page
+      .getByRole('dialog')
+      .locator('.modal-head')
+      .getByRole('button', { name: 'Fechar', exact: true })
+      .click();
+  await open();
+  const panel = page.locator('.industrial-process-panel');
+  await panel.getByRole('combobox', { name: 'Controle do tanque', exact: true }).selectOption('manual');
+  await panel.getByLabel('Nível inicial ao aplicar (0–1000)', { exact: true }).fill('950');
+  await panel.getByLabel('Vazão de entrada (unidades/s)', { exact: true }).fill('0');
+  await panel.getByLabel('Vazão de saída (unidades/s)', { exact: true }).fill('0');
+  await panel.getByRole('button', { name: 'Aplicar processo PLC', exact: true }).click();
+  await panel.getByLabel('Alarme alto da amostra HMI (opcional)', { exact: true }).fill('900');
+  await panel.getByRole('button', { name: 'Aplicar ciclo HMI', exact: true }).click();
+  await close();
+  await page.getByLabel('Modo de simulação', { exact: true }).selectOption('realtime');
+  await expect(page.getByRole('button', { name: 'Pausar simulação', exact: true })).toBeVisible();
+  await open();
+  await expect(panel.getByRole('status', { name: 'Estado do processo PLC' })).toContainText('Alarme: retido');
+  await expect(panel.getByRole('status', { name: 'Estado do ciclo HMI' })).toContainText('Valor: alarme');
+  await panel.getByRole('button', { name: 'Reconhecer alarme do processo', exact: true }).click();
+  await expect(panel.getByRole('status', { name: 'Estado do processo PLC' })).toContainText(
+    'Reconhecido: true'
+  );
+  await close();
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'Processo UI', exact: true }).click();
+  await open();
+  await expect(panel.getByRole('status', { name: 'Estado do processo PLC' })).toContainText(
+    'Reconhecido: true'
+  );
+  await expect(panel.getByRole('status', { name: 'Estado do ciclo HMI' })).toContainText('950');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/process-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
 async function configureIp(page: Page, hostname: string, ip: string) {
   await inspectDevice(page, hostname);
   const power = page.getByRole('button', { name: 'Ligar equipamento', exact: true });

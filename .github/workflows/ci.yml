@@ -44,6 +44,15 @@ jobs:
         run: npx tsx scripts/verify-service-availability.ts
         env:
           SHLAB_AUDIT_OUTPUT: artifacts/service-availability-2026-10-15/ci
+      - name: Verify PLC process and supervisory workloads
+        run: npx tsx scripts/verify-industrial-process.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/industrial-process-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: industrial-process
+          path: artifacts/industrial-process-2026-10-15/ci/*.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

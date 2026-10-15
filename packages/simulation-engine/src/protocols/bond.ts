@@ -217,6 +217,8 @@ export function receiveBondProbe(e: SimulationEngine, d: Device, member: Network
     arp.senderMac === frame.src &&
     frame.dst === BROADCAST
   ) {
+    const active = bondActive(e.state, d, port);
+    if (active && active !== member.id) return false;
     const reply: Frame = {
       src: member.mac,
       dst: arp.senderMac,

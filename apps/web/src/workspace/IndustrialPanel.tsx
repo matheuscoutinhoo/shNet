@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { configureModbus, modbusRequest, decodeModbus, modbusConfigSchema } from '@shlab/engine';
 import type { LabController } from './useLab';
+import { IndustrialProcessPanel } from './IndustrialProcessPanel';
 export function IndustrialPanel({ lab }: { lab: LabController }) {
   const candidates = lab.engine.state.devices.filter((d) => d.interfaces.some((p) => p.ip));
   const [source, setSource] = useState(
@@ -43,7 +44,7 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
     <>
       <p>
         Modbus TCP binário: funções 01/02/03/04/05/06/15/16, coils e registradores de 16 bits. Os endereços
-        começam em zero. A aplicação simula a comunicação; não executa firmware ou lógica de processo do PLC.
+        começam em zero. O processo de tanque e os ciclos abaixo são modelos simplificados, sem firmware PLC.
       </p>
       <label>
         PLC / servidor
@@ -275,6 +276,13 @@ export function IndustrialPanel({ lab }: { lab: LabController }) {
         <p role="status">
           {connection?.state} · {response}
         </p>
+      )}
+      {target && (
+        <IndustrialProcessPanel
+          lab={lab}
+          plc={target}
+          source={lab.engine.state.devices.find((d) => d.id === source)}
+        />
       )}
     </>
   );

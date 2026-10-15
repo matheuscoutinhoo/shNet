@@ -1,5 +1,13 @@
 export const templates = [
   {
+    id: 'industrial-process',
+    name: 'Processo PLC, HMI, SCADA e MES',
+    description:
+      'Dez equipamentos, processo de tanque, ciclos e alarmes, cargas Modbus e acesso/energia A/B.',
+    level: 'Industrial / Processo e disponibilidade',
+    devices: 10,
+  },
+  {
     id: 'service-ha',
     name: 'Serviços com VIP, acesso e energia redundantes',
     description: 'Nove equipamentos, DNS/HTTP em duas instâncias, tracking de serviço, bonds e UPS A/B.',

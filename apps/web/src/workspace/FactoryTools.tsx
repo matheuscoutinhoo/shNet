@@ -7,6 +7,7 @@ import {
   enterpriseScenarios,
   dualAccessScenarios,
   serviceHaScenarios,
+  industrialProcessScenarios,
   ENGINE_BUILD,
   type ScenarioRunner,
   type Snapshot,
@@ -84,6 +85,7 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
     ...enterpriseScenarios(lab.engine.state),
     ...dualAccessScenarios(lab.engine.state),
     ...serviceHaScenarios(lab.engine.state),
+    ...industrialProcessScenarios(lab.engine.state),
   ];
   const saved = lab.engine.state.scenarios ?? [];
   const worker = useRef<Worker | null>(null);
@@ -367,10 +369,10 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
                 (dns/dhcp/http/modbus/mqtt/snmp/ntp/syslog); power corta rede e bateria de uma UPS. A
                 expectativa deny verifica ausência de resposta dentro do deadline; denyEvidence policy exige
                 regra correlacionada. Investigue a causa no relatório. Modbus exige transaction, unit,
-                function (3/6/16), address, quantity e values para escrita; expectedRegisters valida os
-                valores lidos. requireFinalSuccess exige sucesso na última amostra. DNS exige name e aceita
-                expectedAnswers; DHCP exige interface e aceita expectedServer/expectedAddress. MQTT exige
-                operation connect/publish; publicações usam QoS 1, topic e payload, com receiver/filter
+                function (01/02/03/04/05/06/15/16), address, quantity e values para escrita; expectedRegisters
+                valida os valores lidos. requireFinalSuccess exige sucesso na última amostra. DNS exige name e
+                aceita expectedAnswers; DHCP exige interface e aceita expectedServer/expectedAddress. MQTT
+                exige operation connect/publish; publicações usam QoS 1, topic e payload, com receiver/filter
                 opcionais para validar recepção. SNMP exige community/oids e aceita expectedVarbinds. NTP
                 exige maxOffsetMs; syslog exige text e aceita severity. DHCP/MQTT/NTP usam equipamentos
                 exclusivos e intervalo maior ou igual ao deadline.
