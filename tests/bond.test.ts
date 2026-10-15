@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { makeTemplate, dualAccessScenarios, ScenarioRunner } from '@shlab/engine';
+import { configureModbus, modbusRequest, decodeModbus, encodeModbusRequest } from '@shlab/engine';
+import { cloneTopology } from '../apps/web/src/workspace/cloneTopology';
 import { SimulationEngine, validateSnapshot, interfaceOperational, defaultDhcpPool } from '@shlab/engine';
-function topology(monitored = false, migrateKnownNeighbor = false) {
+function topology(monitored = false, migrateKnownNeighbor = false, type: 'pc' | 'server' = 'pc') {
   const e = new SimulationEngine(),
-    host = e.addDevice('pc'),
+    host = e.addDevice(type),
     spare = e.installNic(host.id),
     a = e.addDevice('switch'),
     b = e.addDevice('switch'),
@@ -39,6 +42,122 @@ function topology(monitored = false, migrateKnownNeighbor = false) {
   return { e, host, spare, a, b, core, server, bond, ping };
 }
 describe('Bond ativo/backup de hosts', () => {
+  it('executa o modelo nativo com perda e retorno de cada rack/UPS/acesso', () => {
+    const snapshot = makeTemplate('dual-access');
+    expect(snapshot.devices).toHaveLength(8);
+    validateSnapshot(snapshot);
+    const presets = dualAccessScenarios(snapshot);
+    expect(presets).toHaveLength(3);
+    for (const scenario of presets) {
+      const runner = new ScenarioRunner(snapshot, scenario);
+      for (let i = 0; i < 1000 && !runner.step(100); i++);
+      const report = runner.report();
+      expect(report.passed, JSON.stringify(report)).toBe(true);
+      validateSnapshot(runner.engine.snapshot());
+    }
+  });
+  it('o PLC com duas NICs mantém a mesma sessão Modbus binária após perda do switch', () => {
+    const { e, host, server, a, bond } = topology(true, false, 'server');
+    configureModbus(e, host, { enabled: true, registers: [1234, 65535] });
+    const request = (transaction: number) =>
+      encodeModbusRequest({ transaction, unit: 1, function: 3, address: 0, quantity: 2 });
+    const id = modbusRequest(e, server, bond.ip!, {
+        transaction: 1,
+        unit: 1,
+        function: 3,
+        address: 0,
+        quantity: 2,
+      }),
+      connection = server.tcpConnections!.find((c) => c.id === id)!;
+    connection.closeRequested = false;
+    e.advanceTo(e.state.clock + 1000, 100000);
+    expect(decodeModbus(connection.received)).toMatchObject({ transaction: 1, function: 3 });
+    const consumed = connection.received.length;
+    e.setDevicePower(a.id, false);
+    e.writeTcp(server.id, id, request(2));
+    e.advanceTo(e.state.clock + 3000, 100000);
+    expect(connection.id).toBe(id);
+    expect(decodeModbus(connection.received.slice(consumed))).toMatchObject({
+      transaction: 2,
+      function: 3,
+      exception: undefined,
+    });
+    expect(host.modbus!.registers).toEqual([1234, 65535]);
+    expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+  });
+  it('NIC adicional só pode ser removida depois de desconectar e liberar o grupo', () => {
+    const { e, host, spare, bond } = topology();
+    expect(() => e.removeNic(host.id, spare.id)).toThrow('Desconecte');
+    delete bond.ip;
+    delete bond.prefix;
+    e.removeBond(host.id, bond.id);
+    for (const link of e.state.links.filter((l) =>
+      [l.a, l.b].some((end) => end.device === host.id && end.port === spare.id)
+    ))
+      e.removeLink(link.id);
+    e.removeNic(host.id, spare.id);
+    expect(host.interfaces.some((p) => p.id === spare.id)).toBe(false);
+    expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+  });
+  it('a perda dos dois acessos interrompe o fluxo e o snapshot não aceita políticas nos membros', () => {
+    const { e, a, b, bond, host, ping } = topology(true);
+    e.setDevicePower(a.id, false);
+    e.setDevicePower(b.id, false);
+    expect(bond.bond!.active).toBeUndefined();
+    expect(ping().status).not.toBe('success');
+    const bad = e.snapshot();
+    bad.devices.find((d) => d.id === host.id)!.interfaces.find((p) => p.id === 'p0')!.natRole = 'inside';
+    expect(() => validateSnapshot(bad)).toThrow();
+    validateSnapshot(e.snapshot());
+  });
+  it('dissolver o grupo limpa a resolução ARP ainda pendente na interface virtual', () => {
+    const { e, host, bond } = topology();
+    e.ping(host.id, '192.0.2.99');
+    expect(host.pending.some((p) => p.port === bond.id)).toBe(true);
+    delete bond.ip;
+    delete bond.prefix;
+    e.removeBond(host.id, bond.id);
+    expect(host.pending.some((p) => p.port === bond.id)).toBe(false);
+    validateSnapshot(e.snapshot());
+  });
+  it('remapeia alvos de monitor e reinicia estado ao clonar a rede completa', () => {
+    const { e } = topology(true),
+      source = e.snapshot(),
+      proposal = cloneTopology(
+        source,
+        source.devices.map((d) => d.id)
+      );
+    const copies = proposal.snapshot.devices.filter((d) => !source.devices.some((old) => old.id === d.id));
+    const clonedHost = copies.find((d) => d.interfaces.some((p) => p.bond))!,
+      clonedBond = clonedHost.interfaces.find((p) => p.bond)!;
+    expect(clonedBond.bond!.monitor!.target).not.toBe('192.0.2.1');
+    const run = new SimulationEngine(proposal.snapshot);
+    run.advanceTo(run.state.clock + 4500, 100000);
+    expect(
+      run
+        .device(clonedHost.id)
+        .interfaces.find((p) => p.id === clonedBond.id)!
+        .bond!.health.every((h) => h.lastResponseAt !== undefined)
+    ).toBe(true);
+    expect(() => validateSnapshot(run.snapshot())).not.toThrow();
+  });
+  it('recupera leitura Modbus TCP binária pelo caminho de reserva', () => {
+    const { e, host, server, a } = topology(true);
+    configureModbus(e, server, { enabled: true, registers: [1234, 65535] });
+    e.setDevicePower(a.id, false);
+    e.advanceTo(e.state.clock + 500, 100000);
+    const id = modbusRequest(e, host, '192.0.2.1', {
+      transaction: 7,
+      unit: 1,
+      function: 3,
+      address: 0,
+      quantity: 2,
+    });
+    e.advanceTo(e.state.clock + 1000, 100000);
+    const reply = decodeModbus(host.tcpConnections!.find((c) => c.id === id)!.received);
+    expect(reply).toMatchObject({ transaction: 7, function: 3, exception: undefined });
+    expect([...reply.pdu]).toEqual([3, 4, 4, 210, 255, 255]);
+  });
   it('anuncia o MAC lógico a um vizinho que já conhecia o IPv4 físico', () => {
     const { e, host, server, bond } = topology(false, true);
     expect(server.arpTable.find((row) => row.ip === bond.ip)?.mac).toBe(bond.mac);

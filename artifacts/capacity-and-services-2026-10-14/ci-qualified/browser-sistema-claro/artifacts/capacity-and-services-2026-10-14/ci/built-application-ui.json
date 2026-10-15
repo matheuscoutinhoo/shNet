@@ -1,0 +1,25 @@
+{
+  "errors": [],
+  "openMs": 713.6620139999995,
+  "failedDeferredPanelPreservesWorkspace": true,
+  "controlledPanelErrors": [],
+  "continuousAutosave": {
+    "revision": 2,
+    "clock": 4130.59999999986,
+    "manualSaveResolved": true
+  },
+  "build": {
+    "engineBuild": "3692ed429a3fc229276986268ff38e73a578f7699457efde4d54590e6f39d5b1",
+    "engineContract": "2026.10.14.1",
+    "schemaVersion": 11,
+    "workerArtifact": "7b8126f95e9e70a352fea7569362b0e0ad2eba943a84dbf1a7d490ad3e1f69cc",
+    "clientWorkerHash": "3692ed429a3fc229276986268ff38e73a578f7699457efde4d54590e6f39d5b1",
+    "workerArtifactHash": "7b8126f95e9e70a352fea7569362b0e0ad2eba943a84dbf1a7d490ad3e1f69cc",
+    "entryBytes": 268889,
+    "entry": "/assets/index-CJP63rUI.js",
+    "replay": "matched"
+  },
+  "doubleFailureVisible": true,
+  "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+  "passed": true
+}

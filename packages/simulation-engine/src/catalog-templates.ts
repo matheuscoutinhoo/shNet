@@ -1,5 +1,12 @@
 export const templates = [
   {
+    id: 'dual-access',
+    name: 'PLC/HMI com acesso e alimentação A/B',
+    description: 'Oito equipamentos, NICs ativo/backup, monitor ARP, dois acessos/racks e UPS A/B.',
+    level: 'Disponibilidade / Modbus TCP',
+    devices: 8,
+  },
+  {
     id: 'enterprise-datacenter',
     name: 'Campus enterprise e fabric de datacenter',
     description:

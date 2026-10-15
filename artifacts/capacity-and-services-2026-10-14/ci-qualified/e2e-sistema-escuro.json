@@ -1,0 +1,915 @@
+{
+  "source": "GitHub Actions run 38658476431",
+  "head": "bf875440ecb0bd6bd3be006cbcf6a2b964feb872",
+  "format": "Compact test results; server logs and attachments omitted. Full report remains in Actions artifacts.",
+  "stats": {
+    "startTime": "2026-10-15T00:11:05.031Z",
+    "duration": 1503764.006,
+    "expected": 60,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "Aprendizado: finder centraliza equipamento presente e terminais respeitam o perfil",
+      "file": "lab.spec.ts",
+      "line": 92,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10425,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile",
+      "file": "lab.spec.ts",
+      "line": 195,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7935,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Painel inferior: expansão por mouse, teclado e toque, limites responsivos e rolagem",
+      "file": "lab.spec.ts",
+      "line": 313,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6737,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Painel inferior: eventos e tráfego acompanham a seleção e preservam a visão da rede",
+      "file": "lab.spec.ts",
+      "line": 417,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5659,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corretas",
+      "file": "lab.spec.ts",
+      "line": 505,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5969,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: plataforma sempre escura, independente do sistema e de preferências antigas",
+      "file": "lab.spec.ts",
+      "line": 576,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2175,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: armazenamento indisponível não interfere no tema escuro",
+      "file": "lab.spec.ts",
+      "line": 607,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1227,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: plataforma e canvas independentes, conta, modais e mobile",
+      "file": "lab.spec.ts",
+      "line": 630,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 19684,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: fluxo real e destaques com movimento no-preference",
+      "file": "lab.spec.ts",
+      "line": 713,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10760,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: fluxo real e destaques com movimento reduce",
+      "file": "lab.spec.ts",
+      "line": 713,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9629,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Workspace: inicialização manual e terminal preservado por dispositivo",
+      "file": "lab.spec.ts",
+      "line": 848,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9568,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Conexões: métricas calculadas, compatibilidade física e obstrução do rádio",
+      "file": "lab.spec.ts",
+      "line": 971,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10106,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas",
+      "file": "lab.spec.ts",
+      "line": 1050,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 98431,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Resiliência: falha ao salvar, recuperação, importação inválida e menus durante simulação",
+      "file": "lab.spec.ts",
+      "line": 1089,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6015,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Resiliência: sair informa falha de rede e permite encerrar a sessão ao tentar novamente",
+      "file": "lab.spec.ts",
+      "line": 1155,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2299,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Equipamentos: detalhes responsivos, expansão pela esquerda e opções específicas",
+      "file": "lab.spec.ts",
+      "line": 1171,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7621,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório",
+      "file": "lab.spec.ts",
+      "line": 1281,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 16620,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Dashboard: navegação, filtros, favoritos, histórico e controles em desktop e mobile",
+      "file": "lab.spec.ts",
+      "line": 1472,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6798,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 1600,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 37170,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "MPLS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+      "file": "lab.spec.ts",
+      "line": 1695,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 17957,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "QoS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+      "file": "lab.spec.ts",
+      "line": 1695,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 15732,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 1783,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 21648,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Inspeção de aplicação: Host HTTP bloqueado e permitido, regras e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 1846,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 25150,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VXLAN/EVPN: VNI, BGP MAC/IP, HTTP, encapsulamento e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 1901,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 38255,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP relay: pool remoto, reserva, pacotes, ping, release e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 1960,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 37209,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "RIP: configuração, vetores, expiração exibida e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 2057,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 20056,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "OSPF: convergência, falha, inspector e persistência",
+      "file": "lab.spec.ts",
+      "line": 2110,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 58772,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 2161,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 25383,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistência desktop/mobile",
+      "file": "lab.spec.ts",
+      "line": 2236,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 45483,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "firewall: UDP, ICMP, bloqueio de entrada e sessões persistidas desktop/mobile",
+      "file": "lab.spec.ts",
+      "line": 2328,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 23637,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile",
+      "file": "lab.spec.ts",
+      "line": 2404,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 41388,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "canvas: grupos, notas, grade e reabertura",
+      "file": "lab.spec.ts",
+      "line": 2553,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8503,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "labs: tarefas, correção, avaliação e progresso persistido",
+      "file": "lab.spec.ts",
+      "line": 2596,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10030,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "políticas: PAT, ACL, bloqueio, recuperação e persistência",
+      "file": "lab.spec.ts",
+      "line": 2649,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 22859,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "conta: perfil, sessões independentes, revogação e exclusão",
+      "file": "lab.spec.ts",
+      "line": 2722,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4326,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "RSTP: redundância, BPDUs, falha, recuperação e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 2760,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 63919,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DNS: registros, nslookup, cache, ping por nome, falha e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 2845,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 31174,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+      "file": "lab.spec.ts",
+      "line": 2958,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 28550,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP: pool, dois clientes, pacotes, ping, lease e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3074,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 34870,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VRRP: edição, eleição, failover, HTTP, anúncios e persistência desktop/mobile",
+      "file": "lab.spec.ts",
+      "line": 3174,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 50688,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "BGP: sessões TCP, AS_PATH, política, falha, inspector e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3258,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 84652,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: Um trunk, duas redes com HTTP, configuração e persistência",
+      "file": "lab.spec.ts",
+      "line": 3353,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 17319,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: VLANs com gateway no switch com HTTP, configuração e persistência",
+      "file": "lab.spec.ts",
+      "line": 3353,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 13892,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: VRF mantém HTTP e IPs sobrepostos isolados no painel e no save/reload",
+      "file": "lab.spec.ts",
+      "line": 3402,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 14614,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Tracking: uplink reduz prioridade VRRP no painel e mantém HTTP",
+      "file": "lab.spec.ts",
+      "line": 3441,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 30668,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "LACP: negocia, conserva HTTP com membro restante e persiste no mobile",
+      "file": "lab.spec.ts",
+      "line": 3491,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 99948,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "IPv6 serviços: DHCPv6, UDP, TCP com janela e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3564,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 44202,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "IPv6: SLAAC, ping roteado, Hop Limit, pacote e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3627,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 22039,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wireless: autenticação, HTTP pelo rádio, pacotes e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3697,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 23803,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3761,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 97117,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Catálogo: perfil QSFP, transceiver, duplicação, análise e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3843,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7486,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Lab avançado: reparar roteamento SVI, validar HTTP e persistir tarefas mobile",
+      "file": "lab.spec.ts",
+      "line": 3889,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10162,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizagem: editor de desafios, tutorial completo, pontuação e mobile",
+      "file": "lab.spec.ts",
+      "line": 3931,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8263,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wi-Fi empresarial: tls, HTTP, certificados e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3986,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 28143,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wi-Fi empresarial: peap, HTTP, certificados e persistência mobile",
+      "file": "lab.spec.ts",
+      "line": 3986,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 25558,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Workspace: desenho livre, comentário ancorado, histórico e telas ampliadas",
+      "file": "lab.spec.ts",
+      "line": 4065,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8040,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Produto: infraestrutura, formulários guiados, acessibilidade e teclado",
+      "file": "lab.spec.ts",
+      "line": 4135,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 14971,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Topologia: vistas, clone de rack com revisão, undo e persistência",
+      "file": "lab.spec.ts",
+      "line": 4212,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7246,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alterações",
+      "file": "lab.spec.ts",
+      "line": 4271,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 21802,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Sessões: expiração remota, reentrada, revogação atual e troca de senha",
+      "file": "lab.spec.ts",
+      "line": 4380,
+      "project": "sistema-escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10830,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    }
+  ]
+}

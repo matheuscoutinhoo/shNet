@@ -56,6 +56,7 @@ export function configureBond(
         (p.channel && p.channel !== old?.id) ||
         p.ipv6 ||
         p.dhcp ||
+        p.ipv4Mode === 'dhcp' ||
         p.dhcp6 ||
         p.dhcpRelay?.length ||
         p.vrf ||
@@ -68,7 +69,12 @@ export function configureBond(
         p.vxlan ||
         (p.ip && (p.id !== primary || !!old)) ||
         d.dhcpServer?.pools.some((pool) => pool.port === p.id) ||
-        d.dhcp6Server?.pools.some((pool) => pool.port === p.id)
+        d.dhcp6Server?.pools.some((pool) => pool.port === p.id) ||
+        d.firewall?.trustedPorts.includes(p.id) ||
+        d.firewall?.zonePolicy?.zones.some((z) => z.ports.includes(p.id)) ||
+        d.vrrp?.groups.some((g) => g.port === p.id || g.track?.some((t) => t.port === p.id)) ||
+        d.stateSync?.port === p.id ||
+        d.routes6?.some((r) => r.port === p.id)
     )
   )
     throw new Error(
@@ -249,14 +255,23 @@ export function removeBond(e: SimulationEngine, d: Device, p: NetworkInterface) 
     p.aclIn ||
     p.aclOut ||
     d.dhcpServer?.pools.some((pool) => pool.port === p.id) ||
-    d.dhcp6Server?.pools.some((pool) => pool.port === p.id)
+    d.dhcp6Server?.pools.some((pool) => pool.port === p.id) ||
+    d.routes6?.some((r) => r.port === p.id) ||
+    d.vrrp?.groups.some((g) => g.port === p.id || g.track?.some((t) => t.port === p.id)) ||
+    d.stateSync?.portMap.some((m) => m.local === p.id) ||
+    d.firewall?.trustedPorts.includes(p.id) ||
+    d.firewall?.zonePolicy?.zones.some((z) => z.ports.includes(p.id))
   )
     throw new Error('Remova endereços, serviços e políticas antes de dissolver o bond.');
   for (const m of d.interfaces) if (m.channel === p.id) delete m.channel;
   d.interfaces = d.interfaces.filter((m) => m !== p);
   d.arpTable = d.arpTable.filter((v) => v.port !== p.id);
+  d.pending = d.pending.filter((v) => v.port !== p.id);
+  d.arpResolutions = d.arpResolutions?.filter((v) => v.port !== p.id);
   e.state.queue = e.state.queue.filter(
-    (q) => q.action.kind !== 'bond-tick' || q.action.device !== d.id || q.action.port !== p.id
+    (q) =>
+      !['bond-tick', 'arp-timeout'].includes(q.action.kind) ||
+      !('device' in q.action && q.action.device === d.id && 'port' in q.action && q.action.port === p.id)
   );
   e.emit('CONFIG_CHANGED', d.id, 'Bond dissolvido; NICs disponíveis.');
 }
@@ -282,6 +297,11 @@ export function validateBonds(s: Snapshot) {
         !['pc', 'server'].includes(d.type) ||
         p.logical ||
         p.aggregate ||
+        p.loopback ||
+        p.tunnel ||
+        p.vxlan ||
+        p.dot1x ||
+        p.supplicant ||
         p.channel ||
         p.mode !== 'routed' ||
         new Set(b.members).size !== b.members.length ||
@@ -298,17 +318,28 @@ export function validateBonds(s: Snapshot) {
           m.bond ||
           m.aggregate ||
           m.logical ||
+          m.loopback ||
           m.tunnel ||
           m.vxlan ||
           m.ip ||
           m.ipv6 ||
           m.dhcp ||
+          m.ipv4Mode === 'dhcp' ||
           m.dhcp6 ||
+          m.dhcpRelay?.length ||
           m.vrf ||
           m.aclIn ||
           m.aclOut ||
+          m.natRole ||
           m.dot1x ||
           m.supplicant ||
+          d.dhcpServer?.pools.some((pool) => pool.port === m.id) ||
+          d.dhcp6Server?.pools.some((pool) => pool.port === m.id) ||
+          d.firewall?.trustedPorts.includes(m.id) ||
+          d.firewall?.zonePolicy?.zones.some((z) => z.ports.includes(m.id)) ||
+          d.vrrp?.groups.some((g) => g.port === m.id || g.track?.some((t) => t.port === m.id)) ||
+          d.stateSync?.port === m.id ||
+          d.routes6?.some((r) => r.port === m.id) ||
           m.mode !== 'routed' ||
           m.duplex !== 'full' ||
           !['rj45', 'sfp', 'qsfp'].includes(m.media) ||

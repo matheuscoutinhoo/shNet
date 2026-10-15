@@ -268,6 +268,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
       if (q.logical) q.logical = remap(q.logical, d);
       if (q.tunnel) q.tunnel = remap(q.tunnel, d);
       if (q.qos) q.qos = remap(q.qos, d);
+      if (q.bond?.monitor) q.bond.monitor.target = address(q.bond.monitor.target);
       if (p.ipv6) e.configureIpv6(copy.id, q.id, remap(ipv6Config(p), d));
       if (p.dhcp6) {
         const config = Object.fromEntries(

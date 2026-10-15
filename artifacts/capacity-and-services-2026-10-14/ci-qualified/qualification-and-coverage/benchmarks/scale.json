@@ -1,0 +1,60 @@
+{
+  "node": "v24.21.0",
+  "platform": "linux",
+  "generatedAt": "2026-10-15T00:15:10.676Z",
+  "scenario": "Árvore L2, recursos habilitados nos hosts, um ARP/ICMP entre extremos; execução em lotes/deltas.",
+  "results": [
+    {
+      "devices": 100,
+      "links": 99,
+      "buildMs": 15,
+      "validateMs": 50,
+      "simulationMs": 21,
+      "events": 118,
+      "chunks": 1,
+      "maxChunkMs": 21,
+      "status": "success",
+      "snapshotBytes": 167400,
+      "heapMiB": 57
+    },
+    {
+      "devices": 500,
+      "links": 499,
+      "buildMs": 51,
+      "validateMs": 77,
+      "simulationMs": 73,
+      "events": 524,
+      "chunks": 3,
+      "maxChunkMs": 28,
+      "status": "success",
+      "snapshotBytes": 840605,
+      "heapMiB": 73
+    },
+    {
+      "devices": 1250,
+      "links": 1249,
+      "buildMs": 189,
+      "validateMs": 117,
+      "simulationMs": 231,
+      "events": 1277,
+      "chunks": 8,
+      "maxChunkMs": 39,
+      "status": "success",
+      "snapshotBytes": 1990634,
+      "heapMiB": 75
+    },
+    {
+      "devices": 2000,
+      "links": 1999,
+      "buildMs": 404,
+      "validateMs": 191,
+      "simulationMs": 407,
+      "events": 2030,
+      "chunks": 12,
+      "maxChunkMs": 42,
+      "status": "success",
+      "snapshotBytes": 3054445,
+      "heapMiB": 137
+    }
+  ]
+}

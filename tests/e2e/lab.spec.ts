@@ -10,6 +10,7 @@ import {
 } from '../../packages/simulation-engine/src';
 import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 import type { Project, ProjectSummary } from '../../apps/web/src/api';
+import { dualAccessFixture } from '../fixtures/dual-access';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 async function inspectDevice(page: Page, hostname: string) {
@@ -2531,6 +2532,69 @@ async function rstpPing(page: Page, result: string, destination = '192.168.10.20
   );
   await expect(page.locator('.probe-toast')).toContainText(result);
 }
+test('Bond: configuração de NICs, failover de acesso, ping e persistência mobile', async ({ page }) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'bond-ui-' + Date.now() + '@example.test');
+  const me = await (await page.request.get('/api/auth/me')).json(),
+    origin = new URL(page.url()).origin,
+    headers = { Origin: origin, 'X-CSRF-Token': me.csrfToken },
+    fixture = dualAccessFixture();
+  const created = await page.request.post('/api/projects', {
+    headers,
+    data: { name: 'Bond UI', template: 'empty' },
+  });
+  expect(created.status()).toBe(201);
+  const project = await created.json();
+  const seeded = await page.request.put('/api/projects/' + project.id, {
+    headers,
+    data: { name: 'Bond UI', revision: project.revision, topology: fixture.snapshot },
+  });
+  expect(seeded.status()).toBe(200);
+  await page.reload();
+  await page.getByRole('heading', { name: 'Bond UI', exact: true }).click();
+  await inspectDevice(page, 'HMI-TESTE');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Redundância NIC', exact: true }).click();
+  const panel = page.locator('.bond-panel');
+  for (const checkbox of await panel
+    .getByRole('group', { name: 'NICs participantes' })
+    .getByRole('checkbox')
+    .all())
+    await checkbox.check();
+  await panel.getByLabel('Alvo ARP no domínio local (opcional)').fill('192.0.2.1');
+  await panel.getByRole('button', { name: 'Aplicar bond', exact: true }).click();
+  await expect(panel.locator('[data-bond="Bond1"]')).toHaveAttribute('data-active', 'p0');
+  await panel.getByRole('button', { name: 'Configurar IPv4', exact: true }).click();
+  await expect(page.getByRole('dialog').getByLabel('Endereço IPv4', { exact: true })).toHaveValue(
+    '192.0.2.10'
+  );
+  await page
+    .getByRole('dialog')
+    .locator('.modal-head')
+    .getByRole('button', { name: 'Fechar', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await switchTerminal(page, 'SW-PRIMARY', ['enable', 'configure terminal', 'interface Gi0/1', 'shutdown']);
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await inspectDevice(page, 'HMI-TESTE');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Redundância NIC', exact: true }).click();
+  await expect(panel.locator('[data-bond="Bond1"]')).toHaveAttribute('data-active', fixture.spare);
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await rstpPing(page, 'Resposta em', '192.0.2.1');
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'Bond UI', exact: true }).click();
+  await inspectDevice(page, 'HMI-TESTE');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Redundância NIC', exact: true }).click();
+  await expect(panel.locator('[data-bond="Bond1"]')).toHaveAttribute('data-active', fixture.spare);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/bond-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
 async function configureIp(page: Page, hostname: string, ip: string) {
   await inspectDevice(page, hostname);
   const power = page.getByRole('button', { name: 'Ligar equipamento', exact: true });

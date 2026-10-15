@@ -5,6 +5,7 @@ import {
   scenarioSchema,
   factoryScenarios,
   enterpriseScenarios,
+  dualAccessScenarios,
   ENGINE_BUILD,
   type ScenarioRunner,
   type Snapshot,
@@ -77,7 +78,11 @@ export function FactoryTools({ lab, onClose }: { lab: LabController; onClose: ()
       2
     )
   );
-  const presets = [...factoryScenarios(lab.engine.state), ...enterpriseScenarios(lab.engine.state)];
+  const presets = [
+    ...factoryScenarios(lab.engine.state),
+    ...enterpriseScenarios(lab.engine.state),
+    ...dualAccessScenarios(lab.engine.state),
+  ];
   const saved = lab.engine.state.scenarios ?? [];
   const worker = useRef<Worker | null>(null);
   const active = useRef<ScenarioRun | null>(null),

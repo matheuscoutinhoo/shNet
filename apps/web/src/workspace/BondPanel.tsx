@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { bondActive, type Device } from '@shlab/engine';
+import { bondActive, interfaceOperational, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 export function BondPanel({
   lab,
@@ -72,7 +72,22 @@ export function BondPanel({
                           {device.interfaces.find((m) => m.id === id)?.name}
                           {id === b.primary ? ' · primária' : ''}
                         </td>
-                        <td>{id === active ? 'ativa' : 'reserva'}</td>
+                        <td>
+                          {!interfaceOperational(
+                            lab.engine.state,
+                            device,
+                            device.interfaces.find((m) => m.id === id)!
+                          )
+                            ? 'sem link'
+                            : b.monitor &&
+                                lab.engine.state.clock >=
+                                  (b.health.find((h) => h.port === id)?.lastResponseAt ?? b.startedAt) +
+                                    b.monitor.timeoutMs
+                              ? 'alvo ARP indisponível'
+                              : id === active
+                                ? 'ativa'
+                                : 'reserva'}
+                        </td>
                         <td>{b.health.find((h) => h.port === id)?.lastResponseAt?.toFixed(1) ?? '—'}</td>
                       </tr>
                     ))}
