@@ -12,4 +12,6 @@ Incremento R19 no contrato `2026.10.15.4`, aprovado nos cinco gates da [CI 38771
 
 Identidade final: fonte `9428fa9f928311eba4049cfe1ae19195e1c15798023cf2433f70d20c43c99502`; Worker `be9ecd5589b668fe2de7179746948753ff16c4e9db54ebd388c02a5c7c9b5148`. PCAPs reproduzíveis: [BGP](bgp-binary.pcap) e [EVPN](evpn-binary.pcap).
 
+Produção Railway confirmada em 15/10/2026: contrato `.4`, fonte e Worker correspondentes, 21 assets verificados, TLS e proteção dos endpoints privados. [Consulta de leitura](railway/remote-release.json).
+
 As capturas são subconjuntos selecionados. P-PCAP universal permanece adiado, e protocolos sem codec continuam excluídos com motivo. O [ADR-052](../../docs/adr/052-binary-bgp-evpn-captures.md) registra o formato e seus limites; o [plano consolidado](../../docs/consolidated-remediation-plan.md) preserva o restante de R08/R10/R18/R19/R20/R25.
