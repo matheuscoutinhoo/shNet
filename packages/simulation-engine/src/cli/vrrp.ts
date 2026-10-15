@@ -1,9 +1,39 @@
 import type { Device } from '../model';
 import { vrrpConfigGroups } from '../protocols/vrrp';
-import { vrrpMac } from '../protocols/vrrp-model';
+import { vrrpMac, vrrpTrackSchema } from '../protocols/vrrp-model';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 
 export function registerVrrpCommands(registry: CommandRegistry) {
+  registry.register({
+    pattern: /^(no )?vrrp (\d+) track service (\w+)(?::(\d+))?(?: decrement (\d+))?$/i,
+    modes: ['interface'],
+    run: (m, e, d, c) => {
+      const groups = vrrpConfigGroups(d),
+        group = groups.find((g) => g.port === currentPort(d, c).id && g.vrid === Number(m[2]));
+      if (!group) throw new Error('Configure o grupo VRRP antes do tracking.');
+      const track = vrrpTrackSchema.parse({
+        service: m[3].toLowerCase(),
+        ...(m[4] ? { servicePort: Number(m[4]) } : {}),
+        decrement: Number(m[5] ?? 30),
+      });
+      group.track = (group.track ?? []).filter(
+        (t) => t.service !== track.service || (t.servicePort ?? 80) !== (track.servicePort ?? 80)
+      );
+      if (!m[1]) group.track.push(track);
+      e.configureVrrp(d.id, { enabled: d.vrrp?.enabled ?? true, groups });
+    },
+  });
+  registry.register({
+    pattern: /^(no )?vrrp (\d+) accept-mode$/i,
+    modes: ['interface'],
+    run: (m, e, d, c) => {
+      const groups = vrrpConfigGroups(d),
+        group = groups.find((g) => g.port === currentPort(d, c).id && g.vrid === Number(m[2]));
+      if (!group) throw new Error('Configure o grupo VRRP antes de aceitar serviços no VIP.');
+      group.acceptMode = !m[1];
+      e.configureVrrp(d.id, { enabled: d.vrrp?.enabled ?? true, groups });
+    },
+  });
   registry.register({
     pattern: /^(no )?vrrp (\d+) track (interface|route) (\S+)(?: decrement (\d+))?$/i,
     modes: ['interface'],
@@ -106,9 +136,12 @@ export function vrrpRunningConfig(device: Device) {
           ` vrrp ${group.vrid} priority ${group.priority}`,
           ` vrrp ${group.vrid} advertisement-interval ${group.advertMs}`,
           ` ${group.preempt ? '' : 'no '}vrrp ${group.vrid} preempt`,
+          ...(group.acceptMode === undefined
+            ? []
+            : [` ${group.acceptMode ? '' : 'no '}vrrp ${group.vrid} accept-mode`]),
           ...(group.track ?? []).map(
             (track) =>
-              ` vrrp ${group.vrid} track ${track.port ? 'interface ' + device.interfaces.find((p) => p.id === track.port)!.name : 'route ' + track.route} decrement ${track.decrement}`
+              ` vrrp ${group.vrid} track ${track.port ? 'interface ' + device.interfaces.find((p) => p.id === track.port)!.name : track.service ? 'service ' + track.service + (track.servicePort === undefined ? '' : ':' + track.servicePort) : 'route ' + track.route} decrement ${track.decrement}`
           ),
           'exit',
         ]),

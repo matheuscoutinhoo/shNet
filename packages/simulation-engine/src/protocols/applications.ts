@@ -78,6 +78,7 @@ export function configureProxy(e: SimulationEngine, d: Device, input: unknown) {
     nextAt: e.state.clock + 1000,
   };
   schedule(e, d, 'proxy');
+  e.refreshVrrp();
 }
 export function configurePrinter(e: SimulationEngine, d: Device, input: unknown) {
   const c = printerConfigSchema.parse(input);
@@ -111,6 +112,7 @@ export function configureBroker(e: SimulationEngine, d: Device, input: unknown) 
     nextAt: e.state.clock + 1000,
   };
   schedule(e, d, 'broker');
+  e.refreshVrrp();
 }
 function mqttSend(e: SimulationEngine, d: Device, c: TcpConnection, m: z.infer<typeof mqttMessageSchema>) {
   queueTcpText(c, encodeMqtt(m));

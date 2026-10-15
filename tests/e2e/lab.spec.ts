@@ -2595,6 +2595,55 @@ test('Bond: configuração de NICs, failover de acesso, ping e persistência mob
   await page.screenshot({ path: 'test-results/bond-mobile.png', fullPage: true });
   expect(errors).toEqual([]);
 });
+test('Serviços HA: configuração do VIP, tracking, presets e persistência mobile', async ({ page }) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'service-ha-ui-' + Date.now() + '@example.test');
+  const me = await (await page.request.get('/api/auth/me')).json();
+  const created = await page.request.post('/api/projects', {
+    headers: { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken },
+    data: { name: 'Serviços HA UI', template: 'service-ha' },
+  });
+  expect(created.status()).toBe(201);
+  await page.reload();
+  await page.getByRole('heading', { name: 'Serviços HA UI', exact: true }).click();
+  await inspectDevice(page, 'SVC-A');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'VRRP', exact: true }).click();
+  const panel = page.locator('.vrrp-panel');
+  await panel.getByRole('button', { name: 'Editar VRID 42', exact: true }).click();
+  const accept = panel.getByRole('checkbox', { name: 'Accept mode: atender serviços locais no IP virtual' });
+  await expect(accept).toBeChecked();
+  await accept.uncheck();
+  await panel
+    .getByRole('textbox', { name: 'Tracking VRRP', exact: true })
+    .fill('service dns 80\nservice http:80 80');
+  await panel.getByRole('button', { name: 'Aplicar grupo VRRP', exact: true }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'Serviços HA UI', exact: true }).click();
+  await inspectDevice(page, 'SVC-A');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'VRRP', exact: true }).click();
+  await panel.getByRole('button', { name: 'Editar VRID 42', exact: true }).click();
+  await expect(accept).not.toBeChecked();
+  await expect(panel.getByRole('textbox', { name: 'Tracking VRRP', exact: true })).toHaveValue(
+    'service dns 80\nservice http:80 80'
+  );
+  await accept.check();
+  await panel.getByRole('button', { name: 'Aplicar grupo VRRP', exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/service-ha-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await page.getByRole('button', { name: 'Opções do laboratório', exact: true }).click();
+  await page.getByRole('button', { name: 'Validar rede e cenários', exact: true }).click();
+  await page.getByRole('button', { name: 'Cenários e SLA', exact: true }).click();
+  await expect(page.getByLabel('Carregar cenário').locator('option')).toHaveCount(7);
+  await page.getByLabel('Carregar cenário').selectOption({ label: 'Modelo: Serviços HA — parada de dns' });
+  expect(errors).toEqual([]);
+});
 async function configureIp(page: Page, hostname: string, ip: string) {
   await inspectDevice(page, hostname);
   const power = page.getByRole('button', { name: 'Ligar equipamento', exact: true });

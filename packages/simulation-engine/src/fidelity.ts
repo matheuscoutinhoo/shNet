@@ -1,5 +1,17 @@
 export const fidelityMatrix = [
   {
+    feature: 'NICs e acesso A/B',
+    status: 'Simulado',
+    limit:
+      'Bond ativo/backup em PC/servidor/PLC/HMI, IPv4/IPv6 e DHCP na interface lógica. Carrier detecta falha local; monitor ARP opcional observa um alvo L2. Falha do endpoint ou dos dois caminhos interrompe o fluxo.',
+  },
+  {
+    feature: 'Disponibilidade de serviços',
+    status: 'Parcial',
+    limit:
+      'VRRP accept mode permite serviços no VIP ativo; tracking observa a habilitação local. Modelo nativo tem DNS/HTTP/NTP/syslog em duas instâncias, NICs e energia A/B. Não replica leases, dados, logs ou sessões de aplicação; não oferece quorum/fencing para partições.',
+  },
+  {
     feature: 'Ethernet, IPv4/IPv6, TCP/UDP, VLAN, ACL',
     status: 'Simulado',
     limit: 'Modelo de eventos discretos; não executa firmware de fabricante.',

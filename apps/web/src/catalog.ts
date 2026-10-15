@@ -1,6 +1,7 @@
 import type { TemplateId } from '@shlab/engine';
 
 export const templateCategories: Record<TemplateId, string> = {
+  'service-ha': 'Serviços',
   'dual-access': 'Industrial',
   'enterprise-datacenter': 'Datacenter',
   factory: 'Industrial',

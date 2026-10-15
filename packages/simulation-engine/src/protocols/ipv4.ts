@@ -9,7 +9,7 @@ import { receiveTcpMtu } from './tcp-pmtud';
 import { receiveOspf } from './ospf';
 import { ripRoutes } from './rip';
 import { sendIcmpError } from './icmp';
-import { receiveVrrp } from './vrrp';
+import { receiveVrrp, acceptsVrrpAddress } from './vrrp';
 import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
@@ -178,7 +178,8 @@ export function receiveIp(
   const virtual = d.vrrp?.groups.find(
     (group) => group.vip === packet.dst && d.interfaces.find((p) => p.id === group.port)?.vrf === port.vrf
   );
-  if (virtual && (!d.vrrp?.enabled || virtual.state !== 'ACTIVE' || virtual.priority !== 255)) {
+  const localVirtual = virtual && acceptsVrrpAddress(e.state, d, packet.dst, port.vrf);
+  if (virtual && !localVirtual) {
     e.drop(d, 'IP virtual VRRP não aceita tráfego local neste estado; use-o como gateway.', port.id);
     return;
   }
@@ -199,6 +200,7 @@ export function receiveIp(
   if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return;
   if (
     d.interfaces.some((i) => interfaceUp(d, i) && i.vrf === port.vrf && i.ip === packet.dst) ||
+    (packet.dst === virtual?.vip ? localVirtual : acceptsVrrpAddress(e.state, d, packet.dst, port.vrf)) ||
     (packet.protocol === 'UDP' && packet.dst === '255.255.255.255')
   ) {
     e.emit('PACKET_RECEIVED', d.id, 'Pacote destinado a este equipamento.', { port: port.id });

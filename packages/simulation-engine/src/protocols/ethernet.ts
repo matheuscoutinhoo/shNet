@@ -3,7 +3,7 @@ import { noteCacheExpiry } from '../core/cache-expiry';
 import { evpnPort, observeEvpnFrame } from './evpn';
 import { BROADCAST, LIMITS, type Device, type Frame, type NetworkInterface } from '../model';
 import type { SimulationEngine } from '../core/engine';
-import { receiveSvi } from './layer3';
+import { receiveSvi, interfaceOperational } from './layer3';
 import { spanningPortState } from './stp-scope';
 export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterface, frame: Frame) {
   const vlan = input.mode === 'trunk' ? (frame.vlan ?? input.nativeVlan) : input.accessVlan;
@@ -41,9 +41,15 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
 }
 export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vlan: number, input?: string) {
   const overlay = evpnPort(d, vlan, frame.dst);
-  const known = overlay
-    ? { port: overlay.id }
-    : d.macTable.find((m) => m.vlan === vlan && m.mac === frame.dst);
+  let known = overlay ? { port: overlay.id } : d.macTable.find((m) => m.vlan === vlan && m.mac === frame.dst);
+  if (known && !overlay) {
+    const target = d.interfaces.find((p) => p.id === known!.port);
+    const tree = target && spanningPortState(d, target, vlan);
+    if (!target || !interfaceOperational(e.state, d, target) || (tree && tree.state !== 'forwarding')) {
+      d.macTable = d.macTable.filter((m) => m.vlan !== vlan || m.mac !== frame.dst);
+      known = undefined;
+    }
+  }
   const candidates = d.interfaces.filter(
     (p) =>
       (p.id !== input || (p.media === 'wifi' && !p.meshPeer)) &&

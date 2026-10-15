@@ -1,6 +1,6 @@
 import { Save, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { vrrpConfigGroups, vrrpMac, type Device, type VrrpGroupConfig } from '@shlab/engine';
+import { vrrpConfigGroups, vrrpMac, vrrpTrackSchema, type Device, type VrrpGroupConfig } from '@shlab/engine';
 import type { LabController } from './useLab';
 
 export function VrrpPanel({ lab, device }: { lab: LabController; device: Device }) {
@@ -11,12 +11,12 @@ export function VrrpPanel({ lab, device }: { lab: LabController; device: Device 
   return (
     <div className="protocol-panel vrrp-panel">
       <div className="learning-card">
-        <strong>Gateway com redundância</strong>
+        <strong>Gateway ou serviço com endereço virtual</strong>
         <p>
-          Roteadores na mesma LAN anunciam prioridade por VRRPv3. O ACTIVE responde pelo IP e MAC virtual; o
-          BACKUP assume após três intervalos e o tempo de desempate. Avance a simulação após uma falha. O VIP
-          serve como gateway; serviços locais só respondem no dono do endereço (prioridade 255). Sessões NAT e
-          firewall não são sincronizadas.
+          Participantes na mesma LAN anunciam prioridade por VRRPv3. O ACTIVE responde pelo MAC virtual; o
+          BACKUP assume após três intervalos e o tempo de desempate. Accept mode permite atender serviços
+          locais no VIP. Configure o mesmo serviço e conteúdo nos dois participantes. VRRP não replica dados,
+          leases ou sessões TCP; o canal HA de firewall/NAT possui configuração própria.
         </p>
       </div>
       <label className="check-label">
@@ -115,6 +115,7 @@ export function VrrpPanel({ lab, device }: { lab: LabController; device: Device 
             priority: Number(form.get('priority')),
             advertMs: Number(form.get('advertMs')),
             preempt: form.has('preempt'),
+            acceptMode: form.has('acceptMode'),
           };
           if (
             lab.change(() => {
@@ -123,11 +124,22 @@ export function VrrpPanel({ lab, device }: { lab: LabController; device: Device 
                 .filter((line) => line.trim())
                 .map((line) => {
                   const parts = line.trim().split(/\s+/);
-                  if (parts.length !== 3 || !['interface', 'route'].includes(parts[0]))
-                    throw new Error('Tracking: interface NOME DECREMENTO ou route IPv4 DECREMENTO.');
+                  if (parts.length !== 3 || !['interface', 'route', 'service'].includes(parts[0]))
+                    throw new Error(
+                      'Tracking: interface NOME DECREMENTO, route IPv4 DECREMENTO ou service TIPO DECREMENTO.'
+                    );
                   const port = device.interfaces.find((p) => p.name.toLowerCase() === parts[1].toLowerCase());
                   if (parts[0] === 'interface' && !port)
                     throw new Error('Interface de tracking inexistente.');
+                  if (parts[0] === 'service') {
+                    if (parts[1].split(':').length > 2) throw new Error('Serviço: use TIPO ou http:PORTA.');
+                    const [service, servicePort] = parts[1].split(':');
+                    return vrrpTrackSchema.parse({
+                      service,
+                      ...(servicePort === undefined ? {} : { servicePort: Number(servicePort) }),
+                      decrement: Number(parts[2]),
+                    });
+                  }
                   return {
                     ...(parts[0] === 'interface' ? { port: port!.id } : { route: parts[1] }),
                     decrement: Number(parts[2]),
@@ -204,20 +216,26 @@ export function VrrpPanel({ lab, device }: { lab: LabController; device: Device 
           Tracking VRRP
           <textarea
             name="track"
+            aria-label="Tracking VRRP"
             placeholder="interface Gi0/2 80"
             defaultValue={(editing?.track ?? [])
               .map(
                 (t) =>
-                  `${t.port ? 'interface ' + device.interfaces.find((p) => p.id === t.port)!.name : 'route ' + t.route} ${t.decrement}`
+                  `${t.port ? 'interface ' + device.interfaces.find((p) => p.id === t.port)!.name : t.service ? 'service ' + t.service + (t.servicePort === undefined ? '' : ':' + t.servicePort) : 'route ' + t.route} ${t.decrement}`
               )
               .join('\n')}
           />
         </label>
         <p className="muted">
-          Uma linha por objeto: interface NOME DECREMENTO ou route IPv4 DECREMENTO. A perda do carrier/rota
-          reduz a prioridade; a recuperação permite preempt. Tracking de rota verifica a FIB e o próximo
-          enlace.
+          Uma linha por objeto: interface NOME DECREMENTO, route IPv4 DECREMENTO ou service TIPO DECREMENTO.
+          Use service http:8080 80 para uma porta HTTP específica. Serviços: dns, http, ntp, syslog, mqtt,
+          modbus, dhcp, database, radius e proxy. A checagem observa se o serviço local está habilitado; não
+          mede a saúde de seus dados ou dependências. A recuperação permite preempt.
         </p>
+        <label className="check-label">
+          <input name="acceptMode" type="checkbox" defaultChecked={editing?.acceptMode ?? false} />
+          Accept mode: atender serviços locais no IP virtual
+        </label>
         <p className="muted">VIP na sub-rede da interface. Prioridade 255 apenas quando VIP = IPv4 físico.</p>
         <button className="button small primary">
           <Save size={14} /> Aplicar grupo VRRP

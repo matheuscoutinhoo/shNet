@@ -211,7 +211,9 @@ export function observeProtocol(
     }
   } else if (f.protocol === 'syslog') {
     const entry = e.state.devices
-      .filter((t) => t.interfaces.some((p) => p.ip === f.target))
+      .filter(
+        (t) => t.interfaces.some((p) => p.ip === f.target) || t.vrrp?.groups.some((g) => g.vip === f.target)
+      )
       .flatMap((t) => t.syslogServer?.entries ?? [])
       .find((entry) => entry.message.id === a.id);
     if (entry) return success(entry.receivedAt);

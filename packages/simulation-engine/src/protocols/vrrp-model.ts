@@ -9,10 +9,21 @@ export const vrrpTrackSchema = z
   .object({
     port: id.optional(),
     route: ipv4Schema.optional(),
+    service: z
+      .enum(['dns', 'http', 'ntp', 'syslog', 'mqtt', 'modbus', 'dhcp', 'database', 'radius', 'proxy'])
+      .optional(),
+    servicePort: z.number().int().min(1).max(65535).optional(),
     decrement: z.number().int().min(1).max(254),
   })
   .strict()
-  .refine((t) => (t.port === undefined) !== (t.route === undefined), 'Tracking exige interface ou rota.');
+  .refine(
+    (t) => [t.port, t.route, t.service].filter((v) => v !== undefined).length === 1,
+    'Tracking exige uma interface, rota ou serviço.'
+  )
+  .refine(
+    (t) => t.servicePort === undefined || t.service === 'http',
+    'Porta de tracking exige serviço HTTP.'
+  );
 export const vrrpGroupConfigSchema = z
   .object({
     port: id,
@@ -20,6 +31,7 @@ export const vrrpGroupConfigSchema = z
     vip: ipv4Schema,
     priority: z.number().int().min(1).max(255).default(100),
     preempt: z.boolean().default(true),
+    acceptMode: z.boolean().optional(),
     advertMs: interval.default(1000),
     track: z.array(vrrpTrackSchema).max(8).optional(),
   })

@@ -1,0 +1,2181 @@
+{
+  "format": "shlab-scenario-v1",
+  "engineVersion": "0.1.0",
+  "engineContract": "2026.10.15.1",
+  "engineBuild": "development",
+  "integrityVersion": 2,
+  "name": "Serviços HA — parada de http",
+  "clock": "virtual-ms",
+  "complete": true,
+  "passed": true,
+  "scenario": {
+    "name": "Serviços HA — parada de http",
+    "durationMs": 12000,
+    "intervalMs": 1000,
+    "deadlineMs": 800,
+    "warmupMs": 5000,
+    "flows": [
+      {
+        "name": "HTTP no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "DNS no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "dns",
+        "dns": {
+          "name": "app.service.test",
+          "type": "A",
+          "clearCache": true,
+          "expectedAnswers": [
+            "192.0.2.1"
+          ]
+        },
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "NTP no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "ntp",
+        "ntp": {
+          "maxOffsetMs": 10
+        },
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Syslog no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "syslog",
+        "syslog": {
+          "text": "Evento de disponibilidade",
+          "severity": 6
+        },
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-2",
+        "kind": "service",
+        "up": false,
+        "service": "http"
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "HTTP no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 8,
+      "lossPercent": 33.333333333333336,
+      "p95Ms": 32.01067200000034,
+      "p99Ms": 32.01067200000034,
+      "jitterP95Ms": 8.001671999998507,
+      "passed": true
+    },
+    {
+      "name": "DNS no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 12,
+      "lossPercent": 0,
+      "p95Ms": 16.00494399999843,
+      "p99Ms": 16.00494399999843,
+      "jitterP95Ms": 8.001671999998507,
+      "passed": true
+    },
+    {
+      "name": "NTP no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 12,
+      "lossPercent": 0,
+      "p95Ms": 16.004879999996774,
+      "p99Ms": 16.004879999996774,
+      "jitterP95Ms": 8.000671999998303,
+      "passed": true
+    },
+    {
+      "name": "Syslog no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 12,
+      "lossPercent": 0,
+      "p95Ms": 12.00476399999934,
+      "p99Ms": 12.00476399999934,
+      "jitterP95Ms": 8.000671999998303,
+      "passed": true
+    }
+  ],
+  "samples": [
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 0,
+      "id": "tcp-1723",
+      "status": "success",
+      "elapsedMs": 32.01067200000034,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 0,
+      "id": "dns-query-1735",
+      "status": "success",
+      "elapsedMs": 16.00494399999843,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 0,
+      "id": "ntp-1739",
+      "status": "success",
+      "elapsedMs": 16.004879999996774,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 0,
+      "id": "syslog-1743",
+      "status": "success",
+      "elapsedMs": 12.00476399999934,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 1000,
+      "id": "tcp-2273",
+      "status": "success",
+      "elapsedMs": 24.009000000001834,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 1000,
+      "id": "dns-query-2282",
+      "status": "success",
+      "elapsedMs": 8.003271999999924,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 1000,
+      "id": "ntp-2288",
+      "status": "success",
+      "elapsedMs": 8.00420799999847,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 1000,
+      "id": "syslog-2292",
+      "status": "success",
+      "elapsedMs": 4.004092000001037,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 2000,
+      "id": "tcp-2776",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-A"
+        ],
+        "hops": [
+          {
+            "id": "event-2782",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2800",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2823",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2825",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2831",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2833",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2857",
+            "atMs": 4.001028000000588,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2870",
+            "atMs": 4.002603999999337,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2873",
+            "atMs": 4.002603999999337,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2892",
+            "atMs": 6.003405999998904,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "received"
+          },
+          {
+            "id": "event-2894",
+            "atMs": 6.003405999998904,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2904",
+            "atMs": 8.00420799999847,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 2000,
+      "id": "dns-query-2785",
+      "status": "success",
+      "elapsedMs": 8.003271999999924,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 2000,
+      "id": "ntp-2791",
+      "status": "success",
+      "elapsedMs": 8.00420799999847,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 2000,
+      "id": "syslog-2795",
+      "status": "success",
+      "elapsedMs": 4.004092000001037,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 3000,
+      "id": "tcp-3143",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-A"
+        ],
+        "hops": [
+          {
+            "id": "event-3149",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3167",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3190",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3192",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3198",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3200",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3224",
+            "atMs": 4.001028000000588,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3237",
+            "atMs": 4.002603999999337,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3240",
+            "atMs": 4.002603999999337,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3259",
+            "atMs": 6.003405999998904,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "received"
+          },
+          {
+            "id": "event-3261",
+            "atMs": 6.003405999998904,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3271",
+            "atMs": 8.00420799999847,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 3000,
+      "id": "dns-query-3152",
+      "status": "success",
+      "elapsedMs": 8.003271999999924,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 3000,
+      "id": "ntp-3158",
+      "status": "success",
+      "elapsedMs": 8.00420799999847,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 3000,
+      "id": "syslog-3162",
+      "status": "success",
+      "elapsedMs": 4.004092000001037,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 4000,
+      "id": "tcp-3510",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-A"
+        ],
+        "hops": [
+          {
+            "id": "event-3516",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3534",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3557",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3559",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3565",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3567",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3591",
+            "atMs": 4.001027999998769,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3604",
+            "atMs": 4.002604000001156,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3607",
+            "atMs": 4.002604000001156,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3626",
+            "atMs": 6.0034060000016325,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "received"
+          },
+          {
+            "id": "event-3628",
+            "atMs": 6.0034060000016325,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3638",
+            "atMs": 8.004208000002109,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 4000,
+      "id": "dns-query-3519",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 4000,
+      "id": "ntp-3525",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 4000,
+      "id": "syslog-3529",
+      "status": "success",
+      "elapsedMs": 4.004091999999218,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 5000,
+      "id": "tcp-3877",
+      "status": "failed",
+      "reason": "RESET",
+      "evidence": {
+        "cause": "timeout",
+        "events": [],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-A"
+        ],
+        "hops": [
+          {
+            "id": "event-3883",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3901",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3924",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3926",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3932",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3934",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3958",
+            "atMs": 4.001027999998769,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3971",
+            "atMs": 4.002604000001156,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3974",
+            "atMs": 4.002604000001156,
+            "device": "SVC-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3993",
+            "atMs": 6.0034060000016325,
+            "device": "SVC-ACCESS-A",
+            "port": "p1",
+            "direction": "received"
+          },
+          {
+            "id": "event-3995",
+            "atMs": 6.0034060000016325,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-4005",
+            "atMs": 8.004208000002109,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 5000,
+      "id": "dns-query-3886",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 5000,
+      "id": "ntp-3892",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 5000,
+      "id": "syslog-3896",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 6000,
+      "id": "tcp-4327",
+      "status": "success",
+      "elapsedMs": 32.010671999993065,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 6000,
+      "id": "dns-query-4336",
+      "status": "success",
+      "elapsedMs": 16.0045919999975,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 6000,
+      "id": "ntp-4342",
+      "status": "success",
+      "elapsedMs": 16.00430399999823,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 6000,
+      "id": "syslog-4346",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 7000,
+      "id": "tcp-4877",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 7000,
+      "id": "dns-query-4886",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 7000,
+      "id": "ntp-4892",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 7000,
+      "id": "syslog-4896",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 8000,
+      "id": "tcp-5374",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 8000,
+      "id": "dns-query-5383",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 8000,
+      "id": "ntp-5389",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 8000,
+      "id": "syslog-5393",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 9000,
+      "id": "tcp-5871",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 9000,
+      "id": "dns-query-5880",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 9000,
+      "id": "ntp-5886",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 9000,
+      "id": "syslog-5890",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 10000,
+      "id": "tcp-6368",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 10000,
+      "id": "dns-query-6377",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 10000,
+      "id": "ntp-6383",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 10000,
+      "id": "syslog-6387",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 11000,
+      "id": "tcp-6865",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 11000,
+      "id": "dns-query-6874",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 11000,
+      "id": "ntp-6880",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 11000,
+      "id": "syslog-6884",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    }
+  ],
+  "warnings": [
+    {
+      "code": "SWITCH_FAILURE_DOMAIN",
+      "severity": "info",
+      "devices": [
+        "device-4"
+      ],
+      "message": "SVC-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+      "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+    },
+    {
+      "code": "SWITCH_FAILURE_DOMAIN",
+      "severity": "info",
+      "devices": [
+        "device-5"
+      ],
+      "message": "SVC-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+      "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+    }
+  ],
+  "faults": [
+    {
+      "atMs": 2000,
+      "target": "device-2",
+      "kind": "service",
+      "up": false,
+      "service": "http",
+      "recovery": [
+        {
+          "flow": "HTTP no VIP",
+          "recoveryMs": 4032.010671999993,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 6032.010671999993,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "DNS no VIP",
+          "recoveryMs": null,
+          "observedFailure": false,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": null,
+          "firstFailedAttemptAtMs": null,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "NTP no VIP",
+          "recoveryMs": null,
+          "observedFailure": false,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": null,
+          "firstFailedAttemptAtMs": null,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "Syslog no VIP",
+          "recoveryMs": null,
+          "observedFailure": false,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": null,
+          "firstFailedAttemptAtMs": null,
+          "measurement": "response-timestamp"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "event-8",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-16",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-17",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-20",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-28",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-29",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-32",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Serviço DNS habilitado."
+    },
+    {
+      "id": "event-33",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Registro DNS app.service.test A configurado."
+    },
+    {
+      "id": "event-34",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Serviço http TCP/80 ativado."
+    },
+    {
+      "id": "event-35",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Relógio de rede configurado; offset 0 ms."
+    },
+    {
+      "id": "event-36",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Coletor syslog/514 ativado."
+    },
+    {
+      "id": "event-38",
+      "time": 0,
+      "type": "VRRP_TRACK_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42: prioridade configurada 150, efetiva 150."
+    },
+    {
+      "id": "event-39",
+      "time": 0,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42, VIP 192.0.2.1: INIT → BACKUP."
+    },
+    {
+      "id": "event-41",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "VRRP ativado; 1 grupos."
+    },
+    {
+      "id": "event-42",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-50",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-51",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-54",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço DNS habilitado."
+    },
+    {
+      "id": "event-55",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Registro DNS app.service.test A configurado."
+    },
+    {
+      "id": "event-56",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço http TCP/80 ativado."
+    },
+    {
+      "id": "event-57",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Relógio de rede configurado; offset 0 ms."
+    },
+    {
+      "id": "event-58",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Coletor syslog/514 ativado."
+    },
+    {
+      "id": "event-60",
+      "time": 0,
+      "type": "VRRP_TRACK_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "VRID 42: prioridade configurada 100, efetiva 100."
+    },
+    {
+      "id": "event-61",
+      "time": 0,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "VRID 42, VIP 192.0.2.1: INIT → BACKUP."
+    },
+    {
+      "id": "event-63",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "VRRP ativado; 1 grupos."
+    },
+    {
+      "id": "event-65",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-64",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-66",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-64",
+      "reason": "Perfil UPS aplicado: Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento."
+    },
+    {
+      "id": "event-67",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-64",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-69",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-68",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-70",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-68",
+      "reason": "Perfil Rack aplicado: Unidades de rack, montagem e ventilação influenciam a temperatura."
+    },
+    {
+      "id": "event-71",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-68",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-73",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-72",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-74",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-72",
+      "reason": "Perfil UPS aplicado: Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento."
+    },
+    {
+      "id": "event-75",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-72",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-77",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-76",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-78",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-76",
+      "reason": "Perfil Rack aplicado: Unidades de rack, montagem e ventilação influenciam a temperatura."
+    },
+    {
+      "id": "event-79",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-76",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-1344",
+      "time": 3414.0625,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42, VIP 192.0.2.1: BACKUP → ACTIVE."
+    },
+    {
+      "id": "event-1725",
+      "time": 5000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-1734",
+      "time": 5000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-1741",
+      "time": 5000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-1742",
+      "time": 5000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-1864",
+      "time": 5016.003728,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-1879",
+      "time": 5016.004943999998,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-1892",
+      "time": 5020.004756,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-1921",
+      "time": 5024.0066480000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-1949",
+      "time": 5028.007676000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-1959",
+      "time": 5028.009644,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-1977",
+      "time": 5032.008704000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-1984",
+      "time": 5032.010672,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-1996",
+      "time": 5036.011700000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-2275",
+      "time": 6000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-2281",
+      "time": 6000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-2290",
+      "time": 6000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-2291",
+      "time": 6000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-2361",
+      "time": 6008.002056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-2373",
+      "time": 6008.003272,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-2389",
+      "time": 6012.003084000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-2418",
+      "time": 6016.004976000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-2446",
+      "time": 6020.006004000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-2456",
+      "time": 6020.007972000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-2474",
+      "time": 6024.007032000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-2481",
+      "time": 6024.009000000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-2493",
+      "time": 6028.010028000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-2770",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Serviço http TCP/80 desativado."
+    },
+    {
+      "id": "event-2771",
+      "time": 7000,
+      "type": "VRRP_TRACK_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42: prioridade configurada 150, efetiva 70."
+    },
+    {
+      "id": "event-2778",
+      "time": 7000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2776: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-2784",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-2793",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-2794",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-2899",
+      "time": 7008.002056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2776: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-2903",
+      "time": 7008.003272,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-3145",
+      "time": 8000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3143: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3151",
+      "time": 8000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3160",
+      "time": 8000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3161",
+      "time": 8000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-3266",
+      "time": 8008.002056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3143: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-3270",
+      "time": 8008.003272,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-3512",
+      "time": 9000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3510: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3518",
+      "time": 9000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3527",
+      "time": 9000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3528",
+      "time": 9000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-3633",
+      "time": 9008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3510: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-3637",
+      "time": 9008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-3879",
+      "time": 10000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3877: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3885",
+      "time": 10000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3894",
+      "time": 10000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3895",
+      "time": 10000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-4000",
+      "time": 10008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3877: SYN-SENT → RESET."
+    },
+    {
+      "id": "event-4004",
+      "time": 10008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-4008",
+      "time": 10027.4384,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "VRID 42, VIP 192.0.2.1: BACKUP → ACTIVE."
+    },
+    {
+      "id": "event-4066",
+      "time": 10031.439299999998,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42, VIP 192.0.2.1: ACTIVE → BACKUP."
+    },
+    {
+      "id": "event-4329",
+      "time": 11000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4327: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-4335",
+      "time": 11000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-4344",
+      "time": 11000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-4345",
+      "time": 11000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-4468",
+      "time": 11016.003727999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4327: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4483",
+      "time": 11016.004591999998,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-4496",
+      "time": 11020.004755999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4378: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4525",
+      "time": 11024.006647999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4327: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4557",
+      "time": 11028.007675999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4378: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4567",
+      "time": 11028.009643999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4378: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4619",
+      "time": 11032.008703999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4327: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4626",
+      "time": 11032.010671999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4327: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4644",
+      "time": 11036.011699999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4378: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4879",
+      "time": 12000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4877: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-4885",
+      "time": 12000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-4894",
+      "time": 12000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-4895",
+      "time": 12000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-4965",
+      "time": 12008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4877: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4977",
+      "time": 12008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-4993",
+      "time": 12012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4928: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5022",
+      "time": 12016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4877: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5050",
+      "time": 12020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4928: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5060",
+      "time": 12020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4928: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5078",
+      "time": 12024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4877: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5085",
+      "time": 12024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4877: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5101",
+      "time": 12028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4928: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5376",
+      "time": 13000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5374: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-5382",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-5391",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-5392",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-5462",
+      "time": 13008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5374: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5474",
+      "time": 13008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-5490",
+      "time": 13012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5425: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5519",
+      "time": 13016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5374: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5547",
+      "time": 13020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5425: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5557",
+      "time": 13020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5425: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5575",
+      "time": 13024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5374: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5582",
+      "time": 13024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5374: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5598",
+      "time": 13028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5425: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5873",
+      "time": 14000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5871: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-5879",
+      "time": 14000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-5888",
+      "time": 14000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-5889",
+      "time": 14000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-5959",
+      "time": 14008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5871: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5971",
+      "time": 14008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-5987",
+      "time": 14012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5922: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6016",
+      "time": 14016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5871: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-6044",
+      "time": 14020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5922: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-6054",
+      "time": 14020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5922: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-6072",
+      "time": 14024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5871: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-6079",
+      "time": 14024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5871: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-6095",
+      "time": 14028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5922: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-6370",
+      "time": 15000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6368: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-6376",
+      "time": 15000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-6385",
+      "time": 15000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-6386",
+      "time": 15000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-6456",
+      "time": 15008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6368: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6468",
+      "time": 15008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-6484",
+      "time": 15012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6419: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6513",
+      "time": 15016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6368: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-6541",
+      "time": 15020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6419: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-6551",
+      "time": 15020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6419: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-6569",
+      "time": 15024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6368: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-6576",
+      "time": 15024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6368: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-6592",
+      "time": 15028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6419: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-6867",
+      "time": 16000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6865: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-6873",
+      "time": 16000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-6882",
+      "time": 16000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-6883",
+      "time": 16000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-6953",
+      "time": 16008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6865: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6965",
+      "time": 16008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-6981",
+      "time": 16012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6916: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-7010",
+      "time": 16016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6865: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-7038",
+      "time": 16020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6916: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-7048",
+      "time": 16020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6916: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-7066",
+      "time": 16024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6865: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-7073",
+      "time": 16024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6865: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-7089",
+      "time": 16028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6916: LAST-ACK → CLOSED."
+    }
+  ],
+  "captureDropped": 0
+}

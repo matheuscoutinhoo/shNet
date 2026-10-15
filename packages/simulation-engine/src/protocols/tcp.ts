@@ -3,6 +3,7 @@ import type { SimulationEngine } from '../core/engine';
 import type { Action, Device } from '../model';
 import { portNumberSchema } from '../schemas';
 import { resolveRoute } from './ipv4';
+import { acceptsVrrpAddress } from './vrrp';
 import { interfaceUp, requireVrf } from './layer3';
 import {
   TCP,
@@ -132,6 +133,7 @@ export function openTcp(
   if (!source || !routedSource) throw new Error('Configure IP e uma rota para o destino TCP.');
   if (
     sourceOverride &&
+    (ipv6 || !acceptsVrrpAddress(engine.state, device, sourceOverride, vrf)) &&
     !device.interfaces.some(
       (p) =>
         interfaceUp(device, p) &&

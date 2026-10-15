@@ -104,6 +104,7 @@ export * from './wire/pcap';
 
 export * from './factory-scenarios';
 export { dualAccessScenarios } from './dual-access-template';
+export { serviceHaScenarios } from './service-ha-template';
 export * from './enterprise-scenarios';
 export * from './version';
 export * from './topology-layout';

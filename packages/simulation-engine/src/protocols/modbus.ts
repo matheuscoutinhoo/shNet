@@ -81,6 +81,7 @@ export function configureModbus(e: SimulationEngine, d: Device, input: unknown) 
     d.tcpServices = d.tcpServices?.filter((s) => s.port !== d.modbus!.port);
   configureTcpService(e, d, { port: config.port, kind: 'modbus', enabled: config.enabled });
   d.modbus = config;
+  e.refreshVrrp();
 }
 export function modbusRequest(
   e: SimulationEngine,

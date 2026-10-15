@@ -1,0 +1,25 @@
+{
+  "errors": [],
+  "openMs": 1328.0007999999998,
+  "failedDeferredPanelPreservesWorkspace": true,
+  "controlledPanelErrors": [],
+  "continuousAutosave": {
+    "revision": 2,
+    "clock": 3738.5,
+    "manualSaveResolved": true
+  },
+  "build": {
+    "engineBuild": "236a1e2e9b827cb1d67d7df6ebc12aa1653c2d55195f1fa35f5c0e1f92989fda",
+    "engineContract": "2026.10.15.1",
+    "schemaVersion": 11,
+    "workerArtifact": "d00f26ca944648099d5bd9009ffc6dde95149f3b6400129aefaafed83aa44eab",
+    "clientWorkerHash": "236a1e2e9b827cb1d67d7df6ebc12aa1653c2d55195f1fa35f5c0e1f92989fda",
+    "workerArtifactHash": "d00f26ca944648099d5bd9009ffc6dde95149f3b6400129aefaafed83aa44eab",
+    "entryBytes": 269369,
+    "entry": "/assets/index-DmOAulvy.js",
+    "replay": "matched"
+  },
+  "doubleFailureVisible": true,
+  "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+  "passed": true
+}

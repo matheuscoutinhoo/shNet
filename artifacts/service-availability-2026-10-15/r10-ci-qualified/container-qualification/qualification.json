@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-10-15T12:09:27.312Z",
+  "scope": "Containers Linux reais, PostgreSQL isolado da CI, TLS com CA confiável explícita, rollback de imagem e restore em banco separado.",
+  "scenario": {
+    "passed": true,
+    "flows": [
+      {
+        "name": "Ping",
+        "expect": "allow",
+        "sent": 1,
+        "received": 1,
+        "lossPercent": 0,
+        "p95Ms": 16.005136,
+        "p99Ms": 16.005136,
+        "jitterP95Ms": null,
+        "passed": true
+      }
+    ]
+  },
+  "currentBuild": {
+    "engineBuild": "5815a938e42877adaf39d266ea65712116e2d9299a88609cdaf7e9b2915cf62a",
+    "engineContract": "2026.10.14.2",
+    "schemaVersion": 11,
+    "workerArtifact": "b2c40158531cb106d1cf7c6d02087cc34dbaa2781ca3b217020ff7a0686a5e14"
+  },
+  "tls": {
+    "hsts": "max-age=31536000; includeSubDomains",
+    "cookieSecure": true
+  },
+  "ownershipIsolated": true,
+  "websocket": {
+    "tls": true,
+    "privatePostgresNotification": true
+  },
+  "imageRollback": {
+    "previousBuild": {
+      "engineBuild": "74b465348946f820bd75040c2b550cf6b56a51be63066e6da3a9a01c5852df4f",
+      "engineContract": "2026.10.13.6",
+      "schemaVersion": 11,
+      "workerArtifact": "1bfe1e35de4ca9fe3a284e3c2e12201dc582be9882c81d8df59bd289aeb15039"
+    },
+    "projectPreserved": true
+  },
+  "databaseRestore": {
+    "migrations": 11,
+    "projectPreserved": true,
+    "sessionPreserved": true,
+    "reportPreserved": true
+  },
+  "passed": true
+}

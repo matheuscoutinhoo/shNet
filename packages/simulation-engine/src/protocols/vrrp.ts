@@ -32,21 +32,33 @@ export function acceptsVrrpMac(snapshot: Snapshot, device: Device, port: Network
       !!activeVrrpGroup(snapshot, device, port, group.vip)
   );
 }
+export function acceptsVrrpAddress(snapshot: Snapshot, device: Device, ip: string, vrf?: string) {
+  const group =
+    device.vrrp?.enabled &&
+    device.vrrp.groups.find(
+      (g) => g.vip === ip && g.state === 'ACTIVE' && (g.priority === 255 || g.acceptMode === true)
+    );
+  if (!group) return false;
+  const port = device.interfaces.find((p) => p.id === group.port && p.vrf === vrf);
+  return !!port && vrrpPortUp(snapshot, device, port);
+}
 export function vrrpConfigGroups(device: Device): VrrpGroupConfig[] {
   return (
-    device.vrrp?.groups.map(({ port, vrid, vip, priority, preempt, advertMs, track }) => ({
+    device.vrrp?.groups.map(({ port, vrid, vip, priority, preempt, advertMs, track, acceptMode }) => ({
       port,
       vrid,
       vip,
       priority,
       preempt,
       advertMs,
+      ...(acceptMode === undefined ? {} : { acceptMode }),
       ...(track ? { track: structuredClone(track) } : {}),
     })) ?? []
   );
 }
 function validateConfig(device: Device, groups: VrrpGroupConfig[]) {
-  if (device.type !== 'router') throw new Error('VRRP exige roteador.');
+  if (!['router', 'server'].includes(device.type) || device.infrastructure)
+    throw new Error('VRRP exige roteador ou servidor com stack IP.');
   const ids = new Set<string>(),
     ips = new Set<string>();
   for (const group of groups) {
@@ -93,7 +105,10 @@ function validateConfig(device: Device, groups: VrrpGroupConfig[]) {
     if (group.priority === 255 && group.track?.length)
       throw new Error('Dono do VIP não reduz prioridade por tracking.');
     for (const track of group.track ?? []) {
-      const key = track.port ?? track.route!;
+      const key =
+        track.port ??
+        track.route ??
+        'service:' + track.service + ':' + (track.service === 'http' ? (track.servicePort ?? 80) : '');
       if (
         tracked.has(key) ||
         (track.port && !device.interfaces.some((p) => p.id === track.port)) ||
@@ -147,6 +162,23 @@ function transition(engine: SimulationEngine, device: Device, group: VrrpGroup, 
 }
 export function vrrpEffectivePriority(snapshot: Snapshot, device: Device, group: VrrpGroupConfig) {
   const failed = (group.track ?? []).filter((track) => {
+    if (track.service) {
+      const available = {
+        dns: !!device.dnsServer?.enabled,
+        http: !!device.tcpServices?.some(
+          (s) => s.kind === 'http' && s.port === (track.servicePort ?? 80) && s.enabled
+        ),
+        ntp: !!device.networkClock?.server,
+        syslog: !!device.syslogServer?.enabled,
+        mqtt: !!device.broker?.enabled,
+        modbus: !!device.modbus?.enabled,
+        dhcp: !!device.dhcpServer?.enabled,
+        database: !!device.database?.enabled,
+        radius: (!!device.aaaServer?.enabled && !!device.aaaServer.radius) || !!device.eapServer?.enabled,
+        proxy: !!device.proxy?.enabled,
+      };
+      return !available[track.service];
+    }
     const port = track.port
       ? device.interfaces.find((p) => p.id === track.port)
       : resolveRoute(device, track.route!)?.port;
@@ -216,6 +248,7 @@ function sameConfig(a: VrrpGroupConfig, b: VrrpGroupConfig) {
     a.vip === b.vip &&
     a.priority === b.priority &&
     a.preempt === b.preempt &&
+    !!a.acceptMode === !!b.acceptMode &&
     a.advertMs === b.advertMs &&
     JSON.stringify(a.track ?? []) === JSON.stringify(b.track ?? [])
   );

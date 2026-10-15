@@ -1,0 +1,4972 @@
+{
+  "format": "shlab-scenario-v1",
+  "engineVersion": "0.1.0",
+  "engineContract": "2026.10.15.1",
+  "engineBuild": "development",
+  "integrityVersion": 2,
+  "name": "Serviços HA — perda da instância A",
+  "clock": "virtual-ms",
+  "complete": true,
+  "passed": true,
+  "scenario": {
+    "name": "Serviços HA — perda da instância A",
+    "durationMs": 12000,
+    "intervalMs": 1000,
+    "deadlineMs": 800,
+    "warmupMs": 5000,
+    "flows": [
+      {
+        "name": "HTTP no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "http",
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "DNS no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "dns",
+        "dns": {
+          "name": "app.service.test",
+          "type": "A",
+          "clearCache": true,
+          "expectedAnswers": [
+            "192.0.2.1"
+          ]
+        },
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "NTP no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "ntp",
+        "ntp": {
+          "maxOffsetMs": 10
+        },
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      },
+      {
+        "name": "Syslog no VIP",
+        "source": "device-1",
+        "target": "192.0.2.1",
+        "protocol": "syslog",
+        "syslog": {
+          "text": "Evento de disponibilidade",
+          "severity": 6
+        },
+        "expect": "allow",
+        "maxLossPercent": 40,
+        "maxLatencyMs": 800,
+        "requireFinalSuccess": true
+      }
+    ],
+    "faults": [
+      {
+        "atMs": 2000,
+        "target": "device-2",
+        "kind": "device",
+        "up": false
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "HTTP no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 8,
+      "lossPercent": 33.333333333333336,
+      "p95Ms": 32.01067200000034,
+      "p99Ms": 32.01067200000034,
+      "jitterP95Ms": 8.001671999998507,
+      "passed": true
+    },
+    {
+      "name": "DNS no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 8,
+      "lossPercent": 33.333333333333336,
+      "p95Ms": 16.00494399999843,
+      "p99Ms": 16.00494399999843,
+      "jitterP95Ms": 8.001671999998507,
+      "passed": true
+    },
+    {
+      "name": "NTP no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 8,
+      "lossPercent": 33.333333333333336,
+      "p95Ms": 16.004879999996774,
+      "p99Ms": 16.004879999996774,
+      "jitterP95Ms": 8.000671999998303,
+      "passed": true
+    },
+    {
+      "name": "Syslog no VIP",
+      "expect": "allow",
+      "sent": 12,
+      "received": 8,
+      "lossPercent": 33.333333333333336,
+      "p95Ms": 12.00476399999934,
+      "p99Ms": 12.00476399999934,
+      "jitterP95Ms": 8.000671999998303,
+      "passed": true
+    }
+  ],
+  "samples": [
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 0,
+      "id": "tcp-1723",
+      "status": "success",
+      "elapsedMs": 32.01067200000034,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 0,
+      "id": "dns-query-1735",
+      "status": "success",
+      "elapsedMs": 16.00494399999843,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 0,
+      "id": "ntp-1739",
+      "status": "success",
+      "elapsedMs": 16.004879999996774,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 0,
+      "id": "syslog-1743",
+      "status": "success",
+      "elapsedMs": 12.00476399999934,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 1000,
+      "id": "tcp-2273",
+      "status": "success",
+      "elapsedMs": 24.009000000001834,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 1000,
+      "id": "dns-query-2282",
+      "status": "success",
+      "elapsedMs": 8.003271999999924,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 1000,
+      "id": "ntp-2288",
+      "status": "success",
+      "elapsedMs": 8.00420799999847,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 1000,
+      "id": "syslog-2292",
+      "status": "success",
+      "elapsedMs": 4.004092000001037,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 2000,
+      "id": "tcp-2772",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-2807",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2812",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2813",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2814",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2815",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2816",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2817",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2835",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2840",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2841",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2842",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2843",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2844",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2845",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2863",
+            "atMs": 4.001028000000588,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-2871",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-2778",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2796",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2804",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2808",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2810",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2832",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2836",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2838",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2860",
+            "atMs": 4.001028000000588,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2861",
+            "atMs": 4.001028000000588,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-2868",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2869",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 2000,
+      "id": "dns-query-2781",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-2821",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2826",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2827",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2828",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2829",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2830",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2831",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2835",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2840",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2841",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2842",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2843",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2844",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2845",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2867",
+            "atMs": 4.001379999999699,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-2871",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-2785",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2796",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2818",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2822",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2824",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2832",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2836",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2838",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2864",
+            "atMs": 4.001379999999699,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2865",
+            "atMs": 4.001379999999699,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-2868",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2869",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 2000,
+      "id": "ntp-2787",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-2835",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2840",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2841",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2842",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2843",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2844",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2845",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2871",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-2796",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2832",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2836",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2838",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2868",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2869",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 2000,
+      "id": "syslog-2791",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-2835",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2840",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2841",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2842",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2843",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2844",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2845",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2849",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2854",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2855",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2856",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2857",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2858",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2859",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-2871",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-2875",
+            "atMs": 4.004092000001037,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-2796",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2802",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2832",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2836",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2838",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2846",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2850",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2852",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-2868",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2869",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-2872",
+            "atMs": 4.004092000001037,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-2873",
+            "atMs": 4.004092000001037,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 3000,
+      "id": "tcp-3003",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3052",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3057",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3058",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3059",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3060",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3061",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3062",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3080",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3085",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3086",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3087",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3088",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3089",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3090",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3112",
+            "atMs": 4.001028000000588,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3120",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3009",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3027",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3049",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3053",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3055",
+            "atMs": 2.000514000000294,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3077",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3081",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3083",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3109",
+            "atMs": 4.001028000000588,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3110",
+            "atMs": 4.001028000000588,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3117",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3118",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 3000,
+      "id": "dns-query-3012",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3066",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3071",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3072",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3073",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3074",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3075",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3076",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3080",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3085",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3086",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3087",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3088",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3089",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3090",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3116",
+            "atMs": 4.001379999999699,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3120",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3016",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3027",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3063",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3067",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3069",
+            "atMs": 2.0006899999998495,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3077",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3081",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3083",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3113",
+            "atMs": 4.001379999999699,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3114",
+            "atMs": 4.001379999999699,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3117",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3118",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 3000,
+      "id": "ntp-3018",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3080",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3085",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3086",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3087",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3088",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3089",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3090",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3120",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3027",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3077",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3081",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3083",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3117",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3118",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 3000,
+      "id": "syslog-3022",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3080",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3085",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3086",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3087",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3088",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3089",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3090",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3094",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3099",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3100",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3101",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3102",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3103",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3104",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3120",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3124",
+            "atMs": 4.004092000001037,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3027",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3033",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3077",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3081",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3083",
+            "atMs": 2.0018019999997705,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3091",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3095",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3097",
+            "atMs": 2.0025460000006206,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3117",
+            "atMs": 4.002603999999337,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3118",
+            "atMs": 4.002603999999337,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3121",
+            "atMs": 4.004092000001037,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3122",
+            "atMs": 4.004092000001037,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 4000,
+      "id": "tcp-3252",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3301",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3306",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3307",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3308",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3309",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3310",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3311",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3329",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3334",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3335",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3336",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3337",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3338",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3339",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3361",
+            "atMs": 4.001027999998769,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3369",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3258",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3276",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3298",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3302",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3304",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3326",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3330",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3332",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3358",
+            "atMs": 4.001027999998769,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3359",
+            "atMs": 4.001027999998769,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3366",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3367",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 4000,
+      "id": "dns-query-3261",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3315",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3320",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3321",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3322",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3323",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3324",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3325",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3329",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3334",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3335",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3336",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3337",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3338",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3339",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3365",
+            "atMs": 4.001380000001518,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3369",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3265",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3276",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3312",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3316",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3318",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3326",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3330",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3332",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3362",
+            "atMs": 4.001380000001518,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3363",
+            "atMs": 4.001380000001518,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3366",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3367",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 4000,
+      "id": "ntp-3267",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3329",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3334",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3335",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3336",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3337",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3338",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3339",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3369",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3276",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3326",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3330",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3332",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3366",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3367",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 4000,
+      "id": "syslog-3271",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3329",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3334",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3335",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3336",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3337",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3338",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3339",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3343",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3348",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3349",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3350",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3351",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3352",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3353",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3369",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3373",
+            "atMs": 4.004091999999218,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3276",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3282",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3326",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3330",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3332",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3340",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3344",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3346",
+            "atMs": 2.002545999999711,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3366",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3367",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3370",
+            "atMs": 4.004091999999218,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3371",
+            "atMs": 4.004091999999218,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 5000,
+      "id": "tcp-3507",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3570",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3575",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3576",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3577",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3578",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3579",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3580",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3598",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3603",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3604",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3605",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3606",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3607",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3608",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3634",
+            "atMs": 4.001027999998769,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3642",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3513",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3531",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3567",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3571",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3573",
+            "atMs": 2.0005139999993844,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3595",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3599",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3601",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3631",
+            "atMs": 4.001027999998769,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3632",
+            "atMs": 4.001027999998769,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3639",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3640",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 5000,
+      "id": "dns-query-3516",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3584",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3589",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3590",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3591",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3592",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3593",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3594",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3598",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3603",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3604",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3605",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3606",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3607",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3608",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3638",
+            "atMs": 4.001380000001518,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3642",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3520",
+            "atMs": 0,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3531",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3581",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3585",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3587",
+            "atMs": 2.000690000000759,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3595",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3599",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3601",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3635",
+            "atMs": 4.001380000001518,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3636",
+            "atMs": 4.001380000001518,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3639",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3640",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 5000,
+      "id": "ntp-3522",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3598",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3603",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3604",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3605",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3606",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3607",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3608",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3642",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3531",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3595",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3599",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3601",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3639",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3640",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 5000,
+      "id": "syslog-3526",
+      "status": "failed",
+      "reason": "Deadline sem resposta",
+      "evidence": {
+        "cause": "link",
+        "events": [
+          {
+            "id": "event-3598",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3603",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3604",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3605",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3606",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3607",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3608",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3612",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3617",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3618",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3619",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3620",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3621",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3622",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "type": "PACKET_DROPPED",
+            "reason": "Interface sem link operacional."
+          },
+          {
+            "id": "event-3642",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          },
+          {
+            "id": "event-3646",
+            "atMs": 4.004108000000997,
+            "device": "SVC-ACCESS-B",
+            "type": "PACKET_DROPPED",
+            "reason": "Nenhuma porta de saída encaminha esta VLAN."
+          }
+        ],
+        "path": [
+          "SVC-CLIENT",
+          "SVC-ACCESS-A",
+          "SVC-B",
+          "SVC-ACCESS-B"
+        ],
+        "hops": [
+          {
+            "id": "event-3531",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3537",
+            "atMs": 0.0010000000002037268,
+            "device": "SVC-CLIENT",
+            "port": "p0",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3595",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3599",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3601",
+            "atMs": 2.00180200000068,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3609",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3613",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "port": "p2",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3615",
+            "atMs": 2.0025540000006004,
+            "device": "SVC-ACCESS-A",
+            "port": "p3",
+            "direction": "sent"
+          },
+          {
+            "id": "event-3639",
+            "atMs": 4.002604000001156,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3640",
+            "atMs": 4.002604000001156,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          },
+          {
+            "id": "event-3643",
+            "atMs": 4.004108000000997,
+            "device": "SVC-B",
+            "port": "p0",
+            "direction": "received"
+          },
+          {
+            "id": "event-3644",
+            "atMs": 4.004108000000997,
+            "device": "SVC-ACCESS-B",
+            "port": "p3",
+            "direction": "received"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 6000,
+      "id": "tcp-3854",
+      "status": "success",
+      "elapsedMs": 32.010671999993065,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 6000,
+      "id": "dns-query-3863",
+      "status": "success",
+      "elapsedMs": 16.0045919999975,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 6000,
+      "id": "ntp-3869",
+      "status": "success",
+      "elapsedMs": 16.00430399999823,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 6000,
+      "id": "syslog-3873",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 7000,
+      "id": "tcp-4591",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 7000,
+      "id": "dns-query-4600",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 7000,
+      "id": "ntp-4606",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 7000,
+      "id": "syslog-4610",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 8000,
+      "id": "tcp-5142",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 8000,
+      "id": "dns-query-5151",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 8000,
+      "id": "ntp-5157",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 8000,
+      "id": "syslog-5161",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 9000,
+      "id": "tcp-5550",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 9000,
+      "id": "dns-query-5559",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 9000,
+      "id": "ntp-5565",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 9000,
+      "id": "syslog-5569",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 10000,
+      "id": "tcp-6101",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 10000,
+      "id": "dns-query-6110",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 10000,
+      "id": "ntp-6116",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 10000,
+      "id": "syslog-6120",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    },
+    {
+      "flow": "HTTP no VIP",
+      "atMs": 11000,
+      "id": "tcp-6497",
+      "status": "success",
+      "elapsedMs": 24.008999999994558,
+      "reason": "HTTP 200",
+      "responseReceived": true
+    },
+    {
+      "flow": "DNS no VIP",
+      "atMs": 11000,
+      "id": "dns-query-6506",
+      "status": "success",
+      "elapsedMs": 8.003272000001743,
+      "responseReceived": true
+    },
+    {
+      "flow": "NTP no VIP",
+      "atMs": 11000,
+      "id": "ntp-6512",
+      "status": "success",
+      "elapsedMs": 8.004208000002109,
+      "responseReceived": true
+    },
+    {
+      "flow": "Syslog no VIP",
+      "atMs": 11000,
+      "id": "syslog-6516",
+      "status": "success",
+      "elapsedMs": 4.004108000000997,
+      "responseReceived": true
+    }
+  ],
+  "warnings": [
+    {
+      "code": "SWITCH_FAILURE_DOMAIN",
+      "severity": "info",
+      "devices": [
+        "device-4"
+      ],
+      "message": "SVC-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+      "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+    },
+    {
+      "code": "SWITCH_FAILURE_DOMAIN",
+      "severity": "info",
+      "devices": [
+        "device-5"
+      ],
+      "message": "SVC-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+      "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+    }
+  ],
+  "faults": [
+    {
+      "atMs": 2000,
+      "target": "device-2",
+      "kind": "device",
+      "up": false,
+      "recovery": [
+        {
+          "flow": "HTTP no VIP",
+          "recoveryMs": 4032.010671999993,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 6032.010671999993,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "DNS no VIP",
+          "recoveryMs": 4016.0045919999975,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 6016.0045919999975,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "NTP no VIP",
+          "recoveryMs": 4016.0043039999982,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 6016.004303999998,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        },
+        {
+          "flow": "Syslog no VIP",
+          "recoveryMs": 4004.004108000001,
+          "observedFailure": true,
+          "resolutionMs": 1000,
+          "recoveryResponseAtMs": 6004.004108000001,
+          "firstFailedAttemptAtMs": 2000,
+          "measurement": "response-timestamp"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "event-8",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-16",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-17",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-20",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-28",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-29",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-32",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Serviço DNS habilitado."
+    },
+    {
+      "id": "event-33",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Registro DNS app.service.test A configurado."
+    },
+    {
+      "id": "event-34",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Serviço http TCP/80 ativado."
+    },
+    {
+      "id": "event-35",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Relógio de rede configurado; offset 0 ms."
+    },
+    {
+      "id": "event-36",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "Coletor syslog/514 ativado."
+    },
+    {
+      "id": "event-38",
+      "time": 0,
+      "type": "VRRP_TRACK_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42: prioridade configurada 150, efetiva 150."
+    },
+    {
+      "id": "event-39",
+      "time": 0,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42, VIP 192.0.2.1: INIT → BACKUP."
+    },
+    {
+      "id": "event-41",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-2",
+      "reason": "VRRP ativado; 1 grupos."
+    },
+    {
+      "id": "event-42",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "port": "nic0",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "id": "event-50",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "Bond1: ativo/backup, 2 NICs; primária p0."
+    },
+    {
+      "id": "event-51",
+      "time": 0,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "Bond1: NIC ativa p0."
+    },
+    {
+      "id": "event-54",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço DNS habilitado."
+    },
+    {
+      "id": "event-55",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Registro DNS app.service.test A configurado."
+    },
+    {
+      "id": "event-56",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Serviço http TCP/80 ativado."
+    },
+    {
+      "id": "event-57",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Relógio de rede configurado; offset 0 ms."
+    },
+    {
+      "id": "event-58",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "Coletor syslog/514 ativado."
+    },
+    {
+      "id": "event-60",
+      "time": 0,
+      "type": "VRRP_TRACK_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "VRID 42: prioridade configurada 100, efetiva 100."
+    },
+    {
+      "id": "event-61",
+      "time": 0,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "VRID 42, VIP 192.0.2.1: INIT → BACKUP."
+    },
+    {
+      "id": "event-63",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-3",
+      "reason": "VRRP ativado; 1 grupos."
+    },
+    {
+      "id": "event-65",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-64",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-66",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-64",
+      "reason": "Perfil UPS aplicado: Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento."
+    },
+    {
+      "id": "event-67",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-64",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-69",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-68",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-70",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-68",
+      "reason": "Perfil Rack aplicado: Unidades de rack, montagem e ventilação influenciam a temperatura."
+    },
+    {
+      "id": "event-71",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-68",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-73",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-72",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-74",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-72",
+      "reason": "Perfil UPS aplicado: Bateria, potência, eficiência, recarga e cargas ligadas ao equipamento."
+    },
+    {
+      "id": "event-75",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-72",
+      "reason": "Infraestrutura ups configurada."
+    },
+    {
+      "id": "event-77",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-76",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-78",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-76",
+      "reason": "Perfil Rack aplicado: Unidades de rack, montagem e ventilação influenciam a temperatura."
+    },
+    {
+      "id": "event-79",
+      "time": 0,
+      "type": "CONFIG_CHANGED",
+      "device": "device-76",
+      "reason": "Infraestrutura rack configurada."
+    },
+    {
+      "id": "event-1344",
+      "time": 3414.0625,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42, VIP 192.0.2.1: BACKUP → ACTIVE."
+    },
+    {
+      "id": "event-1725",
+      "time": 5000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-1734",
+      "time": 5000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-1741",
+      "time": 5000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-1742",
+      "time": 5000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-1864",
+      "time": 5016.003728,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-1879",
+      "time": 5016.004943999998,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-1892",
+      "time": 5020.004756,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-1921",
+      "time": 5024.0066480000005,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-1949",
+      "time": 5028.007676000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-1959",
+      "time": 5028.009644,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-1977",
+      "time": 5032.008704000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-1984",
+      "time": 5032.010672,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-1723: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-1996",
+      "time": 5036.011700000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-1827: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-2275",
+      "time": 6000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-2281",
+      "time": 6000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-2290",
+      "time": 6000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-2291",
+      "time": 6000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-2361",
+      "time": 6008.002056000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-2373",
+      "time": 6008.003272,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-2389",
+      "time": 6012.003084000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-2418",
+      "time": 6016.004976000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-2446",
+      "time": 6020.006004000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-2456",
+      "time": 6020.007972000001,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-2474",
+      "time": 6024.007032000003,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-2481",
+      "time": 6024.009000000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2273: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-2493",
+      "time": 6028.010028000002,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-2",
+      "reason": "tcp-2324: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-2770",
+      "time": 7000,
+      "type": "BOND_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "Bond1: nenhum caminho disponível."
+    },
+    {
+      "id": "event-2771",
+      "time": 7000,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-2",
+      "port": "bond-port-26",
+      "reason": "VRID 42, VIP 192.0.2.1: ACTIVE → INIT."
+    },
+    {
+      "id": "event-2774",
+      "time": 7000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2772: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-2780",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-2789",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-2790",
+      "time": 7000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-3005",
+      "time": 8000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3003: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3011",
+      "time": 8000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3020",
+      "time": 8000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3021",
+      "time": 8000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-3254",
+      "time": 9000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3252: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3260",
+      "time": 9000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3269",
+      "time": 9000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3270",
+      "time": 9000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-3509",
+      "time": 10000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3507: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3515",
+      "time": 10000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3524",
+      "time": 10000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3525",
+      "time": 10000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-3647",
+      "time": 10027.4384,
+      "type": "VRRP_STATE_CHANGED",
+      "device": "device-3",
+      "port": "bond-port-48",
+      "reason": "VRID 42, VIP 192.0.2.1: BACKUP → ACTIVE."
+    },
+    {
+      "id": "event-3856",
+      "time": 11000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3854: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-3862",
+      "time": 11000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-3871",
+      "time": 11000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-3872",
+      "time": 11000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-4026",
+      "time": 11016.003727999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3003: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4040",
+      "time": 11016.003727999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3507: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4054",
+      "time": 11016.003727999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3854: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4069",
+      "time": 11016.004591999998,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-4098",
+      "time": 11020.004755999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3913: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4104",
+      "time": 11020.004755999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3926: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4110",
+      "time": 11020.004755999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3934: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4183",
+      "time": 11024.006647999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3003: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4194",
+      "time": 11024.006647999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3507: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4205",
+      "time": 11024.006647999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3854: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4271",
+      "time": 11028.007675999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3913: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4281",
+      "time": 11028.007675999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3926: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4291",
+      "time": 11028.007675999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3934: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4301",
+      "time": 11028.009643999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3913: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4312",
+      "time": 11028.009643999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3926: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4323",
+      "time": 11028.009643999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3934: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4386",
+      "time": 11032.008703999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3003: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4392",
+      "time": 11032.008703999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3507: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4398",
+      "time": 11032.008703999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3854: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4405",
+      "time": 11032.010671999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3003: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4415",
+      "time": 11032.010671999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3507: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4425",
+      "time": 11032.010671999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3854: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4449",
+      "time": 11036.011699999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3913: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4453",
+      "time": 11036.011699999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3926: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4457",
+      "time": 11036.011699999992,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-3934: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4576",
+      "time": 12000,
+      "type": "DNS_TIMEOUT",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Sem resposta DNS de 192.0.2.1 após 5 s virtuais."
+    },
+    {
+      "id": "event-4593",
+      "time": 12000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4591: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-4599",
+      "time": 12000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-4608",
+      "time": 12000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-4609",
+      "time": 12000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-4711",
+      "time": 12008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3252: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4725",
+      "time": 12008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4591: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-4737",
+      "time": 12008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-4740",
+      "time": 12008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-4764",
+      "time": 12012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4650: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4770",
+      "time": 12012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4660: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-4821",
+      "time": 12016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3252: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4832",
+      "time": 12016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4591: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-4877",
+      "time": 12020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4650: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4887",
+      "time": 12020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4660: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-4897",
+      "time": 12020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4650: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4908",
+      "time": 12020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4660: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-4934",
+      "time": 12024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3252: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4940",
+      "time": 12024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4591: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-4947",
+      "time": 12024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-3252: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4957",
+      "time": 12024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-4591: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-4977",
+      "time": 12028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4650: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-4981",
+      "time": 12028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-4660: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5133",
+      "time": 13000,
+      "type": "DNS_TIMEOUT",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Sem resposta DNS de 192.0.2.1 após 5 s virtuais."
+    },
+    {
+      "id": "event-5144",
+      "time": 13000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5142: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-5150",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-5159",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-5160",
+      "time": 13000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-5244",
+      "time": 13008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5142: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5256",
+      "time": 13008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-5259",
+      "time": 13008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-5275",
+      "time": 13012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5197: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5304",
+      "time": 13016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5142: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5332",
+      "time": 13020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5197: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5342",
+      "time": 13020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5197: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5360",
+      "time": 13024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5142: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5367",
+      "time": 13024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5142: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5383",
+      "time": 13028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5197: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5535",
+      "time": 14000,
+      "type": "DNS_TIMEOUT",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Sem resposta DNS de 192.0.2.1 após 5 s virtuais."
+    },
+    {
+      "id": "event-5552",
+      "time": 14000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5550: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-5558",
+      "time": 14000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-5567",
+      "time": 14000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-5568",
+      "time": 14000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-5670",
+      "time": 14008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2772: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5684",
+      "time": 14008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5550: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-5696",
+      "time": 14008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-5699",
+      "time": 14008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-5723",
+      "time": 14012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5609: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5729",
+      "time": 14012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5619: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-5780",
+      "time": 14016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2772: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5791",
+      "time": 14016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5550: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-5836",
+      "time": 14020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5609: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5846",
+      "time": 14020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5619: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-5856",
+      "time": 14020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5609: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5867",
+      "time": 14020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5619: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-5893",
+      "time": 14024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2772: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5899",
+      "time": 14024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5550: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-5906",
+      "time": 14024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-2772: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5916",
+      "time": 14024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-5550: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-5936",
+      "time": 14028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5609: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-5940",
+      "time": 14028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-5619: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-6092",
+      "time": 15000,
+      "type": "DNS_TIMEOUT",
+      "device": "device-1",
+      "port": "bond-port-14",
+      "reason": "Sem resposta DNS de 192.0.2.1 após 5 s virtuais."
+    },
+    {
+      "id": "event-6103",
+      "time": 15000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6101: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-6109",
+      "time": 15000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-6118",
+      "time": 15000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-6119",
+      "time": 15000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-6203",
+      "time": 15008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6101: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6215",
+      "time": 15008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-6218",
+      "time": 15008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-6234",
+      "time": 15012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6156: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6263",
+      "time": 15016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6101: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-6291",
+      "time": 15020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6156: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-6301",
+      "time": 15020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6156: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-6319",
+      "time": 15024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6101: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-6326",
+      "time": 15024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6101: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-6342",
+      "time": 15028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6156: LAST-ACK → CLOSED."
+    },
+    {
+      "id": "event-6499",
+      "time": 16000,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6497: abertura ativa SYN-SENT para 192.0.2.1:80."
+    },
+    {
+      "id": "event-6505",
+      "time": 16000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cache DNS limpo."
+    },
+    {
+      "id": "event-6514",
+      "time": 16000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Cliente NTP configurado."
+    },
+    {
+      "id": "event-6515",
+      "time": 16000,
+      "type": "CONFIG_CHANGED",
+      "device": "device-1",
+      "reason": "Envio syslog/514 ativado."
+    },
+    {
+      "id": "event-6585",
+      "time": 16008.002055999998,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6497: SYN-SENT → ESTABLISHED."
+    },
+    {
+      "id": "event-6597",
+      "time": 16008.003272000002,
+      "type": "DNS_ANSWER",
+      "device": "device-1",
+      "reason": "app.service.test A: success; 1 registro(s) recebido(s)."
+    },
+    {
+      "id": "event-6613",
+      "time": 16012.003083999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6548: SYN-RECEIVED → ESTABLISHED."
+    },
+    {
+      "id": "event-6642",
+      "time": 16016.004975999997,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6497: ESTABLISHED → FIN-WAIT-1."
+    },
+    {
+      "id": "event-6670",
+      "time": 16020.006003999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6548: ESTABLISHED → CLOSE-WAIT."
+    },
+    {
+      "id": "event-6680",
+      "time": 16020.007971999996,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6548: CLOSE-WAIT → LAST-ACK."
+    },
+    {
+      "id": "event-6698",
+      "time": 16024.007031999994,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6497: FIN-WAIT-1 → FIN-WAIT-2."
+    },
+    {
+      "id": "event-6705",
+      "time": 16024.008999999995,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-1",
+      "reason": "tcp-6497: FIN-WAIT-2 → TIME-WAIT."
+    },
+    {
+      "id": "event-6721",
+      "time": 16028.010027999993,
+      "type": "TCP_STATE_CHANGED",
+      "device": "device-3",
+      "reason": "tcp-6548: LAST-ACK → CLOSED."
+    }
+  ],
+  "captureDropped": 0
+}

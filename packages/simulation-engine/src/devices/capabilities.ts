@@ -111,6 +111,7 @@ export function deviceCapabilities(d: Device) {
     lacp:
       active && (switching || (d.type === 'router' && generic) || d.interfaces.some((p) => !!p.aggregate)),
     bond: endpoint && d.profile !== 'smartphone',
+    vrrp: active && ((d.type === 'router' && routingProtocols) || d.type === 'server'),
     vxlan:
       active &&
       ((switching && (generic || profile?.feature === 'l3')) || d.interfaces.some((p) => !!p.vxlan)),
@@ -161,7 +162,8 @@ export function inspectorTabIds(d: Device): string[] {
     'dns',
     'tcp',
     ...(c.switching ? ['stp'] : []),
-    ...(d.type === 'router' && c.routingProtocols ? ['ospf', 'rip', 'vrrp'] : []),
+    ...(d.type === 'router' && c.routingProtocols ? ['ospf', 'rip'] : []),
+    ...(c.vrrp ? ['vrrp'] : []),
     ...(c.routingProtocols ? ['bgp'] : []),
     ...(c.routing ? ['policy'] : []),
     'management',

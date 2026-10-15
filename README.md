@@ -82,6 +82,8 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 
 O template **Um gateway, dois roteadores** demonstra VRRP IPv4. Faça ping ou HTTP de PC-01 para WEB-01, desligue R-PRIMARY e avance a simulação até R-BACKUP assumir. O cache ARP mantém o MAC virtual. Configure e acompanhe grupos na aba **VRRP**; limites em [ADR-016](docs/adr/016-vrrp-ipv4-gateway.md).
 
+**PLC/HMI com acesso e alimentação A/B** acrescenta NICs ativo/backup, monitor ARP, duas UPS e presets de perda/retorno de rack. A aba **Redundância NIC** instala interfaces e configura o bond ([ADR-049](docs/adr/049-host-nic-and-access-redundancy.md)). **Serviços com VIP, acesso e energia redundantes** acrescenta duas instâncias DNS/HTTP/NTP/syslog, VRRP accept mode e tracking de serviço. Os presets medem novas requisições; replicação de leases/dados/sessões de aplicação ainda está em R08. Reproduza os nove presets com `npx tsx scripts/verify-service-availability.ts`.
+
 O template **Três zonas, caminhos controlados** permite comparar acessos HTTP da LAN/WAN para a DMZ, bloqueios por serviço e traceroute através de PAT/firewall. Configure zonas e regras em **Políticas**; a timeline inspeciona o cabeçalho citado em erros ICMP. Limites em [ADR-015](docs/adr/015-firewall-zones-and-related-icmp.md).
 
 ### Experimento TCP / HTTP

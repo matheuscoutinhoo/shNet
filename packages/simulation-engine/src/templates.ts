@@ -1,5 +1,6 @@
 import { enterpriseDefaults } from './protocols/enterprise-defaults';
 import { dualAccessTemplate } from './dual-access-template';
+import { serviceHaTemplate } from './service-ha-template';
 import factoryTemplate from './factory-template.json' with { type: 'json' };
 import { enterpriseDatacenterTemplate } from './enterprise-datacenter-template';
 import { SimulationEngine } from './core/engine';
@@ -11,6 +12,7 @@ function address(d: Device, port: number, ip: string, prefix = 24) {
 import { templates, type TemplateId } from './catalog-templates';
 export { templates, type TemplateId };
 export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
+  if (template === 'service-ha') return serviceHaTemplate();
   if (template === 'dual-access') return dualAccessTemplate();
   if (template === 'factory') {
     const e = new SimulationEngine(structuredClone(factoryTemplate) as unknown as Snapshot);

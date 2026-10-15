@@ -32,6 +32,7 @@ export function commandSupported(d: Device, input: string, context: Context): bo
     return c.switching || c.ap || c.controller;
   if (/^(spanning-tree|show spanning-tree)/.test(line)) return c.switching;
   if (/^(channel-group|lacp|port-channel|show (etherchannel|lacp))/.test(line)) return c.lacp;
+  if (/^(service vrrp|vrrp |show vrrp)/.test(line)) return c.vrrp;
   if (
     /^(router (ospf|rip)|ospf |rip |ip (ospf|rip)|service (ospf|rip|vrrp)|vrrp |show (ip (ospf|rip)|vrrp))/.test(
       line

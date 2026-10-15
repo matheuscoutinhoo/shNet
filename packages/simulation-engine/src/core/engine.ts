@@ -191,7 +191,13 @@ import { OSPF } from '../protocols/ospf-model';
 import { configureRip, handleRipTick } from '../protocols/rip';
 import { RIP } from '../protocols/rip-model';
 import { VRRP } from '../protocols/vrrp-model';
-import { configureVrrp, refreshVrrp, handleVrrpTimer, acceptsVrrpMac } from '../protocols/vrrp';
+import {
+  configureVrrp,
+  refreshVrrp,
+  handleVrrpTimer,
+  acceptsVrrpMac,
+  acceptsVrrpAddress,
+} from '../protocols/vrrp';
 import { configureSnmpAgent, querySnmp, handleSnmpTimeout } from '../protocols/snmp';
 import {
   configureSyslog,
@@ -1150,6 +1156,8 @@ export class SimulationEngine {
     }
     const d = findDevice(this.state, device);
     if (d) {
+      if (type === 'CONFIG_CHANGED' && d.vrrp?.groups.some((g) => g.track?.some((t) => t.service)))
+        refreshVrrp(this);
       d.logs.push((this.state.clock.toFixed(3) + ' ' + type + ' ' + reason).slice(0, 300));
       if (d.logs.length > 100) d.logs.shift();
       forwardSyslogEvent(this, d, event);
@@ -1366,8 +1374,12 @@ export class SimulationEngine {
       this.drop(d, 'Equipamento desligado');
       return;
     }
+    const virtualPort = acceptsVrrpAddress(this.state, d, packet.dst, vrf)
+      ? d.vrrp!.groups.find((g) => g.vip === packet.dst)!.port
+      : undefined;
     const local = d.interfaces.find(
-      (port) => interfaceUp(d, port) && port.vrf === vrf && port.ip === packet.dst
+      (port) =>
+        interfaceUp(d, port) && port.vrf === vrf && (port.ip === packet.dst || port.id === virtualPort)
     );
     if (local) {
       receiveIp(this, d, local, packet, local.mac, false);

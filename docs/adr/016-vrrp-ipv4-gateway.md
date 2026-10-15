@@ -25,7 +25,7 @@ VRRP passa pelos mesmos enlaces, perdas, VLANs, STP e ACLs que outros pacotes. A
 - Apenas IPv4, VRRPv3 e um VIP por grupo; até 32 grupos por roteador.
 - Interfaces routed com IPv4 estático /1 a /30; VRID 1–255, intervalo de 100–10000 ms em passos de 10 ms.
 - PDUs tipados, sem codificação binária, checksum, autenticação ou interoperabilidade com sockets/equipamentos reais.
-- Tracking de uplink/rota entregue em ADR-019. Sem HSRP, Accept_Mode configurável, múltiplos VIPs, IPv6 ou sincronização de sessões NAT/firewall.
+- Tracking de uplink/rota entregue em ADR-019. O [ADR-050](050-service-virtual-address-availability.md) acrescenta Accept_Mode configurável, servidores e tracking de serviço; o [ADR-045](045-firewall-nat-state-synchronization.md) acrescenta canal separado para estado de firewall/NAT. Sem HSRP, múltiplos VIPs por grupo ou VRRP IPv6.
 - Falhas de anúncio por ACL/VLAN/perda podem produzir split brain. Isso aparece no estado; não há prevenção global artificial.
 - Grupos em interfaces diferentes elegem independentemente. A seleção de rotas conectadas depende do estado administrativo da porta; tracking opcional de uplink/rota está disponível (ADR-019). As rotas de apoio do template atendem shutdown administrativo de uma porta.
 - Protocolos periódicos usam `advanceTo` com horizonte e orçamento; `run` não deve tentar drenar indefinidamente anúncios recorrentes.

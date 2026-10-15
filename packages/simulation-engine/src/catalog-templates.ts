@@ -1,5 +1,12 @@
 export const templates = [
   {
+    id: 'service-ha',
+    name: 'Serviços com VIP, acesso e energia redundantes',
+    description: 'Nove equipamentos, DNS/HTTP em duas instâncias, tracking de serviço, bonds e UPS A/B.',
+    level: 'Disponibilidade / Serviços',
+    devices: 9,
+  },
+  {
     id: 'dual-access',
     name: 'PLC/HMI com acesso e alimentação A/B',
     description: 'Oito equipamentos, NICs ativo/backup, monitor ARP, dois acessos/racks e UPS A/B.',

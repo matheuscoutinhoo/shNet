@@ -24,6 +24,7 @@ export function configureDatabase(e: SimulationEngine, d: Device, input: unknown
     queries: d.database?.queries ?? 0,
     rejected: d.database?.rejected ?? 0,
   };
+  e.refreshVrrp();
 }
 type Value = z.infer<typeof databaseValueSchema>;
 function name(text: string) {
