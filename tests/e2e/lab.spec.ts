@@ -3362,7 +3362,7 @@ test('VRRP: edição, eleição, failover, HTTP, anúncios e persistência deskt
   await inspect('R-BACKUP', 'VRRP');
   await expect(panel.locator('tr[data-state="ACTIVE"]')).toHaveCount(2);
   await page.setViewportSize({ width: 390, height: 844 });
-  await panel.getByLabel('IP virtual').scrollIntoViewIfNeeded();
+  await panel.getByRole('textbox', { name: 'IP virtual', exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/vrrp-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
