@@ -10,7 +10,7 @@ O usuário reabriu as ampliações de rede/serviços/indústria com a instruçã
 
 O [ADR-046](adr/046-application-recovery-and-run-integrity.md) preserva recuperação/persistência; o [ADR-047](adr/047-scale-topology-and-release-qualification.md) registra a etapa anterior. A [validação anterior](../artifacts/application-completion-2026-10-13/VALIDACAO.md) distingue execução local, CI e Railway real.
 
-Produção verificada em 15/10/2026: contrato `2026.10.15.5`, com PLC/HMI, BGP/EVPN binário e supressão ARP disponíveis. A CI do último incremento aprovou 899 testes e 130 cenários de navegador; fonte/Worker, assets, TLS e endpoints privados foram conferidos no Railway por consultas de leitura. [Evidências atuais](../artifacts/evpn-arp-2026-10-15/VALIDACAO.md).
+Produção verificada em 15/10/2026: contrato `2026.10.15.6`, com PLC/HMI, BGP/EVPN binário, supressão ARP e réplica DHCPv4 com troca administrativa disponíveis. A CI do último incremento aprovou 915 testes e 132 cenários de navegador; fonte/Worker, 21 assets, TLS e endpoints privados foram conferidos no Railway por consultas de leitura. [Evidências atuais](../artifacts/dhcp-ha-2026-10-15/VALIDACAO.md).
 
 | Prioridade | Parcela da aplicação                   | Correção entregue e aceite                                                                                                                                                                          |
 | ---------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -23,9 +23,9 @@ Produção verificada em 15/10/2026: contrato `2026.10.15.5`, com PLC/HMI, BGP/E
 
 As parcelas faltantes de R08/R10/R17–R20/R25 permanecem abertas até seus próprios testes de aceite. Os P2 não encerram essas frentes. O Railway público foi verificado por HTTPS na etapa anterior. Como não havia autenticação Railway acessível, o usuário escolheu homologação isolada na CI; PITR/rollback do projeto Railway real continuam exigindo acesso e ambiente próprio, sem intervenção na produção.
 
-## Status consolidado — contrato 2026.10.15.6 aprovado na CI
+## Status consolidado — contrato 2026.10.15.6 publicado e verificado
 
-O contrato `2026.10.15.6` adiciona réplica DHCPv4 confirmada antes de OFFER/ACK, promoção administrativa com desligamento do antigo ativo, fila limitada, painel/CLI, preflight e modelo nativo. O [ADR-054](adr/054-dhcp-replication-and-administrative-fencing.md) delimita a entrega. A [CI 38784975039](https://github.com/matheuscoutinhoo/shNet/actions/runs/38784975039) aprovou os cinco gates, 915 testes e 132 cenários de navegador, sem falhas ou instabilidade. A integração preserva a fonte qualificada; o deploy será conferido separadamente. Quorum/eleição automática e réplica dos demais serviços continuam pendentes em R08.
+O contrato `2026.10.15.6` adiciona réplica DHCPv4 confirmada antes de OFFER/ACK, promoção administrativa com desligamento do antigo ativo, fila limitada, painel/CLI, preflight e modelo nativo. O [ADR-054](adr/054-dhcp-replication-and-administrative-fencing.md) delimita a entrega. A [CI 38784975039](https://github.com/matheuscoutinhoo/shNet/actions/runs/38784975039) aprovou os cinco gates, 915 testes e 132 cenários de navegador, sem falhas ou instabilidade. A integração preserva a fonte qualificada; fonte/Worker e assets do deploy foram conferidos por HTTPS no Railway. Quorum/eleição automática e réplica dos demais serviços continuam pendentes em R08.
 
 **Concluída** significa que a correção desta frente está implementada e exercitada no escopo indicado. **Parcial** conserva trabalho do requisito original. **Validada localmente** atende à orientação de preparar e usar o ambiente local, sem certificar um deploy remoto. **Condicional** depende de um requisito adicional ao PLC/HMI Modbus TCP e rede IP já confirmado.
 
