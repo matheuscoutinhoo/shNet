@@ -1,0 +1,925 @@
+{
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38774060950",
+  "head": "46bf53b4f7adb09a369d6bfb51fca568d8c60c07",
+  "format": "Compact results; server logs and attachments omitted.",
+  "stats": {
+    "startTime": "2026-10-15T17:03:41.082Z",
+    "duration": 1528869.52,
+    "expected": 65,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "Aprendizado: finder centraliza equipamento presente e terminais respeitam o perfil",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9924,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8707,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Painel inferior: expansão por mouse, teclado e toque, limites responsivos e rolagem",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6707,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Painel inferior: eventos e tráfego acompanham a seleção e preservam a visão da rede",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5690,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corretas",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5651,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: plataforma sempre escura, independente do sistema e de preferências antigas",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2211,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: armazenamento indisponível não interfere no tema escuro",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1223,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: plataforma e canvas independentes, conta, modais e mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 19815,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: fluxo real e destaques com movimento no-preference",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10463,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: fluxo real e destaques com movimento reduce",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8815,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Workspace: inicialização manual e terminal preservado por dispositivo",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9132,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Conexões: métricas calculadas, compatibilidade física e obstrução do rádio",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9669,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 92516,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Resiliência: falha ao salvar, recuperação, importação inválida e menus durante simulação",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6037,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Resiliência: sair informa falha de rede e permite encerrar a sessão ao tentar novamente",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2212,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Equipamentos: detalhes responsivos, expansão pela esquerda e opções específicas",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7597,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 15839,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Dashboard: navegação, filtros, favoritos, histórico e controles em desktop e mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6693,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 35283,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "MPLS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 17642,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "QoS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 14813,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 20339,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Inspeção de aplicação: Host HTTP bloqueado e permitido, regras e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 23121,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VXLAN/EVPN: VNI, BGP MAC/IP, HTTP, encapsulamento e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 36373,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP relay: pool remoto, reserva, pacotes, ping, release e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 37385,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "RIP: configuração, vetores, expiração exibida e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 20590,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "OSPF: convergência, falha, inspector e persistência",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 62834,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 26135,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistência desktop/mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 46250,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "firewall: UDP, ICMP, bloqueio de entrada e sessões persistidas desktop/mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 22302,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 37642,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Bond: configuração de NICs, failover de acesso, ping e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 15482,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Serviços HA: configuração do VIP, tracking, presets e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9573,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Processo industrial: ciclos PLC/HMI, alarmes, persistência e mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 12182,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "canvas: grupos, notas, grade e reabertura",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7876,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "labs: tarefas, correção, avaliação e progresso persistido",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9877,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "políticas: PAT, ACL, bloqueio, recuperação e persistência",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 22709,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "conta: perfil, sessões independentes, revogação e exclusão",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4044,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "RSTP: redundância, BPDUs, falha, recuperação e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 64367,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DNS: registros, nslookup, cache, ping por nome, falha e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 32440,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 27021,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP: pool, dois clientes, pacotes, ping, lease e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 31868,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VRRP: edição, eleição, failover, HTTP, anúncios e persistência desktop/mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 47236,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "EVPN: supressão ARP configurável, diagnóstico e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9271,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "BGP/EVPN binário: PDU legível, PCAP e inspeção mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5917,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "BGP: sessões TCP, AS_PATH, política, falha, inspector e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 77141,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: Um trunk, duas redes com HTTP, configuração e persistência",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 16279,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: VLANs com gateway no switch com HTTP, configuração e persistência",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 13396,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: VRF mantém HTTP e IPs sobrepostos isolados no painel e no save/reload",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 13655,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Tracking: uplink reduz prioridade VRRP no painel e mantém HTTP",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 28838,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "LACP: negocia, conserva HTTP com membro restante e persiste no mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 95718,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "IPv6 serviços: DHCPv6, UDP, TCP com janela e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 44783,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "IPv6: SLAAC, ping roteado, Hop Limit, pacote e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 22938,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wireless: autenticação, HTTP pelo rádio, pacotes e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 24425,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 104521,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Catálogo: perfil QSFP, transceiver, duplicação, análise e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7631,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Lab avançado: reparar roteamento SVI, validar HTTP e persistir tarefas mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10362,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizagem: editor de desafios, tutorial completo, pontuação e mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8733,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wi-Fi empresarial: tls, HTTP, certificados e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 27927,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wi-Fi empresarial: peap, HTTP, certificados e persistência mobile",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 25950,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Workspace: desenho livre, comentário ancorado, histórico e telas ampliadas",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8127,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Produto: infraestrutura, formulários guiados, acessibilidade e teclado",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 15628,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Topologia: vistas, clone de rack com revisão, undo e persistência",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7102,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alterações",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 21549,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Sessões: expiração remota, reentrada, revogação atual e troca de senha",
+      "file": "lab.spec.ts",
+      "project": "sistema-claro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 10621,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    }
+  ]
+}

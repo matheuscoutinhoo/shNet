@@ -1,0 +1,35 @@
+{
+  "decoder": "Scapy + TShark",
+  "cases": [
+    {
+      "case": "known-binding",
+      "packets": 142,
+      "checksums": 308,
+      "localArpReplies": 1,
+      "overlayArpRequests": 0,
+      "resetsFromService": 0,
+      "malformed": 0,
+      "passed": true
+    },
+    {
+      "case": "unknown-address",
+      "packets": 100,
+      "checksums": 172,
+      "localArpReplies": 0,
+      "overlayArpRequests": 6,
+      "resetsFromService": 0,
+      "malformed": 0,
+      "passed": true
+    },
+    {
+      "case": "application-stopped",
+      "packets": 106,
+      "checksums": 200,
+      "localArpReplies": 1,
+      "overlayArpRequests": 0,
+      "resetsFromService": 2,
+      "malformed": 0,
+      "passed": true
+    }
+  ]
+}

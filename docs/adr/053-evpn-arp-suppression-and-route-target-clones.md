@@ -1,6 +1,6 @@
 # ADR-053 — supressão ARP EVPN e clonagem de route targets
 
-Data: 15/10/2026. Contrato `2026.10.15.5`; incremento R18 em qualificação.
+Data: 15/10/2026. Contrato `2026.10.15.5`; supressão ARP qualificada nos cinco gates da [CI 38774060950](https://github.com/matheuscoutinhoo/shNet/actions/runs/38774060950), com 899 testes e 130 cenários de navegador aprovados.
 
 ## Decisão
 

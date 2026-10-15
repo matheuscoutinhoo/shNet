@@ -1,0 +1,25 @@
+{
+  "errors": [],
+  "openMs": 706.373192,
+  "failedDeferredPanelPreservesWorkspace": true,
+  "controlledPanelErrors": [],
+  "continuousAutosave": {
+    "revision": 2,
+    "clock": 4119.600000000093,
+    "manualSaveResolved": true
+  },
+  "build": {
+    "engineBuild": "132e488242e751038d12f6c9a795292494f43855437761270948066657b719ad",
+    "engineContract": "2026.10.15.5",
+    "schemaVersion": 11,
+    "workerArtifact": "fba3a421378ea3dc2d8d801aa312aa5637e1be2737c3b12e14f79dcc019c3fc3",
+    "clientWorkerHash": "132e488242e751038d12f6c9a795292494f43855437761270948066657b719ad",
+    "workerArtifactHash": "fba3a421378ea3dc2d8d801aa312aa5637e1be2737c3b12e14f79dcc019c3fc3",
+    "entryBytes": 269632,
+    "entry": "/assets/index-DagfM31H.js",
+    "replay": "matched"
+  },
+  "doubleFailureVisible": true,
+  "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+  "passed": true
+}
