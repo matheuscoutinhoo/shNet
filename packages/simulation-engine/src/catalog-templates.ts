@@ -1,5 +1,13 @@
 export const templates = [
   {
+    id: 'dhcp-ha',
+    name: 'DHCP com réplica e troca de servidor',
+    description:
+      'Cinco equipamentos, leases replicados, canal dedicado e promoção com desligamento do antigo ativo.',
+    level: 'Disponibilidade / DHCP',
+    devices: 5,
+  },
+  {
     id: 'industrial-process',
     name: 'Processo PLC, HMI, SCADA e MES',
     description:

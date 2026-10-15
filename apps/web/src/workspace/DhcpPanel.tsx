@@ -13,6 +13,7 @@ import { Modal } from '../components/Modal';
 import type { LabController } from './useLab';
 import { DhcpRelayPanel } from './DhcpRelayPanel';
 import { DhcpProtectionPanel } from './DhcpProtectionPanel';
+import { DhcpHaPanel } from './DhcpHaPanel';
 
 const clientStates: Record<DhcpClient['status'] | 'static', string> = {
   static: 'Estático',
@@ -47,6 +48,7 @@ export function DhcpPanel({ lab, device }: { lab: LabController; device: Device 
       {device.type === 'router' && <DhcpRelayPanel lab={lab} device={device} />}
       {serverCapable && (
         <>
+          <DhcpHaPanel key={device.id} lab={lab} device={device} />
           <div className="mode-switch">
             <span>Serviço DHCP</span>
             <button
@@ -64,7 +66,7 @@ export function DhcpPanel({ lab, device }: { lab: LabController; device: Device 
             <h4>Pools IPv4</h4>
             <button
               className="button small"
-              disabled={!eligible.length}
+              disabled={!eligible.length || !!device.dhcpHa}
               title={eligible.length ? 'Criar pool DHCP' : 'Configure uma interface IPv4 estática'}
               onClick={() => {
                 const names = new Set(server?.pools.map((pool) => pool.name));
@@ -88,6 +90,7 @@ export function DhcpPanel({ lab, device }: { lab: LabController; device: Device 
                       className="icon-button"
                       aria-label={'Editar pool ' + pool.name}
                       title="Editar pool"
+                      disabled={!!device.dhcpHa}
                       onClick={() => setEditing(structuredClone(pool))}
                     >
                       <Pencil size={15} />
@@ -96,6 +99,7 @@ export function DhcpPanel({ lab, device }: { lab: LabController; device: Device 
                       className="icon-button"
                       aria-label={'Excluir pool ' + pool.name}
                       title="Excluir pool"
+                      disabled={!!device.dhcpHa}
                       onClick={() => lab.change((engine) => engine.removeDhcpPool(device.id, pool.name))}
                     >
                       <Trash2 size={15} />
@@ -201,7 +205,12 @@ export function DhcpPanel({ lab, device }: { lab: LabController; device: Device 
         </>
       )}
       {device.interfaces
-        .filter((port) => !port.dhcpRelay?.length && !server?.pools.some((pool) => pool.port === port.id))
+        .filter(
+          (port) =>
+            port.id !== device.dhcpHa?.port &&
+            !port.dhcpRelay?.length &&
+            !server?.pools.some((pool) => pool.port === port.id)
+        )
         .map((port) => {
           const client = port.dhcp;
           const lease = client?.lease;

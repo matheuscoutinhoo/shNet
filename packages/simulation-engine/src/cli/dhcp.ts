@@ -2,6 +2,7 @@ import { ALL_MODES, CONFIG_MODES, CommandRegistry, type Context } from './regist
 import type { Device, DhcpPool } from '../model';
 import { defaultDhcpPool, dhcpPoolStats } from '../protocols/dhcp-config';
 import { parsePrefix } from '../protocols/ipv4';
+import { dhcpHaStatus } from '../protocols/dhcp-ha';
 
 function selectedPool(device: Device, context: Context) {
   const pool = device.dhcpServer?.pools.find((entry) => entry.name === context.pool);
@@ -21,6 +22,43 @@ function portByName(device: Device, name?: string, context?: Context) {
 }
 
 export function registerDhcpCommands(registry: CommandRegistry) {
+  registry.register({
+    pattern: /^show ip dhcp ha$/i,
+    modes: ALL_MODES,
+    run: (_m, e, d) =>
+      d.dhcpHa
+        ? [
+            'DHCP HA: ' + dhcpHaStatus(e.state, d),
+            'Papel: ' + d.dhcpHa.role + ' · par: ' + e.device(d.dhcpHa.peer).hostname,
+            'Revisão: ' +
+              d.dhcpHa.revision +
+              ' · recebida: ' +
+              d.dhcpHa.applied +
+              ' · confirmada: ' +
+              d.dhcpHa.confirmed,
+            'Promoção administrativa com desligamento do antigo ativo; sem eleição automática.',
+          ].join('\n')
+        : 'HA DHCP desativada.',
+  });
+  registry.register({
+    pattern: /^ip dhcp ha configure (\S+) (.+)$/i,
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      const peer = e.state.devices.find((p) => p.id === m[1] || p.hostname === m[1]);
+      if (!peer) throw new Error('Servidor reserva DHCP não encontrado.');
+      e.configureDhcpHaPair(d.id, peer.id, JSON.parse(m[2]));
+    },
+  });
+  registry.register({
+    pattern: /^ip dhcp ha promote-and-fence$/i,
+    modes: CONFIG_MODES,
+    run: (_m, e, d) => e.promoteDhcpHa(d.id),
+  });
+  registry.register({
+    pattern: /^no ip dhcp ha$/i,
+    modes: CONFIG_MODES,
+    run: (_m, e, d) => e.disableDhcpHa(d.id),
+  });
   registry.register({
     pattern: /^ip dhcp snooping configure (.+)$/i,
     modes: CONFIG_MODES,

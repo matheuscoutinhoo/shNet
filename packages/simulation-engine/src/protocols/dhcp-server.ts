@@ -10,7 +10,8 @@ import {
 import type { SimulationEngine } from '../core/engine';
 import { availablePoolAddress, poolContains, sameDhcpScope } from './dhcp-config';
 import { ipNumber, ipString, sameSubnet } from './ipv4';
-import { sendDhcp } from './dhcp-wire';
+import { sendDhcp, sendDhcpServerResponse } from './dhcp-wire';
+import { dhcpHaChanged, deferDhcpHaResponse, DHCP_HA_RESERVE_MS, DHCP_HA_REPLY_MS } from './dhcp-ha';
 
 function removeBinding(engine: SimulationEngine, device: Device, binding: DhcpBinding) {
   if (device.dhcpServer)
@@ -30,6 +31,7 @@ export function expireDhcpBinding(
   const binding = device.dhcpServer?.bindings.find((entry) => entry.id === bindingId);
   if (!binding || binding.expiresAt !== expiresAt || expiresAt > engine.state.clock) return;
   removeBinding(engine, device, binding);
+  dhcpHaChanged(engine, device);
   engine.emit(
     'DHCP_LEASE_EXPIRED',
     device.id,
@@ -79,7 +81,10 @@ function saveBinding(
     pool: pool.name,
     address,
     status,
-    expiresAt: engine.state.clock + (status === 'offered' ? DHCP.offerMs : pool.leaseMs),
+    expiresAt:
+      engine.state.clock +
+      (status === 'offered' ? DHCP.offerMs : pool.leaseMs) +
+      (device.dhcpHa ? DHCP_HA_RESERVE_MS : 0),
   });
   engine.state.queue = engine.state.queue.filter(
     ({ action }) =>
@@ -91,6 +96,7 @@ function saveBinding(
     binding: binding.id,
     expiresAt: binding.expiresAt,
   });
+  dhcpHaChanged(engine, device);
   return binding;
 }
 
@@ -103,46 +109,18 @@ function response(
   pool: DhcpPool,
   address: string
 ) {
-  const message: DhcpMessage = {
-    type,
-    transactionId: request.transactionId,
-    clientMac: request.clientMac,
-    clientIp: request.clientIp,
-    giaddr: request.giaddr,
-    hops: request.hops,
-    address,
-    prefix: pool.prefix,
-    server: port.ip!,
-    gateway: pool.gateway,
-    dns: [...pool.dns],
-    leaseMs: pool.leaseMs,
-  };
-  const relayed = !!request.giaddr && request.giaddr !== DHCP.unspecifiedIp;
-  const destination = relayed
-    ? request.giaddr!
-    : request.clientIp === DHCP.unspecifiedIp
-      ? DHCP.broadcastIp
-      : request.clientIp;
-  sendDhcp(
-    engine,
-    device,
-    port,
-    message,
-    destination,
-    'DHCP ' +
-      type.toUpperCase() +
-      ': ' +
-      address +
-      '/' +
-      pool.prefix +
-      ' do pool ' +
-      pool.name +
-      '; lease de ' +
-      pool.leaseMs / 1000 +
-      ' s.',
-    undefined,
-    relayed
-  );
+  if (
+    deferDhcpHaResponse(engine, device, {
+      port: port.id,
+      request,
+      type,
+      pool: pool.name,
+      address,
+      deadline: engine.state.clock + DHCP_HA_REPLY_MS,
+    })
+  )
+    return;
+  sendDhcpServerResponse(engine, device, port, request, type, pool, address);
 }
 
 function nack(engine: SimulationEngine, device: Device, port: NetworkInterface, request: DhcpMessage) {
@@ -173,6 +151,7 @@ export function receiveDhcpServer(
   packet: UdpPacket
 ) {
   const server = device.dhcpServer;
+  if (device.dhcpHa?.role === 'standby') return;
   if (!server?.enabled || !port.ip || (device.type !== 'server' && device.type !== 'router')) return;
   if (packet.payload.protocol !== 'DHCP') return;
   const message = packet.payload.message;
@@ -207,6 +186,7 @@ export function receiveDhcpServer(
       server.declined = (server.declined ?? []).filter((v) => v.address !== message.requestedIp);
       if (server.declined.length === 256) server.declined.shift();
       server.declined.push({ address: message.requestedIp, expiresAt: engine.state.clock + 600000 });
+      dhcpHaChanged(engine, device);
       engine.emit(
         'DHCP_DECLINE',
         device.id,
@@ -219,6 +199,7 @@ export function receiveDhcpServer(
   if (message.type === 'release') {
     if (message.server === sourcePort.ip && existing?.address === message.clientIp) {
       removeBinding(engine, device, existing);
+      dhcpHaChanged(engine, device);
       engine.emit('DHCP_RELEASE', device.id, 'Concessão ' + existing.address + ' devolvida pelo cliente.', {
         port: port.id,
       });

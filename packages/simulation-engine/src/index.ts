@@ -27,6 +27,7 @@ export * from './inspection';
 
 export { vrrpConfigGroups } from './protocols/vrrp';
 export { stateSyncStatus, stateSyncCompatible, stateSyncPending } from './protocols/state-sync';
+export { dhcpHaStatus, dhcpHaCompatible } from './protocols/dhcp-ha';
 export type { StateSyncPair } from './protocols/state-sync-model';
 
 export { bgpConfig } from './protocols/bgp';

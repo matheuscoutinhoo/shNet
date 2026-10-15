@@ -1,0 +1,25 @@
+{
+  "errors": [],
+  "openMs": 1589.7071000000005,
+  "failedDeferredPanelPreservesWorkspace": true,
+  "controlledPanelErrors": [],
+  "continuousAutosave": {
+    "revision": 2,
+    "clock": 3864.39999999851,
+    "manualSaveResolved": true
+  },
+  "build": {
+    "engineBuild": "4b5f3d0c104a224acdd3a674225369124e94676dd5d6c5756cfaba3b9280df75",
+    "engineContract": "2026.10.15.6",
+    "schemaVersion": 11,
+    "workerArtifact": "e7dbe6dea9296ccbf8fcbb3ac988b7e5f0449713e9529e012c283718c99d84d1",
+    "clientWorkerHash": "4b5f3d0c104a224acdd3a674225369124e94676dd5d6c5756cfaba3b9280df75",
+    "workerArtifactHash": "e7dbe6dea9296ccbf8fcbb3ac988b7e5f0449713e9529e012c283718c99d84d1",
+    "entryBytes": 269870,
+    "entry": "/assets/index-B2pRu-yx.js",
+    "replay": "matched"
+  },
+  "doubleFailureVisible": true,
+  "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+  "passed": true
+}

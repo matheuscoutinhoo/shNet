@@ -4,6 +4,7 @@ import { networkDomains } from './network-domains';
 import { ipNumber, sameSubnet, subnet } from './protocols/ipv4';
 import { sameSubnet6, linkLocal6 } from './protocols/ipv6-address';
 import { stateSyncStatus, stateSyncPending } from './protocols/state-sync';
+import { dhcpHaStatus, dhcpHaCompatible } from './protocols/dhcp-ha';
 export interface PreflightIssue {
   code: string;
   severity: 'error' | 'warning' | 'info';
@@ -27,6 +28,24 @@ export function preflight(s: Snapshot): PreflightIssue[] {
   const addresses = new Map<string, string[]>();
   const domain = networkDomains(s);
   for (const d of s.devices) {
+    if (d.dhcpHa?.role === 'active') {
+      const status = dhcpHaStatus(s, d);
+      add(
+        'DHCP_HA_ADMINISTRATIVE',
+        'info',
+        [d.id, d.dhcpHa.peer],
+        `${d.hostname}: troca DHCP administrativa; não há eleição automática.`,
+        'A promoção exige réplica atual e desliga o antigo ativo. Valide T1/T2 com tráfego e SLA.'
+      );
+      if (status !== 'synchronized')
+        add(
+          'DHCP_HA_REPLICA',
+          status === 'synchronizing' ? 'info' : 'warning',
+          [d.id, d.dhcpHa.peer],
+          `${d.hostname}: réplica DHCP ${status === 'fenced-active' ? 'sem segunda cópia confirmada após fencing' : status === 'synchronizing' ? 'em sincronização' : 'indisponível; respostas dependem de confirmação'}.`,
+          'Restaure o canal, energia e configuração da reserva; avance a simulação e verifique as concessões.'
+        );
+    }
     if (d.type === 'router' && d.vrrp?.enabled && (d.firewall?.enabled || d.nat?.enabled) && !d.stateSync)
       add(
         'VRRP_NO_STATE_SYNC',
@@ -394,7 +413,13 @@ export function preflight(s: Snapshot): PreflightIssue[] {
       if (
         a.context === b.context &&
         ipNumber(a.pool.start) <= ipNumber(b.pool.end) &&
-        ipNumber(b.pool.start) <= ipNumber(a.pool.end)
+        ipNumber(b.pool.start) <= ipNumber(a.pool.end) &&
+        !(
+          a.d.dhcpHa?.peer === b.d.id &&
+          b.d.dhcpHa?.peer === a.d.id &&
+          a.d.dhcpHa.role !== b.d.dhcpHa.role &&
+          dhcpHaCompatible(a.d, b.d)
+        )
       )
         add(
           'DHCP_SCOPE_OVERLAP',

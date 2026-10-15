@@ -413,6 +413,14 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
       });
     }
   const items = [];
+  for (const d of originals)
+    if (d.dhcpHa?.role === 'active' && mapping.has(d.dhcpHa.peer)) {
+      const peer = source.devices.find((p) => p.id === d.dhcpHa!.peer)!;
+      e.configureDhcpHaPair(mapping.get(d.id)!, mapping.get(peer.id)!, {
+        portA: ports.get(d.id)!.get(d.dhcpHa.port),
+        portB: ports.get(peer.id)!.get(peer.dhcpHa!.port),
+      });
+    }
   for (const item of source.canvasItems ?? [])
     if (chosen.has(item.id)) {
       const anchor =

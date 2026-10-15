@@ -4,6 +4,7 @@ import {
   LIMITS,
   type Device,
   type DhcpMessage,
+  type DhcpPool,
   type Frame,
   type NetworkEvent,
   type NetworkInterface,
@@ -55,4 +56,55 @@ export function sendDhcp(
   engine.emit(eventTypes[message.type], device.id, reason, { port: port.id, ...(frame ? { frame } : {}) });
   if (frame) engine.sendFrame(device.id, port.id, frame);
   else engine.sendIp(device.id, packet);
+}
+
+export function sendDhcpServerResponse(
+  engine: SimulationEngine,
+  device: Device,
+  port: NetworkInterface,
+  request: DhcpMessage,
+  type: 'offer' | 'ack',
+  pool: DhcpPool,
+  address: string
+) {
+  const message: DhcpMessage = {
+    type,
+    transactionId: request.transactionId,
+    clientMac: request.clientMac,
+    clientIp: request.clientIp,
+    giaddr: request.giaddr,
+    hops: request.hops,
+    address,
+    prefix: pool.prefix,
+    server: port.ip!,
+    gateway: pool.gateway,
+    dns: [...pool.dns],
+    leaseMs: pool.leaseMs,
+  };
+  const relayed = !!request.giaddr && request.giaddr !== DHCP.unspecifiedIp;
+  const destination = relayed
+    ? request.giaddr!
+    : request.clientIp === DHCP.unspecifiedIp
+      ? DHCP.broadcastIp
+      : request.clientIp;
+  sendDhcp(
+    engine,
+    device,
+    port,
+    message,
+    destination,
+    'DHCP ' +
+      type.toUpperCase() +
+      ': ' +
+      address +
+      '/' +
+      pool.prefix +
+      ' do pool ' +
+      pool.name +
+      '; lease de ' +
+      pool.leaseMs / 1000 +
+      ' s.',
+    undefined,
+    relayed
+  );
 }

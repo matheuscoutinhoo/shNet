@@ -164,6 +164,7 @@ import {
 import { firewallSchema, firewallTimerSchema } from './protocols/firewall-model';
 import { firewallSessionSchema } from './protocols/firewall-model';
 import { stateSyncSchema, stateSyncRecordSchema } from './protocols/state-sync-model';
+import { dhcpHaSchema } from './protocols/dhcp-ha-model';
 import { icmpErrorSchema } from './protocols/icmp-model';
 import { ospfPacketSchema, ospfStateSchema, ospfTimerSchema } from './protocols/ospf-model';
 export * from './protocols/ospf-model';
@@ -803,6 +804,7 @@ export const deviceSchema = z
     interfaces: z.array(interfaceSchema).min(1).max(48),
     gateway: ipv4Schema.optional(),
     dhcpServer: dhcpServerSchema.optional(),
+    dhcpHa: dhcpHaSchema.optional(),
     dhcpSnooping: dhcpSnoopingSchema.optional(),
     dnsServer: z
       .object({
@@ -1070,6 +1072,29 @@ export const eventSchema = z
     packet: packetSchema.optional(),
   })
   .strict();
+const dhcpHaReplySchema = z
+  .object({
+    port: id,
+    request: dhcpMessageSchema,
+    type: z.enum(['offer', 'ack']),
+    pool: z.string().min(1).max(32),
+    address: ipv4Schema,
+    deadline: finite.nonnegative(),
+    revision: z.number().int().positive(),
+  })
+  .strict();
+const dhcpHaTransferSchema = z
+  .object({
+    device: id,
+    peer: id,
+    token: id,
+    peerToken: id,
+    link: id,
+    revision: z.number().int().positive(),
+    bindings: z.array(dhcpBindingSchema).max(2048),
+    declined: z.array(z.object({ address: ipv4Schema, expiresAt: finite.nonnegative() }).strict()).max(256),
+  })
+  .strict();
 export const actionSchema = z.discriminatedUnion('kind', [
   fragmentExpireSchema,
   fragmentArpTimerSchema,
@@ -1101,6 +1126,10 @@ export const actionSchema = z.discriminatedUnion('kind', [
   tcpTimerSchema,
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
+  z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
+  dhcpHaReplySchema.extend({ kind: z.literal('dhcp-ha-reply'), device: id, token: id }),
+  dhcpHaTransferSchema.extend({ kind: z.literal('dhcp-ha-deliver') }),
+  dhcpHaTransferSchema.extend({ kind: z.literal('dhcp-ha-confirm') }),
   z
     .object({
       kind: z.literal('state-sync-deliver'),

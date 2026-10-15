@@ -157,6 +157,13 @@ import {
 import { ipNumber, receiveIp, resolveRoute } from '../protocols/ipv4';
 import { configureDhcpPool, configureDhcpRelay } from '../protocols/dhcp-config';
 import {
+  configureDhcpHaPair,
+  disableDhcpHa,
+  promoteDhcpHa,
+  handleDhcpHa,
+  assertDhcpHaPoolEditable,
+} from '../protocols/dhcp-ha';
+import {
   disableDhcp,
   handleDhcpClientTimer,
   releaseDhcp,
@@ -519,6 +526,7 @@ export class SimulationEngine {
       device.eapAuthenticator?.underlay === portId ||
       device.routes6?.some((r) => r.port === portId) ||
       device.dhcpServer?.pools.some((p) => p.port === portId) ||
+      device.dhcpHa?.port === portId ||
       device.dhcp6Server?.pools.some((p) => p.port === portId) ||
       device.interfaces.some((p) => p.dhcp6?.delegatePort === portId) ||
       device.ospf?.interfaces.some((p) => p.port === portId) ||
@@ -608,6 +616,7 @@ export class SimulationEngine {
     });
   }
   removeDevice(id: string) {
+    if (this.device(id).dhcpHa) disableDhcpHa(this, this.device(id));
     if (this.device(id).stateSync) disableStateSync(this, this.device(id));
     for (const link of this.state.links.filter((l) => l.a.device === id || l.b.device === id))
       this.removeLink(link.id);
@@ -690,7 +699,12 @@ export class SimulationEngine {
     );
     refreshPower(this);
     this.state.queue = this.state.queue.filter(
-      (q) => (q.action.kind !== 'deliver' && q.action.kind !== 'state-sync-deliver') || q.action.link !== id
+      (q) =>
+        (q.action.kind !== 'deliver' &&
+          q.action.kind !== 'state-sync-deliver' &&
+          q.action.kind !== 'dhcp-ha-deliver' &&
+          q.action.kind !== 'dhcp-ha-confirm') ||
+        q.action.link !== id
     );
     for (const d of this.state.devices) {
       d.macTable = [];
@@ -721,7 +735,9 @@ export class SimulationEngine {
   }
   configureDhcpPool(deviceId: string, input: unknown) {
     const device = this.device(deviceId);
+    assertDhcpHaPoolEditable(device);
     const pool = configureDhcpPool(device, input);
+    refreshVrrp(this);
     const remaining = new Set(device.dhcpServer!.bindings.map((binding) => binding.id));
     this.state.queue = this.state.queue.filter(
       ({ action }) =>
@@ -929,10 +945,12 @@ export class SimulationEngine {
       throw new Error('Serviço DHCP requer servidor ou roteador.');
     device.dhcpServer ??= { enabled, pools: [], bindings: [] };
     device.dhcpServer.enabled = enabled;
+    refreshVrrp(this);
     this.emit('CONFIG_CHANGED', deviceId, 'Serviço DHCP ' + (enabled ? 'habilitado.' : 'desabilitado.'));
   }
   removeDhcpPool(deviceId: string, name: string) {
     const device = this.device(deviceId);
+    assertDhcpHaPoolEditable(device);
     const server = device.dhcpServer;
     if (!server?.pools.some((pool) => pool.name === name)) throw new Error('Pool DHCP não encontrado.');
     const removed = new Set(
@@ -950,6 +968,15 @@ export class SimulationEngine {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
     if (port.dhcp?.lease) renewDhcp(this, device, port);
     else startDhcp(this, device, port);
+  }
+  configureDhcpHaPair(deviceA: string, deviceB: string, input: unknown) {
+    configureDhcpHaPair(this, this.device(deviceA), this.device(deviceB), input);
+  }
+  disableDhcpHa(deviceId: string) {
+    disableDhcpHa(this, this.device(deviceId));
+  }
+  promoteDhcpHa(deviceId: string) {
+    promoteDhcpHa(this, this.device(deviceId));
   }
   renewDhcp(deviceId: string, portId: string) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
@@ -1560,6 +1587,13 @@ export class SimulationEngine {
     )
       handleSpanningTreeAction(this, a);
     else if (a.kind === 'state-sync-tick' || a.kind === 'state-sync-deliver') handleStateSync(this, a);
+    else if (
+      a.kind === 'dhcp-ha-tick' ||
+      a.kind === 'dhcp-ha-reply' ||
+      a.kind === 'dhcp-ha-deliver' ||
+      a.kind === 'dhcp-ha-confirm'
+    )
+      handleDhcpHa(this, a);
     else if (a.kind === 'nat-expire') expireNat(this, this.device(a.device), a.binding, a.expiresAt);
     else if (a.kind === 'tcp-timer') handleTcpTimer(this, a);
     else if (a.kind === 'dhcp6-tick') handleDhcp6Tick(this, a);

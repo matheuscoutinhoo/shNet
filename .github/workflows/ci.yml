@@ -44,6 +44,15 @@ jobs:
         run: npx tsx scripts/verify-service-availability.ts
         env:
           SHLAB_AUDIT_OUTPUT: artifacts/service-availability-2026-10-15/ci
+      - name: Verify DHCP replication, partition and administrative fencing
+        run: npx tsx scripts/verify-dhcp-ha.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/dhcp-ha-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dhcp-ha
+          path: artifacts/dhcp-ha-2026-10-15/ci/*.json
       - name: Verify PLC process and supervisory workloads
         run: npx tsx scripts/verify-industrial-process.ts
         env:

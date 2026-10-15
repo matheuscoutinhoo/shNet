@@ -89,7 +89,9 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^ip dhcp snooping|^show ip dhcp snooping/.test(line)) return c.switching;
   if (/^ip helper-address|^show ip dhcp relay/.test(line)) return c.routing;
   if (
-    /^(ip dhcp (pool|conflict-detection)|service dhcp|show ip dhcp (pool|binding)|dhcp6 server)/.test(line) ||
+    /^(ip dhcp (pool|conflict-detection|ha)|service dhcp|show ip dhcp (pool|binding|ha)|dhcp6 server)/.test(
+      line
+    ) ||
     context.mode === 'dhcp'
   )
     return c.dhcpServer;

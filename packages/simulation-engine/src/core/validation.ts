@@ -45,6 +45,7 @@ import { validateRip } from '../protocols/rip-validation';
 import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
 import { validateStateSync } from '../protocols/state-sync';
+import { validateDhcpHa } from '../protocols/dhcp-ha';
 export function validateSnapshot(value: unknown): Snapshot {
   const s = snapshotSchema.parse(value);
   if (s.capture) {
@@ -88,6 +89,7 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateHmiScans(s);
   validateFirewall(s);
   validateStateSync(s);
+  validateDhcpHa(s);
   validateInspection(s);
   validateOspf(s);
   validateRip(s);

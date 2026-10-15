@@ -13,6 +13,7 @@ import {
 import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 import type { Project, ProjectSummary } from '../../apps/web/src/api';
 import { dualAccessFixture } from '../fixtures/dual-access';
+import { dhcpHaFixture } from '../fixtures/dhcp-ha';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 async function inspectDevice(page: Page, hostname: string) {
@@ -4740,4 +4741,71 @@ test('Sessões: expiração remota, reentrada, revogação atual e troca de senh
   } finally {
     await other.close();
   }
+});
+
+test('DHCP HA: configurar réplica, promover com fencing e salvar em mobile', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'dhcp-ha-ui-' + Date.now() + '@example.test');
+  const me = await (await page.request.get('/api/auth/me')).json(),
+    headers = { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken },
+    fixture = dhcpHaFixture(false);
+  const created = await page.request.post('/api/projects', {
+    headers,
+    data: { name: 'DHCP HA UI', template: 'empty' },
+  });
+  expect(created.status()).toBe(201);
+  const project = await created.json();
+  const seeded = await page.request.put('/api/projects/' + project.id, {
+    headers,
+    data: { name: 'DHCP HA UI', revision: project.revision, topology: fixture.e.snapshot() },
+  });
+  expect(seeded.status()).toBe(200);
+  await page.reload();
+  await page.getByRole('heading', { name: 'DHCP HA UI', exact: true }).click();
+  await page.getByLabel('Modo de simulação', { exact: true }).selectOption('realtime');
+  await inspectDevice(page, 'DHCP-A');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'DHCP', exact: true }).click();
+  const panel = page.locator('.dhcp-ha-panel');
+  await panel.getByLabel('Servidor reserva').selectOption(fixture.b.id);
+  await panel.getByRole('button', { name: 'Criar par DHCP com este servidor ativo', exact: true }).click();
+  await expect(panel).toHaveAttribute('data-dhcp-ha-role', 'active');
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(panel).toContainText('Réplica confirmada');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await inspectDevice(page, 'DHCP-CLIENT-1');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'DHCP', exact: true }).click();
+  await page
+    .getByRole('button', { name: /^Renovar DHCP / })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(page.locator('.dhcp-client')).toContainText('Concessão ativa');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await inspectDevice(page, 'DHCP-B');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'DHCP', exact: true }).click();
+  await expect(panel).toHaveAttribute('data-dhcp-ha-role', 'standby');
+  await panel.getByRole('button', { name: 'Promover reserva e desligar DHCP-A', exact: true }).click();
+  await expect(panel).toHaveAttribute('data-dhcp-ha-role', 'active');
+  await expect(panel).toContainText('sem segunda cópia confirmada');
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'DHCP HA UI', exact: true }).click();
+  await inspectDevice(page, 'DHCP-B');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'DHCP', exact: true }).click();
+  await expect(panel).toHaveAttribute('data-dhcp-ha-role', 'active');
+  const saved = await (await page.request.get('/api/projects/' + project.id)).json();
+  expect(saved.topology.devices.find((d: { id: string }) => d.id === fixture.a.id).power).toBe(false);
+  expect(
+    saved.topology.devices.find((d: { id: string }) => d.id === fixture.b.id).dhcpServer.bindings
+  ).toHaveLength(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await panel.getByRole('heading', { name: 'Disponibilidade DHCP', exact: true }).scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/dhcp-ha-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
 });
