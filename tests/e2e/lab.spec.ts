@@ -2512,12 +2512,8 @@ async function advanceSimulation(page: Page, ready: () => Promise<boolean>, maxS
   expect(await ready(), 'A operação deve terminar em até ' + maxSteps + ' eventos da simulação').toBe(true);
 }
 async function switchTerminal(page: Page, hostname: string, commands: string[]) {
-  await page
-    .locator('.network-device')
-    .filter({ has: page.getByText(hostname, { exact: true }) })
-    .getByText(hostname, { exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await inspectDevice(page, hostname);
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
   await page.locator('.xterm-helper-textarea').focus();
   for (const command of commands) {
     await page.keyboard.type(command);
