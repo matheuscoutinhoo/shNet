@@ -173,6 +173,12 @@ const families: [RegExp, string, string, string][] = [
     'Compare pedido, resposta, credenciais e estado de autorização da porta.',
   ],
   [
+    /^EVPN_ARP_REPLIED/,
+    'ARP respondido pelo VTEP',
+    'O VTEP respondeu com um binding MAC/IP recebido pelo EVPN, sem inundar essa solicitação no overlay. Isso não é uma resposta de saúde da VM remota.',
+    'Confira VNI, route target, membro IMET, origem do binding e o fluxo de dados até a VM.',
+  ],
+  [
     /^(TUNNEL|SDWAN|VXLAN|EVPN|MPLS|MESH|CAPWAP|WLC)/,
     'Caminho virtual ou gerenciado',
     'Encapsulamento e controle criam caminhos sobre a rede de transporte. As pontas precisam alcançar umas às outras antes de oferecer esse caminho.',

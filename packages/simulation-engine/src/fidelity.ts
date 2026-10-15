@@ -74,7 +74,7 @@ export const fidelityMatrix = [
     feature: 'VXLAN / EVPN / underlay',
     status: 'Parcial',
     limit:
-      'VTEP em loopback /32 e BGP updateSource permitem caminhos alternativos operacionais. MAC/IP e membros IMET por RT; peerPolicy evpn exige membros no plano de dados. BGP/MP-BGP binários com AS4, tipos EVPN 2/3 e VNIs globais. Modo static admite flooding/learning por peers. Sem ESI/DF, Type 5 ou proxy ARP.',
+      'VTEP em loopback /32 e BGP updateSource permitem caminhos alternativos operacionais. MAC/IP e membros IMET por RT; peerPolicy evpn exige membros no plano de dados. BGP/MP-BGP binários com AS4 e tipos EVPN 2/3. Supressão ARP opcional por binding EVPN e membro IMET; não atesta saúde da VM. Sem ESI/DF, Type 5 ou proxy NDP.',
   },
   {
     feature: 'VRF e executor dual stack',

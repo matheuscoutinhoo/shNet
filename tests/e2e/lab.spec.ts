@@ -8,6 +8,7 @@ import {
   deviceProfiles,
   SimulationEngine,
   wirelessConfig,
+  vxlanConfig,
 } from '../../packages/simulation-engine/src';
 import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 import type { Project, ProjectSummary } from '../../apps/web/src/api';
@@ -3432,6 +3433,61 @@ test('VRRP: edição, eleição, failover, HTTP, anúncios e persistência deskt
   await page.screenshot({ path: 'test-results/vrrp-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
+});
+
+test('EVPN: supressão ARP configurável, diagnóstico e persistência mobile', async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  const engine = new SimulationEngine(makeTemplate('evpn'));
+  const a = engine.state.devices.find((d) => d.hostname === 'VTEP-A')!;
+  for (const d of engine.state.devices.filter((d) => d.interfaces.some((p) => p.vxlan))) {
+    const port = d.interfaces.find((p) => p.vxlan)!;
+    engine.configureVxlan(d.id, { ...vxlanConfig(port), peerPolicy: 'evpn', proxyArp: d.id === a.id });
+  }
+  const pc = engine.state.devices.find((d) => d.hostname === 'VM-A')!;
+  engine.advanceTo(4000);
+  engine.ping(pc.id, '10.50.0.20');
+  engine.advanceTo(6000);
+  pc.arpTable = [];
+  engine.ping(pc.id, '10.50.0.20');
+  engine.advanceTo(7000);
+  const event = engine.state.events.findLast((e) => e.type === 'EVPN_ARP_REPLIED')!;
+  expect(event).toBeTruthy();
+  await page.goto('/');
+  await registerAndLogin(page, 'evpn-arp-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('EVPN ARP');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'evpn-arp.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(engine.snapshot())),
+  });
+  await page.locator('.event-filters').getByRole('button', { name: 'VXLAN / EVPN', exact: true }).click();
+  await page.locator(`tr[data-event-id="${event.id}"]`).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('ARP respondido pelo VTEP');
+  await expect(dialog).toContainText('não é uma resposta de saúde');
+  await dialog.locator('.modal-head').getByRole('button', { name: 'Fechar', exact: true }).click();
+  const inspect = async () => {
+    await inspectDevice(page, 'VTEP-A');
+    await page.locator('.inspector-tabs').getByRole('button', { name: 'VXLAN / EVPN', exact: true }).click();
+  };
+  await inspect();
+  const checkbox = page.getByRole('checkbox', { name: 'Supressão ARP EVPN', exact: true });
+  await expect(checkbox).toBeChecked();
+  await checkbox.uncheck();
+  await page.getByRole('button', { name: 'Aplicar VNI', exact: true }).click();
+  await expect(checkbox).not.toBeChecked();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('button', { name: /^LABORATÓRIO LIVRE EVPN ARP/ }).click();
+  await inspect();
+  await expect(checkbox).not.toBeChecked();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await checkbox.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath('evpn-arp-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
 });
 
 test('BGP/EVPN binário: PDU legível, PCAP e inspeção mobile', async ({ page }, testInfo) => {

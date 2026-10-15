@@ -203,6 +203,26 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
     reservedVnis.add(free);
   }
   const macs = new Map<string, string>();
+  const rtKey = (value: string) => value.split(':').map(Number).join(':');
+  const reservedRts = new Set(
+    source.devices.flatMap((d) => d.interfaces.flatMap((p) => (p.vxlan ? [rtKey(p.vxlan.routeTarget)] : [])))
+  );
+  const routeTargets = new Map<string, string>();
+  for (const d of originals)
+    for (const p of d.interfaces) {
+      if (!p.vxlan) continue;
+      const original = rtKey(p.vxlan.routeTarget);
+      if (routeTargets.has(original)) continue;
+      const global = Number(original.split(':')[0]),
+        limit = global <= 65535 ? 0xffffffff : 65535;
+      let local = vnis.get(p.vxlan.vni)!;
+      if (local > limit || reservedRts.has(`${global}:${local}`)) local = 1;
+      while (local <= limit && reservedRts.has(`${global}:${local}`)) local++;
+      if (local > limit) throw new Error('Sem route target livre para o clone.');
+      const allocated = `${global}:${local}`;
+      routeTargets.set(original, allocated);
+      reservedRts.add(allocated);
+    }
   for (const d of originals)
     for (const p of d.interfaces)
       if (ports.get(d.id)!.has(p.id))
@@ -287,7 +307,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         q.vxlan.vni = vnis.get(p.vxlan!.vni)!;
         q.vxlan.vlan = vlans.get(p.vxlan!.vlan)!;
         q.vxlan.peers = p.vxlan!.peers.map(address);
-        q.vxlan.routeTarget = p.vxlan!.routeTarget.split(':')[0] + ':' + q.vxlan.vni;
+        q.vxlan.routeTarget = routeTargets.get(rtKey(p.vxlan!.routeTarget))!;
         warnings.add(
           'Overlays e túneis começam desativados; revise os peers e route targets antes de ativá-los.'
         );

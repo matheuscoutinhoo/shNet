@@ -86,3 +86,5 @@ O [ADR-049](adr/049-host-nic-and-access-redundancy.md) acrescenta NICs e acesso 
 O [ADR-051](adr/051-plc-process-and-supervisory-cycles.md) acrescenta processo de tanque, controle PLC, leituras HMI/SCADA/MES, alarmes de processo/comunicação, qualidade da última amostra e assertions de falha/recuperação. O modelo tem dez equipamentos com acesso e energia A/B. A qualificação e os limites permanecem explícitos; não se anuncia firmware industrial.
 
 O [ADR-052](adr/052-binary-bgp-evpn-captures.md) acrescenta transporte binário BGP/MP-BGP, AS4, atributos de reflexão, MAC/IP e IMET EVPN, retiradas e PCAP com validação independente Scapy/Wireshark. Sessões legadas continuam reconhecidas; outros codecs e os recursos adicionais de fabric permanecem em R18/R19.
+
+O [ADR-053](adr/053-evpn-arp-suppression-and-route-target-clones.md) acrescenta supressão ARP opcional em EVPN estrito e clonagem de RT com AS32/VNIs altos, preservando tenants. Probes, ARP gratuito e bindings ambíguos continuam pela rede; não há atestado de saúde da VM nem proxy NDP. R18 continua parcial.

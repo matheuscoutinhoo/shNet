@@ -17,7 +17,9 @@ export function VxlanPanel({ lab, device }: { lab: LabController; device: Device
         Configure a WAN como routed com IPv4 e rotas de retorno. Para EVPN, habilite roteamento no switch e
         configure vizinhos na aba BGP. peerPolicy static usa peers e aprendizado de dados; peerPolicy evpn
         exige membros IMET importados por RT para tráfego e flooding. Uma loopback /32 desacopla o VTEP da
-        interface de saída.
+        interface de saída. A opção proxyArp responde localmente apenas por bindings MAC/IP EVPN válidos, com
+        membro IMET e caminho underlay. Probes, ARP gratuito e endereços desconhecidos continuam pela rede;
+        proxy ARP não atesta que a VM está viva.
       </p>
       {device.interfaces
         .filter((p) => p.vxlan)
@@ -76,6 +78,7 @@ export function VxlanPanel({ lab, device }: { lab: LabController; device: Device
                   peers: ['198.51.100.2'],
                   evpn: true,
                   peerPolicy: 'evpn',
+                  proxyArp: false,
                   routeTarget: '65000:10010',
                   mtu: 1450,
                 },

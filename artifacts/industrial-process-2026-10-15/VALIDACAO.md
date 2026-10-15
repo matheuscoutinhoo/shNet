@@ -12,6 +12,8 @@ Fonte integrada à `main`: `8a0cca62d28831e25af85b351c2842737e831430`, contrato 
 
 O hash de fonte é `cbb0d7ea7c008214df7c963bfa5185e0b07a6f9315d163c2a34aa17cf7bafa85`; o grafo do Worker é `69437f82a4c6c7bddf7345b247eda0625af892d45e4bc31a9afea7754e220bbd`. CI Linux e build Windows produziram as mesmas identidades.
 
+Produção Railway confirmada por consulta somente de leitura em 15/10/2026: contrato `.3`, fonte e Worker correspondentes, TLS/HSTS, assets disponíveis e endpoints privados protegidos. [Evidência do deploy](railway-r17/remote-release.json). A revisão `7c36680` acrescenta apenas o arquivo de evidências à fonte de produção já homologada.
+
 As rodadas locais históricas foram preservadas: a primeira expôs a resposta ARP indevida da NIC de reserva; a seguinte teve 879 testes aprovados e um timeout de 20 s no ensaio longo BGP enquanto build e navegadores compartilhavam a máquina. O [BGP isolado](bgp-isolated.json) passou nos 11 casos em 11,7 s; a regressão completa da CI aprovou todos os 880 casos aplicáveis. Essas rodadas locais não foram reescritas como aprovações completas.
 
 A CI anterior 38742455645 aprovou 62/63 testes por tema: a expectativa de 23 categorias de eventos ficou desatualizada com Bond e processo industrial. O teste passou a conferir as duas categorias e o total de 25; a rodada final acima aprovou a correção completa. O código de produção mantém a mesma fonte `cbb0d7…` nessa correção de teste.

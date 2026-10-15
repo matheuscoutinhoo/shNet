@@ -48,6 +48,17 @@ jobs:
         run: npx tsx scripts/verify-industrial-process.ts
         env:
           SHLAB_AUDIT_OUTPUT: artifacts/industrial-process-2026-10-15/ci
+      - name: Verify EVPN ARP suppression and application health distinction
+        run: npx tsx scripts/verify-evpn-arp.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/evpn-arp-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evpn-arp
+          path: |
+            artifacts/evpn-arp-2026-10-15/ci/*.json
+            artifacts/evpn-arp-2026-10-15/ci/*.pcap
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -69,6 +80,12 @@ jobs:
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
           python scripts/verify-bgp-captures.py
+          python scripts/verify-evpn-arp-captures.py artifacts/evpn-arp-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evpn-arp-independent
+          path: artifacts/evpn-arp-2026-10-15/ci/independent-captures.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

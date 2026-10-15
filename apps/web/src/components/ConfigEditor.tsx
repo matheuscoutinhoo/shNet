@@ -22,6 +22,7 @@ type Props = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'val
 };
 const labels: Record<string, string> = {
   enabled: 'Habilitado',
+  proxyArp: 'Supressão ARP EVPN',
   atMs: 'Instante (ms)',
   checkpoint: 'Rótulo da ação',
   changes: 'Proposta de configuração',

@@ -28,6 +28,7 @@ export function vxlanConfig(p: NetworkInterface) {
     peers: v.peers,
     evpn: v.evpn,
     peerPolicy: v.peerPolicy,
+    ...(v.proxyArp !== undefined ? { proxyArp: v.proxyArp } : {}),
     routeTarget: v.routeTarget,
     mtu: v.mtu,
   };
@@ -35,6 +36,8 @@ export function vxlanConfig(p: NetworkInterface) {
 export function configureVxlan(e: SimulationEngine, d: Device, input: unknown) {
   const c = vxlanConfigSchema.parse(input),
     underlay = d.interfaces.find((p) => p.id === c.underlay);
+  if (c.proxyArp && (!c.evpn || c.peerPolicy !== 'evpn'))
+    throw new Error('Supressão ARP exige EVPN com peerPolicy evpn.');
   if (
     d.type !== 'switch' ||
     !underlay?.ip ||
@@ -281,6 +284,7 @@ export function validateVxlan(s: Snapshot) {
         underlay.channel ||
         underlay.vrf ||
         (v.peerPolicy === 'evpn' && !v.evpn) ||
+        (v.proxyArp && (!v.evpn || v.peerPolicy !== 'evpn')) ||
         p.mode !== 'access' ||
         p.accessVlan !== v.vlan ||
         p.mtu !== v.mtu ||

@@ -5,6 +5,7 @@ import { BROADCAST, LIMITS, type Device, type Frame, type NetworkInterface } fro
 import type { SimulationEngine } from '../core/engine';
 import { receiveSvi, interfaceOperational } from './layer3';
 import { spanningPortState } from './stp-scope';
+import { replyEvpnArp } from './evpn-arp';
 export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterface, frame: Frame) {
   const vlan = input.mode === 'trunk' ? (frame.vlan ?? input.nativeVlan) : input.accessVlan;
   const tree = spanningPortState(d, input, vlan);
@@ -37,6 +38,7 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
     return;
   }
   if (receiveSvi(e, d, vlan, frame)) return;
+  if (replyEvpnArp(e, d, input, frame, vlan)) return;
   switchTransmit(e, d, frame, vlan, input.id);
 }
 export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vlan: number, input?: string) {

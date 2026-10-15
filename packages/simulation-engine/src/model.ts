@@ -943,6 +943,7 @@ export const eventSchema = z
       'EVPN_ADVERTISE',
       'EVPN_INSTALL',
       'EVPN_WITHDRAW',
+      'EVPN_ARP_REPLIED',
       'WIFI_SENT',
       'WIFI_RECEIVED',
       'WIFI_STATE',

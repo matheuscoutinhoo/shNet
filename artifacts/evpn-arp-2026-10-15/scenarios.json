@@ -1,0 +1,33 @@
+{
+  "cases": [
+    {
+      "kind": "known-binding",
+      "passed": true,
+      "proxyReplies": 1,
+      "overlayArpRequests": 0,
+      "probe": "success",
+      "tcp": "TIME-WAIT",
+      "packets": 142,
+      "excluded": 0
+    },
+    {
+      "kind": "unknown-address",
+      "passed": true,
+      "proxyReplies": 0,
+      "overlayArpRequests": 3,
+      "probe": "timeout",
+      "packets": 100,
+      "excluded": 0
+    },
+    {
+      "kind": "application-stopped",
+      "passed": true,
+      "proxyReplies": 1,
+      "overlayArpRequests": 0,
+      "probe": "success",
+      "tcp": "RESET",
+      "packets": 106,
+      "excluded": 0
+    }
+  ]
+}

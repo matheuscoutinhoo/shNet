@@ -10,6 +10,39 @@ import {
 import { cloneTopology } from '../apps/web/src/workspace/cloneTopology';
 import { topologyView } from '../apps/web/src/workspace/topologyView';
 describe('Clonagem e vistas de topologia', () => {
+  it('clona VNIs de 24 bits com RT de AS32 e preserva o agrupamento dos tenants', () => {
+    for (const shared of [true, false]) {
+      const source = makeTemplate('evpn');
+      let index = 0;
+      for (const d of source.devices)
+        for (const p of d.interfaces) {
+          if (!p.vxlan) continue;
+          p.vxlan.vni = 70000;
+          p.vxlan.routeTarget = `4200000000:${shared ? 1 : ++index}`;
+          p.vxlan.peerPolicy = 'evpn';
+          p.vxlan.proxyArp = true;
+        }
+      const before = structuredClone(source);
+      const cloned = cloneTopology(
+        source,
+        source.devices.map((d) => d.id)
+      );
+      const overlays = cloned.snapshot.devices
+        .slice(source.devices.length)
+        .flatMap((d) => d.interfaces.flatMap((p) => (p.vxlan ? [p.vxlan] : [])));
+      expect(overlays).toHaveLength(2);
+      expect(overlays.every((v) => v.vni === 70001 && v.proxyArp && !v.enabled)).toBe(true);
+      expect(overlays.every((v) => Number(v.routeTarget.split(':')[1]) <= 65535)).toBe(true);
+      expect(new Set(overlays.map((v) => v.routeTarget)).size).toBe(shared ? 1 : 2);
+      expect(
+        overlays.every(
+          (v) => !source.devices.some((d) => d.interfaces.some((p) => p.vxlan?.routeTarget === v.routeTarget))
+        )
+      ).toBe(true);
+      expect(source).toEqual(before);
+      validateSnapshot(cloned.snapshot);
+    }
+  });
   it.each(['vrrp', 'bgp', 'ospf', 'lacp', 'vpn', 'sdwan', 'vrf', 'vxlan'] as const)(
     'preserva configuração válida ao clonar o modelo %s',
     (template) => {

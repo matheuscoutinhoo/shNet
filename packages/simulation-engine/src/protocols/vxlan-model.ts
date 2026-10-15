@@ -41,6 +41,7 @@ export const vxlanConfigSchema = z
     peers: z.array(ipv4Schema).max(32),
     evpn: z.boolean(),
     peerPolicy: z.enum(['static', 'evpn']).optional(),
+    proxyArp: z.boolean().optional(),
     routeTarget: rt,
     mtu: z.number().int().min(576).max(9000).default(1450),
   })

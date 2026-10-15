@@ -195,6 +195,8 @@ O template **Três sistemas autônomos** demonstra BGP. A aba **BGP** mostra viz
 
 Novas sessões BGP usam transporte binário com ASN de 32 bits e exportação PCAP. O codec EVPN cobre MAC/IP e IMET com VNI global, RT, mobilidade e ingress replication. Capturas legadas JSON/newline permanecem identificadas e excluídas; formatos e limites no [ADR-052](docs/adr/052-binary-bgp-evpn-captures.md).
 
+A opção **Supressão ARP EVPN** responde localmente por bindings MAC/IP importados em EVPN estrito, com IMET e caminho underlay. Probes, ARP gratuito, destinos desconhecidos e bindings ambíguos continuam pela rede; a resposta não certifica a saúde da VM. Clones preservam agrupamento e isolamento de RT, incluindo AS32 e VNIs altos. [ADR-053](docs/adr/053-evpn-arp-suppression-and-route-target-clones.md).
+
 Os templates **Um trunk, duas redes**, **VLANs com gateway no switch** e **Mesmo endereço, redes separadas** demonstram subinterfaces, SVIs, roteamento L3 e VRF. A aba **VLAN / VRF** configura as tabelas; **Portas** configura endereços. [ADR-018](docs/adr/018-vlan-routing-and-vrf.md) registra funcionamento e limites.
 
 **Gateway atento ao uplink** acrescenta tracking VRRP. O painel **VRRP** edita interfaces/rotas rastreadas; a prioridade efetiva muda com a disponibilidade local. [ADR-019](docs/adr/019-vrrp-tracking.md).
