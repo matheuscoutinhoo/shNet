@@ -145,7 +145,13 @@ describe('VRRPv3 IPv4 por anúncios Ethernet', () => {
     engine.advanceTo(engine.state.clock + 4000);
     expect(states(a)).toEqual(['INIT', 'INIT']);
     expect(states(b)).toEqual(['ACTIVE', 'ACTIVE']);
-    expect(client.arpTable).toEqual(cache);
+    expect(client.arpTable.map(({ ip, mac, port }) => ({ ip, mac, port }))).toEqual(
+      cache.map(({ ip, mac, port }) => ({ ip, mac, port }))
+    );
+    for (const entry of cache)
+      expect(
+        client.arpTable.find((v) => v.ip === entry.ip && v.port === entry.port)!.expires
+      ).toBeGreaterThan(entry.expires);
     expect(lan.macTable.find((entry) => entry.mac === vrrpMac(10))?.port).toBe('p2');
     ping(engine, client, server);
     engine.httpGet(client.id, server.interfaces[0].ip!);
