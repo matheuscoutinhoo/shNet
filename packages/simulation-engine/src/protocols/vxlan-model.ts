@@ -4,13 +4,20 @@ const id = z.string().min(1).max(80),
   mac = z.string().regex(/^(?:[a-f0-9]{2}:){5}[a-f0-9]{2}$/),
   vni = z.number().int().min(1).max(16777215),
   time = z.number().finite().nonnegative(),
-  rt = z.string().regex(/^\d{1,10}:\d{1,10}$/);
+  rt = z
+    .string()
+    .regex(/^\d{1,10}:\d{1,10}$/)
+    .refine((value) => {
+      const [global, local] = value.split(':').map(Number);
+      return global <= 0xffffffff && local <= 0xffffffff && (global <= 65535 || local <= 65535);
+    }, 'RT exige ASN de 16 bits/local de 32 bits ou ASN de 32 bits/local de 16 bits.')
+    .transform((value) => value.split(':').map(Number).join(':'));
 export const evpnMacSchema = z
   .object({
     vni,
     mac,
     ip: ipv4Schema.optional(),
-    sequence: z.number().int().nonnegative(),
+    sequence: z.number().int().nonnegative().max(0xffffffff),
     routeTarget: rt,
     nextHop: ipv4Schema,
     asPath: z.array(z.number().int().min(1).max(4294967294)).max(32),
@@ -44,7 +51,12 @@ export const vxlanStateSchema = vxlanConfigSchema
     local: z
       .array(
         z
-          .object({ mac, ip: ipv4Schema.optional(), sequence: z.number().int().nonnegative(), port: id })
+          .object({
+            mac,
+            ip: ipv4Schema.optional(),
+            sequence: z.number().int().nonnegative().max(0xffffffff),
+            port: id,
+          })
           .strict()
       )
       .max(512),

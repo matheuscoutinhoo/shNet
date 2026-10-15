@@ -20,6 +20,8 @@ export function exportPcap(s: Snapshot, link?: string) {
       const application = event.application ?? connection?.service;
       if (application === 'modbus' && tcp?.encoding !== 'binary')
         throw new Error('Modbus legado usa hex/newline; captura preservada sem conversão inventada.');
+      if (application === 'bgp' && tcp?.encoding !== 'binary')
+        throw new Error('BGP legado usa JSON/newline; captura preservada sem conversão inventada.');
       if (tcp?.data && !application) throw new Error('Aplicação TCP ausente do estado retido.');
       if (
         application &&
@@ -32,6 +34,7 @@ export function exportPcap(s: Snapshot, link?: string) {
           'proxy-upstream',
           'load-balancer',
           'modbus',
+          'bgp',
         ].includes(application)
       )
         throw new Error('Aplicação TCP ' + application + ' usa enquadramento didático.');

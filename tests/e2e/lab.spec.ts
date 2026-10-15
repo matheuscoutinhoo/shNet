@@ -4,6 +4,7 @@ import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
   decodePcap,
+  makeTemplate,
   deviceProfiles,
   SimulationEngine,
   wirelessConfig,
@@ -3430,6 +3431,60 @@ test('VRRP: edição, eleição, failover, HTTP, anúncios e persistência deskt
   await panel.getByRole('textbox', { name: 'IP virtual', exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/vrrp-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('BGP/EVPN binário: PDU legível, PCAP e inspeção mobile', async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const engine = new SimulationEngine(makeTemplate('evpn'));
+  engine.advanceTo(4000);
+  const pc = engine.state.devices.find((d) => d.hostname === 'VM-A')!;
+  engine.ping(pc.id, '10.50.0.20');
+  engine.advanceTo(8000);
+  const event = engine.state.events.findLast(
+    (e) =>
+      e.type === 'FRAME_SENT' &&
+      e.frame?.packet?.protocol === 'TCP' &&
+      e.frame.packet.data.charCodeAt(18) === 2
+  )!;
+  expect(event).toBeTruthy();
+  await page.goto('/');
+  await registerAndLogin(page, 'bgp-binary-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('BGP binário');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'bgp-binary.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(engine.snapshot())),
+  });
+  await page.locator('.event-filters').getByRole('button', { name: 'BGP', exact: true }).click();
+  await page.locator(`tr[data-event-id="${event.id}"]`).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.locator('summary').filter({ hasText: 'Campos do pacote e camadas' }).click();
+  await expect(dialog).toContainText('Mensagem UPDATE');
+  await expect(dialog).toContainText('EVPN MAC/IP e IMET / retiradas');
+  await expect(dialog.getByLabel('Dados da aplicação transportados por TCP')).toHaveText(/^ff ff ff ff /);
+  await expect(dialog.getByLabel('Dados da aplicação transportados por TCP')).toBeVisible();
+  expect((await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations).toEqual([]);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('Dados da aplicação transportados por TCP').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath('bgp-binary-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+  await dialog.locator('.modal-head').getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.getByRole('button', { name: 'Opções do laboratório', exact: true }).click();
+  await page.getByRole('button', { name: 'Exportar captura PCAP', exact: true }).click();
+  const capture = page.getByRole('dialog', { name: 'Captura binária da simulação' });
+  await expect(capture).toContainText('BGP/EVPN');
+  await expect(capture).toContainText('0 omitidos');
+  const pending = page.waitForEvent('download');
+  await capture.getByRole('button', { name: 'Baixar PCAP', exact: true }).click();
+  const download = await pending;
+  const frames = decodePcap(await readFile((await download.path())!));
+  expect(frames.some((r) => r.frame.transport?.payload?.[0] === 255)).toBe(true);
   expect(errors).toEqual([]);
 });
 

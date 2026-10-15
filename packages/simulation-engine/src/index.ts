@@ -30,6 +30,7 @@ export { stateSyncStatus, stateSyncCompatible, stateSyncPending } from './protoc
 export type { StateSyncPair } from './protocols/state-sync-model';
 
 export { bgpConfig } from './protocols/bgp';
+export { encodeBgp, decodeBgp, bgpFrameLength } from './protocols/bgp-codec';
 export { routingEnabled, interfaceUp, sviOperational, interfaceOperational } from './protocols/layer3';
 
 export * from './protocols/ipv6-address';

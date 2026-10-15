@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { bgpByteString, encodeBgp } from '../packages/simulation-engine/src/protocols/bgp-codec';
 import {
   SimulationEngine,
   TerminalSession,
@@ -33,7 +34,8 @@ describe('BGP por sessões TCP reais do modelo', () => {
         (event) =>
           event.frame?.packet?.protocol === 'TCP' &&
           [event.frame.packet.sourcePort, event.frame.packet.destinationPort].includes(179) &&
-          event.frame.packet.data.includes('"type":"UPDATE"')
+          event.frame.packet.encoding === 'binary' &&
+          event.frame.packet.data.charCodeAt(18) === 2
       )
     ).toBe(true);
   });
@@ -164,7 +166,7 @@ describe('BGP por sessões TCP reais do modelo', () => {
     engine.writeTcp(
       c.id,
       connection,
-      JSON.stringify({
+      encodeBgp({
         type: 'UPDATE',
         withdrawn: [],
         announcements: [
@@ -178,7 +180,9 @@ describe('BGP por sessões TCP reais do modelo', () => {
             med: 0,
           },
         ],
-      }) + '\n'
+      })
+        .map(bgpByteString)
+        .join('')
     );
     engine.advanceTo(15500);
     expect(a.bgp!.rib.some((path) => path.peer === '10.0.13.3' && path.network === '192.168.20.0')).toBe(

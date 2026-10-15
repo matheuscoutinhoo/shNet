@@ -68,7 +68,10 @@ export const bgpMessageSchema = z.discriminatedUnion('type', [
       evpnAnnouncements: z.array(evpnMacSchema).max(16).optional(),
       evpnWithdrawn: z.array(evpnWithdrawSchema).max(16).optional(),
       evpnImet: z.array(evpnImetSchema).max(16).optional(),
-      evpnImetWithdrawn: z.array(evpnImetSchema).max(16).optional(),
+      evpnImetWithdrawn: z
+        .array(evpnImetSchema.partial({ routeTarget: true, asPath: true }))
+        .max(16)
+        .optional(),
     })
     .strict(),
   z

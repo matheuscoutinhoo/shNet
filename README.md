@@ -193,6 +193,8 @@ Veja [arquitetura](docs/architecture.md), [protocolos e limites](docs/protocols.
 
 O template **Três sistemas autônomos** demonstra BGP. A aba **BGP** mostra vizinhos, AS_PATH e a rota escolhida. Altere LOCAL_PREF ou desligue a interface direta de R-01 para observar o caminho via outro AS. Configuração e limites em [ADR-017](docs/adr/017-bgp-over-simulated-tcp.md).
 
+Novas sessões BGP usam transporte binário com ASN de 32 bits e exportação PCAP. O codec EVPN cobre MAC/IP e IMET com VNI global, RT, mobilidade e ingress replication. Capturas legadas JSON/newline permanecem identificadas e excluídas; formatos e limites no [ADR-052](docs/adr/052-binary-bgp-evpn-captures.md).
+
 Os templates **Um trunk, duas redes**, **VLANs com gateway no switch** e **Mesmo endereço, redes separadas** demonstram subinterfaces, SVIs, roteamento L3 e VRF. A aba **VLAN / VRF** configura as tabelas; **Portas** configura endereços. [ADR-018](docs/adr/018-vlan-routing-and-vrf.md) registra funcionamento e limites.
 
 **Gateway atento ao uplink** acrescenta tracking VRRP. O painel **VRRP** edita interfaces/rotas rastreadas; a prioridade efetiva muda com a disponibilidade local. [ADR-019](docs/adr/019-vrrp-tracking.md).

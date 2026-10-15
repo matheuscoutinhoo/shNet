@@ -4,6 +4,8 @@
 
 Status: implementado no motor educacional.
 
+> O [ADR-052](052-binary-bgp-evpn-captures.md) acrescenta BGP/EVPN binário, MAC/IP e IMET com captura externa. R18 continua acompanhando RR EVPN, ESI/DF, Type 5 e proxy ARP.
+
 ## Transporte
 
 Um switch VTEP mapeia uma VLAN local a um VNI. A interface virtual encapsula frames Ethernet em UDP/4789, usando IPv4, ARP, rotas, ACL, perda e MTU do underlay. O VTEP remoto valida VNI, origem, interface WAN e tamanho, retira o encapsulamento e entrega o frame à VLAN local. VLANs com números diferentes podem compartilhar um VNI. ARP, ICMP, HTTP e NDP atravessam o overlay; o Hop Limit IPv6 interno não diminui no trânsito IP do underlay.

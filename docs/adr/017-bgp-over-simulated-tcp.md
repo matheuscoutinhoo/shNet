@@ -2,6 +2,8 @@
 
 Status: implementado no simulador educacional.
 
+> Registro histórico. O [ADR-052](052-binary-bgp-evpn-captures.md) substitui o JSON/newline por BGP/MP-BGP binário em novas sessões e acrescenta AS4 e PCAP EVPN. Sessões antigas preservam o transporte legado. Os limites abaixo descrevem o incremento original.
+
 ## Decisão
 
 BGP usa conexões TCP/179 do motor. OPEN, KEEPALIVE, UPDATE e NOTIFICATION atravessam segmentação, ACK, retransmissão, ARP, enlaces, ACLs e políticas existentes. Atributos de uma rota só chegam ao vizinho por mensagens recebidas; não há descoberta global de redes ou preenchimento antecipado da RIB.

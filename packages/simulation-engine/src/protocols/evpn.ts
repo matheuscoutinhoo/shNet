@@ -7,6 +7,7 @@ import { ipNumber } from './ipv4';
 import { isUnicast } from './dhcp-config';
 type Route = z.infer<typeof evpnMacSchema>;
 const key = (r: { vni: number; mac: string }) => r.vni + '/' + r.mac;
+const nextSequence = (...values: number[]) => Math.min(0xffffffff, Math.max(0, ...values) + 1);
 export function observeEvpnFrame(d: Device, input: NetworkInterface, frame: Frame, vlan: number) {
   if (input.vxlan || parseInt(frame.src.slice(0, 2), 16) & 1) return;
   const ip = frame.arp?.senderMac === frame.src ? frame.arp.senderIp : frame.packet?.src;
@@ -18,13 +19,15 @@ export function observeEvpnFrame(d: Device, input: NetworkInterface, frame: Fram
       if (v.local.length >= 512) continue;
       local = {
         mac: frame.src,
-        sequence: Math.max(0, ...v.routes.filter((r) => r.mac === frame.src).map((r) => r.sequence)) + 1,
+        sequence: nextSequence(...v.routes.filter((r) => r.mac === frame.src).map((r) => r.sequence)),
         port: input.id,
       };
       v.local.push(local);
     } else if (local.port !== input.id) {
-      local.sequence =
-        Math.max(local.sequence, ...v.routes.filter((r) => r.mac === frame.src).map((r) => r.sequence)) + 1;
+      local.sequence = nextSequence(
+        local.sequence,
+        ...v.routes.filter((r) => r.mac === frame.src).map((r) => r.sequence)
+      );
       local.port = input.id;
     }
     if (ip && isUnicast(ip)) local.ip = ip;
@@ -84,11 +87,13 @@ function localRoutes(d: Device) {
       if (!local) {
         if (v.local.length >= 512) continue;
         const remote = Math.max(0, ...v.routes.filter((r) => r.mac === m.mac).map((r) => r.sequence));
-        local = { mac: m.mac, sequence: remote + 1, port: m.port };
+        local = { mac: m.mac, sequence: nextSequence(remote), port: m.port };
         v.local.push(local);
       } else if (local.port !== m.port) {
-        local.sequence =
-          Math.max(local.sequence, ...v.routes.filter((r) => r.mac === m.mac).map((r) => r.sequence)) + 1;
+        local.sequence = nextSequence(
+          local.sequence,
+          ...v.routes.filter((r) => r.mac === m.mac).map((r) => r.sequence)
+        );
         local.port = m.port;
       }
       routes.push({
@@ -179,13 +184,7 @@ export function receiveEvpn(
     if (!v?.enabled || !v.evpn) continue;
     for (const m of message.evpnImetWithdrawn ?? [])
       v.members = (v.members ?? []).filter(
-        (r) =>
-          !(
-            r.peer === peer.ip &&
-            r.vni === m.vni &&
-            r.nextHop === m.nextHop &&
-            r.routeTarget === m.routeTarget
-          )
+        (r) => !(r.peer === peer.ip && r.vni === m.vni && r.nextHop === m.nextHop)
       );
     for (const m of message.evpnImet ?? []) {
       if (

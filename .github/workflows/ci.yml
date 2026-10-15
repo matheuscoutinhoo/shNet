@@ -64,6 +64,19 @@ jobs:
         run: |
           python -m pip install scapy==2.8.0
           python scripts/verify-captures.py
+      - name: Independently decode BGP and EVPN with Wireshark
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
+          python scripts/verify-bgp-captures.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bgp-evpn-captures
+          path: |
+            artifacts/bgp-evpn-codecs-2026-10-15/independent-captures.json
+            .data/captures/bgp-binary.pcap
+            .data/captures/evpn-binary.pcap
       - run: npm run build
       - run: npm audit --audit-level=high
       - run: npm run benchmark

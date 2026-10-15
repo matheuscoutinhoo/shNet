@@ -18,6 +18,7 @@ import {
 import { bgpNextHop, bgpPermits, exportedBgpPaths, installedBgpRoutes, validBgpPrefix } from './bgp-routing';
 import { validateBgpConfig } from './bgp-validation';
 import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
+import { bgpByteString, bgpFrameLength, bgpOctets, decodeBgp, encodeBgp } from './bgp-codec';
 
 export function bgpConfig(device: Device) {
   const state = device.bgp;
@@ -59,17 +60,26 @@ function setup(connection: TcpConnection) {
   connection.bgpOpen ??= { sent: false, received: false };
 }
 function send(engine: SimulationEngine, device: Device, connection: TcpConnection, message: BgpMessage) {
-  const text = JSON.stringify(message) + '\n';
+  const peer = device.bgp?.peers.find((peer) => peer.ip === connection.remoteIp);
+  const frames =
+    connection.encoding === 'binary'
+      ? encodeBgp(message, {
+          withdrawnEvpn: peer?.evpnAdvertised,
+          internal:
+            device.bgp?.neighbors.find((n) => n.ip === connection.remoteIp)?.remoteAs === device.bgp?.asn,
+        })
+      : undefined;
+  const text = frames ? frames.map(bgpByteString).join('') : JSON.stringify(message) + '\n';
+  const size = tcpBytes(text, connection.encoding);
   if (
-    tcpBytes(text) > BGP.maxMessage ||
+    (!frames && size > BGP.maxMessage) ||
     !connectionOpen(connection) ||
     connection.state !== 'ESTABLISHED' ||
-    connection.bytesSent + tcpBytes(connection.sendBuffer) + tcpBytes(text) > TCP.buffer
+    connection.bytesSent + tcpBytes(connection.sendBuffer, connection.encoding) + size > TCP.buffer
   )
     return false;
   writeTcp(engine, device, connection.id, text);
-  const peer = device.bgp?.peers.find((peer) => peer.ip === connection.remoteIp);
-  if (peer) peer.sent++;
+  if (peer) peer.sent += frames?.length ?? 1;
   engine.emit(
     'BGP_SENT',
     device.id,
@@ -320,6 +330,7 @@ export function handleBgpTick(engine: SimulationEngine, action: BgpTimer) {
           false,
           (c) => {
             setup(c);
+            c.encoding = 'binary';
           },
           undefined,
           undefined,
@@ -482,15 +493,20 @@ export function receiveBgpApplication(engine: SimulationEngine, device: Device, 
     closeTcp(engine, device, connection.id, true);
     return;
   }
-  while (connection.received.includes('\n')) {
-    const end = connection.received.indexOf('\n') + 1,
-      text = connection.received.slice(0, end);
-    connection.received = connection.received.slice(end);
-    connection.bytesReceived -= tcpBytes(text);
-    connection.stream!.readBytes += tcpBytes(text);
+  while (connection.received.length) {
     try {
-      if (tcpBytes(text) > BGP.maxMessage) throw new Error('Mensagem longa');
-      const message = bgpMessageSchema.parse(JSON.parse(text));
+      const binary = connection.encoding === 'binary';
+      const end = binary
+        ? bgpFrameLength(bgpOctets(connection.received))
+        : connection.received.indexOf('\n') + 1;
+      if (!end || end > connection.received.length) break;
+      const text = connection.received.slice(0, end);
+      if (!binary && tcpBytes(text) > BGP.maxMessage) throw new Error('Mensagem longa');
+      const message = binary ? decodeBgp(bgpOctets(text)) : bgpMessageSchema.parse(JSON.parse(text));
+      connection.received = connection.received.slice(end);
+      const size = tcpBytes(text, connection.encoding);
+      connection.bytesReceived -= size;
+      connection.stream!.readBytes += size;
       receiveMessage(engine, device, connection, message);
     } catch {
       const peer = device.bgp.peers.find((peer) => peer.ip === connection.remoteIp);
@@ -499,7 +515,7 @@ export function receiveBgpApplication(engine: SimulationEngine, device: Device, 
     }
     if (!connectionOpen(connection)) break;
   }
-  if (tcpBytes(connection.received) > BGP.maxMessage) {
+  if (tcpBytes(connection.received, connection.encoding) > BGP.maxMessage) {
     const peer = device.bgp.peers.find((peer) => peer.ip === connection.remoteIp);
     if (peer) resetPeer(engine, device, peer, 'Framing BGP excedido', 1);
   }
