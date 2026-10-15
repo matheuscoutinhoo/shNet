@@ -1,6 +1,6 @@
 # ADR-054 — réplica DHCP e troca administrativa com fencing
 
-Data: 15/10/2026. Contrato em qualificação: `2026.10.15.6`. R08 permanece parcial.
+Data: 15/10/2026. Contrato `2026.10.15.6`, aprovado nos cinco gates da [CI 38784975039](https://github.com/matheuscoutinhoo/shNet/actions/runs/38784975039): 915 testes de regressão e 132 cenários de navegador aprovados, sem falhas ou instabilidade. R08 permanece parcial.
 
 ## Decisão
 
@@ -14,7 +14,7 @@ A separação entre renovação unicast em T1 e rebinding broadcast em T2 segue 
 
 ## Aplicação e persistência
 
-O painel DHCP oferece configuração, papel/estado/revisões e **Promover reserva e desligar [servidor]**. Alterar pools exige desfazer o par. Desfazer o par desativa o serviço da antiga reserva. Remover cabos/dispositivos limpa as entregas pertinentes. O preflight reconhece intervalos equivalentes do par, continua apontando sobreposição entre servidores independentes e informa ausência de eleição automática, sincronização pendente e operação sem segunda cópia.
+O painel DHCP oferece configuração, papel/estado/revisões e **Promover reserva e desligar [servidor]**. Alterar pools exige desfazer o par. Desfazer o par desativa o serviço da antiga reserva. Tracking DHCP/VRRP passa a atualizar imediatamente ao habilitar/desabilitar o serviço ou desfazer o par, conservando o snapshot válido antes do próximo evento. Remover cabos/dispositivos limpa as entregas pertinentes. O preflight reconhece intervalos equivalentes do par, continua apontando sobreposição entre servidores independentes e informa ausência de eleição automática, sincronização pendente e operação sem segunda cópia.
 
 O modelo nativo **DHCP com réplica e troca de servidor** contém cinco equipamentos e duas NICs dedicadas. Seu switch de acesso continua único, pois o ensaio isola HA do serviço; modelos completos de fábrica/enterprise com acesso/WAN A/B continuam em R08/R10. Snapshots preservam réplica e respostas em voo. Clonagem remapeia o par inteiro sem copiar leases; duplicar um membro não o associa ao par original. Contadores/revisões/quarentenas de execução não criam diff de configuração.
 
@@ -23,5 +23,7 @@ Shell: `show ip dhcp ha`, `ip dhcp ha configure DHCP-B {"portA":"nic0","portB":"
 ## Validação e limites
 
 `tests/dhcp-ha.test.ts` cobre clientes simultâneos, rajada de 150 clientes com fila limitada, confirmação perdida, partição, resposta tardia, promoção com fencing, T2, novo cliente sem colisão, failback, RELEASE/DECLINE, restore, configuração inválida, remoções, clones, preflight e shell. O navegador cobre criação do par, concessão real, promoção, salvamento/reabertura e mobile nos dois temas. `scripts/verify-dhcp-ha.ts` produz topologia importável e seis checkpoints reproduzíveis e é obrigatório na CI.
+
+[Evidências qualificadas](../../artifacts/dhcp-ha-2026-10-15/VALIDACAO.md) preservam o commit `52b7648`, os resultados completos e a identidade de fonte/Worker, igual nas imagens Linux e no build Windows. O único teste adiado continua sendo P-PCAP universal. A homologação de containers inclui backup/restore e rollback isolados; nenhum desses procedimentos foi executado no Railway real.
 
 O canal de réplica é um transporte de estado simulado, como o canal de firewall/NAT, sem codec de fabricante e sem exportação PCAP. O tráfego DHCP cliente/servidor conserva o modelo existente. Não há eleição automática, witness/quorum distribuído, DHCPv6 HA, replicação de outros serviços, TLS do canal ou qualificação de interoperabilidade externa. A redução da fila e os testes de rajada não certificam um SLA enterprise. O ambiente Railway real não recebe operações de fencing, restore ou rollback: todas as falhas descritas são da rede simulada.

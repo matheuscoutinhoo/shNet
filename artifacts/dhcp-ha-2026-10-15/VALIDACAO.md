@@ -1,6 +1,6 @@
 # DHCP ativo/reserva — 15/10/2026
 
-Contrato em qualificação: `2026.10.15.6`. Esta etapa implementa parte de R08 e não encerra alta disponibilidade de todos os serviços.
+Contrato `2026.10.15.6`, aprovado nos cinco gates da [CI 38784975039](https://github.com/matheuscoutinhoo/shNet/actions/runs/38784975039), commit `52b7648`. Esta etapa implementa parte de R08 e não encerra alta disponibilidade de todos os serviços. [Resumo da qualificação](ci-qualified/summary.json).
 
 O [modelo importável](dhcp-ha.shlab.json) e [replication.json](replication.json) são produzidos por `npx tsx scripts/verify-dhcp-ha.ts`. Os seis checkpoints cobrem concessão confirmada, partição e promoção obsoleta recusada, troca com desligamento do antigo ativo, T2/novo cliente sem colisão, retorno como reserva, retomada determinística e failback administrativo. O arquivo registra contrato, hash da fonte, limites e eventos. Falhas são aplicadas exclusivamente à rede simulada.
 
@@ -8,4 +8,10 @@ Os testes exercitam também confirmação perdida, resposta tardia, RELEASE/DECL
 
 O canal de réplica é um modelo de estado com perda/latência/jitter do enlace, sem codec de fabricante ou exportação PCAP. Promoção é administrativa com controle de energia simulado; não implementa witness/quorum ou eleição automática. Depois da promoção, a operação sem segunda cópia é explícita até resincronizar. T1 pode falhar até T2 localizar o novo endereço físico de servidor. [Decisão e limites completos](../../docs/adr/054-dhcp-replication-and-administrative-fencing.md).
 
-Resultados finais de regressão, navegador, CI e deploy serão registrados após a conclusão dos gates; produção permanece na última versão verificada até então.
+Validações locais concluídas: [73 testes focados](protocol-tests.json), fluxo de navegador nos dois temas e [build compilado/Workers/autosave/recuperação](built-application-ui.json). A [captura mobile](dhcp-ha-mobile.png) foi inspecionada. O [teste adicional com relay roteado](relay-validation.json), reproduzível por `npx tsx artifacts/dhcp-ha-2026-10-15/relay-validation.ts`, preservou o endereço durante T2 após perda do primário e promoção administrativa.
+
+Fonte `4b5f3d0c104a224acdd3a674225369124e94676dd5d6c5756cfaba3b9280df75`; Worker `e7dbe6dea9296ccbf8fcbb3ac988b7e5f0449713e9529e012c283718c99d84d1`. As imagens Linux da CI e o build Windows têm as mesmas identidades. JS/CSS: 2.480.519 bytes brutos e 655.135 bytes Brotli, com o motor compartilhado entre os contextos.
+
+CI completa: [915 testes de regressão aprovados](ci-qualified/regression.json), zero falhas e um adiado (P-PCAP universal), 89 arquivos. Navegador: 66 cenários por tema, 132 aprovados, zero falhas, instabilidade ou skips — [claro](ci-qualified/e2e-sistema-claro.json) e [escuro](ci-qualified/e2e-sistema-escuro.json). [Workers/replay](ci-qualified/built-application-ui.json), capacidade enterprise concorrente, decodificadores independentes e [containers/backup/restore/rollback isolados](ci-qualified/container-qualification/qualification.json) aprovados. A [execução nativa da CI](ci-qualified/replication.json) corresponde à fonte homologada.
+
+A integração preserva o código qualificado; a verificação do Railway será registrada após o deploy. Nenhuma operação de fencing, backup/restore ou rollback é aplicada ao ambiente real por esses testes.

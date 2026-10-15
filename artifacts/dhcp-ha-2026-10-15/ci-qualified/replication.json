@@ -1,0 +1,1001 @@
+{
+  "generatedAt": "2026-10-15T18:25:28.821Z",
+  "engineContract": "2026.10.15.6",
+  "engineSourceHash": "4b5f3d0c104a224acdd3a674225369124e94676dd5d6c5756cfaba3b9280df75",
+  "passed": true,
+  "scope": "DHCPv4 simulated synchronous replication; administrative power fencing; no automatic quorum election or vendor wire codec.",
+  "limits": {
+    "pendingRepliesPerPair": 128,
+    "inFlightDatabaseTransfersPerPair": 1,
+    "replyDeadlineMs": 5000,
+    "leaseReservationGuardMs": 30000
+  },
+  "results": [
+    {
+      "name": "Concessão confirmada nas duas instâncias",
+      "clock": 500,
+      "active": "DHCP-A",
+      "members": [
+        {
+          "name": "DHCP-A",
+          "power": true,
+          "status": "synchronized",
+          "replication": {
+            "peer": "device-2",
+            "port": "nic0",
+            "token": "dhcp-ha-20",
+            "role": "active",
+            "revision": 11,
+            "applied": 10,
+            "confirmed": 0,
+            "solo": true,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23522.02215
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 46016.01996
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "offered",
+              "expiresAt": 60504.005636
+            }
+          ],
+          "declined": []
+        },
+        {
+          "name": "DHCP-B",
+          "power": true,
+          "status": "synchronized",
+          "replication": {
+            "peer": "device-1",
+            "port": "nic0",
+            "token": "dhcp-ha-21",
+            "role": "standby",
+            "revision": 10,
+            "applied": 0,
+            "confirmed": 10,
+            "solo": false,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23524.022712
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 46016.01996
+            }
+          ],
+          "declined": []
+        }
+      ],
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "address": "192.0.2.100",
+          "lease": {
+            "id": "dhcp-lease-144",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "serverMac": "02:00:00:01:00:00",
+            "dns": [],
+            "acquiredAt": 12.014323999999998,
+            "renewAt": 8012.014324,
+            "rebindAt": 14012.014324,
+            "expiresAt": 16012.014324
+          }
+        },
+        {
+          "name": "DHCP-CLIENT-2"
+        }
+      ]
+    },
+    {
+      "name": "Partição suspende respostas e impede promoção de réplica obsoleta",
+      "clock": 6000,
+      "active": "DHCP-A",
+      "members": [
+        {
+          "name": "DHCP-A",
+          "power": true,
+          "status": "unavailable",
+          "replication": {
+            "peer": "device-2",
+            "port": "nic0",
+            "token": "dhcp-ha-20",
+            "role": "active",
+            "revision": 11,
+            "applied": 10,
+            "confirmed": 0,
+            "solo": true,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23522.02215
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 46016.01996
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "offered",
+              "expiresAt": 60504.005636
+            }
+          ],
+          "declined": []
+        },
+        {
+          "name": "DHCP-B",
+          "power": true,
+          "status": "unavailable",
+          "replication": {
+            "peer": "device-1",
+            "port": "nic0",
+            "token": "dhcp-ha-21",
+            "role": "standby",
+            "revision": 10,
+            "applied": 0,
+            "confirmed": 10,
+            "solo": false,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23524.022712
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 46016.01996
+            }
+          ],
+          "declined": []
+        }
+      ],
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "address": "192.0.2.100",
+          "lease": {
+            "id": "dhcp-lease-144",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "serverMac": "02:00:00:01:00:00",
+            "dns": [],
+            "acquiredAt": 12.014323999999998,
+            "renewAt": 8012.014324,
+            "rebindAt": 14012.014324,
+            "expiresAt": 16012.014324
+          }
+        },
+        {
+          "name": "DHCP-CLIENT-2"
+        }
+      ]
+    },
+    {
+      "name": "Promoção com fencing, renovação T2 e novo cliente sem colisão",
+      "clock": 22000,
+      "active": "DHCP-B",
+      "members": [
+        {
+          "name": "DHCP-A",
+          "power": false,
+          "status": "unavailable",
+          "replication": {
+            "peer": "device-2",
+            "port": "nic0",
+            "token": "dhcp-ha-20",
+            "role": "active",
+            "revision": 11,
+            "applied": 10,
+            "confirmed": 0,
+            "solo": true,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23522.02215
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 46016.01996
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "offered",
+              "expiresAt": 60504.005636
+            }
+          ],
+          "declined": []
+        },
+        {
+          "name": "DHCP-B",
+          "power": true,
+          "status": "fenced-active",
+          "replication": {
+            "peer": "device-1",
+            "port": "nic0",
+            "token": "dhcp-ha-21",
+            "role": "standby",
+            "revision": 10,
+            "applied": 0,
+            "confirmed": 10,
+            "solo": false,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23524.022712
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        }
+      ],
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "address": "192.0.2.100",
+          "lease": {
+            "id": "dhcp-lease-532",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 14012.014324,
+            "renewAt": 22012.014324,
+            "rebindAt": 28012.014324,
+            "expiresAt": 30012.014324
+          }
+        },
+        {
+          "name": "DHCP-CLIENT-2",
+          "address": "192.0.2.101",
+          "lease": {
+            "id": "dhcp-lease-595",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 15508.011272,
+            "renewAt": 23508.011272,
+            "rebindAt": 29508.011272,
+            "expiresAt": 31508.011272
+          }
+        }
+      ]
+    },
+    {
+      "name": "Retorno como reserva e resincronização",
+      "clock": 24000,
+      "active": "DHCP-B",
+      "members": [
+        {
+          "name": "DHCP-A",
+          "power": true,
+          "status": "synchronized",
+          "replication": {
+            "peer": "device-2",
+            "port": "nic0",
+            "token": "dhcp-ha-20",
+            "role": "active",
+            "revision": 11,
+            "applied": 10,
+            "confirmed": 0,
+            "solo": true,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23522.02215
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        },
+        {
+          "name": "DHCP-B",
+          "power": true,
+          "status": "synchronized",
+          "replication": {
+            "peer": "device-1",
+            "port": "nic0",
+            "token": "dhcp-ha-21",
+            "role": "standby",
+            "revision": 10,
+            "applied": 0,
+            "confirmed": 10,
+            "solo": false,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23524.022712
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        }
+      ],
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "address": "192.0.2.100",
+          "lease": {
+            "id": "dhcp-lease-678",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 22012.014324,
+            "renewAt": 30012.014324,
+            "rebindAt": 36012.014324,
+            "expiresAt": 38012.014324
+          }
+        },
+        {
+          "name": "DHCP-CLIENT-2",
+          "address": "192.0.2.101",
+          "lease": {
+            "id": "dhcp-lease-750",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 23508.011272,
+            "renewAt": 31508.011272,
+            "rebindAt": 37508.011272,
+            "expiresAt": 39508.011272
+          }
+        }
+      ]
+    },
+    {
+      "name": "Retomada determinística após salvar e carregar",
+      "clock": 25000,
+      "active": "DHCP-B",
+      "members": [
+        {
+          "name": "DHCP-A",
+          "power": true,
+          "status": "synchronized",
+          "replication": {
+            "peer": "device-2",
+            "port": "nic0",
+            "token": "dhcp-ha-20",
+            "role": "active",
+            "revision": 11,
+            "applied": 10,
+            "confirmed": 0,
+            "solo": true,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23522.02215
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        },
+        {
+          "name": "DHCP-B",
+          "power": true,
+          "status": "synchronized",
+          "replication": {
+            "peer": "device-1",
+            "port": "nic0",
+            "token": "dhcp-ha-21",
+            "role": "standby",
+            "revision": 10,
+            "applied": 0,
+            "confirmed": 10,
+            "solo": false,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23524.022712
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        }
+      ],
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "address": "192.0.2.100",
+          "lease": {
+            "id": "dhcp-lease-678",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 22012.014324,
+            "renewAt": 30012.014324,
+            "rebindAt": 36012.014324,
+            "expiresAt": 38012.014324
+          }
+        },
+        {
+          "name": "DHCP-CLIENT-2",
+          "address": "192.0.2.101",
+          "lease": {
+            "id": "dhcp-lease-750",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 23508.011272,
+            "renewAt": 31508.011272,
+            "rebindAt": 37508.011272,
+            "expiresAt": 39508.011272
+          }
+        }
+      ]
+    },
+    {
+      "name": "Failback administrativo com cópia atual e antigo ativo desligado",
+      "clock": 25000,
+      "active": "DHCP-A",
+      "members": [
+        {
+          "name": "DHCP-A",
+          "power": true,
+          "status": "fenced-active",
+          "replication": {
+            "peer": "device-2",
+            "port": "nic0",
+            "token": "dhcp-ha-20",
+            "role": "active",
+            "revision": 11,
+            "applied": 10,
+            "confirmed": 0,
+            "solo": true,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23522.02215
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        },
+        {
+          "name": "DHCP-B",
+          "power": false,
+          "status": "unavailable",
+          "replication": {
+            "peer": "device-1",
+            "port": "nic0",
+            "token": "dhcp-ha-21",
+            "role": "standby",
+            "revision": 10,
+            "applied": 0,
+            "confirmed": 10,
+            "solo": false,
+            "sent": 6,
+            "received": 6,
+            "lastReceivedAt": 23524.022712
+          },
+          "bindings": [
+            {
+              "id": "dhcp-binding-52",
+              "pool": "LAN",
+              "clientMac": "02:00:00:04:00:00",
+              "address": "192.0.2.100",
+              "status": "bound",
+              "expiresAt": 68024.021632
+            },
+            {
+              "id": "dhcp-binding-173",
+              "pool": "LAN",
+              "clientMac": "02:00:00:05:00:00",
+              "address": "192.0.2.101",
+              "status": "bound",
+              "expiresAt": 69520.01858
+            }
+          ],
+          "declined": []
+        }
+      ],
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "address": "192.0.2.100",
+          "lease": {
+            "id": "dhcp-lease-678",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 22012.014324,
+            "renewAt": 30012.014324,
+            "rebindAt": 36012.014324,
+            "expiresAt": 38012.014324
+          }
+        },
+        {
+          "name": "DHCP-CLIENT-2",
+          "address": "192.0.2.101",
+          "lease": {
+            "id": "dhcp-lease-750",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 23508.011272,
+            "renewAt": 31508.011272,
+            "rebindAt": 37508.011272,
+            "expiresAt": 39508.011272
+          }
+        }
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 0,
+      "device": "device-1",
+      "reason": "Pool DHCP LAN configurado."
+    },
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 0,
+      "device": "device-2",
+      "reason": "Pool DHCP LAN configurado."
+    },
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 0,
+      "device": "device-1",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 0,
+      "device": "device-2",
+      "reason": "NIC1 instalada."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 0,
+      "device": "device-1",
+      "reason": "DHCP: dhcp-ha-deliver, revisão 1."
+    },
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 0,
+      "device": "device-1",
+      "reason": "DHCP ativo/reserva com DHCP-B; promoção administrativa com desligamento do antigo ativo."
+    },
+    {
+      "type": "DHCP_DISCOVER",
+      "time": 0,
+      "device": "device-4",
+      "reason": "DHCP DISCOVER: selecting, tentativa 1; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 2.001394,
+      "device": "device-2",
+      "reason": "DHCP: dhcp-ha-confirm, revisão 1."
+    },
+    {
+      "type": "HA_SYNC_RECEIVED",
+      "time": 4.001956,
+      "device": "device-1",
+      "reason": "DHCP: réplica confirmada, revisão 1."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 4.005636,
+      "device": "device-1",
+      "reason": "DHCP: dhcp-ha-deliver, revisão 2."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 6.008126,
+      "device": "device-2",
+      "reason": "DHCP: dhcp-ha-confirm, revisão 2."
+    },
+    {
+      "type": "HA_SYNC_RECEIVED",
+      "time": 8.008688,
+      "device": "device-1",
+      "reason": "DHCP: réplica confirmada, revisão 2."
+    },
+    {
+      "type": "DHCP_OFFER",
+      "time": 8.008688,
+      "device": "device-1",
+      "reason": "DHCP OFFER: 192.0.2.100/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 12.014323999999998,
+      "device": "device-4",
+      "reason": "DHCP REQUEST: requesting, tentativa 1; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 16.019959999999998,
+      "device": "device-1",
+      "reason": "DHCP: dhcp-ha-deliver, revisão 3."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 18.022425999999996,
+      "device": "device-2",
+      "reason": "DHCP: dhcp-ha-confirm, revisão 3."
+    },
+    {
+      "type": "HA_SYNC_RECEIVED",
+      "time": 20.022987999999994,
+      "device": "device-1",
+      "reason": "DHCP: réplica confirmada, revisão 3."
+    },
+    {
+      "type": "DHCP_ACK",
+      "time": 20.022987999999994,
+      "device": "device-1",
+      "reason": "DHCP ACK: 192.0.2.100/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_BOUND",
+      "time": 24.028623999999997,
+      "device": "device-4",
+      "reason": "Concessão aplicada: 192.0.2.100/24; gateway não informado; expira em 16012.014 ms virtuais."
+    },
+    {
+      "type": "DHCP_DISCOVER",
+      "time": 500,
+      "device": "device-5",
+      "reason": "DHCP DISCOVER: selecting, tentativa 1; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "DHCP_DISCOVER",
+      "time": 4500,
+      "device": "device-5",
+      "reason": "DHCP DISCOVER: selecting, tentativa 2; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 7000,
+      "device": "device-1",
+      "reason": "DHCP: dhcp-ha-deliver, revisão 4."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 7002.003578,
+      "device": "device-2",
+      "reason": "DHCP: dhcp-ha-confirm, revisão 4."
+    },
+    {
+      "type": "HA_SYNC_RECEIVED",
+      "time": 7004.00414,
+      "device": "device-1",
+      "reason": "DHCP: réplica confirmada, revisão 4."
+    },
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 7500,
+      "device": "device-2",
+      "reason": "DHCP promovido; DHCP-A desligado por fencing administrativo. Operação sem segunda cópia até resincronizar."
+    },
+    {
+      "type": "DHCP_DISCOVER",
+      "time": 7500,
+      "device": "device-5",
+      "reason": "DHCP DISCOVER: selecting, tentativa 1; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "DHCP_OFFER",
+      "time": 7504.005636,
+      "device": "device-2",
+      "reason": "DHCP OFFER: 192.0.2.101/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 7508.011272,
+      "device": "device-5",
+      "reason": "DHCP REQUEST: requesting, tentativa 1; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "DHCP_ACK",
+      "time": 7512.016908,
+      "device": "device-2",
+      "reason": "DHCP ACK: 192.0.2.101/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_BOUND",
+      "time": 7516.0225439999995,
+      "device": "device-5",
+      "reason": "Concessão aplicada: 192.0.2.101/24; gateway não informado; expira em 23508.011 ms virtuais."
+    },
+    {
+      "type": "DHCP_RENEWING",
+      "time": 8012.014324,
+      "device": "device-4",
+      "reason": "T1: renovando 192.0.2.100 com o servidor 192.0.2.2."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 8012.014324,
+      "device": "device-4",
+      "reason": "DHCP REQUEST: renewing, tentativa 1; renovação unicast para 192.0.2.2."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 12012.014324,
+      "device": "device-4",
+      "reason": "DHCP REQUEST: renewing, tentativa 2; renovação unicast para 192.0.2.2."
+    },
+    {
+      "type": "DHCP_REBINDING",
+      "time": 14012.014324,
+      "device": "device-4",
+      "reason": "T2: servidor não confirmou a renovação; DHCP Request em broadcast."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 14012.014324,
+      "device": "device-4",
+      "reason": "DHCP REQUEST: rebinding, tentativa 1; broadcast local UDP 68 -> 67."
+    },
+    {
+      "type": "DHCP_ACK",
+      "time": 14016.019960000001,
+      "device": "device-2",
+      "reason": "DHCP ACK: 192.0.2.100/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_BOUND",
+      "time": 14028.027268000002,
+      "device": "device-4",
+      "reason": "Concessão aplicada: 192.0.2.100/24; gateway não informado; expira em 30012.014 ms virtuais."
+    },
+    {
+      "type": "DHCP_RENEWING",
+      "time": 15508.011272,
+      "device": "device-5",
+      "reason": "T1: renovando 192.0.2.101 com o servidor 192.0.2.3."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 15508.011272,
+      "device": "device-5",
+      "reason": "DHCP REQUEST: renewing, tentativa 1; renovação unicast para 192.0.2.3."
+    },
+    {
+      "type": "DHCP_ACK",
+      "time": 15520.01858,
+      "device": "device-2",
+      "reason": "DHCP ACK: 192.0.2.101/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_BOUND",
+      "time": 15524.024216000002,
+      "device": "device-5",
+      "reason": "Concessão aplicada: 192.0.2.101/24; gateway não informado; expira em 31508.011 ms virtuais."
+    },
+    {
+      "type": "DHCP_RENEWING",
+      "time": 22012.014324,
+      "device": "device-4",
+      "reason": "T1: renovando 192.0.2.100 com o servidor 192.0.2.3."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 22012.014324,
+      "device": "device-4",
+      "reason": "DHCP REQUEST: renewing, tentativa 1; renovação unicast para 192.0.2.3."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 22024.021632,
+      "device": "device-2",
+      "reason": "DHCP: dhcp-ha-deliver, revisão 9."
+    },
+    {
+      "type": "DHCP_ACK",
+      "time": 22024.021632,
+      "device": "device-2",
+      "reason": "DHCP ACK: 192.0.2.100/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 22026.025194,
+      "device": "device-1",
+      "reason": "DHCP: dhcp-ha-confirm, revisão 9."
+    },
+    {
+      "type": "HA_SYNC_RECEIVED",
+      "time": 22028.025756000003,
+      "device": "device-2",
+      "reason": "DHCP: réplica confirmada, revisão 9."
+    },
+    {
+      "type": "DHCP_BOUND",
+      "time": 22028.027268,
+      "device": "device-4",
+      "reason": "Concessão aplicada: 192.0.2.100/24; gateway não informado; expira em 38012.014 ms virtuais."
+    },
+    {
+      "type": "DHCP_RENEWING",
+      "time": 23508.011272,
+      "device": "device-5",
+      "reason": "T1: renovando 192.0.2.101 com o servidor 192.0.2.3."
+    },
+    {
+      "type": "DHCP_REQUEST",
+      "time": 23508.011272,
+      "device": "device-5",
+      "reason": "DHCP REQUEST: renewing, tentativa 1; renovação unicast para 192.0.2.3."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 23520.01858,
+      "device": "device-2",
+      "reason": "DHCP: dhcp-ha-deliver, revisão 10."
+    },
+    {
+      "type": "HA_SYNC_SENT",
+      "time": 23522.02215,
+      "device": "device-1",
+      "reason": "DHCP: dhcp-ha-confirm, revisão 10."
+    },
+    {
+      "type": "HA_SYNC_RECEIVED",
+      "time": 23524.022712,
+      "device": "device-2",
+      "reason": "DHCP: réplica confirmada, revisão 10."
+    },
+    {
+      "type": "DHCP_ACK",
+      "time": 23524.022712,
+      "device": "device-2",
+      "reason": "DHCP ACK: 192.0.2.101/24 do pool LAN; lease de 16 s."
+    },
+    {
+      "type": "DHCP_BOUND",
+      "time": 23528.028348000003,
+      "device": "device-5",
+      "reason": "Concessão aplicada: 192.0.2.101/24; gateway não informado; expira em 39508.011 ms virtuais."
+    },
+    {
+      "type": "CONFIG_CHANGED",
+      "time": 25000,
+      "device": "device-1",
+      "reason": "DHCP promovido; DHCP-B desligado por fencing administrativo. Operação sem segunda cópia até resincronizar."
+    }
+  ]
+}

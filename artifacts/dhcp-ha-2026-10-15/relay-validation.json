@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "engineContract": "2026.10.15.6",
+  "engineSourceHash": "4b5f3d0c104a224acdd3a674225369124e94676dd5d6c5756cfaba3b9280df75",
+  "scope": "Local DHCPv4 replication through routed relay with both physical server targets; T2 after primary power failure and administrative promotion.",
+  "originalLease": {
+    "id": "dhcp-lease-204",
+    "address": "10.0.0.100",
+    "prefix": 24,
+    "server": "192.0.2.2",
+    "serverMac": "02:00:00:14:00:00",
+    "gateway": "10.0.0.1",
+    "dns": [],
+    "acquiredAt": 24.021632,
+    "renewAt": 8024.021632,
+    "rebindAt": 14024.021632,
+    "expiresAt": 16024.021632
+  },
+  "finalLease": {
+    "id": "dhcp-lease-356",
+    "address": "10.0.0.100",
+    "prefix": 24,
+    "server": "192.0.2.3",
+    "serverMac": "02:00:00:14:00:00",
+    "gateway": "10.0.0.1",
+    "dns": [],
+    "acquiredAt": 14024.021632,
+    "renewAt": 22024.021632,
+    "rebindAt": 28024.021632,
+    "expiresAt": 30024.021632
+  },
+  "replica": [
+    {
+      "id": "dhcp-binding-129",
+      "pool": "LAN",
+      "clientMac": "02:00:00:04:00:00",
+      "address": "10.0.0.100",
+      "status": "bound",
+      "expiresAt": 60030.030086
+    }
+  ]
+}
