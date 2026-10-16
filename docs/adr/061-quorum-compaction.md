@@ -1,6 +1,6 @@
 # ADR-061 — Compactação e recuperação do estado confirmado
 
-Data: 16/10/2026. Contrato em qualificação `2026.10.16.3`. Incremento de R08 sobre os [ADRs 058](058-quorum-laboratory.md) e [060](060-quorum-backed-sql-service.md). A qualificação completa e a conferência do deploy serão registradas antes de anunciar a publicação.
+Data: 16/10/2026. Contrato `2026.10.16.3`, aprovado nos cinco gates da CI: 1.000 testes e 144 cenários de navegador aprovados. Incremento de R08 sobre os [ADRs 058](058-quorum-laboratory.md) e [060](060-quorum-backed-sql-service.md). A [evidência](../../artifacts/quorum-compaction-2026-10-16/VALIDACAO.md) registra a qualificação; integração e publicação em preparação.
 
 ## Problema e decisão
 
@@ -24,7 +24,7 @@ Save/reload preserva imagem, índices absolutos, cursores de envio, buffer parci
 
 ## Capacidade e limites
 
-O orçamento é de 512 KiB para os dados materializados serializados, compartilhado por chaves e tabelas. A admissão considera as operações pendentes antes de aceitar crescimento. Redução de dados permanece possível. Dados confirmados de arquivos antigos acima do orçamento são conservados; a compactação é recusada até caberem. Não há truncamento silencioso para cumprir quota.
+O orçamento é de 512 KiB para os dados materializados serializados, compartilhado por chaves e tabelas. A admissão considera as operações pendentes antes de aceitar crescimento. Redução de dados permanece possível enquanto houver espaço no histórico. Dados confirmados de arquivos antigos acima do orçamento são conservados; a compactação é recusada até caberem. Um legado já cheio continua recusando propostas se nenhum prefixo elegível couber no orçamento. Não há truncamento silencioso para cumprir quota.
 
 Há até 256 entradas retidas e 128 propostas não confirmadas. A contenção de propostas reserva espaço para controle e barreiras de eleição; não promete progresso sob eleições malsucedidas ilimitadas. As demais quotas de banco, transporte, projeto e fila continuam vigentes. O número histórico de operações deixa de ser limitado a 256, desde que os dados vivos e os recursos atuais caibam nos limites. Checkpoints não preservam auditoria nem recibos individuais anteriores ao prefixo descartado.
 

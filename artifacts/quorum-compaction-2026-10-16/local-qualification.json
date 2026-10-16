@@ -1,0 +1,22 @@
+{
+  "source": "922d9abf4c55a0b97c107469992d691e8157185b5ba50837f909b0eead39ba74",
+  "worker": "28eab107817eb0612b57a0a900e6c69f753a0efa4acc7c54aef3f3deecac4521",
+  "contract": "2026.10.16.3",
+  "regression": {
+    "passed": 1000,
+    "skipped": 1,
+    "failed": 0,
+    "files": 97
+  },
+  "focusedBrowser": {
+    "themes": 2,
+    "passed": 4,
+    "failed": 0,
+    "cases": [
+      "SQL checkpoint compaction and persistence",
+      "Quorum after 300 operations, replicated deletion and GET/visits cooldowns"
+    ]
+  },
+  "build": true,
+  "note": "Final frozen-source run. Earlier interrupted/mixed-revision runs are not qualification evidence."
+}
