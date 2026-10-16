@@ -1,74 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  createQuorumNode,
   proposeQuorum,
   quorumCommittedView,
   receiveQuorum,
   tickQuorum,
   validateQuorumState,
+  quorumLastIndex,
   type QuorumMessage,
-  type QuorumResult,
-  type QuorumState,
 } from '../packages/simulation-engine/src/protocols/quorum';
 
-class Cluster {
-  nodes: Record<string, QuorumState> = {};
-  messages: QuorumMessage[] = [];
-  blocked = new Set<string>();
-  stopped = new Set<string>();
-  now = 0;
-  constructor(members = ['a', 'b', 'c']) {
-    members.forEach(
-      (self, seed) => (this.nodes[self] = createQuorumNode({ cluster: 'lab', self, members, seed: seed + 1 }))
-    );
-  }
-  accept(result: QuorumResult) {
-    this.nodes[result.state.self] = result.state;
-    this.messages.push(...result.messages);
-  }
-  deliver(reverse = false, duplicate = false) {
-    let remaining = 10000;
-    while (this.messages.length) {
-      if (--remaining === 0) throw new Error('Message storm');
-      const message = reverse ? this.messages.pop()! : this.messages.shift()!;
-      if (
-        this.stopped.has(message.to) ||
-        this.stopped.has(message.from) ||
-        this.blocked.has(`${message.from}:${message.to}`)
-      )
-        continue;
-      this.accept(receiveQuorum(this.nodes[message.to], message, this.now));
-      if (duplicate) this.accept(receiveQuorum(this.nodes[message.to], message, this.now));
-    }
-  }
-  advance(ms: number, reverse = false, duplicate = false) {
-    const end = this.now + ms;
-    while (this.now < end) {
-      this.now += Math.min(10, end - this.now);
-      for (const node of Object.values(this.nodes))
-        if (!this.stopped.has(node.self)) this.accept(tickQuorum(node, this.now));
-      this.deliver(reverse, duplicate);
-    }
-  }
-  leader(exclude?: string) {
-    const node = Object.values(this.nodes).find(
-      (n) => n.role === 'leader' && !this.stopped.has(n.self) && n.self !== exclude
-    );
-    if (!node) throw new Error('No leader');
-    return node;
-  }
-  partition(member: string) {
-    for (const other of Object.keys(this.nodes).filter((p) => p !== member)) {
-      this.blocked.add(`${member}:${other}`);
-      this.blocked.add(`${other}:${member}`);
-    }
-  }
-  put(node: string, key: string, value: string) {
-    const result = proposeQuorum(this.nodes[node], { kind: 'put', key, value });
-    this.accept(result);
-    return result.index;
-  }
-}
+import { Cluster } from './fixtures/quorum';
 
 describe('quorum message-driven replication foundation (R08)', () => {
   it('keeps committed prefixes identical under seeded partitions, loss, duplication and reordering', () => {
@@ -263,17 +204,35 @@ describe('quorum message-driven replication foundation (R08)', () => {
     expect(() => tickQuorum(before, c.now - 1)).toThrow('clock');
     expect(() => receiveQuorum(before, message, NaN)).toThrow('clock');
   });
-  it('enforces log and snapshot bounds without silently evicting confirmed data', () => {
+  it('compacts confirmed history, keeps absolute indices and bounds the unconfirmed suffix', () => {
     const c = new Cluster();
     c.advance(1500);
     const leader = c.leader().self;
-    for (let i = c.nodes[leader].log.length; i < 256; i++) {
+    for (let i = 0; i < 600; i++) {
       c.put(leader, 'key', String(i));
       c.deliver();
     }
-    expect(() => c.put(leader, 'key', 'overflow')).toThrow('capacity');
-    expect(quorumCommittedView(c.nodes[leader]).key).toBe('255');
-    expect(() => validateQuorumState({ ...c.nodes[leader], commit: 257 })).toThrow();
+    expect(c.nodes[leader].snapshot!.index).toBeGreaterThan(256);
+    expect(quorumLastIndex(c.nodes[leader])).toBe(601);
+    c.partition(leader);
+    let blocked = false;
+    for (let i = 0; i < 300; i++) {
+      try {
+        c.put(leader, 'key', 'unconfirmed');
+        c.deliver();
+      } catch (error) {
+        expect(String(error)).toContain('capacity');
+        blocked = true;
+        break;
+      }
+    }
+    expect(blocked).toBe(true);
+    expect(quorumLastIndex(c.nodes[leader]) - c.nodes[leader].commit).toBe(128);
+    expect(c.nodes[leader].log.length).toBeLessThanOrEqual(256);
+    expect(quorumCommittedView(c.nodes[leader]).key).toBe('599');
+    expect(() =>
+      validateQuorumState({ ...c.nodes[leader], commit: quorumLastIndex(c.nodes[leader]) + 1 })
+    ).toThrow();
     expect(() => validateQuorumState({ ...c.nodes[leader], members: ['a', 'a', 'c'] })).toThrow();
     expect(() => validateQuorumState({ ...c.nodes[leader], votes: ['outsider'] })).toThrow();
     expect(() => proposeQuorum(c.nodes[leader], { kind: 'put', key: 'bad key', value: '' })).toThrow();

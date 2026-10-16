@@ -66,6 +66,13 @@ test('SQL com quorum: cliente gráfico, confirmação e restauração do projeto
   await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
   await expect(page.locator('.database-panel')).toContainText('"valor":42');
   await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await inspectDevice(page, active.hostname);
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  await page.getByRole('button', { name: 'Compactar histórico confirmado', exact: true }).click();
+  await expect(page.locator('[data-quorum-checkpoint]')).toHaveAttribute(
+    'data-quorum-checkpoint',
+    /^[1-9]\d*$/
+  );
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.locator('.project-title')).toContainText('Salvo');
   await page.reload();
@@ -93,6 +100,11 @@ test('Quorum: gravação por maioria, persistência e painel mobile', async ({ p
   const engine = new SimulationEngine(makeTemplate('quorum'));
   engine.advanceTo(2000);
   const active = engine.state.devices.find((d) => d.quorum?.node.role === 'leader')!;
+  for (let i = 0; i < 300; i++) {
+    engine.proposeQuorumLab(active.id, { kind: 'put', key: 'baseline', value: 'valor-' + i });
+    engine.advanceTo(engine.state.clock + 20);
+  }
+  expect(active.quorum!.node.snapshot!.index).toBeGreaterThan(0);
   const created = await page.request.post('/api/projects', {
     headers,
     data: { name: 'Quorum UI', template: 'quorum' },
@@ -114,9 +126,20 @@ test('Quorum: gravação por maioria, persistência e painel mobile', async ({ p
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
   const panel = page.locator('.quorum-panel');
   await expect(panel).toHaveAttribute('data-quorum-role', 'leader');
+  await expect(panel.locator('[data-quorum-checkpoint]')).toHaveAttribute(
+    'data-quorum-checkpoint',
+    /^[1-9]\d*$/
+  );
   await panel.getByLabel('Chave replicada').fill('estudo');
   await panel.getByLabel('Valor replicado').fill('confirmado');
-  await panel.getByRole('button', { name: 'Propor gravação', exact: true }).click();
+  await panel.getByRole('button', { name: 'Propor operação', exact: true }).click();
+  await expect(panel).toContainText('sem confirmação desta operação');
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(panel).toContainText('confirmada por maioria');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await panel.getByLabel('Operação replicada').selectOption('delete');
+  await panel.getByLabel('Chave replicada').fill('baseline');
+  await panel.getByRole('button', { name: 'Propor operação', exact: true }).click();
   await expect(panel).toContainText('sem confirmação desta operação');
   await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
   await expect(panel).toContainText('confirmada por maioria');
@@ -151,6 +174,7 @@ test('Quorum: gravação por maioria, persistência e painel mobile', async ({ p
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
   await panel.getByText('Cópia local confirmada (histórica)', { exact: true }).click();
   await expect(panel.locator('pre')).toContainText('confirmado');
+  await expect(panel.locator('pre')).not.toContainText('baseline');
   expect(cooldownInjected).toBe(true);
   expect(visitsLimited).toBe(1);
   await page.setViewportSize({ width: 390, height: 844 });

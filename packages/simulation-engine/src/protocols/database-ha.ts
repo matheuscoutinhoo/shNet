@@ -1,13 +1,13 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, Snapshot, TcpConnection } from '../model';
 import { canonicalScenarioJson } from '../canonical-json';
-import { executeSql } from './database-sql';
+import { applyQuorumData } from './quorum-data';
+import { quorumBase, quorumDataAt, quorumEntryAt, quorumLastIndex } from './quorum';
 import { proposeQuorumLab } from './quorum-lab';
 import { httpMessage, respondHttp } from './applications-http';
 import { tcpFinished } from './tcp-model';
 
 const deadlineMs = 3000;
-const errorText = (error: unknown) => (error instanceof Error ? error.message : 'Consulta inválida.');
 function answer(e: SimulationEngine, d: Device, connection: string, status: string, body: unknown) {
   const c = d.tcpConnections?.find((c) => c.id === connection);
   if (d.power && c && !tcpFinished(c)) respondHttp(e, d, c, status, JSON.stringify(body), 'application/json');
@@ -29,7 +29,8 @@ export function configureDatabaseHa(e: SimulationEngine, d: Device) {
       peer.database.key !== d.database?.key ||
       peer.database.tables.length ||
       peer.quorum.node.commit !== commit ||
-      peer.quorum.node.log.length !== commit ||
+      quorumLastIndex(peer.quorum.node) !== commit ||
+      peer.quorum.node.snapshot?.data.sql ||
       peer.quorum.node.log.some((entry) => entry.command.kind === 'database')
     )
       throw new Error('Vincule réplicas ligadas, sincronizadas, com bancos vazios e mesma porta/chave.');
@@ -46,7 +47,7 @@ export function submitDatabaseHa(e: SimulationEngine, d: Device, c: TcpConnectio
     answer(e, d, c.id, '503 Service Unavailable', { error: 'Este servidor não é o líder do banco.' });
     return;
   }
-  if (ha.pending.length >= 32 || n.log.length >= 256) {
+  if (ha.pending.length >= 32) {
     d.database.rejected++;
     answer(e, d, c.id, '503 Service Unavailable', {
       error: 'Limite do banco replicado; consulta não proposta.',
@@ -64,19 +65,30 @@ export function applyDatabaseHa(e: SimulationEngine, d: Device) {
     n = d.quorum?.node,
     db = d.database;
   if (!ha || !n || !db) return;
+  if (ha.applied < quorumBase(n)) {
+    db.tables = structuredClone(n.snapshot!.data.tables);
+    ha.applied = quorumBase(n);
+    // The checkpoint proves the resulting state, not each old request's reply.
+    // Returning unknown outcome is safer than inventing a SELECT or affected count.
+    ha.pending = ha.pending.filter((p) => {
+      if (p.index > ha.applied) return true;
+      answer(e, d, p.connection, '503 Service Unavailable', {
+        error: 'Operação coberta por checkpoint; resultado indeterminado.',
+      });
+      return false;
+    });
+  }
+  let view = ha.applied < n.commit ? quorumDataAt(n, ha.applied) : undefined;
   for (let index = ha.applied + 1; index <= n.commit; index++) {
-    const entry = n.log[index - 1];
+    const entry = quorumEntryAt(n, index)!;
+    const result = applyQuorumData(view!, entry.command);
+    view = result.data;
     if (entry.command.kind === 'database') {
-      let status = '200 OK',
-        body: unknown;
-      try {
-        body = executeSql(db, entry.command.query);
-        db.queries++;
-      } catch (error) {
-        status = '400 Bad Request';
-        body = { error: errorText(error) };
-        db.rejected++;
-      }
+      db.tables = result.data.tables;
+      const status = result.error ? '400 Bad Request' : '200 OK',
+        body = result.error ? { error: result.error } : result.output;
+      if (result.error) db.rejected++;
+      else db.queries++;
       const pending = ha.pending.find((p) => p.index === index && p.term === entry.term);
       if (pending && e.state.clock < pending.deadline) {
         answer(e, d, pending.connection, status, body);
@@ -88,7 +100,7 @@ export function applyDatabaseHa(e: SimulationEngine, d: Device) {
   // A timeout means unknown outcome: the command may still be committed after
   // the connection closes. Never automatically retry a mutation or undo a log.
   ha.pending = ha.pending.filter((p) => {
-    const entry = n.log[p.index - 1],
+    const entry = quorumEntryAt(n, p.index),
       c = d.tcpConnections?.find((c) => c.id === p.connection);
     if (entry?.term === p.term && e.state.clock < p.deadline && c && !tcpFinished(c)) return true;
     if (e.state.clock >= p.deadline || entry?.term !== p.term) {
@@ -122,7 +134,7 @@ export function validateDatabaseHa(s: Snapshot) {
     const ha = d.databaseHa,
       n = d.quorum?.node;
     if (!ha) {
-      if (n?.log.some((entry) => entry.command.kind === 'database'))
+      if (n?.snapshot?.data.sql || n?.log.some((entry) => entry.command.kind === 'database'))
         throw new Error('Histórico SQL exige adaptador do banco replicado.');
       continue;
     }
@@ -139,17 +151,13 @@ export function validateDatabaseHa(s: Snapshot) {
       )
         throw new Error('Banco replicado: associação dos membros incompatível.');
     }
-    if (n.log.slice(0, ha.start).some((entry) => entry.command.kind === 'database'))
+    if (
+      ha.start > quorumBase(n) &&
+      (n.snapshot?.data.sql ||
+        n.log.slice(0, ha.start - quorumBase(n)).some((entry) => entry.command.kind === 'database'))
+    )
       throw new Error('Banco replicado: início posterior a operações SQL.');
-    const expected = { tables: [] as NonNullable<Device['database']>['tables'] };
-    for (const entry of n.log.slice(ha.start, ha.applied))
-      if (entry.command.kind === 'database') {
-        try {
-          executeSql(expected, entry.command.query);
-        } catch {
-          /* Deterministic SQL rejection has no effect. */
-        }
-      }
+    const expected = quorumDataAt(n);
     if (canonicalScenarioJson(expected.tables) !== canonicalScenarioJson(d.database.tables))
       throw new Error('Banco replicado: dados não correspondem ao histórico confirmado.');
     if (
@@ -159,7 +167,7 @@ export function validateDatabaseHa(s: Snapshot) {
       throw new Error('Banco replicado: respostas pendentes duplicadas.');
     for (const p of ha.pending) {
       const c = d.tcpConnections?.find((c) => c.id === p.connection),
-        entry = n.log[p.index - 1];
+        entry = quorumEntryAt(n, p.index);
       if (
         p.index <= ha.applied ||
         p.index <= ha.start ||

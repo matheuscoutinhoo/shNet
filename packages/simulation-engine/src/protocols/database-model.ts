@@ -13,19 +13,20 @@ export const databaseConfigSchema = z
       .regex(/^[^\r\n]+$/),
   })
   .strict();
+export const databaseTablesSchema = z
+  .array(
+    z
+      .object({
+        name: databaseNameSchema,
+        columns: z.array(databaseNameSchema).min(1).max(16),
+        rows: z.array(z.record(databaseNameSchema, databaseValueSchema)).max(256),
+      })
+      .strict()
+  )
+  .max(16);
 export const databaseStateSchema = databaseConfigSchema
   .extend({
-    tables: z
-      .array(
-        z
-          .object({
-            name: databaseNameSchema,
-            columns: z.array(databaseNameSchema).min(1).max(16),
-            rows: z.array(z.record(databaseNameSchema, databaseValueSchema)).max(256),
-          })
-          .strict()
-      )
-      .max(16),
+    tables: databaseTablesSchema,
     queries: z.number().int().nonnegative(),
     rejected: z.number().int().nonnegative(),
   })

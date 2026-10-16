@@ -1,6 +1,7 @@
 import { invalidateProtocolIndex } from './protocol-index';
 import {
   configureQuorumLab,
+  compactQuorumLab,
   removeQuorumLab,
   proposeQuorumLab,
   handleQuorumLab,
@@ -990,6 +991,9 @@ export class SimulationEngine {
   }
   configureQuorumLab(members: string[]) {
     configureQuorumLab(this, members);
+  }
+  compactQuorumLab(deviceId: string) {
+    compactQuorumLab(this, this.device(deviceId));
   }
   removeQuorumLab(deviceId: string) {
     removeQuorumLab(this, this.device(deviceId));

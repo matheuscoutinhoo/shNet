@@ -5,6 +5,7 @@ import {
   validateSnapshot,
   executeDatabase,
   configurationDiff,
+  quorumLastIndex,
 } from '../packages/simulation-engine/src';
 import { cloneTopology } from '../apps/web/src/workspace/cloneTopology';
 import { duplicateDevice } from '../apps/web/src/workspace/duplicateDevice';
@@ -40,6 +41,70 @@ function isolate(e: SimulationEngine, id: string, up: boolean) {
 const rows = (e: SimulationEngine) => members(e).map((d) => d.database!.tables);
 
 describe('SQL service with majority-confirmed operations (R08)', () => {
+  it('runs more than 256 network transactions and restores compacted SQL state', () => {
+    const e = fixture(),
+      active = leader(e),
+      clients = [client(e)];
+    const sw = e.state.devices.find((d) => d.hostname === 'SQL-LAN')!;
+    for (let i = 0; i < 2; i++) {
+      const d = e.addDevice('pc');
+      Object.assign(d.interfaces[0], { ip: '10.90.0.' + (2 + i), prefix: 24 });
+      e.connect({ device: d.id, port: 'p0' }, { device: sw.id, port: 'p' + (4 + i) });
+      clients.push(d);
+    }
+    expect(query(e, active.id, 'CREATE TABLE continued (id, valor)')).toContain('200 OK');
+    expect(query(e, active.id, 'INSERT INTO continued (id, valor) VALUES (1, 0)')).toContain('200 OK');
+    for (let i = 1; i <= 300; i++) {
+      const d = clients[i % clients.length],
+        id = e.queryDatabase(
+          d.id,
+          active.interfaces[0].ip!,
+          'UPDATE continued SET valor = ' + i + ' WHERE id = 1',
+          'database-key'
+        );
+      e.advanceTo(e.state.clock + 150);
+      expect(d.tcpConnections!.find((c) => c.id === id)!.received).toContain('"affected":1');
+    }
+    expect(quorumLastIndex(active.quorum!.node)).toBeGreaterThan(256);
+    expect(active.quorum!.node.snapshot!.index).toBeGreaterThan(0);
+    expect(active.quorum!.node.log.length).toBeLessThan(192);
+    for (const d of members(e)) expect(d.database!.tables[0].rows).toEqual([{ id: 1, valor: 300 }]);
+    const restored = new SimulationEngine(e.snapshot()),
+      at = e.state.clock + 500;
+    e.advanceTo(at);
+    restored.advanceTo(at);
+    expect(restored.snapshot()).toEqual(e.snapshot());
+  });
+
+  it('restores a physical checkpoint transfer before installing SQL rows on a lagging replica', () => {
+    const e = fixture(),
+      active = leader(e),
+      lag = members(e).find((d) => d !== active)!;
+    expect(query(e, active.id, 'CREATE TABLE records (id, valor)')).toContain('200 OK');
+    e.setDevicePower(lag.id, false);
+    for (let i = 0; i < 55; i++)
+      expect(
+        query(e, active.id, 'INSERT INTO records (id, valor) VALUES (' + i + ", '" + 'á🚀'.repeat(50) + "')")
+      ).toContain('200 OK');
+    // Local compaction is a public operation; the entire confirmed SQL prefix
+    // becomes a multi-block checkpoint and is sent through dedicated cables.
+    e.compactQuorumLab(active.id);
+    e.setDevicePower(lag.id, true);
+    const deadline = e.state.clock + 4000;
+    while (!e.device(lag.id).quorum!.node.receiving && e.state.clock < deadline)
+      e.advanceTo(e.state.clock + 1);
+    expect(e.device(lag.id).quorum!.node.receiving).toBeDefined();
+    expect(e.device(lag.id).database!.tables[0].rows).toEqual([]);
+    const restored = new SimulationEngine(e.snapshot()),
+      at = e.state.clock + 3000;
+    e.advanceTo(at);
+    restored.advanceTo(at);
+    expect(restored.snapshot()).toEqual(e.snapshot());
+    for (const d of members(restored)) expect(d.database!.tables[0].rows).toHaveLength(55);
+    expect(restored.device(lag.id).quorum!.node.receiving).toBeUndefined();
+    validateSnapshot(restored.snapshot());
+  });
+
   it('initializes atomically only with empty, synchronized databases and matching credentials', () => {
     for (const fault of ['data', 'key', 'offline', 'unsynced'] as const) {
       const e = new SimulationEngine(makeTemplate('quorum')),
@@ -276,7 +341,7 @@ describe('SQL service with majority-confirmed operations (R08)', () => {
     }
   });
 
-  it('rejects new requests at the explicit log bound without silently deleting confirmed data', () => {
+  it('compacts a legacy full confirmed log and continues SQL requests without losing data', () => {
     const e = fixture(),
       active = leader(e);
     // A valid bounded history of barriers avoids hundreds of unrelated TCP lifetimes.
@@ -287,8 +352,9 @@ describe('SQL service with majority-confirmed operations (R08)', () => {
       d.databaseHa!.applied = 256;
     }
     validateSnapshot(e.snapshot());
-    expect(query(e, active.id, 'CREATE TABLE overflow (id)')).toContain('consulta não proposta');
-    expect(rows(e).every((t) => !t.length)).toBe(true);
+    expect(query(e, active.id, 'CREATE TABLE continued (id)')).toContain('200 OK');
+    expect(rows(e).every((t) => t[0].name === 'continued')).toBe(true);
+    expect(active.quorum!.node.snapshot!.index).toBeGreaterThan(0);
     validateSnapshot(e.snapshot());
   });
 });

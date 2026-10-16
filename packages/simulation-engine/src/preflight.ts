@@ -5,6 +5,8 @@ import { ipNumber, sameSubnet, subnet } from './protocols/ipv4';
 import { sameSubnet6, linkLocal6 } from './protocols/ipv6-address';
 import { stateSyncStatus, stateSyncPending } from './protocols/state-sync';
 import { dhcpHaStatus, dhcpHaCompatible } from './protocols/dhcp-ha';
+import { quorumDataAt } from './protocols/quorum';
+import { quorumDataBytes } from './protocols/quorum-data';
 export interface PreflightIssue {
   code: string;
   severity: 'error' | 'warning' | 'info';
@@ -44,7 +46,20 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'info',
           d.quorum.node.members,
           'Banco replicado usa IP individual do líder; não há migração de TCP, descoberta automática de endpoint ou VIP gerenciado pelo quorum.',
-          'Após eleição, consulte o novo líder. Timeout de alteração tem resultado indeterminado; confirme o estado antes de repetir. Até 256 entradas, incluindo leituras.'
+          'Após eleição, consulte o novo líder. Timeout de alteração tem resultado indeterminado; confirme o estado antes de repetir. Compactação preserva dados confirmados; até 256 entradas retidas e 512 KiB por checkpoint.'
+        );
+      const dataBytes = Math.max(
+        ...s.devices
+          .filter((peer) => peer.quorum?.node.cluster === d.quorum!.node.cluster)
+          .map((peer) => quorumDataBytes(quorumDataAt(peer.quorum!.node)).length)
+      );
+      if (dataBytes >= 450 * 1024)
+        add(
+          'QUORUM_DATA_CAPACITY',
+          'warning',
+          d.quorum.node.members,
+          `Estado materializado do quorum ocupa até ${dataBytes} bytes; orçamento de checkpoint: 512 KiB.`,
+          'Reduza dados antes de crescer. Novas alterações que aumentam um estado acima do orçamento são recusadas, sem apagar os dados confirmados.'
         );
       if (
         s.devices.some(
@@ -55,8 +70,8 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'QUORUM_LOG_CAPACITY',
           'warning',
           d.quorum.node.members,
-          'Histórico de quorum próximo do limite de 256 entradas, sem compactação.',
-          'Exporte o laboratório antes do limite. Atingir o limite recusa novas operações; não remove dados confirmados.'
+          'Histórico retido de quorum próximo do limite de 256 entradas.',
+          'Verifique maioria e confirmação: entradas não confirmadas não podem ser compactadas. Datasets antigos acima de 512 KiB conservam seus dados e podem impedir a compactação.'
         );
     }
     if (d.dhcpHa?.role === 'active') {

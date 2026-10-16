@@ -10,6 +10,10 @@ import {
   receiveQuorum,
   tickQuorum,
   validateQuorumState,
+  quorumBase,
+  quorumLastIndex,
+  quorumDataAt,
+  compactQuorum,
   type QuorumCommand,
   type QuorumMessage,
   type QuorumResult,
@@ -167,6 +171,16 @@ export function proposeQuorumLab(e: SimulationEngine, d: Device, command: Quorum
   install(e, d, result);
   return { term: result.state.term, index: result.index };
 }
+export function compactQuorumLab(e: SimulationEngine, d: Device) {
+  if (!d.power || !d.quorum) throw new Error('Servidor de quorum indisponível.');
+  const node = compactQuorum(d.quorum.node);
+  install(e, d, { state: node, messages: [] });
+  e.emit(
+    'HA_SYNC_RECEIVED',
+    d.id,
+    `Checkpoint local no índice ${node.snapshot!.index}; dados confirmados preservados.`
+  );
+}
 export function handleQuorumLab(e: SimulationEngine, action: QuorumAction) {
   const d = e.state.devices.find((p) => p.id === action.device);
   if (!d?.quorum || d.quorum.token !== action.token) return;
@@ -188,6 +202,11 @@ export function validateQuorumLab(s: Snapshot) {
       throw new Error('Identidade/relógio de quorum inválido.');
     const peers = n.members.filter((p) => p !== d.id);
     if (
+      n.receiving &&
+      (s.devices.find((p) => p.id === n.receiving!.from)?.quorum?.node.term ?? -1) < n.receiving.term
+    )
+      throw new Error('Transferência de checkpoint incompatível com a origem.');
+    if (
       Object.keys(d.quorum.ports).length !== peers.length ||
       new Set(Object.values(d.quorum.ports)).size !== peers.length
     )
@@ -202,9 +221,18 @@ export function validateQuorumLab(s: Snapshot) {
       )
         throw new Error('Membros ou portas de quorum incompatíveis.');
       const common = Math.min(n.commit, peer.quorum.node.commit);
+      const overlap = Math.max(quorumBase(n), quorumBase(peer.quorum.node));
       if (
-        canonicalScenarioJson(n.log.slice(0, common)) !==
-        canonicalScenarioJson(peer.quorum.node.log.slice(0, common))
+        common >= overlap &&
+        (canonicalScenarioJson(quorumDataAt(n, common)) !==
+          canonicalScenarioJson(quorumDataAt(peer.quorum.node, common)) ||
+          canonicalScenarioJson(n.log.slice(overlap - quorumBase(n), common - quorumBase(n))) !==
+            canonicalScenarioJson(
+              peer.quorum.node.log.slice(
+                overlap - quorumBase(peer.quorum.node),
+                common - quorumBase(peer.quorum.node)
+              )
+            ))
       )
         throw new Error('Históricos confirmados de quorum divergentes.');
     }
@@ -241,7 +269,8 @@ export function validateQuorumLab(s: Snapshot) {
         (a.message.term === source.term &&
           a.message.kind === 'appended' &&
           a.message.success &&
-          a.message.matched > source.log.length)
+          a.message.matched > quorumLastIndex(source)) ||
+        (a.message.kind === 'snapshotted' && a.message.installed && a.message.index > source.commit)
       )
         throw new Error('Mensagem de quorum incompatível com a origem.');
     }

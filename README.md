@@ -94,9 +94,11 @@ Para estudar disponibilidade ponta a ponta, abra **Enterprise com acesso, WAN e 
 
 O [roteiro de estudo](docs/integrated-redundancy-lab.md) reúne endereços, comparação de falhas, continuidade da mesma conexão TCP, troca DHCP e testes dos limites da redundância.
 
-O modelo **Quorum, eleição e dados replicados** permite estudar maioria, partições e retorno do líder antigo. Avance dois segundos, abra **Banco de dados** no servidor líder e use **Propor gravação**. A proposta só é confirmada após as respostas de uma maioria; cortar os dois cabos do líder impede novas confirmações naquele membro e permite eleição nas duas réplicas restantes. Esse armazenamento de estudo é independente dos serviços SQL/DNS/MQTT. O [ADR-058](docs/adr/058-quorum-laboratory.md) registra o alcance e as próximas integrações de R08.
+O modelo **Quorum, eleição e dados replicados** permite estudar maioria, partições e retorno do líder antigo. Avance dois segundos, abra **Banco de dados** no servidor líder e use **Propor operação**. A proposta só é confirmada após as respostas de uma maioria; cortar os dois cabos do líder impede novas confirmações naquele membro e permite eleição nas duas réplicas restantes. Esse armazenamento de estudo é independente dos serviços SQL/DNS/MQTT. O [ADR-058](docs/adr/058-quorum-laboratory.md) registra o alcance e as próximas integrações de R08.
 
 O modelo **Banco SQL com consenso e falhas** vincula o banco didático ao quorum: consultas HTTP/TCP, inclusive SELECT, só respondem após confirmação de maioria. Pelo SQL-CLIENT, consulte o IP individual do líder e observe eleição, partição e recuperação dos dados. O [roteiro do laboratório](docs/sql-quorum-lab.md) explica os ensaios, o timeout com resultado indeterminado e os limites de endereço, TCP e histórico.
+
+O quorum compacta prefixos confirmados e recupera réplicas atrasadas por checkpoints em blocos. O painel mostra o progresso e oferece compactação manual; save/reload conserva transferências parciais. O limite histórico de 256 operações é substituído por até 256 entradas retidas, 128 sem confirmação e 512 KiB de dados materializados. O [ADR-061](docs/adr/061-quorum-compaction.md) explica os limites e o restante de R08.
 
 ### Experimento TCP / HTTP
 

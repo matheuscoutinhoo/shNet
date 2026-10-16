@@ -20,9 +20,9 @@ export function DatabasePanel({ lab, device }: { lab: LabController; device: Dev
                 automático.
               </p>
               <p className="muted">
-                Limite: 256 entradas, incluindo leituras. Timeout tem resultado indeterminado; consulte o
-                líder antes de repetir uma alteração. Remover membro/grupo desabilita os bancos, preservando
-                os dados locais.
+                Histórico compactado automaticamente, até 256 entradas retidas e 512 KiB de dados
+                materializados. Timeout tem resultado indeterminado; consulte o líder antes de repetir uma
+                alteração. Remover membro/grupo desabilita os bancos, preservando os dados locais.
               </p>
             </>
           ) : (

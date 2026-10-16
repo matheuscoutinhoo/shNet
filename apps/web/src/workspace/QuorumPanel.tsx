@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { quorumCommittedView, type Device } from '@shlab/engine';
+import { quorumCommittedView, quorumBase, quorumLastIndex, quorumEntryAt, type Device } from '@shlab/engine';
 import type { LabController } from './useLab';
 
 export function QuorumPanel({ lab, device }: { lab: LabController; device: Device }) {
@@ -10,7 +10,11 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
     (d) => d.type === 'server' && d.id !== device.id && !d.quorum
   );
   const confirmed =
-    pending && q && q.node.log[pending.index - 1]?.term === pending.term && q.node.commit >= pending.index;
+    pending &&
+    q &&
+    (quorumEntryAt(q.node, pending.index)?.term === pending.term ||
+      (q.node.snapshot?.index === pending.index && q.node.snapshot.term === pending.term)) &&
+    q.node.commit >= pending.index;
   return (
     <section className="protocol-panel quorum-panel" data-quorum-role={q?.node.role ?? 'disabled'}>
       <h4>Laboratório de quorum e dados replicados</h4>
@@ -24,8 +28,25 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
       {q ? (
         <>
           <p aria-live="polite">
-            {q.node.role} · termo {q.node.term} · commit {q.node.commit}/{q.node.log.length}
+            {q.node.role} · termo {q.node.term} · commit {q.node.commit}/{quorumLastIndex(q.node)}
           </p>
+          <p data-quorum-checkpoint={quorumBase(q.node)}>
+            Checkpoint {quorumBase(q.node)} · {q.node.log.length}/256 entradas retidas ·{' '}
+            {quorumLastIndex(q.node) - q.node.commit}/128 sem confirmação
+          </p>
+          {q.node.receiving && (
+            <p>
+              Recebendo checkpoint {q.node.receiving.index}: {q.node.receiving.dataHex.length / 2}/
+              {q.node.receiving.total} bytes; ainda não instalado.
+            </p>
+          )}
+          <button
+            className="button small"
+            disabled={!device.power || q.node.commit <= quorumBase(q.node)}
+            onClick={() => lab.change((e) => e.compactQuorumLab(device.id), false)}
+          >
+            Compactar histórico confirmado
+          </button>
           <p>
             {q.node.members
               .map((id) => lab.engine.state.devices.find((d) => d.id === id)?.hostname ?? id)
@@ -38,16 +59,28 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
               lab.change(
                 (e) =>
                   setPending(
-                    e.proposeQuorumLab(device.id, {
-                      kind: 'put',
-                      key: String(data.get('key')),
-                      value: String(data.get('value')),
-                    })
+                    e.proposeQuorumLab(
+                      device.id,
+                      data.get('operation') === 'delete'
+                        ? { kind: 'delete' as const, key: String(data.get('key')) }
+                        : {
+                            kind: 'put' as const,
+                            key: String(data.get('key')),
+                            value: String(data.get('value')),
+                          }
+                    )
                   ),
                 false
               );
             }}
           >
+            <label>
+              Operação replicada
+              <select name="operation" defaultValue="put">
+                <option value="put">Gravar chave</option>
+                <option value="delete">Excluir chave</option>
+              </select>
+            </label>
             <label>
               Chave replicada
               <input
@@ -60,21 +93,29 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
             </label>
             <label>
               Valor replicado
-              <input name="value" maxLength={4096} required defaultValue="valor do laboratório" />
+              <input name="value" maxLength={4096} defaultValue="valor do laboratório" />
             </label>
             <button
               className="button small"
               disabled={
-                !!device.databaseHa || !device.power || q.node.role !== 'leader' || q.node.log.length >= 256
+                !!device.databaseHa ||
+                !device.power ||
+                q.node.role !== 'leader' ||
+                q.node.log.length >= 256 ||
+                quorumLastIndex(q.node) - q.node.commit >= 128
               }
             >
-              Propor gravação
+              Propor operação
             </button>
           </form>
           {pending && (
             <p aria-live="polite">
               Operação termo {pending.term}, índice {pending.index}:{' '}
-              {confirmed ? 'confirmada por maioria' : 'sem confirmação desta operação'}
+              {confirmed
+                ? 'confirmada por maioria'
+                : pending.index < quorumBase(q.node)
+                  ? 'índice compactado; confirmação individual indisponível'
+                  : 'sem confirmação desta operação'}
             </p>
           )}
           <details>
@@ -83,7 +124,8 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
           </details>
           <p className="muted">
             Um líder isolado pode continuar se considerando líder, mas não confirma novas operações. A cópia
-            histórica não prova leitura atual. Limite: 256 entradas; sem compactação ou alteração de membros.
+            histórica não prova leitura atual. Compactação automática de prefixos confirmados, até 256
+            entradas retidas, 128 sem confirmação e checkpoint de 512 KiB. Sem alteração de membros.
           </p>
           <button
             className="button small"
