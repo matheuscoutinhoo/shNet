@@ -58,12 +58,36 @@ test('Quorum: gravação por maioria, persistência e painel mobile', async ({ p
   await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.locator('.project-title')).toContainText('Salvo');
+  let cooldownInjected = false;
+  let visitsLimited = 0;
+  await page.route('**/api/projects/' + project.id + '/visits', async (route) => {
+    visitsLimited++;
+    await route.fulfill({
+      status: 429,
+      contentType: 'application/json',
+      headers: { 'Retry-After': '1' },
+      body: JSON.stringify({ message: 'Activity quota' }),
+    });
+  });
+  await page.route('**/api/projects/' + project.id, async (route) => {
+    if (route.request().method() === 'GET' && !cooldownInjected) {
+      cooldownInjected = true;
+      await route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        headers: { 'Retry-After': '1' },
+        body: JSON.stringify({ message: 'Temporary cooldown' }),
+      });
+    } else await route.continue();
+  });
   await page.reload();
   await page.getByRole('heading', { name: 'Quorum UI', exact: true }).click();
   await inspectDevice(page, active.hostname);
   await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
   await panel.getByText('Cópia local confirmada (histórica)', { exact: true }).click();
   await expect(panel.locator('pre')).toContainText('confirmado');
+  expect(cooldownInjected).toBe(true);
+  expect(visitsLimited).toBe(1);
   await page.setViewportSize({ width: 390, height: 844 });
   await panel.scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

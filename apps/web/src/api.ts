@@ -31,10 +31,38 @@ export class ApiError extends Error {
     super(message);
   }
 }
+function retryDelay(response: Response): number | undefined {
+  const value = response.headers.get('retry-after');
+  if (!value) return;
+  const seconds = /^\d+$/.test(value)
+    ? Number(value)
+    : /^[A-Za-z]{3}, /.test(value)
+      ? Math.max(0, Math.ceil((Date.parse(value) - Date.now()) / 1000))
+      : NaN;
+  return Number.isFinite(seconds) && seconds >= 0 && seconds <= 3 ? Math.max(100, seconds * 1000) : undefined;
+}
+function waitForRetry(delay: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const abort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', abort);
+      resolve();
+    }, delay);
+    signal.addEventListener('abort', abort, { once: true });
+  });
+}
 export async function api<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
   let res: Response;
   try {
-    res = await fetch('/api' + path, {
+    const signal = AbortSignal.timeout(30000);
+    const request: RequestInit = {
       method: options.method ?? 'GET',
       credentials: 'same-origin',
       headers: {
@@ -42,8 +70,18 @@ export async function api<T>(path: string, options: { method?: string; body?: un
         ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       },
       ...(options.body ? { body: JSON.stringify(options.body) } : {}),
-      signal: AbortSignal.timeout(30000),
-    });
+      signal,
+    };
+    res = await fetch('/api' + path, request);
+    // Only safe reads may be repeated. One shared deadline bounds fetches and
+    // cooldowns; long/absent/invalid Retry-After remains an explicit error.
+    for (let retry = 0; retry < 2 && request.method === 'GET' && res.status === 429; retry++) {
+      const delay = retryDelay(res);
+      if (delay === undefined) break;
+      await res.body?.cancel();
+      await waitForRetry(delay, signal);
+      res = await fetch('/api' + path, request);
+    }
   } catch {
     throw new ApiError(
       'Não foi possível contatar o servidor em até 30 segundos. Seu trabalho pode ser recuperado pelo rascunho local.',

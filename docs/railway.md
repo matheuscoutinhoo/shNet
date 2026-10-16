@@ -65,7 +65,7 @@ Se quiser confirmação de e-mail e recuperação de senha no futuro, configure 
 
 `APP_ORIGIN` precisa incluir o protocolo: por exemplo, `https://shnet.up.railway.app`, sem caminho. Usar apenas `shnet.up.railway.app` impede a inicialização. Se usar o domínio gerado pelo Railway, também pode remover `APP_ORIGIN` e deixar a aplicação usar `RAILWAY_PUBLIC_DOMAIN`.
 
-Cookies são Secure, HttpOnly e SameSite=Strict. A origem é uma configuração confiável, não derivada de cabeçalhos recebidos. A confiança em proxy fica desabilitada por padrão: configure `TRUSTED_PROXY_CIDRS` somente depois de confirmar os peers de entrada da sua implantação. A versão atual do Fastify rejeita confiança apenas por número de saltos. Não use `true`, redes `/0` ou faixas amplas por tentativa. Sem configuração do proxy, limites por IP agregam clientes que chegam pelo mesmo proxy; valide isso antes de abrir o serviço a vários usuários.
+Cookies são Secure, HttpOnly e SameSite=Strict. A origem é uma configuração confiável, não derivada de cabeçalhos recebidos. A confiança em proxy fica desabilitada por padrão: configure `TRUSTED_PROXY_CIDRS` somente depois de confirmar os peers de entrada da sua implantação. A versão atual do Fastify rejeita confiança apenas por número de saltos. Não use `true`, redes `/0` ou faixas amplas por tentativa. Sem configuração do proxy, os limites de autenticação e de acesso anônimo por IP agregam clientes que chegam pelo mesmo proxy; valide isso antes de abrir o serviço a vários usuários. Requisições privadas com sessão validada usam orçamento por usuário, compartilhado entre suas sessões e instâncias da API; veja o [ADR-059](adr/059-shared-nat-and-read-cooldowns.md).
 
 ## Validação e operação
 

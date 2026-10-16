@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { templates, labs, type LabId, type TemplateId } from '@shlab/engine/catalog';
 import type { LearningScore } from '@shlab/engine';
-import { api, type User, type Project, type ProjectSummary } from './api';
+import { api, ApiError, type User, type Project, type ProjectSummary } from './api';
 import { Brand } from './components/Brand';
 import { Modal } from './components/Modal';
 import { SearchField } from './components/SearchField';
@@ -113,7 +113,13 @@ export function Dashboard({
     setBusy(true);
     try {
       const project = await api<Project>('/projects/' + id);
-      await api('/projects/' + id + '/visits', { method: 'POST', body: {} });
+      try {
+        await api('/projects/' + id + '/visits', { method: 'POST', body: {} });
+      } catch (cause) {
+        // Reading an authorized project must not depend on the separate
+        // activity quota. Auth/ownership/server errors still stop the open.
+        if (!(cause instanceof ApiError && cause.status === 429)) throw cause;
+      }
       onOpen(project);
     } catch (cause) {
       setError((cause as Error).message);

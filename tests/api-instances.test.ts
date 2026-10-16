@@ -59,9 +59,50 @@ async function signup(app: FastifyInstance, suffix: string, peer: string) {
   expect((await req('verify-email', { token })).statusCode).toBe(200);
   const login = await req('login', { email, password });
   expect(login.statusCode).toBe(200);
-  return { cookie: String(login.headers['set-cookie']).split(';')[0], csrf: login.json().csrfToken };
+  return {
+    cookie: String(login.headers['set-cookie']).split(';')[0],
+    csrf: login.json().csrfToken,
+    email,
+    password,
+  };
 }
 describe('Coordenação entre instâncias', () => {
+  it('isola donos atrás de NAT sem permitir novos orçamentos por sessão ou cookie inválido', async () => {
+    const owner = await signup(a, 'budget-owner', '203.0.113.191');
+    const other = await signup(b, 'budget-other', '203.0.113.192');
+    const query = (app: FastifyInstance, cookie: string) =>
+      app.inject({ url: '/api/shared-budget', remoteAddress: '203.0.113.193', headers: { cookie } });
+    expect((await query(a, owner.cookie)).statusCode).toBe(200);
+    expect((await query(b, owner.cookie)).statusCode).toBe(200);
+    expect((await query(a, owner.cookie)).statusCode).toBe(429);
+    expect((await query(b, other.cookie)).statusCode).toBe(200);
+    const second = await b.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      remoteAddress: '203.0.113.191',
+      headers: { origin },
+      payload: { email: owner.email, password: owner.password },
+    });
+    expect(second.statusCode).toBe(200);
+    expect((await query(b, String(second.headers['set-cookie']).split(';')[0])).statusCode).toBe(429);
+    for (const [i, status] of [200, 200, 429].entries())
+      expect((await query(i % 2 ? a : b, 'shlab_session=invalid-' + i)).statusCode).toBe(status);
+  });
+  it('mantém o limite de login por IP mesmo alternando sessões válidas', async () => {
+    const owner = await signup(a, 'login-budget-owner', '203.0.113.197');
+    const other = await signup(b, 'login-budget-other', '203.0.113.198');
+    for (let i = 0; i < 9; i++) {
+      const app = i % 2 ? a : b;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        remoteAddress: '203.0.113.199',
+        headers: { origin, cookie: i % 2 ? owner.cookie : other.cookie },
+        payload: { email: owner.email, password: 'Incorrect-password-123!' },
+      });
+      expect(response.statusCode).toBe(i < 8 ? 401 : 429);
+    }
+  });
   it('compartilha o orçamento por rota/IP e mantém outro IP independente', async () => {
     const query = (app: FastifyInstance, peer = '203.0.113.187') =>
       app.inject({ url: '/api/shared-budget', remoteAddress: peer });

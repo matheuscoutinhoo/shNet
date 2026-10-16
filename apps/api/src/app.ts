@@ -14,7 +14,7 @@ import { registerProjects } from './projects';
 import { registerScenarioRuns } from './scenario-runs';
 import { registerActivity } from './activity';
 import { registerLearning } from './learning';
-import { checkOrigin, currentUser, error } from './security';
+import { COOKIE, checkOrigin, currentUser, error } from './security';
 import { openapi } from './openapi';
 import { registerObservability } from './observability';
 interface Options {
@@ -67,6 +67,17 @@ export async function buildApp(options: Options) {
   await app.register(rateLimit, {
     max: options.rateLimit ?? 300,
     timeWindow: '1 minute',
+    keyGenerator: async (request) => {
+      // Use the canonical route, not an encoded caller-controlled URL. Auth
+      // budgets stay IP-based even when a caller supplies a valid session.
+      const route = request.routeOptions.url ?? request.url.split('?')[0];
+      if (!route.startsWith('/api/auth/') && request.cookies[COOKIE]) {
+        const user = await currentUser(db, request);
+        if (user) return 'user:' + user.id;
+      }
+      // Unknown/revoked/rotating cookies cannot mint independent budgets.
+      return 'ip:' + request.ip;
+    },
     store: sharedRateLimitStore(db),
     skipOnError: false,
   });
