@@ -1,0 +1,147 @@
+{
+  "generatedAt": "2026-10-16T17:05:26.151Z",
+  "origin": "https://shnet.up.railway.app",
+  "certificate": {
+    "authorized": true,
+    "protocol": "TLSv1.3",
+    "cipher": "TLS_AES_256_GCM_SHA384",
+    "validFrom": "Sep 27 03:01:43 2026 GMT",
+    "validTo": "Dec 26 03:01:42 2026 GMT"
+  },
+  "responses": [
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "hsts": "max-age=31536000; includeSubDomains",
+        "csp": "default-src 'self';base-uri 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' 'unsafe-inline';upgrade-insecure-requests;connect-src 'self'"
+      }
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "headers": {
+        "hsts": "max-age=31536000; includeSubDomains",
+        "csp": "default-src 'self';base-uri 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' 'unsafe-inline';upgrade-insecure-requests;connect-src 'self'"
+      }
+    },
+    {
+      "path": "/api/build",
+      "status": 200,
+      "headers": {
+        "hsts": "max-age=31536000; includeSubDomains",
+        "csp": "default-src 'self';base-uri 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' 'unsafe-inline';upgrade-insecure-requests;connect-src 'self'"
+      },
+      "body": {
+        "engineBuild": "260d255ce0fca821e0a1c4c6a9a8e7ae1b99429739fe8e645e25ac090f42c965",
+        "engineContract": "2026.10.16.1",
+        "schemaVersion": 11,
+        "workerArtifact": "27673534aaac8e339bd4ff90061317692d1d0262a8673181c3b3a5be4d70391b"
+      }
+    },
+    {
+      "path": "/api/projects",
+      "status": 401,
+      "headers": {
+        "hsts": "max-age=31536000; includeSubDomains",
+        "csp": "default-src 'self';base-uri 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' 'unsafe-inline';upgrade-insecure-requests;connect-src 'self'"
+      }
+    },
+    {
+      "path": "/api/metrics",
+      "status": 404,
+      "headers": {
+        "hsts": "max-age=31536000; includeSubDomains",
+        "csp": "default-src 'self';base-uri 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' 'unsafe-inline';upgrade-insecure-requests;connect-src 'self'"
+      }
+    }
+  ],
+  "assets": {
+    "/assets/index-hIWU0xhw.js": {
+      "sha256": "bf2ff9264691b93fbc79f05f3b1569a75043e35137a146854ed06712529eaabc",
+      "bytes": 271333
+    },
+    "/assets/jsx-runtime-Dk72oS4N.js": {
+      "sha256": "c5f4f8da0038e4082afc00542f93aa1bb64bc5777801d67197507865915a89b6",
+      "bytes": 8774
+    },
+    "/assets/index-B0eh266i.css": {
+      "sha256": "d5f5e6742d55905a95b269c5a14e9a812b56ebf2d756c6d561179fc0b12b90e8",
+      "bytes": 98688
+    },
+    "/assets/Workspace-vDxE_cKq.js": {
+      "sha256": "fa9f86b2857ee8ba18ec831a64abcc906c84b3f6f6bfa77ca59e8ab6b825e8fa",
+      "bytes": 376839
+    },
+    "/assets/model-tdKMsOAt.js": {
+      "sha256": "4c517ab5bf4c5dcf97cea32077e4e0ec63d44eb253a52cf5ef158db7922a152c",
+      "bytes": 977316
+    },
+    "/assets/configuration-review-DqE5p2zU.js": {
+      "sha256": "8a2678dcada83d52b4d061a3caf4e5aff18539b91ee5b262b9c5e84289c157b6",
+      "bytes": 2383
+    },
+    "/assets/runner-BV-x9zcX.js": {
+      "sha256": "5fdd45d558aaccfaaf7a933d413822c8aac2002492f68730f800b2424fb16282",
+      "bytes": 4915
+    },
+    "/assets/CloneReview-C_RInVIT.js": {
+      "sha256": "a05ab5ed81a632aef3d593ee609983c7c82200bb31d7e8b12dde3cc2710f1907",
+      "bytes": 13649
+    },
+    "/assets/configuration-schemas-B7OXSuZ9.js": {
+      "sha256": "7361c01bcf5c8dc7c46b9ede7fcffa2ee2e9713a54c1edd9b78c5157052bf612",
+      "bytes": 941
+    },
+    "/assets/CommentDialog-DsYmTYQA.js": {
+      "sha256": "3a5f7df0ae46d2dd80596ab0b4a531b8ea8a71a614f2f2151e70fe0353ef1c24",
+      "bytes": 1478
+    },
+    "/assets/NetworkConceptGuide-DEgD3mX4.js": {
+      "sha256": "71b7c5afc88897d859b4827cefe73fded682ca46a49224d5463c5af10a2a4662",
+      "bytes": 35634
+    },
+    "/assets/CaptureDialog-3sOH0XT7.js": {
+      "sha256": "48bf9e67541f673c43b7c8de55e3a5dc11ed119e0967691753947b8a2d09600a",
+      "bytes": 4302
+    },
+    "/assets/FactoryTools-l7kKqWYY.js": {
+      "sha256": "d2305e2529d1ec5dcde541322831bece7f1331ea9f17dd7dbf7f5c379b3da316",
+      "bytes": 59282
+    },
+    "/assets/version-BVMnMinM.js": {
+      "sha256": "8e88eecfa3f85b74c8d2769ab6297b15e822364de33647d54ee6662c66379ac7",
+      "bytes": 18467
+    },
+    "/assets/ConfigEditor-BF0tgmzZ.js": {
+      "sha256": "99668376b2c919885bb962b8817bf0723df773641d3b95d63d285790ad077433",
+      "bytes": 10929
+    },
+    "/assets/NetworkInspector-Ct7ZjX0j.js": {
+      "sha256": "7b2cc020a8c7eb0495863bd288b7f7793d5206da2ebc2c72a9f6b4b2794e7598",
+      "bytes": 11431
+    },
+    "/assets/SectionEducation-pKMOJDp_.js": {
+      "sha256": "332f033ecf91418a2160687aec91be735a54b47574f807e0aa99daaa8fa337bc",
+      "bytes": 26734
+    },
+    "/assets/Inspector-Bq-Z2_q7.js": {
+      "sha256": "f852bfefcd1804293d35278857886ea2176a69e2cdf36cf3db1b7ce44dd688d5",
+      "bytes": 203834
+    },
+    "/assets/simulation.worker-CqrKxBH9.js": {
+      "sha256": "f26819bacd92f44a7529f765e79447dadd657a60dcf44ff4df1dc6e2c84538ff",
+      "bytes": 493
+    },
+    "/assets/scenario.worker-CWgxhR34.js": {
+      "sha256": "3f117b0cbefb6fa659a2d07dcda53d4fdd5b5ae663ca694b679ee4de6dd3e362",
+      "bytes": 20188
+    },
+    "/assets/Terminal-BzBHi2l0.js": {
+      "sha256": "c789be25addce38a3d1ceb0be87f0b3f46e4a5d2756421bb693345e7cffb00a1",
+      "bytes": 339014
+    }
+  },
+  "workerMatched": true,
+  "scope": "Somente leitura: TLS público, headers, readiness do banco, controle de acesso e bytes publicados. Não valida backup nem rollback do Railway."
+}

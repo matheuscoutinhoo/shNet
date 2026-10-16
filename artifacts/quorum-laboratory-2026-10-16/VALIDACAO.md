@@ -2,7 +2,7 @@
 
 Data: 16/10/2026. Contrato `2026.10.16.1`. Revisão de código: `6d39f0365918c87f381f78b62047a06a4c7b5d7f`.
 
-Estado: qualificação local e [CI final](https://github.com/matheuscoutinhoo/shNet/actions/runs/38907945007) concluídas. Os cinco gates passaram. Esta evidência ainda não certifica uma nova publicação Railway.
+Estado: qualificação local e [CI final](https://github.com/matheuscoutinhoo/shNet/actions/runs/38907945007) concluídas. Os cinco gates passaram. Versão integrada à main e publicada em https://shnet.up.railway.app/; a [conferência pública](railway/remote-release.json) comprova contrato, fonte, Worker, TLS, headers, readiness e proteção dos endpoints privados. Os hashes dos 21 assets remotos também coincidem com os arquivos do build local, incluindo a entrada do cliente com a correção de HTTP 429. A conferência foi somente de leitura; não realizou restore ou rollback do banco Railway.
 
 ## Resultados da CI
 
