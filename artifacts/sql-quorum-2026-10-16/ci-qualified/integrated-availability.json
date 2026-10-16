@@ -1,0 +1,2727 @@
+{
+  "generatedAt": "2026-10-16T17:38:51.059Z",
+  "engineContract": "2026.10.16.2",
+  "engineSourceHash": "7f74417b6df33b8a775bda38607dee7cbe1dc37c827fa4ef9b5b5619108238f1",
+  "passed": true,
+  "scope": "Integrated campus/factory, routed DC and WAN. New service requests; no replicated service sessions or PLC process.",
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38939122872",
+  "head": "656527afb329b9dcee85d9291e977bbcefb6aed0",
+  "sourceArtifact": "resilient-laboratories",
+  "reportRuntime": "tsx source; development binary tag; source hash recorded by the generating script",
+  "note": "Compact summaries only. Full packet/sample reports were validated in CI and are available in its source artifact. Compiled Worker identity is checked separately.",
+  "results": [
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — baseline",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.67128400000365,
+          "p99Ms": 84.67128400000365,
+          "jitterP95Ms": 12.254236000017045,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.52753200000916,
+          "p99Ms": 60.52753200000916,
+          "jitterP95Ms": 36.35870800000521,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 128.98068800000146,
+          "p99Ms": 128.98068800000146,
+          "jitterP95Ms": 44.448732000000746,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.07057599999098,
+          "p99Ms": 129.07057599999098,
+          "jitterP95Ms": 44.518619999989824,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.50714800000969,
+          "p99Ms": 60.50714800000969,
+          "jitterP95Ms": 36.358100000003105,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.32006800000454,
+          "p99Ms": 36.32006800000454,
+          "jitterP95Ms": 24.205512000002273,
+          "passed": true
+        },
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 16,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-0.json",
+          "sha256": "cf1807419269ec0b9c0e72f98c3931212ac9d65b419f32a1fda7743d0dc5aef1"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-0-isolation.json",
+          "sha256": "dca480a5be7801157123d2ab1dc415e4751447a5f7e592d089ce84e2dc94306e"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-CORE-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 96.59206399989489,
+          "p99Ms": 96.59206399989489,
+          "jitterP95Ms": 24.1850159999085,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-1.json",
+          "sha256": "d8028f0aa8e543350ccc3aa347281550c0e8b0248da72bfcd532744432316810"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-1-isolation.json",
+          "sha256": "3d4c7e980301086e7d5d489eeef3320ac5ee38797842764a0db8e92e640330f8"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-ACCESS-USERS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.64126799998849,
+          "p99Ms": 84.64126799998849,
+          "jitterP95Ms": 12.234220000002097,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-2.json",
+          "sha256": "dcec8e83fa94af0c8f2a7bcbae646734caafd37794d1501c803eca5726037c36"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-2-isolation.json",
+          "sha256": "c34a5c4b0a3ba74aa5148c18d633f64871a921261922ed683f9ab1ce0120f0aa"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-FW-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.67452799998864,
+          "p99Ms": 96.67452799998864,
+          "jitterP95Ms": 24.26748000000225,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 64.47631999999794,
+          "p99Ms": 64.47631999999794,
+          "jitterP95Ms": 40.32688799999232,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 136.9264639999874,
+          "p99Ms": 136.9264639999874,
+          "jitterP95Ms": 64.47410399997898,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 136.96646399998826,
+          "p99Ms": 136.96646399998826,
+          "jitterP95Ms": 64.4941119999803,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 64.55606400000033,
+          "p99Ms": 64.55606400000033,
+          "jitterP95Ms": 40.417015999993964,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-3.json",
+          "sha256": "3e00f7d3ab10fe92280bc303b83f6b53fbad82e2632c5276a0967c9a389d6b9a"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-3-isolation.json",
+          "sha256": "b2b45e94185f2459b0e41444fb2c823e1698cfb8e4ea106699f2543c1dc1cf81"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-WAN-GW-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.61228400000255,
+          "p99Ms": 84.61228400000255,
+          "jitterP95Ms": 12.205236000016157,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-4.json",
+          "sha256": "ae9558a36d3d421e70712ef221dde2e940f3af656f88c9dd8a31a106f63b6a45"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-4-isolation.json",
+          "sha256": "8ea591138311bc7e3d5264a01bfa0daa50664ccc95654c7b56a3f8f80b573a8d"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-DC-GW-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.61228400000255,
+          "p99Ms": 84.61228400000255,
+          "jitterP95Ms": 12.205236000016157,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-5.json",
+          "sha256": "8d7e965e0105a2cbd6b410b402a5917516528bbaa1e46b36b7b7da342cfd59f1"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-5-isolation.json",
+          "sha256": "8ca6d396f166a5a8b0e2e87a275f29fa14dab31e27f917e5e39576db3d0247a7"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-WAN-ACCESS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.61228400000255,
+          "p99Ms": 84.61228400000255,
+          "jitterP95Ms": 12.205236000016157,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-6.json",
+          "sha256": "0765d71f54e657ba4094be46c36b719a0dc94e4ef19bf7eaf6ce886946d6f30f"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-6-isolation.json",
+          "sha256": "f096327e6417f4ba7cf4647407bcdcbaf1680fac839180d9cfb833ec00ffd706"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-DC-ACCESS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.61228400000255,
+          "p99Ms": 84.61228400000255,
+          "jitterP95Ms": 12.205236000016157,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-7.json",
+          "sha256": "1c8017d1024669a4cd067d7498061498682a8d54378b00ae2a387c4da4f0e1e6"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-7-isolation.json",
+          "sha256": "23ea97680ec17abd0dad9130c765d8f169c93e8da95e0a2409771ec0b0df0e6d"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-SERVICE-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 84.61228400000255,
+          "p99Ms": 84.61228400000255,
+          "jitterP95Ms": 12.205236000016157,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-8.json",
+          "sha256": "b548c02735b560b5772659e9d5e3ee38eb66dddb1cdca454ea646f1c08d5b2b3"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-8-isolation.json",
+          "sha256": "8a548db674a96c9a219f0617aef33eabcde7deaa9c7700331db8b9724b57cb87"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda de HA-UPS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.5720639999854,
+          "p99Ms": 96.5720639999854,
+          "jitterP95Ms": 24.165015999999014,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-9.json",
+          "sha256": "868eb31b75791c1fc6d4cdefad2c828da91b8255769417c40de75168459c7c34"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-9-isolation.json",
+          "sha256": "f75acee8af67886f03024e34f57854bf57adc53a312224c74df746d3e7ff0679"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda do rack A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.5720639999854,
+          "p99Ms": 96.5720639999854,
+          "jitterP95Ms": 24.165015999999014,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-10.json",
+          "sha256": "8e41cc6dbd0b47e884ad2067aedcbbd6ec1ebcb461641faf82e1d50758055665"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-10-isolation.json",
+          "sha256": "3ea0905fdce1b82927053e2a7b804b80eaa6a08263f5ff3e92fa1781d0cb7b06"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — uplink sem perda de carrier no host",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 84.61228400000255,
+          "p99Ms": 84.61228400000255,
+          "jitterP95Ms": 12.205236000016157,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-11.json",
+          "sha256": "3a743fd7bb6e08faafbaf7415214bf318595b9b3ef3b2bd5f6456b6480bf3b64"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-11-isolation.json",
+          "sha256": "2200b0336d0a69836365a394f69962d995db5409ff0c089c654190a992358933"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "enterprise-resilient",
+      "devices": 37,
+      "name": "HA integrada — perda e retorno do core A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 96.59206399989489,
+          "p99Ms": 96.59206399989489,
+          "jitterP95Ms": 24.1850159999085,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 60.468532000008054,
+          "p99Ms": 60.468532000008054,
+          "jitterP95Ms": 36.319100000002436,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 128.92168800000036,
+          "p99Ms": 128.92168800000036,
+          "jitterP95Ms": 44.409732000000076,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.01157599998987,
+          "p99Ms": 129.01157599998987,
+          "jitterP95Ms": 44.479619999989154,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 60.44814800000859,
+          "p99Ms": 60.44814800000859,
+          "jitterP95Ms": 36.30910000000222,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 36.261068000003434,
+          "p99Ms": 36.261068000003434,
+          "jitterP95Ms": 24.166512000001603,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "enterprise-resilient-12.json",
+          "sha256": "581afec873617e19c1ee1e1547684195efce6d9e4bf6a668afe182cba51ad2a3"
+        },
+        "isolationFile": {
+          "name": "enterprise-resilient-12-isolation.json",
+          "sha256": "68fac943c4a24c04ce8b5b5d2d1d8956f55c4a2b650560d666caa49aea176e9b"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — baseline",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.77128400000583,
+          "p99Ms": 84.77128400000583,
+          "jitterP95Ms": 12.337084000018876,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.62753200001134,
+          "p99Ms": 60.62753200001134,
+          "jitterP95Ms": 36.44870800000717,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.38504800003284,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.38504800003284,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.607148000011875,
+          "p99Ms": 60.607148000011875,
+          "jitterP95Ms": 36.44810000000507,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.39006800000607,
+          "p99Ms": 36.39006800000607,
+          "jitterP95Ms": 24.265512000003582,
+          "passed": true
+        },
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 16,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.36324799999602,
+          "p99Ms": 48.36324799999602,
+          "jitterP95Ms": 0.04697600000326929,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-0.json",
+          "sha256": "1186d458867959a09dec1b3ddf65212ffd2c8203746eac235bd97c981b01d64e"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-0-isolation.json",
+          "sha256": "93288d290ae4f06ff7e41e9ab8f84f9a1d8d3413c6ca5fcf402908cdf5cc4983"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-CORE-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 96.59206399989489,
+          "p99Ms": 96.59206399989489,
+          "jitterP95Ms": 24.16786399990815,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 72.65845599988097,
+          "p99Ms": 72.65845599988097,
+          "jitterP95Ms": 24.35218399988844,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-1.json",
+          "sha256": "6c17acbda1e12cad9ad746c6e1d618696e3331517ee177d54c5c82f44b2836a4"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-1-isolation.json",
+          "sha256": "695ce991cc1a8364be5287c2a6b0c9bc9da20f520370916c0716f383f8622263"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-ACCESS-USERS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.73126799999045,
+          "p99Ms": 84.73126799999045,
+          "jitterP95Ms": 12.30706800000371,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283199999896169,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-2.json",
+          "sha256": "3dcc1650e075b870bc2e91ea6787378fc7dd6e7ea147d33939f85fdeeeed7b0a"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-2-isolation.json",
+          "sha256": "a68e87ecd70bdb02317278be59fa661783c5fdbc5558c91c6d8a2a079b202dc5"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-FW-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.73452799998995,
+          "p99Ms": 96.73452799998995,
+          "jitterP95Ms": 24.31032800000321,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 64.53631999999925,
+          "p99Ms": 64.53631999999925,
+          "jitterP95Ms": 40.376887999993414,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 138.33886800004075,
+          "p99Ms": 138.33886800004075,
+          "jitterP95Ms": 65.87650800003212,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 138.37886800004162,
+          "p99Ms": 138.37886800004162,
+          "jitterP95Ms": 65.89651600003344,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 64.6460640000023,
+          "p99Ms": 64.6460640000023,
+          "jitterP95Ms": 40.49701599999571,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.94460799999797,
+          "p99Ms": 96.94460799999797,
+          "jitterP95Ms": 48.63833600000544,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-3.json",
+          "sha256": "572ae55bfab65ee224864f3b6a2a243d6658f6190eab258cbc8554105a62334a"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-3-isolation.json",
+          "sha256": "0117ad5f5d598e4f0f3865ebfa043f46c9f5569d1a30b769c6d661845fdcb0d5"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-WAN-GW-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.68147600000339,
+          "p99Ms": 84.68147600000339,
+          "jitterP95Ms": 12.257276000016645,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283199999896169,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-4.json",
+          "sha256": "90c5f70ea51a992145848d08aef8345089700deb129c66f282131537c37a2af0"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-4-isolation.json",
+          "sha256": "9a999ff35222b5528f462061e23e553c07cd34c6513a466a306328e76910a6b4"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-DC-GW-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.68147600000339,
+          "p99Ms": 84.68147600000339,
+          "jitterP95Ms": 12.257276000016645,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283199999896169,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-5.json",
+          "sha256": "b04130f314c69b7ee0950d107f912adc439ef24cfcdc0f11a4b4652d5f210247"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-5-isolation.json",
+          "sha256": "6517aad19f97947d5f44e06b8bd0f2cc4d6520c6d0bf0b9f1386dbfce9a17bf7"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-WAN-ACCESS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.68147600000339,
+          "p99Ms": 84.68147600000339,
+          "jitterP95Ms": 12.257276000016645,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283199999896169,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-6.json",
+          "sha256": "9e4f4910409031163d1ea84be247b747069c90e07a918cf242ed18faa754774b"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-6-isolation.json",
+          "sha256": "7fb6c2315e41887aef2c475e0c3e57a83c711449ed20f6b1f4931b901ad91c13"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-DC-ACCESS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 84.68147600000339,
+          "p99Ms": 84.68147600000339,
+          "jitterP95Ms": 12.257276000016645,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283199999896169,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-7.json",
+          "sha256": "ace8d217a01cca3e37391a3df17efb11bc915c64e976d0c5809018d14e17a5bc"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-7-isolation.json",
+          "sha256": "79f8e94a87922446255229e0cdd5296ca2e32c33fe753230a7998b9a5e0c9c3c"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-SERVICE-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 84.68147600000339,
+          "p99Ms": 84.68147600000339,
+          "jitterP95Ms": 12.257276000016645,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283200000078068,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-8.json",
+          "sha256": "45c2379f45610b9a391818ecc513b5884602750a7ad1c38261db4525cae5af48"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-8-isolation.json",
+          "sha256": "cd546c922ed1c98f4b1ddf56afa368c55b1544fb74b261e5be8e8ee1921e6b50"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda de HA-UPS-A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.5720639999854,
+          "p99Ms": 96.5720639999854,
+          "jitterP95Ms": 24.147863999998663,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 72.63845599999695,
+          "p99Ms": 72.63845599999695,
+          "jitterP95Ms": 24.345016000002943,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-9.json",
+          "sha256": "c029e70b4dfef45be03da0ea12a26490428d870485ba1a2913cd282b03c81ed3"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-9-isolation.json",
+          "sha256": "532027bb4726df4fd9db3d0953262d96d75cfeef85d48bd7f20989305e5f3753"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda do rack A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 96.5720639999854,
+          "p99Ms": 96.5720639999854,
+          "jitterP95Ms": 24.147863999998663,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 15,
+          "lossPercent": 6.25,
+          "p95Ms": 72.63845599999695,
+          "p99Ms": 72.63845599999695,
+          "jitterP95Ms": 24.345016000002943,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-10.json",
+          "sha256": "4e7f8d514cac35c7c2fb5f59e09c75a6680ba090dfba2d024afe4437badf7b58"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-10-isolation.json",
+          "sha256": "5d2e129c96498256ac208461fc73ed196d039bffa86b09dd9fa70b29ddeb9d99"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — uplink sem perda de carrier no host",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 84.68147600000339,
+          "p99Ms": 84.68147600000339,
+          "jitterP95Ms": 12.257276000016645,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 16,
+          "lossPercent": 0,
+          "p95Ms": 48.30627199999253,
+          "p99Ms": 48.30627199999253,
+          "jitterP95Ms": 0.03283199999896169,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-11.json",
+          "sha256": "817803df6c50c38b6f20ed211b1fd1b4bc384455a2da71bda621f8fe22499227"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-11-isolation.json",
+          "sha256": "810c62088627dc67fc3f18f570e79ea1eec5aff83e8e5c167a246ff28d8e6fd9"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "template": "factory-resilient",
+      "devices": 53,
+      "name": "HA integrada — perda e retorno do core A",
+      "passed": true,
+      "isolationPassed": true,
+      "flows": [
+        {
+          "name": "HTTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 96.59206399989489,
+          "p99Ms": 96.59206399989489,
+          "jitterP95Ms": 24.16786399990815,
+          "passed": true
+        },
+        {
+          "name": "DNS em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 60.53772400000889,
+          "p99Ms": 60.53772400000889,
+          "jitterP95Ms": 36.37829200000306,
+          "passed": true
+        },
+        {
+          "name": "HTTP na WAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.92700400003378,
+          "p99Ms": 129.92700400003378,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "HTTP no datacenter",
+          "expect": "allow",
+          "sent": 16,
+          "received": 13,
+          "lossPercent": 18.75,
+          "p95Ms": 129.9470040000342,
+          "p99Ms": 129.9470040000342,
+          "jitterP95Ms": 45.405048000033275,
+          "passed": true
+        },
+        {
+          "name": "NTP em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 60.517340000009426,
+          "p99Ms": 60.517340000009426,
+          "jitterP95Ms": 36.36829200000284,
+          "passed": true
+        },
+        {
+          "name": "Syslog em VIP de serviços",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 36.30026000000362,
+          "p99Ms": 36.30026000000362,
+          "jitterP95Ms": 24.19570400000157,
+          "passed": true
+        },
+        {
+          "name": "SCADA lê PLC de outra VLAN",
+          "expect": "allow",
+          "sent": 16,
+          "received": 12,
+          "lossPercent": 25,
+          "p95Ms": 72.65845599988097,
+          "p99Ms": 72.65845599988097,
+          "jitterP95Ms": 24.35218399988844,
+          "passed": true
+        }
+      ],
+      "sourceReports": {
+        "file": {
+          "name": "factory-resilient-12.json",
+          "sha256": "70064f8d102b6b81f6d272ab0593b1471d467c98611172ab73e356c43723c122"
+        },
+        "isolationFile": {
+          "name": "factory-resilient-12-isolation.json",
+          "sha256": "5399dfb32c57cbcda9fdfb0d08b957aa4fbc5367a5a2b668e9e81d38e3f6c078"
+        }
+      },
+      "isolationFlows": [
+        {
+          "name": "Guest isolado dos serviços",
+          "expect": "deny",
+          "sent": 2,
+          "received": 0,
+          "lossPercent": 100,
+          "p95Ms": null,
+          "p99Ms": null,
+          "jitterP95Ms": null,
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

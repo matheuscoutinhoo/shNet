@@ -1,0 +1,878 @@
+{
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38939122872",
+  "head": "656527afb329b9dcee85d9291e977bbcefb6aed0",
+  "stats": {
+    "startTime": "2026-10-16T17:22:40.688Z",
+    "duration": 1639843.1,
+    "expected": 72,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "SQL com quorum: cliente gráfico, confirmação e restauração do projeto",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 18526,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Quorum: gravação por maioria, persistência e painel mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13857,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizado: finder centraliza equipamento presente e terminais respeitam o perfil",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9225,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 8268,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Painel inferior: expansão por mouse, teclado e toque, limites responsivos e rolagem",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7238,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Painel inferior: eventos e tráfego acompanham a seleção e preservam a visão da rede",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 6254,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corretas",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 5884,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: plataforma sempre escura, independente do sistema e de preferências antigas",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 2281,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: armazenamento indisponível não interfere no tema escuro",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1284,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aparência: plataforma e canvas independentes, conta, modais e mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 20252,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: fluxo real e destaques com movimento no-preference",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10704,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: fluxo real e destaques com movimento reduce",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9373,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Workspace: inicialização manual e terminal preservado por dispositivo",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9681,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Conexões: métricas calculadas, compatibilidade física e obstrução do rádio",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10337,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 98001,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Resiliência: falha ao salvar, recuperação, importação inválida e menus durante simulação",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 5914,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Resiliência: sair informa falha de rede e permite encerrar a sessão ao tentar novamente",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 2240,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Equipamentos: detalhes responsivos, expansão pela esquerda e opções específicas",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7726,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 16958,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Dashboard: navegação, filtros, favoritos, histórico e controles em desktop e mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7067,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 35926,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "MPLS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 17880,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "QoS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 15201,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 21124,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Inspeção de aplicação: Host HTTP bloqueado e permitido, regras e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 23918,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VXLAN/EVPN: VNI, BGP MAC/IP, HTTP, encapsulamento e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 38254,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP relay: pool remoto, reserva, pacotes, ping, release e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 36921,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "RIP: configuração, vetores, expiração exibida e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 19403,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "OSPF: convergência, falha, inspector e persistência",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 59970,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 25523,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistência desktop/mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 45581,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "firewall: UDP, ICMP, bloqueio de entrada e sessões persistidas desktop/mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 22754,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 41172,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Bond: configuração de NICs, failover de acesso, ping e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 17132,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Serviços HA: configuração do VIP, tracking, presets e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9957,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "HA integrada: enterprise-resilient, presets e snapshot após desligar core",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 15031,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "HA integrada: factory-resilient, presets e snapshot após desligar core",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 18388,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Processo industrial: ciclos PLC/HMI, alarmes, persistência e mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 12630,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "canvas: grupos, notas, grade e reabertura",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 8476,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "labs: tarefas, correção, avaliação e progresso persistido",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10368,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "políticas: PAT, ACL, bloqueio, recuperação e persistência",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 24489,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "conta: perfil, sessões independentes, revogação e exclusão",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 4408,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "RSTP: redundância, BPDUs, falha, recuperação e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 66538,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DNS: registros, nslookup, cache, ping por nome, falha e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 33525,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 28858,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP: pool, dois clientes, pacotes, ping, lease e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 33372,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "VRRP: edição, eleição, failover, HTTP, anúncios e persistência desktop/mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 50306,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "EVPN: supressão ARP configurável, diagnóstico e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9311,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Syslog padrão: coleta, persistência e PCAP mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9056,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCPv4 binário: PCAP completo, persistência e exportação mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7708,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "BGP/EVPN binário: PDU legível, PCAP e inspeção mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 6264,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "BGP: sessões TCP, AS_PATH, política, falha, inspector e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 79069,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: Um trunk, duas redes com HTTP, configuração e persistência",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 15754,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: VLANs com gateway no switch com HTTP, configuração e persistência",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13284,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "L3: VRF mantém HTTP e IPs sobrepostos isolados no painel e no save/reload",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13298,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Tracking: uplink reduz prioridade VRRP no painel e mantém HTTP",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 28407,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "LACP: negocia, conserva HTTP com membro restante e persiste no mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 90016,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "IPv6 serviços: DHCPv6, UDP, TCP com janela e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 43255,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "IPv6: SLAAC, ping roteado, Hop Limit, pacote e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 22583,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wireless: autenticação, HTTP pelo rádio, pacotes e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 23775,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 99074,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Catálogo: perfil QSFP, transceiver, duplicação, análise e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7729,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Lab avançado: reparar roteamento SVI, validar HTTP e persistir tarefas mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 9936,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Aprendizagem: editor de desafios, tutorial completo, pontuação e mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 8469,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wi-Fi empresarial: tls, HTTP, certificados e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 28293,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Wi-Fi empresarial: peap, HTTP, certificados e persistência mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 25854,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Workspace: desenho livre, comentário ancorado, histórico e telas ampliadas",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 8052,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Produto: infraestrutura, formulários guiados, acessibilidade e teclado",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 15606,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Topologia: vistas, clone de rack com revisão, undo e persistência",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 7071,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Escala: Worker, 2000 equipamentos, viewport e pausa sem perder alterações",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 21453,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "Sessões: expiração remota, reentrada, revogação atual e troca de senha",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 10616,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "DHCP HA: configurar réplica, promover com fencing e salvar em mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 13930,
+          "errors": []
+        }
+      ]
+    }
+  ]
+}
