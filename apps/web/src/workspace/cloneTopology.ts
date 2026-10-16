@@ -237,6 +237,8 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         if (linkLocal6(a.ip) && macs.has(p.mac))
           linkLocals.set(a.ip, ipv6String(ipv6Number('fe80::') | interfaceId6(macs.get(p.mac)!)));
   const warnings = new Set<string>();
+  if (originals.some((d) => d.databaseHa))
+    warnings.add('Bancos replicados clonados iniciam vazios; uma réplica isolada fica desabilitada.');
   if (originals.some((d) => d.quorum && !d.quorum.node.members.every((id) => mapping.has(id))))
     warnings.add(
       'Grupo de quorum parcial não foi copiado; selecione todos os membros para criar um grupo independente.'
@@ -424,6 +426,23 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
       d.quorum.node.members.every((id) => mapping.has(id))
     ) {
       e.configureQuorumLab(d.quorum.node.members.map((id) => mapping.get(id)!));
+      if (d.databaseHa) {
+        const members = d.quorum.node.members.map((id) => source.devices.find((p) => p.id === id)!);
+        for (const peer of members)
+          e.configureDatabase(mapping.get(peer.id)!, {
+            enabled: true,
+            port: peer.database!.port,
+            key: peer.database!.key,
+          });
+        e.configureDatabaseHa(mapping.get(d.id)!);
+        for (const peer of members)
+          if (!peer.database!.enabled)
+            e.configureDatabase(mapping.get(peer.id)!, {
+              enabled: false,
+              port: peer.database!.port,
+              key: peer.database!.key,
+            });
+      }
     }
   for (const d of originals)
     if (d.dhcpHa?.role === 'active' && mapping.has(d.dhcpHa.peer)) {

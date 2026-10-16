@@ -1,5 +1,12 @@
 export const templates = [
   {
+    id: 'database-quorum',
+    name: 'Banco SQL com consenso e falhas',
+    description: 'Três bancos, cliente HTTP/TCP, eleição e respostas confirmadas por maioria.',
+    level: 'Serviços / Consistência',
+    devices: 5,
+  },
+  {
     id: 'quorum',
     name: 'Quorum, eleição e dados replicados',
     description: 'Três réplicas completas, gravações por maioria, partições e retorno do líder antigo.',

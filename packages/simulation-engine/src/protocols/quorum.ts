@@ -13,6 +13,7 @@ const commandSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('barrier') }).strict(),
   z.object({ kind: z.literal('put'), key: id, value: z.string().max(4096) }).strict(),
   z.object({ kind: z.literal('delete'), key: id }).strict(),
+  z.object({ kind: z.literal('database'), query: z.string().min(1).max(2048) }).strict(),
 ]);
 const entrySchema = z.object({ term: integer, command: commandSchema }).strict();
 const envelope = { cluster: id, from: id, to: id, term: integer };

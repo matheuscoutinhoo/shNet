@@ -23,6 +23,7 @@ import { traceConnection, invalidateTraceIndex } from './trace-index';
 import { findDevice, findLink, linksAt } from './topology-index';
 import { interfaceSchema } from '../model';
 import { configureDatabase, queryDatabase } from '../protocols/database';
+import { configureDatabaseHa } from '../protocols/database-ha';
 import {
   configureInfrastructure,
   configureSystem,
@@ -854,6 +855,9 @@ export class SimulationEngine {
   configureDatabase(device: string, input: unknown) {
     configureDatabase(this, this.device(device), input);
   }
+  configureDatabaseHa(device: string) {
+    configureDatabaseHa(this, this.device(device));
+  }
   queryDatabase(device: string, target: string, query: string, key: string, port = 8080) {
     return queryDatabase(this, this.device(device), target, query, key, port);
   }
@@ -991,6 +995,7 @@ export class SimulationEngine {
     removeQuorumLab(this, this.device(deviceId));
   }
   proposeQuorumLab(deviceId: string, command: QuorumCommand) {
+    if (command.kind === 'database') throw new Error('Consultas SQL exigem autenticação pela rede.');
     return proposeQuorumLab(this, this.device(deviceId), command);
   }
   disableDhcpHa(deviceId: string) {

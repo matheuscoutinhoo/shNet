@@ -96,6 +96,8 @@ O [roteiro de estudo](docs/integrated-redundancy-lab.md) reúne endereços, comp
 
 O modelo **Quorum, eleição e dados replicados** permite estudar maioria, partições e retorno do líder antigo. Avance dois segundos, abra **Banco de dados** no servidor líder e use **Propor gravação**. A proposta só é confirmada após as respostas de uma maioria; cortar os dois cabos do líder impede novas confirmações naquele membro e permite eleição nas duas réplicas restantes. Esse armazenamento de estudo é independente dos serviços SQL/DNS/MQTT. O [ADR-058](docs/adr/058-quorum-laboratory.md) registra o alcance e as próximas integrações de R08.
 
+O modelo **Banco SQL com consenso e falhas** vincula o banco didático ao quorum: consultas HTTP/TCP, inclusive SELECT, só respondem após confirmação de maioria. Pelo SQL-CLIENT, consulte o IP individual do líder e observe eleição, partição e recuperação dos dados. O [roteiro do laboratório](docs/sql-quorum-lab.md) explica os ensaios, o timeout com resultado indeterminado e os limites de endereço, TCP e histórico.
+
 ### Experimento TCP / HTTP
 
 Os templates **Rotas que se adaptam** e **Rotas por distância** acrescentam OSPF e RIPv2, com caminhos alternativos após falhas. Configure e inspecione os protocolos nas abas dos roteadores. Para DNS sobre TCP, abra **Nomes na rede** e selecione o transporte no painel DNS; o modo automático repete respostas UDP truncadas. Comandos e limites estão em [protocols.md](docs/protocols.md).

@@ -1,6 +1,7 @@
 import { scenarioSchema } from './scenarios-model';
 import { routeEntrySchema } from './schemas';
 import { databaseStateSchema } from './protocols/database-model';
+import { databaseHaSchema } from './protocols/database-ha-model';
 import { infrastructureConfigSchema, systemStateSchema } from './devices/infrastructure-model';
 import {
   eapServerStateSchema,
@@ -831,6 +832,7 @@ export const deviceSchema = z
     consoleSessions: consoleSessionsSchema.optional(),
     proxy: proxyStateSchema.optional(),
     database: databaseStateSchema.optional(),
+    databaseHa: databaseHaSchema.optional(),
     printer: printerStateSchema.optional(),
     broker: brokerStateSchema.optional(),
     iot: iotStateSchema.optional(),

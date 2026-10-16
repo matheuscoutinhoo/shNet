@@ -18,6 +18,71 @@ import { dhcpCaptureFixtures } from '../fixtures/dhcp-captures';
 import { syslogCaptureFixture } from '../fixtures/syslog-captures';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
+
+test('SQL com quorum: cliente gráfico, confirmação e restauração do projeto', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'sql-ha-ui-' + Date.now() + '@example.test');
+  const me = await (await page.request.get('/api/auth/me')).json(),
+    headers = { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken },
+    engine = new SimulationEngine(makeTemplate('database-quorum'));
+  engine.advanceTo(2000);
+  const active = engine.state.devices.find((d) => d.quorum?.node.role === 'leader')!;
+  const created = await page.request.post('/api/projects', {
+    headers,
+    data: { name: 'SQL Quorum UI', template: 'database-quorum' },
+  });
+  expect(created.status()).toBe(201);
+  const project = await created.json();
+  expect(
+    (
+      await page.request.put('/api/projects/' + project.id, {
+        headers,
+        data: { name: 'SQL Quorum UI', revision: project.revision, topology: engine.snapshot() },
+      })
+    ).status()
+  ).toBe(200);
+  await page.reload();
+  await page.getByRole('heading', { name: 'SQL Quorum UI', exact: true }).click();
+  await page.getByLabel('Modo de simulação', { exact: true }).selectOption('realtime');
+  await inspectDevice(page, 'SQL-CLIENT');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Aplicar banco', exact: true })).toHaveCount(0);
+  const form = page.locator('.database-query');
+  await form.getByLabel('Servidor IPv4/IPv6').fill(active.interfaces[0].ip!);
+  await form.getByLabel('Consulta SQL').fill('CREATE TABLE estudo (valor)');
+  await form.getByRole('button', { name: 'Enviar consulta SQL', exact: true }).click();
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(page.locator('.database-panel')).toContainText('200 OK');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await form.getByLabel('Consulta SQL').fill('INSERT INTO estudo (valor) VALUES (42)');
+  await form.getByRole('button', { name: 'Enviar consulta SQL', exact: true }).click();
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(page.locator('.database-panel')).toContainText('"affected":1');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await form.getByLabel('Consulta SQL').fill('SELECT * FROM estudo');
+  await form.getByRole('button', { name: 'Enviar consulta SQL', exact: true }).click();
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(page.locator('.database-panel')).toContainText('"valor":42');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'SQL Quorum UI', exact: true }).click();
+  await inspectDevice(page, active.hostname);
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  await expect(page.locator('.database-ha-panel')).toContainText('0 consultas aguardando maioria');
+  await expect(page.locator('.database-panel')).toContainText('estudo: 1 linhas');
+  const saved = await (await page.request.get('/api/projects/' + project.id)).json();
+  const replicas = saved.topology.devices.filter((d: { databaseHa?: unknown }) => d.databaseHa);
+  expect(replicas).toHaveLength(3);
+  for (const replica of replicas) expect(replica.database.tables[0].rows).toEqual([{ valor: 42 }]);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.database-ha-panel').scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
 test('Quorum: gravação por maioria, persistência e painel mobile', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));

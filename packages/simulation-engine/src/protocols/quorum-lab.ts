@@ -3,6 +3,7 @@ import type { SimulationEngine } from '../core/engine';
 import { random } from '../core/queue';
 import { cableMetrics, linkOperational } from '../links/physical';
 import { canonicalScenarioJson } from '../canonical-json';
+import { applyDatabaseHa, detachDatabaseHa } from './database-ha';
 import {
   createQuorumNode,
   proposeQuorum,
@@ -35,6 +36,7 @@ function install(e: SimulationEngine, d: Device, result: QuorumResult) {
     e.emit('CONFIG_CHANGED', d.id, `Quorum: ${result.state.role}, termo ${result.state.term}.`);
   if (result.state.commit > old.commit)
     e.emit('HA_SYNC_RECEIVED', d.id, `Quorum: commit ${result.state.commit} confirmado.`);
+  applyDatabaseHa(e, d);
   for (const message of result.messages) send(e, d, message);
 }
 function send(e: SimulationEngine, d: Device, message: QuorumMessage) {
@@ -145,15 +147,22 @@ export function removeQuorumLab(e: SimulationEngine, d: Device) {
   const cluster = d.quorum?.node.cluster;
   if (!cluster) return;
   const ids = new Set(e.state.devices.filter((p) => p.quorum?.node.cluster === cluster).map((p) => p.id));
-  for (const p of e.state.devices) if (ids.has(p.id)) delete p.quorum;
+  for (const p of e.state.devices)
+    if (ids.has(p.id)) {
+      detachDatabaseHa(e, p);
+      delete p.quorum;
+    }
   e.state.queue = e.state.queue.filter(
     (q) =>
       !((q.action.kind === 'quorum-tick' || q.action.kind === 'quorum-deliver') && ids.has(q.action.device))
   );
   e.emit('CONFIG_CHANGED', d.id, 'Grupo de quorum removido de todos os membros.');
+  e.refreshVrrp();
 }
 export function proposeQuorumLab(e: SimulationEngine, d: Device, command: QuorumCommand) {
   if (!d.power || !d.quorum) throw new Error('Servidor de quorum indisponível.');
+  if ((command.kind === 'database') !== !!d.databaseHa)
+    throw new Error('Operação incompatível com o vínculo SQL deste grupo.');
   const result = proposeQuorum(d.quorum.node, command);
   install(e, d, result);
   return { term: result.state.term, index: result.index };

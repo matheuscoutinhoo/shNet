@@ -1,4 +1,5 @@
 import { validateDatabase } from '../protocols/database';
+import { validateDatabaseHa } from '../protocols/database-ha';
 import { validateModbus } from '../protocols/modbus';
 import { validatePlcProcesses } from '../protocols/plc-process';
 import { validateHmiScans } from '../protocols/hmi-scan';
@@ -92,6 +93,7 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateStateSync(s);
   validateDhcpHa(s);
   validateQuorumLab(s);
+  validateDatabaseHa(s);
   validateInspection(s);
   validateOspf(s);
   validateRip(s);

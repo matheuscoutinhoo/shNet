@@ -33,9 +33,19 @@ export function preflight(s: Snapshot): PreflightIssue[] {
         'QUORUM_SERVICE_SCOPE',
         'info',
         d.quorum.node.members,
-        'O quorum protege somente o armazenamento de estudo; os demais serviços não usam esta confirmação.',
+        d.databaseHa
+          ? 'Banco SQL didático vinculado ao quorum: SELECT e alterações exigem confirmação de maioria; demais serviços independentes.'
+          : 'O quorum protege somente o armazenamento de estudo; os demais serviços não usam esta confirmação.',
         'Teste partições e gravações confirmadas. Papel de líder ou cópia histórica não certificam disponibilidade nem leitura atual.'
       );
+      if (d.databaseHa)
+        add(
+          'DATABASE_QUORUM_SCOPE',
+          'info',
+          d.quorum.node.members,
+          'Banco replicado usa IP individual do líder; não há migração de TCP, descoberta automática de endpoint ou VIP gerenciado pelo quorum.',
+          'Após eleição, consulte o novo líder. Timeout de alteração tem resultado indeterminado; confirme o estado antes de repetir. Até 256 entradas, incluindo leituras.'
+        );
       if (
         s.devices.some(
           (peer) => peer.quorum?.node.cluster === d.quorum!.node.cluster && peer.quorum.node.log.length >= 240

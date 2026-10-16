@@ -275,11 +275,11 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     });
   if (d.database) {
     e.configureDatabase(copy.id, {
-      enabled: d.database.enabled,
+      enabled: d.databaseHa ? false : d.database.enabled,
       port: d.database.port,
       key: d.database.key,
     });
-    copy.database!.tables = structuredClone(d.database.tables);
+    copy.database!.tables = d.databaseHa ? [] : structuredClone(d.database.tables);
   }
   if (d.ids)
     e.configureIds(copy.id, {

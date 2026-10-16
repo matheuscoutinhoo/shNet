@@ -131,7 +131,8 @@ export function deviceCapabilities(d: Device) {
     serial: active && d.type === 'router' && d.profile !== 'virtual-router',
     console: active && !['smartphone', 'virtual-router'].includes(d.profile ?? ''),
     sdwanController: active && (server || d.profile === 'sdwan-controller' || !!d.sdwanController),
-    database: active && (server || d.profile === 'database' || !!d.database),
+    databaseServer: active && (server || d.profile === 'database' || !!d.database),
+    database: active && (server || (endpoint && generic) || d.profile === 'database' || !!d.database),
   };
 }
 

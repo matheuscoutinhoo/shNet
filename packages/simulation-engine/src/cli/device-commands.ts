@@ -77,7 +77,8 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^phone (call|hangup)/.test(line)) return c.applicationKinds.includes('phone');
   if (/^(mqtt |print |http proxy )/.test(line)) return c.clientApplications;
   if (/^database query /.test(line)) return c.database || c.clientApplications;
-  if (/^(database configure|show database)/.test(line)) return c.database;
+  if (/^(database configure|database ha)/.test(line)) return c.databaseServer;
+  if (/^show database/.test(line)) return c.database;
   if (/^hardware add serial/.test(line)) return c.serial;
   if (/^(hardware add console|console )/.test(line)) return c.console;
   if (/^(poe |show poe)/.test(line)) return c.poeSupply || c.poeLoad;

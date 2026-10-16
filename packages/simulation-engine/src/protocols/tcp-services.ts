@@ -11,6 +11,12 @@ import { receiveDnsTcpApplication } from './dns-tcp';
 
 export function configureTcpService(engine: SimulationEngine, device: Device, input: unknown) {
   const service = tcpServiceSchema.parse(input);
+  if (
+    device.databaseHa &&
+    ((service.port === device.database?.port && service.kind !== 'database') ||
+      (service.kind === 'database' && service.port !== device.database?.port))
+  )
+    throw new Error('Porta reservada pelo banco replicado.');
   if (device.type === 'pc' && service.kind !== 'echo')
     throw new Error('Serviço TCP exige servidor, switch com SVI ou roteador.');
   if (
@@ -29,6 +35,10 @@ export function configureTcpService(engine: SimulationEngine, device: Device, in
   const others = device.tcpServices?.filter((entry) => entry.port !== service.port) ?? [];
   if (others.length >= 32) throw new Error('Limite de 32 serviços TCP.');
   device.tcpServices = [...others, service].sort((a, b) => a.port - b.port);
+  if (device.databaseHa && service.kind === 'database') {
+    device.database!.enabled = service.enabled;
+    engine.refreshVrrp();
+  }
   engine.emit(
     'CONFIG_CHANGED',
     device.id,

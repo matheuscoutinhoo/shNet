@@ -16,7 +16,10 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
       <h4>Laboratório de quorum e dados replicados</h4>
       <p className="muted">
         Três réplicas completas, eleição por votos e confirmação por maioria. Cada par usa um cabo dedicado
-        sem IP. Este armazenamento é independente do banco SQL e dos demais serviços.
+        sem IP.{' '}
+        {device.databaseHa
+          ? 'Este grupo está vinculado ao banco SQL; use consultas pela rede.'
+          : 'Este armazenamento é independente do banco SQL e dos demais serviços.'}
       </p>
       {q ? (
         <>
@@ -61,7 +64,9 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
             </label>
             <button
               className="button small"
-              disabled={!device.power || q.node.role !== 'leader' || q.node.log.length >= 256}
+              disabled={
+                !!device.databaseHa || !device.power || q.node.role !== 'leader' || q.node.log.length >= 256
+              }
             >
               Propor gravação
             </button>

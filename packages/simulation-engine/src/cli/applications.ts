@@ -4,6 +4,11 @@ import { transportAddressSchema } from '../protocols/tcp-model';
 import { redactNetworkSecrets } from './aaa';
 export function registerApplicationCommands(r: CommandRegistry) {
   r.register({
+    pattern: /^database ha quorum$/i,
+    modes: CONFIG_MODES,
+    run: (_m, e, d) => e.configureDatabaseHa(d.id),
+  });
+  r.register({
     pattern: /^database configure (\{.+\})$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) => e.configureDatabase(d.id, JSON.parse(m[1])),
@@ -11,7 +16,10 @@ export function registerApplicationCommands(r: CommandRegistry) {
   r.register({
     pattern: /^show database$/i,
     modes: ALL_MODES,
-    run: (_m, _e, d) => redactNetworkSecrets(JSON.stringify(d.database ?? {}, null, 2)),
+    run: (_m, _e, d) =>
+      redactNetworkSecrets(
+        JSON.stringify(d.databaseHa ? { ...d.database, ha: d.databaseHa } : (d.database ?? {}), null, 2)
+      ),
   });
   r.register({
     pattern: /^database query (\{.+\})$/i,

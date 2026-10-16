@@ -53,7 +53,8 @@ function addConnection(
           (request) =>
             request.state === 'pending' && (request.front === entry.id || request.upstream === entry.id)
         ) &&
-        !device.dnsQueries?.some((query) => query.status === 'pending' && query.tcpConnection === entry.id)
+        !device.dnsQueries?.some((query) => query.status === 'pending' && query.tcpConnection === entry.id) &&
+        !device.databaseHa?.pending.some((p) => p.connection === entry.id)
     );
     if (old < 0) throw new Error('Limite de conexões TCP simultâneas.');
     device.tcpConnections.splice(old, 1);
@@ -491,7 +492,11 @@ function acceptTcpPayload(engine: SimulationEngine, device: Device, c: TcpConnec
     if (c.state === 'FIN-WAIT-2') tcpState(engine, device, c, 'TIME-WAIT');
     else if (c.state === 'FIN-WAIT-1') tcpState(engine, device, c, 'CLOSING');
     else if (c.state === 'ESTABLISHED') tcpState(engine, device, c, 'CLOSE-WAIT');
-    if (c.role === 'server' && !device.proxy?.requests.some((r) => r.front === c.id && r.state === 'pending'))
+    if (
+      c.role === 'server' &&
+      !device.proxy?.requests.some((r) => r.front === c.id && r.state === 'pending') &&
+      !device.databaseHa?.pending.some((p) => p.connection === c.id)
+    )
       c.closeRequested = true;
   }
 }
