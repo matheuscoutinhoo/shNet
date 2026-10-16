@@ -40,7 +40,7 @@ for (const [path, family] of [
         ? {
             requirement: 'R19',
             reason:
-              'Captura universal sem exclusões depende de codecs BGP/EVPN e protocolos adicionais, adiados pelo usuário. A integridade/exclusões dos codecs presentes é testada separadamente.',
+              'Captura universal sem exclusões ainda depende dos codecs de controle, aplicação e gestão restantes em R19. BGP/EVPN e DHCPv4 já possuem validação independente; integridade e exclusões dos codecs presentes são verificadas separadamente.',
           }
         : {}),
     });
