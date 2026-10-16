@@ -62,15 +62,35 @@ assert not any(e['message']['text'] in ['Negado pela ACL', 'Perdido no enlace', 
 tshark = shutil.which('tshark') or (r'C:\Program Files\Wireshark\tshark.exe' if sys.platform == 'win32' else None)
 assert tshark, 'TShark required.'
 def run(*args):
-    return subprocess.run([tshark, '-n', '-r', str(root / 'syslog.pcap'), *args], capture_output=True, text=True, check=True, encoding='utf-8').stdout
-assert not run('-Y', '_ws.malformed || syslog.msg.nonconformant', '-T', 'fields', '-e', 'frame.number').strip()
-rows = run('-Y', 'syslog', '-T', 'fields', '-e', 'frame.number', '-e', 'syslog.version', '-e', 'syslog.facility', '-e', 'syslog.level', '-e', 'syslog.hostname', '-e', 'syslog.appname').splitlines()
+    result = subprocess.run([tshark, '-n', '-r', str(root / 'syslog.pcap'), *args], capture_output=True, text=True, encoding='utf-8')
+    if result.returncode:
+        raise RuntimeError('TShark: ' + result.stderr)
+    return result.stdout
+registry = subprocess.run([tshark, '-G', 'fields'], capture_output=True, text=True, check=True, encoding='utf-8').stdout
+available = {line.split('\t')[2] for line in registry.splitlines() if line.startswith('F\t')}
+assert {'syslog.facility', 'syslog.level'} <= available
+fields = ['frame.number', 'syslog.facility', 'syslog.level']
+extended = [name for name in ['syslog.version', 'syslog.hostname', 'syslog.appname'] if name in available]
+fields += extended
+malformed_filter = '_ws.malformed'
+if 'syslog.msg.nonconformant' in available:
+    malformed_filter += ' || syslog.msg.nonconformant'
+assert not run('-Y', malformed_filter, '-T', 'fields', '-e', 'frame.number').strip()
+arguments = ['-Y', 'syslog', '-T', 'fields']
+for name in fields:
+    arguments += ['-e', name]
+rows = run(*arguments).splitlines()
 assert len(rows) == len(messages)
 for row in rows:
-    number, version, facility, severity, host, app = row.split('\t')
+    values = row.split('\t')
+    assert len(values) == len(fields)
+    number, facility, severity = values[:3]
     m = manifest['frames'][int(number) - 1]['message']
-    assert version == '1' and int(facility) == m['facility'] and int(severity) == m['severity']
-    assert host == m['hostname'] and app == m['appName']
-report = {'generatedAt': datetime.now(timezone.utc).isoformat(), 'passed': True, 'engineContract': manifest['engineContract'], 'engineSourceHash': manifest['engineSourceHash'], 'decoders': ['Scapy', 'TShark'], 'packets': len(packets), 'syslogPackets': len(messages), 'malformed': 0, 'checksums': dict(checks), 'collectorEntries': len(manifest['entries'])}
+    assert int(facility) == m['facility'] and int(severity) == m['severity']
+    expected_fields = {'syslog.version': '1', 'syslog.hostname': m['hostname'], 'syslog.appname': m['appName']}
+    for name, value in zip(extended, values[3:]):
+        assert value == expected_fields[name]
+version = subprocess.run([tshark, '--version'], capture_output=True, text=True, check=True, encoding='utf-8').stdout.splitlines()[0]
+report = {'generatedAt': datetime.now(timezone.utc).isoformat(), 'passed': True, 'engineContract': manifest['engineContract'], 'engineSourceHash': manifest['engineSourceHash'], 'decoders': ['Scapy', 'TShark'], 'wiresharkVersion': version, 'wiresharkFields': fields, 'strictHeaderAndUtf8Validated': True, 'packets': len(packets), 'syslogPackets': len(messages), 'malformed': 0, 'checksums': dict(checks), 'collectorEntries': len(manifest['entries'])}
 (root / 'independent-captures.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
 print(json.dumps(report))
