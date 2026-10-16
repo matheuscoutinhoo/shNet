@@ -2,7 +2,7 @@
 
 Data: 16/10/2026. Contrato `2026.10.16.3`. Revisão de código `3e3884d42d61501007468ea4f3b65740893b8ae3`.
 
-Estado: qualificação local e [CI final](https://github.com/matheuscoutinhoo/shNet/actions/runs/38956201045) aprovadas nos cinco gates. Integração e publicação em preparação. A execução anterior, substituída pela correção final de importação, não é a evidência de qualificação desta versão.
+Estado: qualificação local e [CI final](https://github.com/matheuscoutinhoo/shNet/actions/runs/38956201045) aprovadas nos cinco gates. Integrada à main, publicada e conferida em https://shnet.up.railway.app/ em 16/10/2026. A [conferência pública](railway/remote-release.json) verificou fonte, contrato, Worker, TLS, headers, readiness e proteção dos endpoints privados. A [comparação dos 26 assets](railway/local-assets.json) confirmou todos os arquivos JS/CSS/fontes do build local, inclusive estilos carregados sob demanda. Somente consultas de leitura, sem restore/rollback do banco Railway real. A execução anterior, substituída pela correção final de importação, não é a evidência de qualificação desta versão.
 
 ## Resultados da CI
 

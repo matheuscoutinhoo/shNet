@@ -33,3 +33,5 @@ Os ensaios exercitam CRUD HTTP/TCP, rejeição SQL ordenada, confirmação antes
 Persistem o limite explícito de 256 entradas por membro (incluindo consultas, barreiras e eleições), ausência de compactação e composição fixa. Ao atingir o limite, novas consultas são recusadas e dados confirmados são preservados. Os limites de tabelas/colunas/linhas e a gramática SQL existente não mudam. Não há protocolo PostgreSQL, transações de múltiplas consultas ou emulação de SGBD.
 
 Este incremento não conclui R08: DNS, DHCP automático, MQTT, syslog, RADIUS, MES/SCADA e sessões dos demais serviços ainda precisam dos próprios adaptadores e ensaios. R19/R18/R20/R25 e extensões de R22 continuam no plano consolidado.
+
+Atualização posterior: o contrato `2026.10.16.3` substitui o teto histórico de 256 operações por compactação e recuperação em blocos. O [ADR-061](061-quorum-compaction.md) registra os novos limites e a qualificação. As afirmações acima preservam o escopo da publicação `2026.10.16.2`.

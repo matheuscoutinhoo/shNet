@@ -1,6 +1,6 @@
 # ADR-061 — Compactação e recuperação do estado confirmado
 
-Data: 16/10/2026. Contrato `2026.10.16.3`, aprovado nos cinco gates da CI: 1.000 testes e 144 cenários de navegador aprovados. Incremento de R08 sobre os [ADRs 058](058-quorum-laboratory.md) e [060](060-quorum-backed-sql-service.md). A [evidência](../../artifacts/quorum-compaction-2026-10-16/VALIDACAO.md) registra a qualificação; integração e publicação em preparação.
+Data: 16/10/2026. Contrato `2026.10.16.3`, aprovado nos cinco gates da CI: 1.000 testes e 144 cenários de navegador aprovados. Incremento de R08 sobre os [ADRs 058](058-quorum-laboratory.md) e [060](060-quorum-backed-sql-service.md), integrado à main e conferido no Railway. A [evidência](../../artifacts/quorum-compaction-2026-10-16/VALIDACAO.md) registra qualificação, fonte, Worker, 26 assets e proteção dos endpoints privados por consultas de leitura.
 
 ## Problema e decisão
 
