@@ -1,6 +1,6 @@
 # ADR-060 — Banco SQL didático com confirmação por maioria
 
-Data: 16/10/2026. Contrato `2026.10.16.2`, qualificado em cinco gates da CI: 989 testes e 144 cenários de navegador aprovados. Incremento de R08, dependente do [ADR-058](058-quorum-laboratory.md). A [evidência](../../artifacts/sql-quorum-2026-10-16/VALIDACAO.md) distingue a qualificação da publicação efetivamente conferida.
+Data: 16/10/2026. Contrato `2026.10.16.2`, qualificado em cinco gates da CI: 989 testes e 144 cenários de navegador aprovados. Incremento de R08, dependente do [ADR-058](058-quorum-laboratory.md). Integrado à main e conferido no Railway, com fonte, Worker, 26 assets e endpoints privados verificados por leitura. A [evidência](../../artifacts/sql-quorum-2026-10-16/VALIDACAO.md) preserva os resultados da qualificação e da publicação.
 
 ## Decisão
 

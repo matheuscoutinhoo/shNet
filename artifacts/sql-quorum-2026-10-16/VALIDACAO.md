@@ -2,7 +2,7 @@
 
 Data: 16/10/2026. Contrato `2026.10.16.2`. Revisão de código `656527afb329b9dcee85d9291e977bbcefb6aed0`.
 
-Estado: qualificação local e [CI](https://github.com/matheuscoutinhoo/shNet/actions/runs/38939122872) aprovadas. Os cinco gates passaram. Esta evidência ainda não certifica publicação desta versão no Railway. A versão anterior `2026.10.16.1` está [publicada e conferida](../quorum-laboratory-2026-10-16/VALIDACAO.md).
+Estado: qualificação local e [CI](https://github.com/matheuscoutinhoo/shNet/actions/runs/38939122872) aprovadas. Os cinco gates passaram. Versão integrada à main, publicada e conferida em https://shnet.up.railway.app/ em 16/10/2026. A [conferência pública](railway/remote-release.json) verificou fonte, contrato, Worker, TLS, headers, readiness e proteção dos endpoints privados. A [comparação dos 26 assets](railway/local-assets.json) confere todos os arquivos locais de JS/CSS/fontes com seus bytes publicados, incluindo estilos carregados sob demanda. Foram somente consultas de leitura; não houve restore/rollback do banco Railway real.
 
 ## Resultados da CI
 

@@ -1,0 +1,165 @@
+{
+  "generatedAt": "2026-10-16T17:53:57.982Z",
+  "origin": "https://shnet.up.railway.app",
+  "scope": "Read-only comparison of every local compiled JS/CSS/font asset against published bytes.",
+  "matched": true,
+  "assets": 26,
+  "files": [
+    {
+      "path": "/assets/CaptureDialog-Byq5Ybzc.js",
+      "bytes": 4302,
+      "sha256": "2691b0df475559a97dea3641863862d4bb2593d75c848a5f4d424deb1606c263",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/CloneReview-CxXNGSgm.js",
+      "bytes": 14111,
+      "sha256": "8ea2047c415bf9c1796ebf3324be07989e562439968f693421c6e0b5e5ea0f09",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/CommentDialog-ybNoY7NZ.js",
+      "bytes": 1478,
+      "sha256": "46e4cbd88977912bcd86cc6351b33a8dd2e6a89a1ca4d60cb54c7b19bdc99491",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/ConfigEditor-BwnJAgQe.js",
+      "bytes": 10929,
+      "sha256": "fe63be8712b7e21a96b437397b7cb70b4b5adebfe388fa13c684e6e864725fbb",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/FactoryTools-QREx23yT.js",
+      "bytes": 59282,
+      "sha256": "011712535589060e0e45e3d34b2126b0b4c7b926908036d5d714b6d868fc3f52",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/Inspector-DYY-S9KG.js",
+      "bytes": 205344,
+      "sha256": "466cb49d66db5026b5d5b36944f5b428963a289065b107251627694c361f6164",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/NetworkConceptGuide-CiKQDNox.js",
+      "bytes": 35634,
+      "sha256": "039549420dc46dbc6bf6d56d78752f73c106e1ed1937592accd8245372356ede",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/NetworkInspector-2WfoQ5IY.js",
+      "bytes": 11431,
+      "sha256": "0b545f11b3c0790a94cd73b259d276cb1aed6b3012a4ebe450fe30ab45e6ecfa",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/SectionEducation-D0OoS0Q0.js",
+      "bytes": 26734,
+      "sha256": "9461762ce9089d5f124bcde1f5c20e5def57368ae9bfd329dd4192d1b71dd463",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/Terminal-BrP-ENHg.css",
+      "bytes": 3939,
+      "sha256": "0e5386f16cb4be78a2fe911e014a810da76ea2db47d8c8b2a966516b2fd5270b",
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/assets/Terminal-fZ2U_cnh.js",
+      "bytes": 339014,
+      "sha256": "89a0c7b572c130259657b9a01618a246c38f951f68e8a109c38c34d2d442320d",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/Workspace-DLioOiRN.css",
+      "bytes": 15413,
+      "sha256": "b0cb7bd6fec5951c9c8f5808821438206604b1629a912c96009ac427f38e7d69",
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/assets/Workspace-IgG5PkOv.js",
+      "bytes": 376860,
+      "sha256": "5e4d80fc52e761405a09a0f4b71719ccb967243d3fab1ab3cb26bf68318eba01",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/configuration-review-CtN34QgG.js",
+      "bytes": 2473,
+      "sha256": "0c9280c51249893e05505472f801c7d9166acbd2bce22c6b3e712110e82c53de",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/configuration-schemas-CaiXqNdT.js",
+      "bytes": 941,
+      "sha256": "b7283f687e258a4fcb3d9ed9d0fced4033aabab4e719ef9413ad982fda7c7231",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/index-B0eh266i.css",
+      "bytes": 98688,
+      "sha256": "d5f5e6742d55905a95b269c5a14e9a812b56ebf2d756c6d561179fc0b12b90e8",
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/assets/index-CZsGP1PD.js",
+      "bytes": 271562,
+      "sha256": "06ae164db683723a4f5c0dc59371cb9cf97537104bee079eb1213b2de7f73d2c",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/jsx-runtime-Dk72oS4N.js",
+      "bytes": 8774,
+      "sha256": "c5f4f8da0038e4082afc00542f93aa1bb64bc5777801d67197507865915a89b6",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/model-CbvXGfcq.js",
+      "bytes": 983117,
+      "sha256": "cd0529f9dd928bb4d93882d53ce9e7fc9529f79fdf175d01f2a41d9ce99bb449",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/runner-BkC9uMJ8.js",
+      "bytes": 4915,
+      "sha256": "dc9de1b06bef9581ce113454eefe09c8414038d3cdcf7370846e0a1555c0a3c5",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/scenario.worker-CQNstp8E.js",
+      "bytes": 20188,
+      "sha256": "ac36f2ea4b5ac7770218029752ad8af8091588ba2fcf819c27d15dc17e09da66",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/simulation.worker-DsmXUrjW.js",
+      "bytes": 493,
+      "sha256": "33296d21337d3819b524807ccb01bc832c9d80ee8c50a28df9534292379bcc56",
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2",
+      "bytes": 18940,
+      "sha256": "952dddb45d2f96f71cbf3b7f510b24379afc3c89ea02fcf89d377b45d62c0166",
+      "contentType": "font/woff2"
+    },
+    {
+      "path": "/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2",
+      "bytes": 22288,
+      "sha256": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d",
+      "contentType": "font/woff2"
+    },
+    {
+      "path": "/assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA.woff2",
+      "bytes": 6712,
+      "sha256": "8895e3d49825128bfa5238e4c96e9b432d7a3dadbe5c17c6081267398305dc71",
+      "contentType": "font/woff2"
+    },
+    {
+      "path": "/assets/version-DJ9CdVec.js",
+      "bytes": 18991,
+      "sha256": "9e63b7d3e6e9814eea94da7bd697fc3feb877baa4911a3ed87e3631bc0a9f49e",
+      "contentType": "application/javascript; charset=utf-8"
+    }
+  ]
+}
