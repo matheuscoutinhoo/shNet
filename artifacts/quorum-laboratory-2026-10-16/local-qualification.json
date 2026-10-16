@@ -1,0 +1,22 @@
+{
+  "source": "260d255ce0fca821e0a1c4c6a9a8e7ae1b99429739fe8e645e25ac090f42c965",
+  "worker": "27673534aaac8e339bd4ff90061317692d1d0262a8673181c3b3a5be4d70391b",
+  "contract": "2026.10.16.1",
+  "regression": {
+    "passed": 976,
+    "skipped": 1,
+    "failed": 0,
+    "files": 95
+  },
+  "focusedBrowser": {
+    "themes": 2,
+    "passed": 4,
+    "failed": 0,
+    "cases": [
+      "Quorum with GET and visits cooldowns",
+      "PAT/ACL and persistence"
+    ]
+  },
+  "build": true,
+  "note": "Final frozen-source run. Earlier interrupted/mixed-revision runs are not qualification evidence."
+}

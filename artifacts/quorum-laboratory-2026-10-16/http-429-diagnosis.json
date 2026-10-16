@@ -1,0 +1,25 @@
+{
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38903556681",
+  "qualified": false,
+  "scope": "Sanitized failing browser trace; excludes cookies, tokens, bodies and account identity",
+  "limited": [
+    {
+      "method": "GET",
+      "route": "/api/activity",
+      "status": 429,
+      "retryAfter": "1"
+    },
+    {
+      "method": "GET",
+      "route": "/api/activity",
+      "status": 429,
+      "retryAfter": "1"
+    },
+    {
+      "method": "GET",
+      "route": "/api/projects/:id",
+      "status": 429,
+      "retryAfter": "1"
+    }
+  ]
+}

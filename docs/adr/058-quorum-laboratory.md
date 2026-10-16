@@ -1,6 +1,6 @@
 # ADR-058 — Laboratório de quorum e histórico replicado
 
-Data: 16/10/2026. Contrato de desenvolvimento: `2026.10.16.1`.
+Data: 16/10/2026. Contrato: `2026.10.16.1`.
 
 ## Problema e decisão
 
@@ -30,4 +30,4 @@ Um líder isolado pode continuar se considerando líder localmente. Sem novos AC
 
 Até 256 entradas por membro, 16 por mensagem, valores de até 4096 caracteres. Novas propostas são recusadas no limite; não há compactação silenciosa, snapshot installation ou alteração dinâmica de membros. O canal é didático, sem codec PCAP de fabricante, autenticação de mensagens ou proteção contra membros maliciosos. São limitações explícitas do modelo, não garantias de um serviço de consenso de produção.
 
-R19/R18/R20/R25 e as extensões correspondentes de R22 permanecem pendentes conforme o plano consolidado. Não há nova publicação Railway certificada por este ADR.
+R19/R18/R20/R25 e as extensões correspondentes de R22 permanecem pendentes conforme o plano consolidado. A [qualificação](../../artifacts/quorum-laboratory-2026-10-16/VALIDACAO.md) registra 976 testes, 142 cenários de navegador e cinco gates aprovados na CI. A publicação Railway exige sua própria conferência de identidade e endpoints.
