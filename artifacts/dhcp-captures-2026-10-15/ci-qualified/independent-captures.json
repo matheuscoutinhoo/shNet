@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-10-16T00:11:37.470554+00:00",
+  "passed": true,
+  "engineContract": "2026.10.15.7",
+  "engineSourceHash": "eef2d4dffaa73dfbd0b7ca993a78f6eb227915c65f81b8fec1ae677d2ccebee5",
+  "decoders": [
+    "Scapy",
+    "TShark"
+  ],
+  "checksums": {
+    "ipv4Checksums": 126,
+    "udpChecksums": 126
+  },
+  "scenarios": [
+    {
+      "name": "local",
+      "packets": 98,
+      "dhcp": {
+        "discover": 12,
+        "offer": 12,
+        "request": 16,
+        "ack": 12,
+        "decline": 4,
+        "nak": 4,
+        "release": 2
+      },
+      "wiresharkDhcpPackets": 62,
+      "malformed": 0
+    },
+    {
+      "name": "failover",
+      "packets": 54,
+      "dhcp": {
+        "discover": 4,
+        "offer": 4,
+        "request": 9,
+        "ack": 8
+      },
+      "wiresharkDhcpPackets": 25,
+      "malformed": 0
+    },
+    {
+      "name": "relay",
+      "packets": 55,
+      "dhcp": {
+        "discover": 5,
+        "offer": 3,
+        "request": 22,
+        "ack": 9
+      },
+      "wiresharkDhcpPackets": 39,
+      "malformed": 0
+    }
+  ]
+}

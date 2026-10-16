@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-14T11:39:42.174Z",
-  "regression": "artifacts/application-completion-2026-10-13/regression.json",
+  "generatedAt": "2026-10-16T00:09:22.449Z",
+  "regression": "artifacts/dhcp-captures-2026-10-15/local-regression.json",
   "total": 115,
   "passed": 114,
   "deferred": 1,
@@ -968,7 +968,7 @@
       "testTitle": "P-PCAP — PCAP exporta tráfego integrado sem omissões de codec",
       "status": "deferred-protocol-codecs",
       "requirement": "R19",
-      "reason": "Captura universal sem exclusões depende de codecs BGP/EVPN e protocolos adicionais, adiados pelo usuário. A integridade/exclusões dos codecs presentes é testada separadamente."
+      "reason": "Captura universal sem exclusões ainda depende dos codecs de controle, aplicação e gestão restantes em R19. BGP/EVPN e DHCPv4 já possuem validação independente; integridade e exclusões dos codecs presentes são verificadas separadamente."
     },
     {
       "family": "enterprise",

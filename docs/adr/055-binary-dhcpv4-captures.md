@@ -1,6 +1,6 @@
 # ADR-055 — DHCPv4 binário e capturas verificáveis
 
-Data: 15/10/2026. Contrato `2026.10.15.7`. Incremento de R19; qualificação completa em andamento.
+Data: 15/10/2026. Contrato `2026.10.15.7`, aprovado nos cinco gates da [CI 38827552766](https://github.com/matheuscoutinhoo/shNet/actions/runs/38827552766): 926 testes de regressão e 134 cenários de navegador aprovados, sem falhas ou instabilidade. Incremento de R19, que permanece parcial.
 
 ## Decisão
 

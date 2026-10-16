@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-10-16T00:12:44.915747+00:00",
+  "passed": true,
+  "head": "1f17f27dce43d111524880d776c64c693b694370",
+  "run": "https://github.com/matheuscoutinhoo/shNet/actions/runs/38827552766",
+  "environments": [
+    "Windows local",
+    "Linux CI"
+  ],
+  "build": {
+    "engineBuild": "eef2d4dffaa73dfbd0b7ca993a78f6eb227915c65f81b8fec1ae677d2ccebee5",
+    "engineContract": "2026.10.15.7",
+    "schemaVersion": 11,
+    "workerArtifact": "906b879d10c40dc5c312b026317a9c64d203e413120667ca34bb9055feb06124"
+  },
+  "captures": [
+    {
+      "scenario": "local",
+      "bytes": 25148,
+      "sha256": "17d37e50b257bf72199113dffca4febea431c14e25a7f362ea3b6cbe6a360c3a",
+      "identical": true
+    },
+    {
+      "scenario": "failover",
+      "bytes": 11178,
+      "sha256": "cd3591a57bf82e5e2d1612fa275b0e3f73be271222b4d35d2f1adb0d5c072ec4",
+      "identical": true
+    },
+    {
+      "scenario": "relay",
+      "bytes": 15202,
+      "sha256": "38a57205baa5893b55ee03d4d837862c60d11ad86bfdcdda279802daf04937f1",
+      "identical": true
+    }
+  ]
+}
