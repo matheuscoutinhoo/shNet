@@ -12,6 +12,7 @@ import {
   validateQuorumState,
   quorumBase,
   quorumLastIndex,
+  quorumEntryAt,
   quorumDataAt,
   compactQuorum,
   type QuorumCommand,
@@ -224,8 +225,10 @@ export function validateQuorumLab(s: Snapshot) {
       const overlap = Math.max(quorumBase(n), quorumBase(peer.quorum.node));
       if (
         common >= overlap &&
-        (canonicalScenarioJson(quorumDataAt(n, common)) !==
-          canonicalScenarioJson(quorumDataAt(peer.quorum.node, common)) ||
+        ((quorumEntryAt(n, common)?.term ?? n.snapshot?.term ?? 0) !==
+          (quorumEntryAt(peer.quorum.node, common)?.term ?? peer.quorum.node.snapshot?.term ?? 0) ||
+          canonicalScenarioJson(quorumDataAt(n, common)) !==
+            canonicalScenarioJson(quorumDataAt(peer.quorum.node, common)) ||
           canonicalScenarioJson(n.log.slice(overlap - quorumBase(n), common - quorumBase(n))) !==
             canonicalScenarioJson(
               peer.quorum.node.log.slice(

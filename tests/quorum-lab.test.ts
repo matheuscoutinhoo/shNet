@@ -124,6 +124,12 @@ describe('quorum on physical simulated links', () => {
         Object.values(members[0].quorum!.ports)[0]
       )
     ).toThrow();
+    for (const d of e.state.devices) e.compactQuorumLab(d.id);
+    const mismatched = e.snapshot();
+    const forged = mismatched.devices.find((d) => d.quorum!.node.role === 'follower')!.quorum!.node;
+    forged.term++;
+    forged.snapshot!.term++;
+    expect(() => validateSnapshot(mismatched)).toThrow('divergentes');
   });
   it('clones a complete group with fresh identity/data; isolated duplication does not join it', () => {
     const { e, members } = fixture();
