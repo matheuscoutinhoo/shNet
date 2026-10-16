@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-16T00:58:23.526321+00:00",
+  "generatedAt": "2026-10-16T01:09:12.404920+00:00",
   "passed": true,
   "engineContract": "2026.10.15.8",
   "engineSourceHash": "54568ef98aa629ec0c618abed1fcf10c844782c5884876369f2a91823afce56b",
@@ -7,6 +7,16 @@
     "Scapy",
     "TShark"
   ],
+  "wiresharkVersion": "TShark (Wireshark) 4.6.7 (v4.6.7-0-gb439fb7b47a9).",
+  "wiresharkFields": [
+    "frame.number",
+    "syslog.facility",
+    "syslog.level",
+    "syslog.version",
+    "syslog.hostname",
+    "syslog.appname"
+  ],
+  "strictHeaderAndUtf8Validated": true,
   "packets": 31,
   "syslogPackets": 19,
   "malformed": 0,

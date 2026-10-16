@@ -1,9 +1,17 @@
 # Syslog e citações ICMP — 15/10/2026
 
-Contrato `2026.10.15.8`, em qualificação. [Decisão e limites](../../docs/adr/056-syslog-and-original-icmp-quotations.md).
+Contrato `2026.10.15.8`, aprovado nos cinco gates da [CI 38833573812](https://github.com/matheuscoutinhoo/shNet/actions/runs/38833573812), commit `5c86210`. Publicação no Railway em andamento. [Decisão e limites](../../docs/adr/056-syslog-and-original-icmp-quotations.md).
 
 O [laboratório importável](syslog.shlab.json), [PCAP](syslog.pcap) e [manifesto](captures.json) são reproduzíveis por `npx tsx scripts/verify-syslog-captures.ts`. Exercitam PAT, severidade, ACL, perda de enlace, coletor indisponível, evento automático e retomada determinística. A captura tem 31 registros, sendo 19 syslog; apenas três mensagens chegam ao coletor. Mensagens filtradas não são transmitidas; as bloqueadas/perdidas não aparecem no coletor.
 
 A [validação independente](independent-captures.json), produzida por `python scripts/verify-syslog-captures.py`, usa Scapy e TShark. Confere 23 checksums IPv4, 19 UDP, quatro ICMP e os quatro UDP citados após PAT. Nenhum registro malformado, omissão ou descarte no cenário. O teste revelou e motivou a correção das citações ICMP que antes exportavam comprimento UDP zero.
 
 O formato usa TIMESTAMP NILVALUE porque o modelo possui relógio virtual, sem calendário UTC. IDs internos continuam no manifesto/snapshot, e o texto UTF-8 é preservado. Exportar um envio não atesta sua entrega. Capturas legadas que não possam representar os bytes originais são declaradas como omissões. A captura universal continua pendente.
+
+Validação local: [34 testes focados](protocol-tests.json), [936 testes de regressão aprovados](local-regression.json), zero falhas e um adiado (P-PCAP universal), 91 arquivos. A matriz histórica mantém 114 dos 115 casos aprovados. Formatação, lint e typecheck passaram. Seis cenários de navegador passaram nos dois temas: gerenciamento SNMP/syslog, captura syslog e captura DHCPv4, com salvamento/reabertura e exportação mobile. A [captura mobile](syslog-capture-mobile.png) foi inspecionada.
+
+O [build compilado](built-application-ui.json) passou nos testes de Workers, autosave, recuperação e replay. Fonte `54568ef98aa629ec0c618abed1fcf10c844782c5884876369f2a91823afce56b`; Worker `21147c774f001b08e4e17a2a2a991bd0f10a8a742826a963fbca5288fa101451`. JS/CSS: 2.485.106 bytes brutos e 656.205 bytes Brotli.
+
+A [comparação Linux/Windows](cross-platform-captures.json) confirma igualdade byte a byte do PCAP. Wireshark 4.2 na CI e 4.6 local conferem facility, severity, versão, hostname e aplicação; a versão e os campos usados ficam explícitos em cada relatório. A conferência independente do cabeçalho completo, UTF-8 e checksums passou em ambos os ambientes.
+
+CI completa: [936 testes de regressão aprovados](ci-qualified/regression.json), zero falhas e um adiado (P-PCAP universal). Navegador: 68 cenários por tema, 136 aprovados, zero falhas, instabilidade ou skips — [claro](ci-qualified/e2e-sistema-claro.json) e [escuro](ci-qualified/e2e-sistema-escuro.json). O [resumo](ci-qualified/summary.json) registra revisão e identidades qualificadas. A [validação independente Linux](ci-qualified/independent-captures.json), [Workers/replay](ci-qualified/built-application-ui.json), capacidade enterprise concorrente e [containers/backup/restore/rollback isolados](ci-qualified/container-qualification/qualification.json) passaram. Os relatórios de navegador arquivados omitem logs/anexos e preservam resultados e durações.

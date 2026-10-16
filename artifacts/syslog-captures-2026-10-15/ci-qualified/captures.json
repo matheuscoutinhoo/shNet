@@ -1,0 +1,505 @@
+{
+  "generatedAt": "2026-10-16T01:12:18.533Z",
+  "passed": true,
+  "engineContract": "2026.10.15.8",
+  "engineSourceHash": "54568ef98aa629ec0c618abed1fcf10c844782c5884876369f2a91823afce56b",
+  "packets": 31,
+  "dropped": 0,
+  "excluded": [],
+  "scope": "Native RFC 5424/UDP: PAT, severity filter, ACL, link loss, disabled collector, automatic event and deterministic restore. Timestamp is NILVALUE because the model clock is elapsed virtual time, not UTC. Internal event ID stays in the manifest; MSGID/PROCID/SD are NILVALUE.",
+  "entries": [
+    {
+      "receivedAt": 24.008447999999994,
+      "source": "192.168.20.1",
+      "message": {
+        "id": "syslog-20",
+        "timestamp": 0,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 5,
+        "appName": "netos",
+        "text": "Rede em operação 🌐 — temperatura 23 °C"
+      }
+    },
+    {
+      "receivedAt": 808.0053919999998,
+      "source": "192.168.20.1",
+      "message": {
+        "id": "syslog-185",
+        "timestamp": 800,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "LINK_DOWN: Falha didática para correlação do evento."
+      }
+    },
+    {
+      "receivedAt": 1008.0044,
+      "source": "192.168.20.1",
+      "message": {
+        "id": "syslog-211",
+        "timestamp": 1000,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "Retomada do laboratório"
+      }
+    }
+  ],
+  "frames": [
+    {
+      "time": 0.001,
+      "bytes": 60,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "ff:ff:ff:ff:ff:ff"
+    },
+    {
+      "time": 2.0014179999999997,
+      "bytes": 60,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "ff:ff:ff:ff:ff:ff"
+    },
+    {
+      "time": 4.001835999999999,
+      "bytes": 60,
+      "sourceMac": "02:00:00:03:00:00",
+      "destinationMac": "02:00:00:01:00:00"
+    },
+    {
+      "time": 6.002253999999999,
+      "bytes": 60,
+      "sourceMac": "02:00:00:03:00:00",
+      "destinationMac": "02:00:00:01:00:00"
+    },
+    {
+      "time": 8.002671999999999,
+      "bytes": 118,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 104,
+      "message": {
+        "id": "syslog-20",
+        "timestamp": 0,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 5,
+        "appName": "netos",
+        "text": "Rede em operação 🌐 — temperatura 23 °C"
+      }
+    },
+    {
+      "time": 10.003697999999998,
+      "bytes": 118,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 104,
+      "message": {
+        "id": "syslog-20",
+        "timestamp": 0,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 5,
+        "appName": "netos",
+        "text": "Rede em operação 🌐 — temperatura 23 °C"
+      }
+    },
+    {
+      "time": 12.004723999999998,
+      "bytes": 60,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "ff:ff:ff:ff:ff:ff"
+    },
+    {
+      "time": 14.005141999999998,
+      "bytes": 60,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "ff:ff:ff:ff:ff:ff"
+    },
+    {
+      "time": 16.005559999999996,
+      "bytes": 60,
+      "sourceMac": "02:00:00:05:00:00",
+      "destinationMac": "02:00:00:03:00:01"
+    },
+    {
+      "time": 18.005977999999995,
+      "bytes": 60,
+      "sourceMac": "02:00:00:05:00:00",
+      "destinationMac": "02:00:00:03:00:01"
+    },
+    {
+      "time": 20.006395999999995,
+      "bytes": 118,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 104,
+      "message": {
+        "id": "syslog-20",
+        "timestamp": 0,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 5,
+        "appName": "netos",
+        "text": "Rede em operação 🌐 — temperatura 23 °C"
+      }
+    },
+    {
+      "time": 22.007421999999995,
+      "bytes": 118,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 104,
+      "message": {
+        "id": "syslog-20",
+        "timestamp": 0,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 5,
+        "appName": "netos",
+        "text": "Rede em operação 🌐 — temperatura 23 °C"
+      }
+    },
+    {
+      "time": 200.001,
+      "bytes": 87,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 73,
+      "message": {
+        "id": "syslog-110",
+        "timestamp": 200,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Negado pela ACL"
+      }
+    },
+    {
+      "time": 202.001778,
+      "bytes": 87,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 73,
+      "message": {
+        "id": "syslog-110",
+        "timestamp": 200,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Negado pela ACL"
+      }
+    },
+    {
+      "time": 400.001,
+      "bytes": 89,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 75,
+      "message": {
+        "id": "syslog-125",
+        "timestamp": 400,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Perdido no enlace"
+      }
+    },
+    {
+      "time": 600.001,
+      "bytes": 93,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 79,
+      "message": {
+        "id": "syslog-133",
+        "timestamp": 600,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Coletor indisponível"
+      }
+    },
+    {
+      "time": 602.0018259999999,
+      "bytes": 93,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 79,
+      "message": {
+        "id": "syslog-133",
+        "timestamp": 600,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Coletor indisponível"
+      }
+    },
+    {
+      "time": 604.0026519999999,
+      "bytes": 93,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 79,
+      "message": {
+        "id": "syslog-133",
+        "timestamp": 600,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Coletor indisponível"
+      }
+    },
+    {
+      "time": 606.0034779999999,
+      "bytes": 93,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 79,
+      "message": {
+        "id": "syslog-133",
+        "timestamp": 600,
+        "hostname": "PC-01",
+        "facility": 23,
+        "severity": 3,
+        "appName": "netos",
+        "text": "Coletor indisponível"
+      }
+    },
+    {
+      "time": 608.0043039999998,
+      "bytes": 70,
+      "sourceMac": "02:00:00:05:00:00",
+      "destinationMac": "02:00:00:03:00:01"
+    },
+    {
+      "time": 610.0049459999998,
+      "bytes": 70,
+      "sourceMac": "02:00:00:05:00:00",
+      "destinationMac": "02:00:00:03:00:01"
+    },
+    {
+      "time": 612.0055879999998,
+      "bytes": 70,
+      "sourceMac": "02:00:00:03:00:00",
+      "destinationMac": "02:00:00:01:00:00"
+    },
+    {
+      "time": 614.0062299999997,
+      "bytes": 70,
+      "sourceMac": "02:00:00:03:00:00",
+      "destinationMac": "02:00:00:01:00:00"
+    },
+    {
+      "time": 800.001,
+      "bytes": 127,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 113,
+      "message": {
+        "id": "syslog-185",
+        "timestamp": 800,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "LINK_DOWN: Falha didática para correlação do evento."
+      }
+    },
+    {
+      "time": 802.0020979999999,
+      "bytes": 127,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 113,
+      "message": {
+        "id": "syslog-185",
+        "timestamp": 800,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "LINK_DOWN: Falha didática para correlação do evento."
+      }
+    },
+    {
+      "time": 804.0031959999999,
+      "bytes": 127,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 113,
+      "message": {
+        "id": "syslog-185",
+        "timestamp": 800,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "LINK_DOWN: Falha didática para correlação do evento."
+      }
+    },
+    {
+      "time": 806.0042939999998,
+      "bytes": 127,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 113,
+      "message": {
+        "id": "syslog-185",
+        "timestamp": 800,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "LINK_DOWN: Falha didática para correlação do evento."
+      }
+    },
+    {
+      "time": 1000.001,
+      "bytes": 96,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 82,
+      "message": {
+        "id": "syslog-211",
+        "timestamp": 1000,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "Retomada do laboratório"
+      }
+    },
+    {
+      "time": 1002.00185,
+      "bytes": 96,
+      "sourceMac": "02:00:00:01:00:00",
+      "destinationMac": "02:00:00:03:00:00",
+      "source": "192.168.10.10",
+      "destination": "192.168.20.10",
+      "sourcePort": 49170,
+      "destinationPort": 514,
+      "ipBytes": 82,
+      "message": {
+        "id": "syslog-211",
+        "timestamp": 1000,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "Retomada do laboratório"
+      }
+    },
+    {
+      "time": 1004.0027,
+      "bytes": 96,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 82,
+      "message": {
+        "id": "syslog-211",
+        "timestamp": 1000,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "Retomada do laboratório"
+      }
+    },
+    {
+      "time": 1006.00355,
+      "bytes": 96,
+      "sourceMac": "02:00:00:03:00:01",
+      "destinationMac": "02:00:00:05:00:00",
+      "source": "192.168.20.1",
+      "destination": "192.168.20.10",
+      "sourcePort": 49217,
+      "destinationPort": 514,
+      "ipBytes": 82,
+      "message": {
+        "id": "syslog-211",
+        "timestamp": 1000,
+        "hostname": "PC-01",
+        "facility": 16,
+        "severity": 4,
+        "appName": "netos",
+        "text": "Retomada do laboratório"
+      }
+    }
+  ]
+}

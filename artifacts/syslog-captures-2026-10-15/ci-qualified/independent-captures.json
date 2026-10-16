@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-10-16T01:12:46.619398+00:00",
+  "passed": true,
+  "engineContract": "2026.10.15.8",
+  "engineSourceHash": "54568ef98aa629ec0c618abed1fcf10c844782c5884876369f2a91823afce56b",
+  "decoders": [
+    "Scapy",
+    "TShark"
+  ],
+  "wiresharkVersion": "TShark (Wireshark) 4.2.2 (Git v4.2.2 packaged as 4.2.2-1.1build3).",
+  "wiresharkFields": [
+    "frame.number",
+    "syslog.facility",
+    "syslog.level",
+    "syslog.version",
+    "syslog.hostname",
+    "syslog.appname"
+  ],
+  "strictHeaderAndUtf8Validated": true,
+  "packets": 31,
+  "syslogPackets": 19,
+  "malformed": 0,
+  "checksums": {
+    "ipv4Checksums": 23,
+    "udpChecksums": 19,
+    "icmpChecksums": 4,
+    "quotedUdpChecksums": 4
+  },
+  "collectorEntries": 3
+}

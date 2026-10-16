@@ -1,6 +1,6 @@
 # ADR-056 — syslog padrão e citações ICMP fiéis
 
-Data: 15/10/2026. Contrato `2026.10.15.8`, em qualificação. Incremento de R19, no escopo de simulação de comportamento para estudo.
+Data: 15/10/2026. Contrato `2026.10.15.8`, aprovado nos cinco gates da [CI 38833573812](https://github.com/matheuscoutinhoo/shNet/actions/runs/38833573812): 936 testes de regressão e 136 cenários de navegador aprovados, sem falhas ou instabilidade. Incremento de R19, no escopo de simulação de comportamento para estudo.
 
 ## Decisão
 
@@ -22,6 +22,8 @@ Snapshots antigos permanecem aceitos: o campo `wireHeader` é opcional, e a vali
 
 Os testes comparam citações traduzidas UDP/TCP/ICMP com recálculo completo dos cabeçalhos. Cobrem BOM inicial no texto, Unicode, cabeçalhos malformados, checksums, comprimentos, legado, PAT, ACL, perdas, filtro, coletor indisponível e restore determinístico. O navegador salva/reabre o laboratório, confere o coletor e baixa o PCAP em mobile nos dois temas.
 
-`scripts/verify-syslog-captures.ts` gera topologia, captura e manifesto com campos originais. O verificador Python usa Scapy para conferir bytes, texto e checksums, incluindo as citações ICMP após PAT; TShark valida os campos e recusa pacotes malformados ou syslog não conforme. Ambos são obrigatórios na CI. [Evidências](../../artifacts/syslog-captures-2026-10-15/VALIDACAO.md).
+`scripts/verify-syslog-captures.ts` gera topologia, captura e manifesto com campos originais. O verificador Python usa Scapy para conferir bytes, texto e checksums, incluindo as citações ICMP após PAT; TShark confere os campos disponíveis, a quantidade de registros e a ausência de pacotes malformados. Ambos são obrigatórios na CI. [Evidências](../../artifacts/syslog-captures-2026-10-15/VALIDACAO.md).
+
+O relatório identifica a versão e os campos consultados do Wireshark. As versões 4.2 da CI e 4.6 local conferem facility/severity, versão, hostname e aplicação. O campo adicional `syslog.msg.nonconformant` existe na versão local e é consultado apenas quando disponível. A conferência estrita do cabeçalho completo e do UTF-8 é feita diretamente nos bytes em todas as versões. Campos inexistentes não são tratados como erro do pacote nem como uma validação executada.
 
 R19 continua parcial. Os demais codecs, HA de serviços, fabric e gestão segura mantêm os aceites próprios no plano consolidado. Esta entrega não implementa emulação, firmware ou sockets externos.

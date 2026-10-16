@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-16T00:09:22.449Z",
-  "regression": "artifacts/dhcp-captures-2026-10-15/local-regression.json",
+  "generatedAt": "2026-10-16T01:03:25.004Z",
+  "regression": "artifacts/syslog-captures-2026-10-15/local-regression.json",
   "total": 115,
   "passed": 114,
   "deferred": 1,
