@@ -112,6 +112,7 @@ export * from './wire/pcap';
 export * from './factory-scenarios';
 export { dualAccessScenarios } from './dual-access-template';
 export { serviceHaScenarios } from './service-ha-template';
+export { resilientScenarios } from './resilient-template';
 export { industrialProcessScenarios } from './industrial-process-template';
 export * from './enterprise-scenarios';
 export * from './version';

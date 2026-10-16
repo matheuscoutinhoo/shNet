@@ -24,6 +24,27 @@ function topology(mode: 'active' | 'passive' = 'passive', stp = false) {
   return { e, a, b, pc, srv, links, aa, bb };
 }
 describe('LACP por PDUs e encaminhamento EtherChannel', () => {
+  it.each(['power', 'port', 'remove-link', 'remove-device'])(
+    'permite salvar e restaurar imediatamente após %s, sem avançar o relógio',
+    (change) => {
+      const { e, a, b, aa, bb, links } = topology('active', true);
+      e.advanceTo(5000);
+      if (change === 'power') e.setDevicePower(a.id, false);
+      if (change === 'port') e.setPort(a.id, 'p0', false);
+      if (change === 'remove-link') e.removeLink(links[0].id);
+      if (change === 'remove-device') e.removeDevice(a.id);
+      if (change === 'power' || change === 'remove-device') expect(bb.aggregate!.selected).toEqual([]);
+      else {
+        expect(aa.aggregate!.selected).toEqual(['p1']);
+        expect(bb.aggregate!.selected).toEqual(['p1']);
+      }
+      const restored = new SimulationEngine(e.snapshot());
+      e.advanceTo(9000);
+      restored.advanceTo(9000);
+      expect(restored.snapshot()).toEqual(e.snapshot());
+      expect(e.state.devices.some((d) => d.id === b.id)).toBe(true);
+    }
+  );
   it('negocia active/passive com keys locais diferentes e envia broadcast uma vez', () => {
     const { e, a, b, pc, srv, aa, bb } = topology();
     e.advanceTo(5000);

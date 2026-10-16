@@ -2651,6 +2651,49 @@ test('Serviços HA: configuração do VIP, tracking, presets e persistência mob
   await page.getByLabel('Carregar cenário').selectOption({ label: 'Modelo: Serviços HA — parada de dns' });
   expect(errors).toEqual([]);
 });
+
+for (const [template, title, count] of [
+  ['enterprise-resilient', 'Enterprise HA integrado', 37],
+  ['factory-resilient', 'Fábrica HA integrada', 53],
+] as const)
+  test('HA integrada: ' + template + ', presets e snapshot após desligar core', async ({ page }) => {
+    test.setTimeout(150000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/');
+    await registerAndLogin(page, template + '-' + Date.now() + '@example.test');
+    const me = await (await page.request.get('/api/auth/me')).json();
+    const created = await page.request.post('/api/projects', {
+      headers: { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken },
+      data: { name: title, template },
+    });
+    expect(created.status()).toBe(201);
+    const project = await created.json();
+    expect(project.topology.devices).toHaveLength(count);
+    await page.reload();
+    await page.getByRole('heading', { name: title, exact: true }).click();
+    await inspectDevice(page, 'HA-CORE-A');
+    await page.getByRole('button', { name: 'Desligar equipamento', exact: true }).click();
+    // Persist immediately, without advancing a timer to repair stale LACP state.
+    await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+    await expect(page.locator('.project-title')).toContainText('Salvo');
+    await page.reload();
+    await page.getByRole('heading', { name: title, exact: true }).click();
+    await inspectDevice(page, 'HA-CORE-A');
+    await expect(page.getByRole('button', { name: 'Ligar equipamento', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+    await page.getByRole('button', { name: 'Opções do laboratório', exact: true }).click();
+    await page.getByRole('button', { name: 'Validar rede e cenários', exact: true }).click();
+    await page.getByRole('button', { name: 'Cenários e SLA', exact: true }).click();
+    await expect(page.getByLabel('Carregar cenário').locator('option')).toHaveCount(14);
+    await page
+      .getByLabel('Carregar cenário')
+      .selectOption({ label: 'Modelo: HA integrada — perda de HA-WAN-GW-A' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: 'test-results/' + template + '-mobile.png', fullPage: true });
+    expect(errors).toEqual([]);
+  });
 test('Processo industrial: ciclos PLC/HMI, alarmes, persistência e mobile', async ({ page }) => {
   test.setTimeout(120000);
   const errors: string[] = [];

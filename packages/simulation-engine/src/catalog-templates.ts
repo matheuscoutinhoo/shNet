@@ -1,5 +1,21 @@
 export const templates = [
   {
+    id: 'enterprise-resilient',
+    name: 'Enterprise com acesso, WAN e DC A/B',
+    description:
+      'Cinco VLANs, bonds, energia A/B, gateways WAN/DC redundantes, VIPs e réplica DHCP/firewall.',
+    level: 'Enterprise / Disponibilidade integrada',
+    devices: 37,
+  },
+  {
+    id: 'factory-resilient',
+    name: 'Fábrica com acesso, WAN e DC A/B',
+    description:
+      'Oito VLANs, três células PLC/HMI/SCADA, gateways redundantes e falhas com tráfego IP/Modbus.',
+    level: 'Industrial / Disponibilidade integrada',
+    devices: 53,
+  },
+  {
     id: 'dhcp-ha',
     name: 'DHCP com réplica e troca de servidor',
     description:

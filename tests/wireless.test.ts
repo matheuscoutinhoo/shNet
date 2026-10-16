@@ -197,6 +197,8 @@ describe('Rádio, autenticação e associação wireless', () => {
     expect(pc.wireless?.phase).toBe('associated');
     expect(pc.wireless?.association?.bssid).toBe(backup.interfaces.find((p) => p.id === 'wlan0')?.mac);
     e.removeDevice(backup.id);
+    expect(e.state.links.some((l) => l.a.device === backup.id || l.b.device === backup.id)).toBe(false);
+    validateSnapshot(e.snapshot());
     e.refreshSpanningTree();
     expect(pc.wireless?.phase).toBe('scanning');
     validateSnapshot(e.snapshot());

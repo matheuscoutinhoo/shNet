@@ -8,6 +8,13 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 const ms = z.number().finite().nonnegative();
 const name = z.string().min(1).max(100);
+function finalDenialSemantics(contract?: string) {
+  const parts = contract?.split('.').map(Number),
+    boundary = [2026, 10, 15, 9];
+  if (!parts || parts.length !== 4 || parts.some((v) => !Number.isInteger(v))) return false;
+  const different = parts.findIndex((v, i) => v !== boundary[i]);
+  return different === -1 || parts[different] > boundary[different];
+}
 const sampleSchema = z
   .object({
     flow: name,
@@ -246,7 +253,9 @@ export const scenarioReportSchema = z
           : null;
       const jitter = latencies.slice(1).map((n, i) => Math.abs(n - latencies[i]));
       const passed =
-        (!flow.requireFinalSuccess || samples.at(-1)?.status === 'success') &&
+        (!flow.requireFinalSuccess ||
+          (flow.expect === 'deny' && finalDenialSemantics(r.engineContract)) ||
+          samples.at(-1)?.status === 'success') &&
         (flow.expect === 'deny'
           ? received === 0 &&
             samples.every(

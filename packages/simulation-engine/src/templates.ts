@@ -1,6 +1,7 @@
 import { enterpriseDefaults } from './protocols/enterprise-defaults';
 import { dualAccessTemplate } from './dual-access-template';
 import { serviceHaTemplate } from './service-ha-template';
+import { resilientTemplate } from './resilient-template';
 import { dhcpHaTemplate } from './dhcp-ha-template';
 import { industrialProcessTemplate } from './industrial-process-template';
 import factoryTemplate from './factory-template.json' with { type: 'json' };
@@ -14,6 +15,8 @@ function address(d: Device, port: number, ip: string, prefix = 24) {
 import { templates, type TemplateId } from './catalog-templates';
 export { templates, type TemplateId };
 export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
+  if (template === 'enterprise-resilient') return resilientTemplate('enterprise');
+  if (template === 'factory-resilient') return resilientTemplate('factory');
   if (template === 'dhcp-ha') return dhcpHaTemplate();
   if (template === 'industrial-process') return industrialProcessTemplate();
   if (template === 'service-ha') return serviceHaTemplate();

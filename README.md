@@ -90,6 +90,8 @@ Para estudar coleta de eventos, abra **Rede sob observação** e a aba **Gerenci
 
 **Processo PLC, HMI, SCADA e MES** acrescenta tanque simplificado, controle manual/automático, scans PLC e leituras Modbus periódicas com deadline e alarmes. Configure em **Validar rede e cenários → PLC / HMI**; os cinco presets cobrem cargas, perda/retorno, acesso e escrita de setpoint. Execute `npx tsx scripts/verify-industrial-process.ts` para arquivar resultados. Não executa ladder, firmware ou segurança funcional de hardware. [ADR-051](docs/adr/051-plc-process-and-supervisory-cycles.md).
 
+Para estudar disponibilidade ponta a ponta, abra **Enterprise com acesso, WAN e DC A/B** ou **Fábrica com acesso, WAN e DC A/B**. Em **Validar rede e cenários → Cenários e SLA**, carregue um dos 13 presets de cada modelo. Compare perda de gateway, core, acesso, UPS, rack e uplink rompido com carrier preservado. Os endpoints usam bonds e energia A/B; a fábrica inclui três células PLC/HMI/SCADA e MES. `npx tsx scripts/verify-resilient-laboratories.ts` arquiva os 26 cenários e verifica isolamento após cada recuperação. Dados e sessões dos serviços ainda têm os limites descritos no [ADR-057](docs/adr/057-integrated-redundant-laboratories.md).
+
 ### Experimento TCP / HTTP
 
 Os templates **Rotas que se adaptam** e **Rotas por distância** acrescentam OSPF e RIPv2, com caminhos alternativos após falhas. Configure e inspecione os protocolos nas abas dos roteadores. Para DNS sobre TCP, abra **Nomes na rede** e selecione o transporte no painel DNS; o modo automático repete respostas UDP truncadas. Comandos e limites estão em [protocols.md](docs/protocols.md).

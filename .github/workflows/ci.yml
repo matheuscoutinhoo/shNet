@@ -44,6 +44,15 @@ jobs:
         run: npx tsx scripts/verify-service-availability.ts
         env:
           SHLAB_AUDIT_OUTPUT: artifacts/service-availability-2026-10-15/ci
+      - name: Verify integrated enterprise and factory redundancy
+        run: npx tsx scripts/verify-resilient-laboratories.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/resilient-laboratories-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resilient-laboratories
+          path: artifacts/resilient-laboratories-2026-10-15/ci/*.json
       - name: Verify DHCP replication, partition and administrative fencing
         run: npx tsx scripts/verify-dhcp-ha.ts
         env:

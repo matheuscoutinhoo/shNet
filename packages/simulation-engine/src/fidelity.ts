@@ -3,13 +3,13 @@ export const fidelityMatrix = [
     feature: 'NICs e acesso A/B',
     status: 'Simulado',
     limit:
-      'Bond ativo/backup em PC/servidor/PLC/HMI, IPv4/IPv6 e DHCP na interface lógica. Carrier detecta falha local; monitor ARP opcional observa um alvo L2. Falha do endpoint ou dos dois caminhos interrompe o fluxo.',
+      'Bond ativo/backup em PC/servidor/PLC/HMI, IPv4/IPv6 e DHCP na interface lógica. Modelos enterprise/fábrica combinam acesso, energia e gateways WAN/DC A/B. Carrier detecta falha local; monitor ARP observa um alvo L2. Falha do endpoint ou dos dois caminhos interrompe o fluxo.',
   },
   {
     feature: 'Disponibilidade de serviços',
     status: 'Parcial',
     limit:
-      'VRRP accept mode permite serviços no VIP ativo; tracking observa a habilitação local. Modelo nativo tem DNS/HTTP/NTP/syslog em duas instâncias, NICs e energia A/B. Não replica leases, dados, logs ou sessões de aplicação; não oferece quorum/fencing para partições.',
+      'VRRP accept mode e tracking permitem DNS/HTTP/NTP/syslog no VIP ativo, com conteúdo equivalente configurado. DHCPv4 replica leases por canal dedicado e permite promoção administrativa com fencing. Dados/logs/sessões dos demais serviços não são replicados; quorum/eleição automática permanecem pendentes.',
   },
   {
     feature: 'Ethernet, IPv4/IPv6, TCP/UDP, VLAN, ACL',
@@ -92,6 +92,6 @@ export const fidelityMatrix = [
     feature: 'PCAP',
     status: 'Parcial',
     limit:
-      'Ethernet/IP/TCP, Modbus binário, DNS, DHCPv6, VXLAN/UDP e BGP/EVPN binários com checksums. Aplicações didáticas sem codec permanecem excluídas. Capturas antigas BGP JSON/newline, Modbus hex/newline ou VXLAN sem padding podem ser excluídas; omissões e truncamento são informados.',
+      'Ethernet/IP/TCP, Modbus binário, DNS, DHCPv4/v6, syslog RFC 5424/UTF-8, VXLAN/UDP e BGP/EVPN binários com checksums. Aplicações sem codec permanecem excluídas. Capturas legadas incompatíveis são omitidas; exclusões e truncamento são informados. O canal de réplica DHCP não tem codec de fabricante.',
   },
 ];

@@ -619,7 +619,9 @@ export class SimulationEngine {
     if (this.device(id).dhcpHa) disableDhcpHa(this, this.device(id));
     if (this.device(id).stateSync) disableStateSync(this, this.device(id));
     for (const link of this.state.links.filter((l) => l.a.device === id || l.b.device === id))
-      this.removeLink(link.id);
+      // Refresh after the whole removal. Radio discovery must not recreate a
+      // link to the device while it is still present in the intermediate graph.
+      this.removeLink(link.id, false);
     for (const d of this.state.devices)
       if (
         d.wireless &&
@@ -653,7 +655,7 @@ export class SimulationEngine {
     this.state.queue = this.state.queue.filter((q) =>
       q.action.kind === 'probe-timeout' ? !removed.has(q.action.probeId) : q.action.device !== id
     );
-    refreshBonds(this);
+    this.refreshSpanningTree();
   }
   connect(
     a: Link['a'],
@@ -688,10 +690,10 @@ export class SimulationEngine {
         link: link.id,
       }
     );
-    refreshBonds(this);
+    this.refreshSpanningTree();
     return link;
   }
-  removeLink(id: string) {
+  removeLink(id: string, refreshProtocols = true) {
     for (const d of this.state.devices) d.consoleSessions = d.consoleSessions?.filter((c) => c.link !== id);
     this.state.links = this.state.links.filter((l) => l.id !== id);
     this.state.canvasItems = this.state.canvasItems?.filter(
@@ -718,7 +720,7 @@ export class SimulationEngine {
           p.qos.queues = p.qos.queues.filter((f) => f.link !== id);
         }
     }
-    refreshBonds(this);
+    if (refreshProtocols) this.refreshSpanningTree();
   }
   setPort(deviceId: string, portId: string, up: boolean) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
@@ -731,7 +733,7 @@ export class SimulationEngine {
       port.name + ' administrativamente ' + (up ? 'ativa' : 'desligada'),
       { port: portId }
     );
-    refreshBonds(this);
+    this.refreshSpanningTree();
   }
   configureDhcpPool(deviceId: string, input: unknown) {
     const device = this.device(deviceId);
@@ -819,11 +821,11 @@ export class SimulationEngine {
   }
   configurePoe(device: string, supply: unknown, load?: unknown) {
     configurePoe(this, this.device(device), supply, load);
-    refreshBonds(this);
+    this.refreshSpanningTree();
   }
   configureInfrastructure(device: string, input: unknown) {
     configureInfrastructure(this, this.device(device), input);
-    refreshBonds(this);
+    this.refreshSpanningTree();
   }
   configureSystem(device: string, input: unknown) {
     configureSystem(this, this.device(device), input);
@@ -831,7 +833,7 @@ export class SimulationEngine {
   setDevicePower(device: string, power: boolean) {
     setInfrastructurePower(this, this.device(device), power);
     setDevicePower(this, this.device(device), power);
-    refreshBonds(this);
+    this.refreshSpanningTree();
   }
   addHardwarePort(device: string, media: 'serial' | 'console', input?: unknown) {
     return addHardwarePort(this, this.device(device), media, input);

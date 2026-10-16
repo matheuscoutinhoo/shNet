@@ -423,7 +423,7 @@ export class ScenarioRunner {
         passed:
           samples.length > 0 &&
           !samples.some((s) => s.status === 'pending') &&
-          (!f.requireFinalSuccess || samples.at(-1)?.status === 'success') &&
+          (!f.requireFinalSuccess || f.expect === 'deny' || samples.at(-1)?.status === 'success') &&
           (f.expect === 'deny'
             ? successful.length === 0 &&
               samples.every(
