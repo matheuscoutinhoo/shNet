@@ -111,7 +111,7 @@ describe('quorum on physical simulated links', () => {
     noTimer.queue = noTimer.queue.filter((q) => q.action.kind !== 'quorum-tick');
     expect(() => validateSnapshot(noTimer)).toThrow('timer');
     const wrongType = e.snapshot();
-    wrongType.devices[0].type = 'router';
+    wrongType.devices[0].type = 'pc';
     expect(() => validateSnapshot(wrongType)).toThrow('quorum');
     const delayed = e.snapshot();
     delayed.queue.find((q) => q.action.kind === 'quorum-tick')!.at += 5000;
