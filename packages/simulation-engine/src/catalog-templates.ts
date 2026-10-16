@@ -1,5 +1,12 @@
 export const templates = [
   {
+    id: 'quorum',
+    name: 'Quorum, eleição e dados replicados',
+    description: 'Três réplicas completas, gravações por maioria, partições e retorno do líder antigo.',
+    level: 'Disponibilidade / Consistência',
+    devices: 3,
+  },
+  {
     id: 'enterprise-resilient',
     name: 'Enterprise com acesso, WAN e DC A/B',
     description:

@@ -18,6 +18,57 @@ import { dhcpCaptureFixtures } from '../fixtures/dhcp-captures';
 import { syslogCaptureFixture } from '../fixtures/syslog-captures';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
+test('Quorum: gravação por maioria, persistência e painel mobile', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'quorum-ui-' + Date.now() + '@example.test');
+  const me = await (await page.request.get('/api/auth/me')).json();
+  const headers = { Origin: new URL(page.url()).origin, 'X-CSRF-Token': me.csrfToken };
+  const engine = new SimulationEngine(makeTemplate('quorum'));
+  engine.advanceTo(2000);
+  const active = engine.state.devices.find((d) => d.quorum?.node.role === 'leader')!;
+  const created = await page.request.post('/api/projects', {
+    headers,
+    data: { name: 'Quorum UI', template: 'quorum' },
+  });
+  expect(created.status()).toBe(201);
+  const project = await created.json();
+  expect(
+    (
+      await page.request.put('/api/projects/' + project.id, {
+        headers,
+        data: { name: 'Quorum UI', revision: project.revision, topology: engine.snapshot() },
+      })
+    ).status()
+  ).toBe(200);
+  await page.reload();
+  await page.getByRole('heading', { name: 'Quorum UI', exact: true }).click();
+  await page.getByLabel('Modo de simulação', { exact: true }).selectOption('realtime');
+  await inspectDevice(page, active.hostname);
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  const panel = page.locator('.quorum-panel');
+  await expect(panel).toHaveAttribute('data-quorum-role', 'leader');
+  await panel.getByLabel('Chave replicada').fill('estudo');
+  await panel.getByLabel('Valor replicado').fill('confirmado');
+  await panel.getByRole('button', { name: 'Propor gravação', exact: true }).click();
+  await expect(panel).toContainText('sem confirmação desta operação');
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(panel).toContainText('confirmada por maioria');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'Quorum UI', exact: true }).click();
+  await inspectDevice(page, active.hostname);
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  await panel.getByText('Cópia local confirmada (histórica)', { exact: true }).click();
+  await expect(panel.locator('pre')).toContainText('confirmado');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await panel.scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
 async function inspectDevice(page: Page, hostname: string) {
   // A saved viewport can legitimately leave a device outside the canvas.
   // Navigate using the same public finder as the user, then inspect its header.

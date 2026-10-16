@@ -84,25 +84,27 @@ function configuration(value: unknown): unknown {
         key,
         key === 'plcProcess'
           ? configuration(pick(val, Object.keys(plcProcessConfigSchema.shape)))
-          : key === 'dhcpHa'
-            ? configuration(pick(val, ['peer', 'port', 'role']))
-            : key === 'hmiScan'
-              ? configuration(pick(val, Object.keys(hmiScanConfigSchema.shape)))
-              : key === 'bond'
-                ? configuration(pick(val, ['number', 'members', 'primary', 'monitor']))
-                : key === 'modbus' && 'plcProcess' in value
-                  ? configuration(processBanks(val, value.plcProcess))
-                  : key === 'stateSync' && val && typeof val === 'object'
-                    ? Object.fromEntries(
-                        Object.entries(val).filter(([k]) => ['peer', 'port', 'portMap'].includes(k))
-                      )
-                    : key === 'spanningTree' && val && typeof val === 'object'
+          : key === 'quorum'
+            ? configuration(pick(val, ['ports']))
+            : key === 'dhcpHa'
+              ? configuration(pick(val, ['peer', 'port', 'role']))
+              : key === 'hmiScan'
+                ? configuration(pick(val, Object.keys(hmiScanConfigSchema.shape)))
+                : key === 'bond'
+                  ? configuration(pick(val, ['number', 'members', 'primary', 'monitor']))
+                  : key === 'modbus' && 'plcProcess' in value
+                    ? configuration(processBanks(val, value.plcProcess))
+                    : key === 'stateSync' && val && typeof val === 'object'
                       ? Object.fromEntries(
-                          Object.entries(val).filter(([k]) =>
-                            ['enabled', 'mode', 'priority', 'stpEdge', 'stpCost'].includes(k)
-                          )
+                          Object.entries(val).filter(([k]) => ['peer', 'port', 'portMap'].includes(k))
                         )
-                      : configuration(val),
+                      : key === 'spanningTree' && val && typeof val === 'object'
+                        ? Object.fromEntries(
+                            Object.entries(val).filter(([k]) =>
+                              ['enabled', 'mode', 'priority', 'stpEdge', 'stpCost'].includes(k)
+                            )
+                          )
+                        : configuration(val),
       ])
   );
 }

@@ -165,6 +165,8 @@ import { firewallSchema, firewallTimerSchema } from './protocols/firewall-model'
 import { firewallSessionSchema } from './protocols/firewall-model';
 import { stateSyncSchema, stateSyncRecordSchema } from './protocols/state-sync-model';
 import { dhcpHaSchema } from './protocols/dhcp-ha-model';
+import { quorumLabSchema } from './protocols/quorum-lab-model';
+import { quorumMessageSchema } from './protocols/quorum';
 import { icmpErrorSchema } from './protocols/icmp-model';
 import { ospfPacketSchema, ospfStateSchema, ospfTimerSchema } from './protocols/ospf-model';
 export * from './protocols/ospf-model';
@@ -805,6 +807,7 @@ export const deviceSchema = z
     gateway: ipv4Schema.optional(),
     dhcpServer: dhcpServerSchema.optional(),
     dhcpHa: dhcpHaSchema.optional(),
+    quorum: quorumLabSchema.optional(),
     dhcpSnooping: dhcpSnoopingSchema.optional(),
     dnsServer: z
       .object({
@@ -1127,6 +1130,16 @@ export const actionSchema = z.discriminatedUnion('kind', [
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
+  z.object({ kind: z.literal('quorum-tick'), device: id, token: id }).strict(),
+  z
+    .object({
+      kind: z.literal('quorum-deliver'),
+      device: id,
+      token: id,
+      link: id,
+      message: quorumMessageSchema,
+    })
+    .strict(),
   dhcpHaReplySchema.extend({ kind: z.literal('dhcp-ha-reply'), device: id, token: id }),
   dhcpHaTransferSchema.extend({ kind: z.literal('dhcp-ha-deliver') }),
   dhcpHaTransferSchema.extend({ kind: z.literal('dhcp-ha-confirm') }),

@@ -93,7 +93,8 @@ function validatePair(a: Device, b: Device) {
       p.loopback ||
       d.interfaces.some((i) => i.bond?.members.includes(p.id) || i.aggregate?.members.includes(p.id)) ||
       d.dhcpServer!.pools.some((pool) => pool.port === p.id) ||
-      d.stateSync?.port === p.id
+      d.stateSync?.port === p.id ||
+      Object.values(d.quorum?.ports ?? {}).includes(p.id)
     )
       throw new Error('HA DHCP exige uma porta RJ45 física dedicada, sem endereço ou grupo.');
     for (const pool of d.dhcpServer!.pools)

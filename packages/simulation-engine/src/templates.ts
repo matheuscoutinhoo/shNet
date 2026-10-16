@@ -3,6 +3,7 @@ import { dualAccessTemplate } from './dual-access-template';
 import { serviceHaTemplate } from './service-ha-template';
 import { resilientTemplate } from './resilient-template';
 import { dhcpHaTemplate } from './dhcp-ha-template';
+import { quorumTemplate } from './quorum-template';
 import { industrialProcessTemplate } from './industrial-process-template';
 import factoryTemplate from './factory-template.json' with { type: 'json' };
 import { enterpriseDatacenterTemplate } from './enterprise-datacenter-template';
@@ -15,6 +16,7 @@ function address(d: Device, port: number, ip: string, prefix = 24) {
 import { templates, type TemplateId } from './catalog-templates';
 export { templates, type TemplateId };
 export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
+  if (template === 'quorum') return quorumTemplate();
   if (template === 'enterprise-resilient') return resilientTemplate('enterprise');
   if (template === 'factory-resilient') return resilientTemplate('factory');
   if (template === 'dhcp-ha') return dhcpHaTemplate();

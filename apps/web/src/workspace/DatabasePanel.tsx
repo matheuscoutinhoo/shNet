@@ -1,8 +1,10 @@
 import type { Device } from '@shlab/engine';
 import type { LabController } from './useLab';
+import { QuorumPanel } from './QuorumPanel';
 export function DatabasePanel({ lab, device }: { lab: LabController; device: Device }) {
   return (
     <section>
+      <QuorumPanel key={device.id} lab={lab} device={device} />
       <h4>Banco de dados por HTTP/TCP</h4>
       <p className="muted">
         Serviço do laboratório: CREATE TABLE, INSERT, SELECT, UPDATE e DELETE. Máximo de 16 tabelas, 16

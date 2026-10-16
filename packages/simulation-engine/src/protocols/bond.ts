@@ -74,6 +74,7 @@ export function configureBond(
         d.firewall?.zonePolicy?.zones.some((z) => z.ports.includes(p.id)) ||
         d.vrrp?.groups.some((g) => g.port === p.id || g.track?.some((t) => t.port === p.id)) ||
         d.stateSync?.port === p.id ||
+        Object.values(d.quorum?.ports ?? {}).includes(p.id) ||
         d.routes6?.some((r) => r.port === p.id)
     )
   )
@@ -370,6 +371,7 @@ export function validateBonds(s: Snapshot) {
           d.firewall?.zonePolicy?.zones.some((z) => z.ports.includes(m.id)) ||
           d.vrrp?.groups.some((g) => g.port === m.id || g.track?.some((t) => t.port === m.id)) ||
           d.stateSync?.port === m.id ||
+          Object.values(d.quorum?.ports ?? {}).includes(m.id) ||
           d.routes6?.some((r) => r.port === m.id) ||
           m.mode !== 'routed' ||
           m.duplex !== 'full' ||

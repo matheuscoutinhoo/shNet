@@ -1,4 +1,11 @@
 import { invalidateProtocolIndex } from './protocol-index';
+import {
+  configureQuorumLab,
+  removeQuorumLab,
+  proposeQuorumLab,
+  handleQuorumLab,
+} from '../protocols/quorum-lab';
+import type { QuorumCommand } from '../protocols/quorum';
 import { configurePlcProcess, acknowledgeProcessAlarm, handlePlcProcess } from '../protocols/plc-process';
 import { configureHmiScan, handleHmiScan } from '../protocols/hmi-scan';
 import { expireDeviceCaches, invalidateCacheExpiry } from './cache-expiry';
@@ -527,6 +534,7 @@ export class SimulationEngine {
       device.routes6?.some((r) => r.port === portId) ||
       device.dhcpServer?.pools.some((p) => p.port === portId) ||
       device.dhcpHa?.port === portId ||
+      Object.values(device.quorum?.ports ?? {}).includes(portId) ||
       device.dhcp6Server?.pools.some((p) => p.port === portId) ||
       device.interfaces.some((p) => p.dhcp6?.delegatePort === portId) ||
       device.ospf?.interfaces.some((p) => p.port === portId) ||
@@ -616,6 +624,7 @@ export class SimulationEngine {
     });
   }
   removeDevice(id: string) {
+    if (this.device(id).quorum) removeQuorumLab(this, this.device(id));
     if (this.device(id).dhcpHa) disableDhcpHa(this, this.device(id));
     if (this.device(id).stateSync) disableStateSync(this, this.device(id));
     for (const link of this.state.links.filter((l) => l.a.device === id || l.b.device === id))
@@ -705,6 +714,7 @@ export class SimulationEngine {
         (q.action.kind !== 'deliver' &&
           q.action.kind !== 'state-sync-deliver' &&
           q.action.kind !== 'dhcp-ha-deliver' &&
+          q.action.kind !== 'quorum-deliver' &&
           q.action.kind !== 'dhcp-ha-confirm') ||
         q.action.link !== id
     );
@@ -973,6 +983,15 @@ export class SimulationEngine {
   }
   configureDhcpHaPair(deviceA: string, deviceB: string, input: unknown) {
     configureDhcpHaPair(this, this.device(deviceA), this.device(deviceB), input);
+  }
+  configureQuorumLab(members: string[]) {
+    configureQuorumLab(this, members);
+  }
+  removeQuorumLab(deviceId: string) {
+    removeQuorumLab(this, this.device(deviceId));
+  }
+  proposeQuorumLab(deviceId: string, command: QuorumCommand) {
+    return proposeQuorumLab(this, this.device(deviceId), command);
   }
   disableDhcpHa(deviceId: string) {
     disableDhcpHa(this, this.device(deviceId));
@@ -1588,6 +1607,7 @@ export class SimulationEngine {
       a.kind === 'stp-transmit'
     )
       handleSpanningTreeAction(this, a);
+    else if (a.kind === 'quorum-tick' || a.kind === 'quorum-deliver') handleQuorumLab(this, a);
     else if (a.kind === 'state-sync-tick' || a.kind === 'state-sync-deliver') handleStateSync(this, a);
     else if (
       a.kind === 'dhcp-ha-tick' ||

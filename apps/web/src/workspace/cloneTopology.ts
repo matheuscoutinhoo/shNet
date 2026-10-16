@@ -237,6 +237,10 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         if (linkLocal6(a.ip) && macs.has(p.mac))
           linkLocals.set(a.ip, ipv6String(ipv6Number('fe80::') | interfaceId6(macs.get(p.mac)!)));
   const warnings = new Set<string>();
+  if (originals.some((d) => d.quorum && !d.quorum.node.members.every((id) => mapping.has(id))))
+    warnings.add(
+      'Grupo de quorum parcial não foi copiado; selecione todos os membros para criar um grupo independente.'
+    );
   function remap<T>(value: T, d: Device, key = ''): T {
     if (typeof value === 'string')
       return (mapping.get(value) ??
@@ -413,6 +417,14 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
       });
     }
   const items = [];
+  for (const d of originals)
+    if (
+      d.quorum &&
+      d.id === [...d.quorum.node.members].sort()[0] &&
+      d.quorum.node.members.every((id) => mapping.has(id))
+    ) {
+      e.configureQuorumLab(d.quorum.node.members.map((id) => mapping.get(id)!));
+    }
   for (const d of originals)
     if (d.dhcpHa?.role === 'active' && mapping.has(d.dhcpHa.peer)) {
       const peer = source.devices.find((p) => p.id === d.dhcpHa!.peer)!;

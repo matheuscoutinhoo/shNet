@@ -28,6 +28,27 @@ export function preflight(s: Snapshot): PreflightIssue[] {
   const addresses = new Map<string, string[]>();
   const domain = networkDomains(s);
   for (const d of s.devices) {
+    if (d.quorum && d.id === [...d.quorum.node.members].sort()[0]) {
+      add(
+        'QUORUM_SERVICE_SCOPE',
+        'info',
+        d.quorum.node.members,
+        'O quorum protege somente o armazenamento de estudo; os demais serviços não usam esta confirmação.',
+        'Teste partições e gravações confirmadas. Papel de líder ou cópia histórica não certificam disponibilidade nem leitura atual.'
+      );
+      if (
+        s.devices.some(
+          (peer) => peer.quorum?.node.cluster === d.quorum!.node.cluster && peer.quorum.node.log.length >= 240
+        )
+      )
+        add(
+          'QUORUM_LOG_CAPACITY',
+          'warning',
+          d.quorum.node.members,
+          'Histórico de quorum próximo do limite de 256 entradas, sem compactação.',
+          'Exporte o laboratório antes do limite. Atingir o limite recusa novas operações; não remove dados confirmados.'
+        );
+    }
     if (d.dhcpHa?.role === 'active') {
       const status = dhcpHaStatus(s, d);
       add(

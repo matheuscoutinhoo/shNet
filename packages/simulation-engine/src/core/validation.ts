@@ -46,6 +46,7 @@ import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
 import { validateStateSync } from '../protocols/state-sync';
 import { validateDhcpHa } from '../protocols/dhcp-ha';
+import { validateQuorumLab } from '../protocols/quorum-lab';
 export function validateSnapshot(value: unknown): Snapshot {
   const s = snapshotSchema.parse(value);
   if (s.capture) {
@@ -90,6 +91,7 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateFirewall(s);
   validateStateSync(s);
   validateDhcpHa(s);
+  validateQuorumLab(s);
   validateInspection(s);
   validateOspf(s);
   validateRip(s);
