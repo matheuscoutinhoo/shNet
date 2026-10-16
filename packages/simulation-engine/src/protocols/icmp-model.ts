@@ -3,7 +3,15 @@ import { idSchema, ipv4Schema, portNumberSchema, uint32Schema } from '../schemas
 
 // A bounded quotation of the IPv4 header and first eight transport octets.
 // Payloads are deliberately excluded: an ICMP error cannot contain another error.
-const header = { src: ipv4Schema, dst: ipv4Schema, ttl: z.number().int().min(0).max(255) };
+const header = {
+  src: ipv4Schema,
+  dst: ipv4Schema,
+  ttl: z.number().int().min(0).max(255),
+  wireHeader: z
+    .string()
+    .regex(/^[a-f0-9]{56}$/)
+    .optional(),
+};
 const ports = { sourcePort: portNumberSchema, destinationPort: portNumberSchema };
 export const icmpQuoteSchema = z.discriminatedUnion('protocol', [
   z
@@ -14,7 +22,13 @@ export const icmpQuoteSchema = z.discriminatedUnion('protocol', [
       probeId: idSchema,
     })
     .strict(),
-  z.object({ ...header, protocol: z.literal('UDP'), ...ports }).strict(),
+  z
+    .object({
+      ...header,
+      protocol: z.literal('UDP'),
+      ...ports,
+    })
+    .strict(),
   z.object({ ...header, protocol: z.literal('TCP'), ...ports, sequence: uint32Schema }).strict(),
 ]);
 export const icmpErrorSchema = z

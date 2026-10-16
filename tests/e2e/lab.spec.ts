@@ -15,6 +15,7 @@ import type { Project, ProjectSummary } from '../../apps/web/src/api';
 import { dualAccessFixture } from '../fixtures/dual-access';
 import { dhcpHaFixture } from '../fixtures/dhcp-ha';
 import { dhcpCaptureFixtures } from '../fixtures/dhcp-captures';
+import { syslogCaptureFixture } from '../fixtures/syslog-captures';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 async function inspectDevice(page: Page, hostname: string) {
@@ -3490,6 +3491,53 @@ test('EVPN: supressão ARP configurável, diagnóstico e persistência mobile', 
   await checkbox.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('evpn-arp-mobile.png'), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+});
+
+test('Syslog padrão: coleta, persistência e PCAP mobile', async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const { engine, collector } = syslogCaptureFixture(),
+    snapshot = engine.snapshot();
+  await page.goto('/');
+  await registerAndLogin(page, 'syslog-pcap-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Syslog captura');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'syslog-captura.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(snapshot)),
+  });
+  await expect(page.locator('.network-device')).toHaveCount(snapshot.devices.length);
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('button', { name: /^LABORATÓRIO LIVRE Syslog captura/ }).click();
+  await inspectDevice(page, collector.hostname);
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Gerenciamento', exact: true }).click();
+  await expect(page.locator('.syslog-records')).toContainText('Retomada do laboratório');
+  await expect(page.locator('.syslog-records')).not.toContainText('Negado pela ACL');
+  await page.getByRole('button', { name: 'Fechar inspector', exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Opções do laboratório', exact: true }).click();
+  await page.getByRole('button', { name: 'Exportar captura PCAP', exact: true }).click();
+  const capture = page.getByRole('dialog', { name: 'Captura binária da simulação' });
+  await expect(capture).toContainText('syslog RFC 5424');
+  await expect(capture).toContainText('0 omitidos');
+  expect((await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations).toEqual([]);
+  await capture.getByRole('button', { name: 'Baixar PCAP', exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath('syslog-capture-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+  const pending = page.waitForEvent('download');
+  await capture.getByRole('button', { name: 'Baixar PCAP', exact: true }).click();
+  const downloaded = await pending,
+    records = decodePcap(await readFile((await downloaded.path())!));
+  expect(records).toHaveLength(snapshot.capture!.frames.length);
+  const messages = records.flatMap((p) => p.frame.transport?.syslog ?? []);
+  expect(messages.some((m) => m.text?.includes('Rede em operação 🌐') && m.priority === 189)).toBe(true);
+  expect(messages.some((m) => m.text === 'Negado pela ACL')).toBe(true);
+  expect(errors).toEqual([]);
 });
 
 test('DHCPv4 binário: PCAP completo, persistência e exportação mobile', async ({ page }, testInfo) => {

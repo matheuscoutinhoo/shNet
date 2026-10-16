@@ -2,6 +2,7 @@ import type { SimulationEngine } from '../core/engine';
 import type { Device, IcmpPacket, IcmpQuote, NetworkInterface, Packet } from '../model';
 import { isUnicast } from './dhcp-config';
 import { resolveRoute, subnet } from './ipv4';
+import { encodeEthernet } from '../wire/ethernet-codec';
 
 export function isIcmpError(
   packet: Packet
@@ -9,8 +10,22 @@ export function isIcmpError(
   return packet.protocol === 'ICMP' && (packet.kind === 'time-exceeded' || packet.kind === 'unreachable');
 }
 export function quotePacket(packet: Packet): IcmpQuote | undefined {
-  const header = { src: packet.src, dst: packet.dst, ttl: packet.ttl };
   if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP' || isIcmpError(packet)) return;
+  let wireHeader: string | undefined;
+  try {
+    const bytes = encodeEthernet({
+      src: '02:00:00:00:00:01',
+      dst: '02:00:00:00:00:02',
+      etherType: 'IPv4',
+      hops: 32,
+      packet,
+    });
+    wireHeader = [...bytes.subarray(14, 42)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // Unsupported/legacy wire formats remain usable in simulation; their
+    // ICMP quotations are explicitly excluded from binary capture.
+  }
+  const header = { src: packet.src, dst: packet.dst, ttl: packet.ttl, ...(wireHeader ? { wireHeader } : {}) };
   if (packet.protocol === 'ICMP') {
     if (packet.kind !== 'echo-request' && packet.kind !== 'echo-reply') return;
     return { ...header, protocol: 'ICMP', kind: packet.kind, probeId: packet.probeId };

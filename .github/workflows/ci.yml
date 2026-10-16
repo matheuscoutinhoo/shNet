@@ -52,6 +52,10 @@ jobs:
         run: npx tsx scripts/verify-dhcp-captures.ts
         env:
           SHLAB_AUDIT_OUTPUT: artifacts/dhcp-captures-2026-10-15/ci
+      - name: Generate syslog captures with delivery and failure scenarios
+        run: npx tsx scripts/verify-syslog-captures.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/syslog-captures-2026-10-15/ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -95,6 +99,14 @@ jobs:
           python scripts/verify-bgp-captures.py
           python scripts/verify-evpn-arp-captures.py artifacts/evpn-arp-2026-10-15/ci
           python scripts/verify-dhcp-captures.py artifacts/dhcp-captures-2026-10-15/ci
+          python scripts/verify-syslog-captures.py artifacts/syslog-captures-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: syslog-captures
+          path: |
+            artifacts/syslog-captures-2026-10-15/ci/*.json
+            artifacts/syslog-captures-2026-10-15/ci/*.pcap
       - uses: actions/upload-artifact@v4
         if: always()
         with:

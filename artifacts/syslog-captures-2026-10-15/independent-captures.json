@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-10-16T00:58:23.526321+00:00",
+  "passed": true,
+  "engineContract": "2026.10.15.8",
+  "engineSourceHash": "54568ef98aa629ec0c618abed1fcf10c844782c5884876369f2a91823afce56b",
+  "decoders": [
+    "Scapy",
+    "TShark"
+  ],
+  "packets": 31,
+  "syslogPackets": 19,
+  "malformed": 0,
+  "checksums": {
+    "ipv4Checksums": 23,
+    "udpChecksums": 19,
+    "icmpChecksums": 4,
+    "quotedUdpChecksums": 4
+  },
+  "collectorEntries": 3
+}

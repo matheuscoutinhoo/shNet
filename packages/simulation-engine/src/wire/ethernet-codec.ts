@@ -3,6 +3,7 @@ import { encodeRip } from '../protocols/rip-codec';
 import { tcpPacketSchema, tcpOctets } from '../protocols/tcp-model';
 import { encodeDhcp6, decodeDhcp6 } from './dhcp6-codec';
 import { encodeDhcp4, decodeDhcp4, validDhcp4Ports } from './dhcp4-codec';
+import { encodeSyslog, decodeSyslog } from './syslog-codec';
 import { encodeDns } from './dns-codec';
 import { concat, checksum, hex, ip4, ip6, need, pseudo, readIp6, text, u16, u32, view } from './binary';
 const mac = (value: string) => hex(value.replaceAll(':', ''));
@@ -47,17 +48,48 @@ function udp(src: string, dst: string, sourcePort: number, destinationPort: numb
   return body;
 }
 function quote4(q: NonNullable<Extract<Packet, { protocol: 'ICMP' }>['error']>['quote']) {
-  const transport =
-    q.protocol === 'TCP'
-      ? concat(u16(q.sourcePort), u16(q.destinationPort), u32(q.sequence))
-      : q.protocol === 'UDP'
-        ? concat(u16(q.sourcePort), u16(q.destinationPort), new Uint8Array(4))
-        : concat(
-            new Uint8Array([q.kind === 'echo-request' ? 8 : 0, 0, 0, 0]),
-            u16(identifier(q.probeId)),
-            u16(1)
-          );
-  return ipv4(q.src, q.dst, q.ttl, q.protocol === 'TCP' ? 6 : q.protocol === 'UDP' ? 17 : 1, transport);
+  if (!q.wireHeader) throw new Error('ICMP: citação legada/sem cabeçalho original; captura omitida.');
+  const original = hex(q.wireHeader),
+    bytes = original.slice(),
+    v = view(bytes),
+    old = view(original);
+  if (
+    original.length !== 28 ||
+    original[0] !== 0x45 ||
+    original[9] !== (q.protocol === 'UDP' ? 17 : q.protocol === 'TCP' ? 6 : 1) ||
+    checksum(original.subarray(0, 20)) ||
+    old.getUint16(2) < (q.protocol === 'TCP' ? 40 : 28) ||
+    (q.protocol === 'UDP' && (old.getUint16(24) < 8 || old.getUint16(2) !== old.getUint16(24) + 20))
+  )
+    throw new Error('ICMP: cabeçalho citado inválido.');
+  bytes.set(ip4(q.src), 12);
+  bytes.set(ip4(q.dst), 16);
+  bytes[8] = q.ttl;
+  if (q.protocol !== 'ICMP') {
+    v.setUint16(20, q.sourcePort);
+    v.setUint16(22, q.destinationPort);
+  }
+  if (q.protocol === 'TCP') v.setUint32(24, q.sequence);
+  if (q.protocol === 'ICMP') {
+    if (![0, 8].includes(original[20]) || original[21] !== 0)
+      throw new Error('ICMP: apenas echo pode ser citado no perfil.');
+    bytes[20] = q.kind === 'echo-request' ? 8 : 0;
+    v.setUint16(24, identifier(q.probeId));
+  }
+  // RFC 1624 incremental checksum update: the original payload is not stored
+  // in an ICMP quotation. Preserve disabled IPv4 UDP checksums (zero).
+  if ((q.protocol === 'UDP' && old.getUint16(26)) || q.protocol === 'ICMP') {
+    const position = q.protocol === 'UDP' ? 26 : 22;
+    let sum = ~old.getUint16(position) & 65535;
+    for (const at of q.protocol === 'UDP' ? [12, 14, 16, 18, 20, 22] : [20, 24])
+      sum += (~old.getUint16(at) & 65535) + v.getUint16(at);
+    while (sum >>> 16) sum = (sum & 65535) + (sum >>> 16);
+    const result = ~sum & 65535;
+    v.setUint16(position, q.protocol === 'UDP' ? result || 65535 : result);
+  }
+  v.setUint16(10, 0);
+  v.setUint16(10, checksum(bytes.subarray(0, 20)));
+  return bytes;
 }
 const identifier = (id: string) => {
   let value = 0;
@@ -216,6 +248,11 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
         if (!validDhcp4Ports(op, p.sourcePort, p.destinationPort))
           throw new Error('DHCP: portas UDP incompatíveis com o tipo de mensagem.');
         payload = encodeDhcp4(v.message, p.bytes - 28);
+      } else if (v.protocol === 'SYSLOG') {
+        if (p.destinationPort !== 514) throw new Error('Syslog: porta de destino diferente de UDP/514.');
+        payload = encodeSyslog(v.message);
+        if (p.bytes !== payload.length + 28)
+          throw new Error('Syslog: tamanho legado/incoerente; captura omitida sem padding de conteúdo.');
       } else if (v.protocol === 'RIP') payload = encodeRip(v.message);
       else if (v.protocol === 'RADIUS') payload = hex(v.message.wire);
       else if (v.protocol === 'EAP-RADIUS') payload = hex(v.wire);
@@ -304,6 +341,7 @@ export interface DecodedEthernet {
     payload: Uint8Array;
     dhcp6?: ReturnType<typeof decodeDhcp6>;
     dhcp4?: ReturnType<typeof decodeDhcp4>;
+    syslog?: ReturnType<typeof decodeSyslog>;
     vxlan?: { vni: number; inner: DecodedEthernet };
   };
 }
@@ -431,6 +469,8 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
       if (!validDhcp4Ports(r.transport.dhcp4.op, r.transport.sourcePort!, r.transport.destinationPort!))
         throw new Error('DHCP: portas UDP incompatíveis com op BOOTP.');
     }
+    if (r.family === 4 && r.transport.destinationPort === 514)
+      r.transport.syslog = decodeSyslog(r.transport.payload);
     if (r.transport.destinationPort === 4789) {
       const p = r.transport.payload;
       need(p, 0, 22);

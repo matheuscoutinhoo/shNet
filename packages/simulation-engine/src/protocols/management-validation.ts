@@ -1,7 +1,7 @@
 import type { Snapshot } from '../model';
 import { isUnicast } from './dhcp-config';
 import { compareOids } from './snmp-mib';
-import { managementBytes } from './management-wire';
+import { validManagementLength } from './management-wire';
 import { SNMP } from './snmp-model';
 import { managementEnabled } from './layer3';
 
@@ -87,7 +87,7 @@ export function validateManagement(snapshot: Snapshot) {
     if (
       packet?.protocol === 'UDP' &&
       (packet.payload.protocol === 'SNMP' || packet.payload.protocol === 'SYSLOG') &&
-      packet.bytes !== managementBytes(packet.payload)
+      !validManagementLength(packet)
     )
       throw new Error('Comprimento do datagrama de gerenciamento inválido.');
     if (

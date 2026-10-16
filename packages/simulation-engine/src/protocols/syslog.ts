@@ -3,8 +3,9 @@ import type { Device, NetworkEvent, UdpPacket } from '../model';
 import { resolveRoute } from './ipv4';
 import { managementEnabled } from './layer3';
 import { isUnicast } from './dhcp-config';
-import { managementPacket } from './management-wire';
+import { managementPacket, validManagementLength } from './management-wire';
 import { SYSLOG, syslogClientSchema, syslogMessageSchema, type SyslogMessage } from './syslog-model';
+import { encodeSyslog } from '../wire/syslog-codec';
 
 export function configureSyslog(engine: SimulationEngine, device: Device, input: unknown) {
   if (!managementEnabled(device)) throw new Error('Configure uma SVI IPv4 para gerenciar o switch L2.');
@@ -54,6 +55,7 @@ export function sendSyslog(
     appName,
     text,
   });
+  encodeSyslog(message);
   if (severity > config.severity) {
     engine.emit(
       'SYSLOG_FILTERED',
@@ -123,6 +125,7 @@ export function receiveSyslog(engine: SimulationEngine, device: Device, packet: 
   const message = packet.payload.message;
   if (
     !packet.ttl ||
+    !validManagementLength(packet) ||
     !isUnicast(packet.src) ||
     !isUnicast(packet.dst) ||
     packet.destinationPort !== SYSLOG.port ||
