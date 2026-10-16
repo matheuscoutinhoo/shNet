@@ -104,6 +104,7 @@ export * from './core/runner';
 export { tcpSettingsSchema, tcpOptionsSchema, tcpOptionBytes } from './protocols/tcp-model';
 export * from './wire/ethernet-codec';
 export * from './wire/dhcp6-codec';
+export * from './wire/dhcp4-codec';
 export * from './wire/dns-codec';
 export * from './wire/pcap';
 

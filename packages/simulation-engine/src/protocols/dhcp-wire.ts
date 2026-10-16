@@ -11,6 +11,7 @@ import {
   type UdpPacket,
 } from '../model';
 import type { SimulationEngine } from '../core/engine';
+import { dhcp4MessageSize } from '../wire/dhcp4-codec';
 
 const eventTypes: Record<DhcpMessage['type'], NetworkEvent['type']> = {
   discover: 'DHCP_DISCOVER',
@@ -41,7 +42,7 @@ export function sendDhcp(
     sourcePort: response ? DHCP.serverPort : DHCP.clientPort,
     destinationPort: response && !toRelay ? DHCP.clientPort : DHCP.serverPort,
     payload: { protocol: 'DHCP', message },
-    bytes: 328 + ('dns' in message ? message.dns.length * 4 : 0),
+    bytes: 28 + dhcp4MessageSize(message),
   };
   const target = destination === DHCP.broadcastIp ? BROADCAST : destinationMac;
   const frame: Frame | undefined = target

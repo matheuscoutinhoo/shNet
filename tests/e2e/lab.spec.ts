@@ -14,6 +14,7 @@ import { networkConcepts } from '../../apps/web/src/workspace/networkConcepts';
 import type { Project, ProjectSummary } from '../../apps/web/src/api';
 import { dualAccessFixture } from '../fixtures/dual-access';
 import { dhcpHaFixture } from '../fixtures/dhcp-ha';
+import { dhcpCaptureFixtures } from '../fixtures/dhcp-captures';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 async function inspectDevice(page: Page, hostname: string) {
@@ -3489,6 +3490,49 @@ test('EVPN: supressão ARP configurável, diagnóstico e persistência mobile', 
   await checkbox.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('evpn-arp-mobile.png'), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+});
+
+test('DHCPv4 binário: PCAP completo, persistência e exportação mobile', async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const snapshot = dhcpCaptureFixtures().local.snapshot();
+  await page.goto('/');
+  await registerAndLogin(page, 'dhcp-pcap-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('DHCP captura');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'dhcp-captura.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(snapshot)),
+  });
+  await expect(page.locator('.network-device')).toHaveCount(5);
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('button', { name: /^LABORATÓRIO LIVRE DHCP captura/ }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Opções do laboratório', exact: true }).click();
+  await page.getByRole('button', { name: 'Exportar captura PCAP', exact: true }).click();
+  const capture = page.getByRole('dialog', { name: 'Captura binária da simulação' });
+  await expect(capture).toContainText('DHCPv4/v6 e relay');
+  await expect(capture).toContainText('0 omitidos');
+  expect((await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations).toEqual([]);
+  await capture.getByRole('button', { name: 'Baixar PCAP', exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath('dhcp-capture-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+  const pending = page.waitForEvent('download');
+  await capture.getByRole('button', { name: 'Baixar PCAP', exact: true }).click();
+  const download = await pending,
+    frames = decodePcap(await readFile((await download.path())!)),
+    messages = frames.flatMap((r) => r.frame.transport?.dhcp4 ?? []);
+  expect(frames).toHaveLength(snapshot.capture!.frames.length);
+  expect(new Set(messages.map((m) => m.type))).toEqual(
+    new Set(['discover', 'offer', 'request', 'decline', 'ack', 'nak', 'release'])
+  );
+  expect(messages.some((m) => m.type === 'ack' && m.dns.length === 8)).toBe(true);
+  expect(errors).toEqual([]);
 });
 
 test('BGP/EVPN binário: PDU legível, PCAP e inspeção mobile', async ({ page }, testInfo) => {

@@ -2,6 +2,7 @@ import { frameSchema, type Frame, type Packet, type Packet6, type TcpPacket } fr
 import { encodeRip } from '../protocols/rip-codec';
 import { tcpPacketSchema, tcpOctets } from '../protocols/tcp-model';
 import { encodeDhcp6, decodeDhcp6 } from './dhcp6-codec';
+import { encodeDhcp4, decodeDhcp4, validDhcp4Ports } from './dhcp4-codec';
 import { encodeDns } from './dns-codec';
 import { concat, checksum, hex, ip4, ip6, need, pseudo, readIp6, text, u16, u32, view } from './binary';
 const mac = (value: string) => hex(value.replaceAll(':', ''));
@@ -210,7 +211,12 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
       let payload: Uint8Array;
       const v = p.payload;
       if (v.protocol === 'DNS') payload = encodeDns(v.message);
-      else if (v.protocol === 'RIP') payload = encodeRip(v.message);
+      else if (v.protocol === 'DHCP') {
+        const op = ['offer', 'ack', 'nak'].includes(v.message.type) ? 2 : 1;
+        if (!validDhcp4Ports(op, p.sourcePort, p.destinationPort))
+          throw new Error('DHCP: portas UDP incompatíveis com o tipo de mensagem.');
+        payload = encodeDhcp4(v.message, p.bytes - 28);
+      } else if (v.protocol === 'RIP') payload = encodeRip(v.message);
       else if (v.protocol === 'RADIUS') payload = hex(v.message.wire);
       else if (v.protocol === 'EAP-RADIUS') payload = hex(v.wire);
       else if (v.protocol === 'VXLAN') {
@@ -297,6 +303,7 @@ export interface DecodedEthernet {
     options?: { kind: number; data: number[] }[];
     payload: Uint8Array;
     dhcp6?: ReturnType<typeof decodeDhcp6>;
+    dhcp4?: ReturnType<typeof decodeDhcp4>;
     vxlan?: { vni: number; inner: DecodedEthernet };
   };
 }
@@ -415,6 +422,15 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
     r.transport = { sourcePort: v.getUint16(0), destinationPort: v.getUint16(2), payload: body.subarray(8) };
     if (r.family === 6 && [546, 547].includes(r.transport.destinationPort!))
       r.transport.dhcp6 = decodeDhcp6(r.transport.payload);
+    if (
+      r.family === 4 &&
+      [67, 68].includes(r.transport.sourcePort!) &&
+      [67, 68].includes(r.transport.destinationPort!)
+    ) {
+      r.transport.dhcp4 = decodeDhcp4(r.transport.payload);
+      if (!validDhcp4Ports(r.transport.dhcp4.op, r.transport.sourcePort!, r.transport.destinationPort!))
+        throw new Error('DHCP: portas UDP incompatíveis com op BOOTP.');
+    }
     if (r.transport.destinationPort === 4789) {
       const p = r.transport.payload;
       need(p, 0, 22);

@@ -1,0 +1,3527 @@
+{
+  "generatedAt": "2026-10-16T00:00:25.907Z",
+  "engineContract": "2026.10.15.7",
+  "engineSourceHash": "eef2d4dffaa73dfbd0b7ca993a78f6eb227915c65f81b8fec1ae677d2ccebee5",
+  "passed": true,
+  "scope": "Retained Ethernet/IPv4/ARP/DHCPv4 network frames: conflict, DORA, NAK/RELEASE, T1/T2, relay and administrative failover. HA database channel is a separate simulated transport, outside this PCAP scope.",
+  "scenarios": [
+    {
+      "name": "local",
+      "packets": 98,
+      "excluded": [],
+      "dropped": 0,
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "lease": {
+            "id": "dhcp-lease-630",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "serverMac": "02:00:00:01:00:00",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "acquiredAt": 9012.014868000002,
+            "renewAt": 17012.014868000002,
+            "rebindAt": 23012.014868000002,
+            "expiresAt": 25012.014868000002
+          }
+        }
+      ],
+      "frames": [
+        {
+          "event": "event-31",
+          "time": 0,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-39",
+          "time": 2.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-41",
+          "time": 2.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-43",
+          "time": 2.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-68",
+          "time": 8.008688,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-73",
+          "time": 10.011569999999999,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-75",
+          "time": 10.011569999999999,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-77",
+          "time": 10.011569999999999,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-90",
+          "time": 12.014451999999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-98",
+          "time": 14.017269999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-100",
+          "time": 14.017269999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-102",
+          "time": 14.017269999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-125",
+          "time": 20.023123999999996,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-130",
+          "time": 22.026005999999995,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-132",
+          "time": 22.026005999999995,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-134",
+          "time": 22.026005999999995,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-148",
+          "time": 24.028887999999995,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-156",
+          "time": 26.029305999999995,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-158",
+          "time": 26.029305999999995,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-160",
+          "time": 26.029305999999995,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-173",
+          "time": 28.029723999999995,
+          "bytes": 60,
+          "sourceMac": "02:00:00:05:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-177",
+          "time": 30.030141999999994,
+          "bytes": 60,
+          "sourceMac": "02:00:00:05:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-181",
+          "time": 32.030559999999994,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "decline",
+            "server": "192.0.2.2",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-188",
+          "time": 34.03337799999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "decline",
+            "server": "192.0.2.2",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-190",
+          "time": 34.03337799999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "decline",
+            "server": "192.0.2.2",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-192",
+          "time": 34.03337799999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-29",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "decline",
+            "server": "192.0.2.2",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-221",
+          "time": 4032.03056,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-227",
+          "time": 4034.033378,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-229",
+          "time": 4034.033378,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-231",
+          "time": 4034.033378,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-255",
+          "time": 4040.0396640000004,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-260",
+          "time": 4042.0425460000006,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-262",
+          "time": 4042.0425460000006,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-264",
+          "time": 4042.0425460000006,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-277",
+          "time": 4044.045428000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-285",
+          "time": 4046.0482460000007,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-287",
+          "time": 4046.0482460000007,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-289",
+          "time": 4046.0482460000007,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-312",
+          "time": 4052.054516000001,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-317",
+          "time": 4054.0573980000013,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-319",
+          "time": 4054.0573980000013,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-321",
+          "time": 4054.0573980000013,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-183",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-335",
+          "time": 4056.0602800000015,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-343",
+          "time": 4058.0606980000016,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-345",
+          "time": 4058.0606980000016,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-347",
+          "time": 4058.0606980000016,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-361",
+          "time": 5056.0602800000015,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-367",
+          "time": 5058.060698000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-369",
+          "time": 5058.060698000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-371",
+          "time": 5058.060698000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-385",
+          "time": 6056.0602800000015,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-391",
+          "time": 6058.060698000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-393",
+          "time": 6058.060698000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-395",
+          "time": 6058.060698000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-416",
+          "time": 8000,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.240",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-421",
+          "time": 8002.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.240",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-423",
+          "time": 8002.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.240",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-425",
+          "time": 8002.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.240",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-436",
+          "time": 8004.005636,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "nak",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-445",
+          "time": 8006.008454,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "nak",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-447",
+          "time": 8006.008454,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "nak",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-449",
+          "time": 8006.008454,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-414",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "nak",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-468",
+          "time": 8500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-475",
+          "time": 8502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-477",
+          "time": 8502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-479",
+          "time": 8502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-490",
+          "time": 8504.000836,
+          "bytes": 60,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-496",
+          "time": 8506.001253999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-500",
+          "time": 8508.001671999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "192.0.2.101",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-463",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.101",
+            "type": "release",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-504",
+          "time": 8510.00449,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "192.0.2.101",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-463",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.101",
+            "type": "release",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-518",
+          "time": 9000,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-524",
+          "time": 9002.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-526",
+          "time": 9002.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-528",
+          "time": 9002.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-552",
+          "time": 9008.009104,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-557",
+          "time": 9010.011986000001,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-559",
+          "time": 9010.011986000001,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-561",
+          "time": 9010.011986000001,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-574",
+          "time": 9012.014868000002,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-582",
+          "time": 9014.017686000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-584",
+          "time": 9014.017686000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-586",
+          "time": 9014.017686000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.101",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-609",
+          "time": 9020.023956000003,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-614",
+          "time": 9022.026838000003,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-616",
+          "time": 9022.026838000003,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-618",
+          "time": 9022.026838000003,
+          "bytes": 350,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 336,
+          "dhcp": {
+            "transactionId": "dhcp-516",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.101",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [
+              "198.51.100.1",
+              "198.51.100.2",
+              "198.51.100.3",
+              "198.51.100.4",
+              "198.51.100.5",
+              "198.51.100.6",
+              "198.51.100.7",
+              "198.51.100.8"
+            ],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-632",
+          "time": 9024.029720000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-640",
+          "time": 9026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-642",
+          "time": 9026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-644",
+          "time": 9026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-658",
+          "time": 10024.029720000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-664",
+          "time": 10026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-666",
+          "time": 10026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-668",
+          "time": 10026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-682",
+          "time": 11024.029720000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-688",
+          "time": 11026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-690",
+          "time": 11026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-692",
+          "time": 11026.030138000004,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        }
+      ]
+    },
+    {
+      "name": "failover",
+      "packets": 54,
+      "excluded": [],
+      "dropped": 0,
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "lease": {
+            "id": "dhcp-lease-446",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:02:00:00",
+            "dns": [],
+            "acquiredAt": 14500,
+            "renewAt": 22500,
+            "rebindAt": 28500,
+            "expiresAt": 30500
+          }
+        }
+      ],
+      "frames": [
+        {
+          "event": "event-29",
+          "time": 0,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-37",
+          "time": 2.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-39",
+          "time": 2.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-41",
+          "time": 2.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-66",
+          "time": 8.008688,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-71",
+          "time": 10.011505999999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-73",
+          "time": 10.011505999999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-75",
+          "time": 10.011505999999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "offer",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-88",
+          "time": 12.014323999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-96",
+          "time": 14.017141999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-98",
+          "time": 14.017141999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-100",
+          "time": 14.017141999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "192.0.2.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-123",
+          "time": 20.022987999999994,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-128",
+          "time": 22.025805999999996,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-130",
+          "time": 22.025805999999996,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-132",
+          "time": 22.025805999999996,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-27",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-157",
+          "time": 500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-164",
+          "time": 502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-166",
+          "time": 502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-168",
+          "time": 502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-179",
+          "time": 504.00083600000005,
+          "bytes": 60,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-185",
+          "time": 506.0012540000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-189",
+          "time": 508.0016720000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "192.0.2.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-151",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "request",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-193",
+          "time": 510.0044900000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "192.0.2.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-151",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "request",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-207",
+          "time": 516.010344,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:04:00:00",
+          "source": "192.0.2.2",
+          "destination": "192.0.2.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-151",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-211",
+          "time": 518.0131620000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:04:00:00",
+          "source": "192.0.2.2",
+          "destination": "192.0.2.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-151",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-243",
+          "time": 8500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-251",
+          "time": 8502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-253",
+          "time": 8502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-266",
+          "time": 9500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-273",
+          "time": 9502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-275",
+          "time": 9502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-288",
+          "time": 10500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-295",
+          "time": 10502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-297",
+          "time": 10502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-316",
+          "time": 12500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-324",
+          "time": 12502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-326",
+          "time": 12502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-339",
+          "time": 13500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-346",
+          "time": 13502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-348",
+          "time": 13502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-363",
+          "time": 14500,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.100",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-360",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "request",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-367",
+          "time": 14500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-374",
+          "time": 14502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-376",
+          "time": 14502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-388",
+          "time": 14502.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.100",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-360",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "request",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-390",
+          "time": 14502.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.100",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-360",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "request",
+            "requestedIp": "192.0.2.100"
+          }
+        },
+        {
+          "event": "event-407",
+          "time": 14504.005636000002,
+          "bytes": 60,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-416",
+          "time": 14506.006054000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-418",
+          "time": 14506.006054000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-429",
+          "time": 14508.006472000001,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:02:00:00"
+        },
+        {
+          "event": "event-434",
+          "time": 14510.00689,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:02:00:00"
+        },
+        {
+          "event": "event-438",
+          "time": 14512.007308,
+          "bytes": 342,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "02:00:00:04:00:00",
+          "source": "192.0.2.3",
+          "destination": "192.0.2.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-360",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-442",
+          "time": 14514.010126000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "02:00:00:04:00:00",
+          "source": "192.0.2.3",
+          "destination": "192.0.2.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-360",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "192.0.2.100",
+            "type": "ack",
+            "address": "192.0.2.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        }
+      ]
+    },
+    {
+      "name": "relay",
+      "packets": 55,
+      "excluded": [],
+      "dropped": 0,
+      "clients": [
+        {
+          "name": "DHCP-CLIENT-1",
+          "lease": {
+            "id": "dhcp-lease-412",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "serverMac": "02:00:00:14:00:00",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "acquiredAt": 14500,
+            "renewAt": 22500,
+            "rebindAt": 28500,
+            "expiresAt": 30500
+          }
+        }
+      ],
+      "frames": [
+        {
+          "event": "event-37",
+          "time": 0,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-48",
+          "time": 2.002818,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-55",
+          "time": 2.002818,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-62",
+          "time": 4.003235999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-64",
+          "time": 4.003235999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-67",
+          "time": 4.003235999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-77",
+          "time": 4.003235999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-79",
+          "time": 4.003235999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-82",
+          "time": 4.003235999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-92",
+          "time": 6.003653999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01"
+        },
+        {
+          "event": "event-100",
+          "time": 6.003653999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "02:00:00:14:00:01"
+        },
+        {
+          "event": "event-105",
+          "time": 8.004071999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01"
+        },
+        {
+          "event": "event-109",
+          "time": 8.004071999999999,
+          "bytes": 60,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "02:00:00:14:00:01"
+        },
+        {
+          "event": "event-113",
+          "time": 10.004489999999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-117",
+          "time": 10.004489999999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:02:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.3",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-121",
+          "time": 12.007307999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-125",
+          "time": 12.007307999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:02:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.3",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "discover"
+          }
+        },
+        {
+          "event": "event-142",
+          "time": 18.013177999999996,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.1",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "offer",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-146",
+          "time": 20.015995999999998,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.1",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "offer",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-151",
+          "time": 22.018814,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "offer",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-156",
+          "time": 24.021632,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "0.0.0.0",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "type": "request",
+            "requestedIp": "10.0.0.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-163",
+          "time": 26.02445,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-167",
+          "time": 26.02445,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:02:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.3",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-171",
+          "time": 28.027268000000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-175",
+          "time": 28.027268000000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:02:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.3",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100",
+            "server": "192.0.2.2"
+          }
+        },
+        {
+          "event": "event-191",
+          "time": 34.033122000000006,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.1",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-195",
+          "time": 36.035940000000004,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.1",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-200",
+          "time": 38.038758,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "192.0.2.2",
+          "destination": "255.255.255.255",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-35",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "0.0.0.0",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-215",
+          "time": 500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-222",
+          "time": 502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-226",
+          "time": 504.00083600000005,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:14:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-209",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-230",
+          "time": 506.00365400000004,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-209",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-234",
+          "time": 508.00647200000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-209",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-248",
+          "time": 514.0123179999999,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-209",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-252",
+          "time": 516.015136,
+          "bytes": 342,
+          "sourceMac": "02:00:00:01:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-209",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-256",
+          "time": 518.017954,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:00",
+          "destinationMac": "02:00:00:04:00:00",
+          "source": "192.0.2.2",
+          "destination": "10.0.0.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-209",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.2",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-288",
+          "time": 8500,
+          "bytes": 60,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff"
+        },
+        {
+          "event": "event-295",
+          "time": 8502.000418,
+          "bytes": 60,
+          "sourceMac": "02:00:00:14:00:00",
+          "destinationMac": "02:00:00:04:00:00"
+        },
+        {
+          "event": "event-299",
+          "time": 8504.000836,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:14:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-303",
+          "time": 8506.003654,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-309",
+          "time": 8508.006472000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-312",
+          "time": 8508.006472000001,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-331",
+          "time": 12500,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "02:00:00:14:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-336",
+          "time": 12502.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-342",
+          "time": 12504.005636000002,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-345",
+          "time": 12504.005636000002,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.100",
+          "destination": "192.0.2.2",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-282",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-361",
+          "time": 14500,
+          "bytes": 342,
+          "sourceMac": "02:00:00:04:00:00",
+          "destinationMac": "ff:ff:ff:ff:ff:ff",
+          "source": "10.0.0.100",
+          "destination": "255.255.255.255",
+          "sourcePort": 68,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-368",
+          "time": 14502.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-372",
+          "time": 14502.002818,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:02:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.3",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-378",
+          "time": 14504.005636000002,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-381",
+          "time": 14504.005636000002,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:01:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.2",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-390",
+          "time": 14504.005636000002,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:01",
+          "destinationMac": "02:00:00:02:00:00",
+          "source": "10.0.0.1",
+          "destination": "192.0.2.3",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "request",
+            "requestedIp": "10.0.0.100"
+          }
+        },
+        {
+          "event": "event-399",
+          "time": 14506.008454000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.3",
+          "destination": "10.0.0.1",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-403",
+          "time": 14508.011272000003,
+          "bytes": 342,
+          "sourceMac": "02:00:00:02:00:00",
+          "destinationMac": "02:00:00:14:00:01",
+          "source": "192.0.2.3",
+          "destination": "10.0.0.1",
+          "sourcePort": 67,
+          "destinationPort": 67,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        },
+        {
+          "event": "event-408",
+          "time": 14510.014090000004,
+          "bytes": 342,
+          "sourceMac": "02:00:00:14:00:00",
+          "destinationMac": "02:00:00:04:00:00",
+          "source": "192.0.2.3",
+          "destination": "10.0.0.100",
+          "sourcePort": 67,
+          "destinationPort": 68,
+          "ipBytes": 328,
+          "dhcp": {
+            "transactionId": "dhcp-358",
+            "clientMac": "02:00:00:04:00:00",
+            "clientIp": "10.0.0.100",
+            "giaddr": "10.0.0.1",
+            "hops": 1,
+            "type": "ack",
+            "address": "10.0.0.100",
+            "prefix": 24,
+            "server": "192.0.2.3",
+            "gateway": "10.0.0.1",
+            "dns": [],
+            "leaseMs": 16000
+          }
+        }
+      ]
+    }
+  ]
+}

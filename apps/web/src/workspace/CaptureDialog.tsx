@@ -10,7 +10,7 @@ export function CaptureDialog({ lab, onClose }: { lab: LabController; onClose: (
       <p>
         {capture.retainedFrames} frames retidos em armazenamento independente do histórico visual. Início:{' '}
         {capture.startedAt.toFixed(0)} ms virtuais. Ethernet/VLAN, ARP, IPv4/IPv6, TCP, UDP, ICMP/NDP,
-        DNS/EDNS, DHCPv6/relay, RIP, RADIUS, Modbus TCP, VXLAN e BGP/EVPN possuem codecs.
+        DNS/EDNS, DHCPv4/v6 e relay, RIP, RADIUS, Modbus TCP, VXLAN e BGP/EVPN possuem codecs.
       </p>
       {capture.dropped > 0 && (
         <p role="alert">

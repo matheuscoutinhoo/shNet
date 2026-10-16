@@ -48,6 +48,10 @@ jobs:
         run: npx tsx scripts/verify-dhcp-ha.ts
         env:
           SHLAB_AUDIT_OUTPUT: artifacts/dhcp-ha-2026-10-15/ci
+      - name: Generate native DHCPv4 captures with renewal, rebinding and relay
+        run: npx tsx scripts/verify-dhcp-captures.ts
+        env:
+          SHLAB_AUDIT_OUTPUT: artifacts/dhcp-captures-2026-10-15/ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -90,6 +94,14 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
           python scripts/verify-bgp-captures.py
           python scripts/verify-evpn-arp-captures.py artifacts/evpn-arp-2026-10-15/ci
+          python scripts/verify-dhcp-captures.py artifacts/dhcp-captures-2026-10-15/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dhcp-captures
+          path: |
+            artifacts/dhcp-captures-2026-10-15/ci/*.json
+            artifacts/dhcp-captures-2026-10-15/ci/*.pcap
       - uses: actions/upload-artifact@v4
         if: always()
         with:

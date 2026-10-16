@@ -1,0 +1,25 @@
+{
+  "errors": [],
+  "openMs": 1143.9384,
+  "failedDeferredPanelPreservesWorkspace": true,
+  "controlledPanelErrors": [],
+  "continuousAutosave": {
+    "revision": 2,
+    "clock": 4019.5,
+    "manualSaveResolved": true
+  },
+  "build": {
+    "engineBuild": "eef2d4dffaa73dfbd0b7ca993a78f6eb227915c65f81b8fec1ae677d2ccebee5",
+    "engineContract": "2026.10.15.7",
+    "schemaVersion": 11,
+    "workerArtifact": "906b879d10c40dc5c312b026317a9c64d203e413120667ca34bb9055feb06124",
+    "clientWorkerHash": "eef2d4dffaa73dfbd0b7ca993a78f6eb227915c65f81b8fec1ae677d2ccebee5",
+    "workerArtifactHash": "906b879d10c40dc5c312b026317a9c64d203e413120667ca34bb9055feb06124",
+    "entryBytes": 269870,
+    "entry": "/assets/index-D_OIdvNn.js",
+    "replay": "matched"
+  },
+  "doubleFailureVisible": true,
+  "expiredSessionWithUnavailableStoragePreservesWorkspace": true,
+  "passed": true
+}
