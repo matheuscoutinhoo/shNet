@@ -1,6 +1,6 @@
 # Syslog e citações ICMP — 15/10/2026
 
-Contrato `2026.10.15.8`, aprovado nos cinco gates da [CI 38833573812](https://github.com/matheuscoutinhoo/shNet/actions/runs/38833573812), commit `5c86210`. Publicação no Railway em andamento. [Decisão e limites](../../docs/adr/056-syslog-and-original-icmp-quotations.md).
+Contrato `2026.10.15.8`, aprovado nos cinco gates da [CI 38833573812](https://github.com/matheuscoutinhoo/shNet/actions/runs/38833573812), commit `5c86210`, integrado à `main` e verificado no Railway. [Decisão e limites](../../docs/adr/056-syslog-and-original-icmp-quotations.md).
 
 O [laboratório importável](syslog.shlab.json), [PCAP](syslog.pcap) e [manifesto](captures.json) são reproduzíveis por `npx tsx scripts/verify-syslog-captures.ts`. Exercitam PAT, severidade, ACL, perda de enlace, coletor indisponível, evento automático e retomada determinística. A captura tem 31 registros, sendo 19 syslog; apenas três mensagens chegam ao coletor. Mensagens filtradas não são transmitidas; as bloqueadas/perdidas não aparecem no coletor.
 
@@ -15,3 +15,5 @@ O [build compilado](built-application-ui.json) passou nos testes de Workers, aut
 A [comparação Linux/Windows](cross-platform-captures.json) confirma igualdade byte a byte do PCAP. Wireshark 4.2 na CI e 4.6 local conferem facility, severity, versão, hostname e aplicação; a versão e os campos usados ficam explícitos em cada relatório. A conferência independente do cabeçalho completo, UTF-8 e checksums passou em ambos os ambientes.
 
 CI completa: [936 testes de regressão aprovados](ci-qualified/regression.json), zero falhas e um adiado (P-PCAP universal). Navegador: 68 cenários por tema, 136 aprovados, zero falhas, instabilidade ou skips — [claro](ci-qualified/e2e-sistema-claro.json) e [escuro](ci-qualified/e2e-sistema-escuro.json). O [resumo](ci-qualified/summary.json) registra revisão e identidades qualificadas. A [validação independente Linux](ci-qualified/independent-captures.json), [Workers/replay](ci-qualified/built-application-ui.json), capacidade enterprise concorrente e [containers/backup/restore/rollback isolados](ci-qualified/container-qualification/qualification.json) passaram. Os relatórios de navegador arquivados omitem logs/anexos e preservam resultados e durações.
+
+A integração à `main` (`965a247`) preserva o código qualificado em `5c86210`; os commits seguintes registram somente documentação e evidências. Produção Railway verificada em 15/10/2026: contrato `.8`, fonte/Worker correspondentes, 21 assets íntegros, TLS e endpoints privados protegidos. [Prova por consultas de leitura](railway/remote-release.json). As falhas de rede descritas são da topologia simulada; backup/restore e rollback de infraestrutura foram exercitados somente na CI isolada.
