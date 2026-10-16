@@ -1,6 +1,6 @@
 # ADR-057 — disponibilidade integrada e persistência após falhas físicas
 
-Data: 16/10/2026. Contrato `2026.10.15.9`, em qualificação. Snapshot 1 e migration 011 preservados.
+Data: 16/10/2026. Contrato `2026.10.15.9`, aprovado nos cinco gates da [CI 38895733044](https://github.com/matheuscoutinhoo/shNet/actions/runs/38895733044): 949 testes de regressão e 140 cenários de navegador aprovados. Snapshot 1 e migration 011 preservados. [Evidências](../../artifacts/resilient-laboratories-2026-10-15/VALIDACAO.md).
 
 ## Modelos
 

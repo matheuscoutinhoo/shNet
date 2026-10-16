@@ -92,6 +92,8 @@ Para estudar coleta de eventos, abra **Rede sob observação** e a aba **Gerenci
 
 Para estudar disponibilidade ponta a ponta, abra **Enterprise com acesso, WAN e DC A/B** ou **Fábrica com acesso, WAN e DC A/B**. Em **Validar rede e cenários → Cenários e SLA**, carregue um dos 13 presets de cada modelo. Compare perda de gateway, core, acesso, UPS, rack e uplink rompido com carrier preservado. Os endpoints usam bonds e energia A/B; a fábrica inclui três células PLC/HMI/SCADA e MES. `npx tsx scripts/verify-resilient-laboratories.ts` arquiva os 26 cenários e verifica isolamento após cada recuperação. Dados e sessões dos serviços ainda têm os limites descritos no [ADR-057](docs/adr/057-integrated-redundant-laboratories.md).
 
+O [roteiro de estudo](docs/integrated-redundancy-lab.md) reúne endereços, comparação de falhas, continuidade da mesma conexão TCP, troca DHCP e testes dos limites da redundância.
+
 ### Experimento TCP / HTTP
 
 Os templates **Rotas que se adaptam** e **Rotas por distância** acrescentam OSPF e RIPv2, com caminhos alternativos após falhas. Configure e inspecione os protocolos nas abas dos roteadores. Para DNS sobre TCP, abra **Nomes na rede** e selecione o transporte no painel DNS; o modo automático repete respostas UDP truncadas. Comandos e limites estão em [protocols.md](docs/protocols.md).
