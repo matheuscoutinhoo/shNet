@@ -350,7 +350,7 @@ export function ping6(
   const src = port && source6(port, dst);
   if (!port || !src) throw new Error('Aguarde DAD/SLAAC ou configure um endereço IPv6 de origem.');
   const probes = (e.state.probes6 ??= []);
-  if (probes.length >= 200) {
+  if (probes.length >= LIMITS.probes) {
     const at = probes.findIndex((q) => q.status !== 'pending');
     if (at < 0) throw new Error('Muitos probes IPv6 pendentes.');
     const [old] = probes.splice(at, 1);

@@ -8,6 +8,7 @@ import {
   makeTemplate,
   validateSnapshot,
 } from '../packages/simulation-engine/src';
+import { LIMITS } from '../packages/simulation-engine/src/model';
 
 describe('Correções da auditoria de fábrica', () => {
   it('template preserva comunicação após falha da distribuição e da UPS primárias', () => {
@@ -63,7 +64,7 @@ describe('Correções da auditoria de fábrica', () => {
     e.advanceTo(1000);
     const packets = exportPcap(e.state).packets;
     expect(packets).toBeGreaterThan(0);
-    for (let i = 0; i < 1600; i++) e.emit('CONFIG_CHANGED', pc.id, 'Histórico visual');
+    for (let i = 0; i <= LIMITS.events; i++) e.emit('CONFIG_CHANGED', pc.id, 'Histórico visual');
     expect(e.state.events.some((ev) => ev.type === 'PING_SUCCESS')).toBe(false);
     expect(e.state.diagnostics?.some((ev) => ev.type === 'PING_SUCCESS')).toBe(true);
     expect(decodePcap(exportPcap(e.state).bytes)).toHaveLength(packets);

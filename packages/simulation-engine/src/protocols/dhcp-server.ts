@@ -1,5 +1,6 @@
 import {
   DHCP,
+  DHCP_LIMITS,
   type Device,
   type DhcpBinding,
   type DhcpMessage,
@@ -71,7 +72,7 @@ function saveBinding(
       )
   );
   if (!binding) {
-    if (server.bindings.length >= 2048) return;
+    if (server.bindings.length >= DHCP_LIMITS.bindings) return;
     binding = { id: engine.id('dhcp-binding'), pool: pool.name, clientMac, address, status, expiresAt: 0 };
     server.bindings.push(binding);
   }
