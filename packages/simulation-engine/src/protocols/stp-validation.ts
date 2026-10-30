@@ -1,14 +1,16 @@
 import { withStpInstance, stpInstances, stpScope, isStpAction } from './stp-scope';
 import type { Snapshot } from '../model';
 import { bridgeId, compareBridge } from './stp-election';
+import { checkDevice, validatedDevice } from '../core/validation-scope';
 
 export function validateSpanningTree(snapshot: Snapshot) {
   const timers = new Map<string, number>();
   for (const { at, action } of snapshot.queue) {
     if (isStpAction(action)) {
-      const d = snapshot.devices.find((d) => d.id === action.device);
+      const d = validatedDevice(snapshot, action.device);
       if (!d || !stpInstances(d).includes(action.instance ?? 0))
         throw new Error('Timer de instância STP inexistente.');
+      if (!checkDevice(action.device)) continue;
     }
     let key: string | undefined;
     if (action.kind === 'stp-hello')
@@ -25,6 +27,7 @@ export function validateSpanningTree(snapshot: Snapshot) {
     }
   }
   for (const device of snapshot.devices) {
+    if (!checkDevice(device.id)) continue;
     const c = device.multiSpanningTree;
     if (c) {
       const expected =

@@ -2,6 +2,7 @@ export * from './model';
 export * from './configuration-patch';
 export * from './core/engine';
 export * from './core/validation';
+export { materializeMark, type StateMark } from './core/state-mark';
 export * from './cli/terminal';
 export { formatDnsQuery } from './cli/dns';
 export { formatTcpConnection, terminalText } from './cli/tcp';

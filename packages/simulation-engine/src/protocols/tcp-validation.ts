@@ -1,8 +1,10 @@
 import type { Snapshot } from '../model';
 import { TCP, tcpAdd, tcpBytes, tcpDistance, tcpFinished, tcpLength, tcpOptionBytes } from './tcp-model';
+import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
 
 export function validateTcp(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
+    if (!checkDevice(device.id)) continue;
     const services = device.tcpServices ?? [],
       connections = device.tcpConnections ?? [];
     if (
@@ -52,9 +54,8 @@ export function validateTcp(snapshot: Snapshot) {
         connection.bytesSent + tcpBytes(connection.sendBuffer, connection.encoding) > TCP.buffer
       )
         throw new Error('Contadores ou relógio TCP inválidos.');
-      const timers = snapshot.queue.filter(
-        ({ action }) =>
-          action.kind === 'tcp-timer' && action.device === device.id && action.connection === connection.id
+      const timers = deviceTimers(snapshot, device.id, 'tcp-timer').filter(
+        ({ action }) => action.kind === 'tcp-timer' && action.connection === connection.id
       );
       const expire = timers.filter(({ action }) => action.kind === 'tcp-timer' && action.timer === 'expire');
       const retry = timers.filter(({ action }) => action.kind === 'tcp-timer' && action.timer === 'retry');
@@ -178,9 +179,9 @@ export function validateTcp(snapshot: Snapshot) {
   for (const { action } of snapshot.queue) {
     if (
       action.kind === 'tcp-timer' &&
-      !snapshot.devices
-        .find((device) => device.id === action.device)
-        ?.tcpConnections?.some((connection) => connection.id === action.connection)
+      !validatedDevice(snapshot, action.device)?.tcpConnections?.some(
+        (connection) => connection.id === action.connection
+      )
     )
       throw new Error('Timer TCP sem conexão.');
   }

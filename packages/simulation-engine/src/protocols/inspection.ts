@@ -188,7 +188,8 @@ export function validateInspection(s: Snapshot) {
   for (const d of s.devices) {
     const c = d.firewall?.application;
     if (!c) continue;
-    validateRules(c);
+    // Validation must not reorder live state.
+    validateRules({ ...c, rules: [...c.rules] });
     if (
       new Set(c.flows.map((f) => f.id)).size !== c.flows.length ||
       new Set(

@@ -32,7 +32,15 @@ import { validateLayer3 } from '../protocols/layer3';
 import { validateLacp } from '../protocols/lacp';
 import { validateBonds } from '../protocols/bond';
 import { validateVrrp } from '../protocols/vrrp';
-import { snapshotSchema, snapshotTrustedLogsSchema, type Snapshot } from '../model';
+import {
+  deviceSchema,
+  queueEntrySchema,
+  snapshotSchema,
+  snapshotScopedSchema,
+  snapshotTrustedLogsSchema,
+  type Device,
+  type Snapshot,
+} from '../model';
 import { endpoint, validateMedia } from '../links/physical';
 import { validateDhcpDevice } from '../protocols/dhcp-config';
 import { validateDnsState } from '../protocols/dns-records';
@@ -56,22 +64,36 @@ import { validateDhcpHa } from '../protocols/dhcp-ha';
 import { validateQuorumLab } from '../protocols/quorum-lab';
 import { validateDiscovery } from '../protocols/discovery';
 import { validateHsrp } from '../protocols/hsrp';
-/**
- * Full snapshot validation. `trustedLogs` is for re-validating the live engine state after a local
- * edit: event/capture records written by the engine are not schema-checked again.
- */
-export function validateSnapshot(value: unknown, options: { trustedLogs?: boolean } = {}): Snapshot {
-  const s = (options.trustedLogs ? snapshotTrustedLogsSchema : snapshotSchema).parse(value) as Snapshot;
+import { checkDevice, validatedDevice, withValidationScope } from './validation-scope';
+export interface ValidationOptions {
+  // Re-validating the live engine state after a local edit: engine-written event/capture records are trusted.
+  trustedLogs?: boolean;
+  // Only these devices and queue entries changed since the state was last validated (implies trustedLogs).
+  changed?: { devices: ReadonlySet<string>; queue: Snapshot['queue'] };
+}
+/** Full snapshot validation; options narrow it for incremental checks of the live engine state. */
+export function validateSnapshot(value: unknown, options: ValidationOptions = {}): Snapshot {
+  const scope = options.changed?.devices;
+  const s = (
+    scope ? snapshotScopedSchema : options.trustedLogs ? snapshotTrustedLogsSchema : snapshotSchema
+  ).parse(value) as Snapshot;
+  if (scope) {
+    s.devices = s.devices.map((d) => (scope.has(d.id) ? (deviceSchema.parse(d) as Device) : d));
+    for (const entry of options.changed!.queue) queueEntrySchema.parse(entry);
+  }
+  return withValidationScope(s, scope, () => validateParsed(s, !!scope || !!options.trustedLogs));
+}
+function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   validateMonitoring(s);
   validateMqc(s);
-  for (const d of s.devices) validateRoutingPolicy(d);
+  for (const d of s.devices) if (checkDevice(d.id)) validateRoutingPolicy(d);
   if (s.capture) {
     if (
       s.capture.startedAt > s.clock ||
       s.capture.frames.some((e) => e.type !== 'FRAME_SENT' || !e.frame || e.time > s.clock)
     )
       throw new Error('Captura contém frames ou horários inválidos.');
-    if (!options.trustedLogs || s.capture.bytes === undefined)
+    if (!trustedLogs || s.capture.bytes === undefined)
       s.capture.bytes = s.capture.frames.reduce((total, e) => total + JSON.stringify(e).length * 2, 0);
     if (s.capture.bytes > 2 * 1024 * 1024) throw new Error('Captura excede o limite de 2 MiB.');
   }
@@ -122,7 +144,7 @@ export function validateSnapshot(value: unknown, options: { trustedLogs?: boolea
   validateArp(s);
   validateVrrp(s);
   validateBgp(s);
-  for (const device of s.devices) validateAcls(device);
+  for (const device of s.devices) if (checkDevice(device.id)) validateAcls(device);
   validateNatSnapshot(s);
   validateSpanningTree(s);
   const unique = (values: string[], label: string) => {
@@ -153,6 +175,7 @@ export function validateSnapshot(value: unknown, options: { trustedLogs?: boolea
       dnsTimers.set(JSON.stringify([action.device, action.queryId]), { at, attempt: action.attempt });
   }
   for (const d of s.devices) {
+    if (!checkDevice(d.id)) continue;
     if (
       (d.bootManaged || d.startupConfig || d.operatingSystem) &&
       (!['router', 'switch'].includes(d.type) || ['ap', 'mesh', 'wlc'].includes(d.profile ?? ''))
@@ -251,7 +274,7 @@ export function validateSnapshot(value: unknown, options: { trustedLogs?: boolea
     'ID de probe'
   );
   for (const p of s.probes)
-    if (!s.devices.some((d) => d.id === p.device)) throw new Error('Probe sem origem');
+    if (!validatedDevice(s, p.device)) throw new Error('Probe sem origem');
   for (const q of s.queue) {
     if (q.at < s.clock || q.order > s.sequence) throw new Error('Relógio ou ordem de fila inválidos');
     const a = q.action;
@@ -267,13 +290,9 @@ export function validateSnapshot(value: unknown, options: { trustedLogs?: boolea
     } else if (a.kind === 'arp-timeout' || a.kind === 'dhcp-client-timer')
       endpoint(s, { device: a.device, port: a.port });
     else if (a.kind === 'dhcp-binding-expire') {
-      if (!s.devices.some((device) => device.id === a.device)) throw new Error('Timer DHCP sem servidor.');
+      if (!validatedDevice(s, a.device)) throw new Error('Timer DHCP sem servidor.');
     } else if (a.kind === 'dns-timeout') {
-      if (
-        !s.devices
-          .find((device) => device.id === a.device)
-          ?.dnsQueries?.some((query) => query.id === a.queryId)
-      )
+      if (!validatedDevice(s, a.device)?.dnsQueries?.some((query) => query.id === a.queryId))
         throw new Error('Timer DNS sem consulta.');
     } else if (
       a.kind === 'stp-hello' ||
@@ -281,15 +300,11 @@ export function validateSnapshot(value: unknown, options: { trustedLogs?: boolea
       a.kind === 'stp-info-expire' ||
       a.kind === 'stp-transmit'
     ) {
-      const device = s.devices.find((entry) => entry.id === a.device);
+      const device = validatedDevice(s, a.device);
       if (!device?.spanningTree?.enabled) throw new Error('Timer STP sem switch ativo.');
       if (a.kind !== 'stp-hello') endpoint(s, { device: a.device, port: a.port });
     } else if (a.kind === 'nat-expire') {
-      if (
-        !s.devices
-          .find((device) => device.id === a.device)
-          ?.nat?.bindings.some((entry) => entry.id === a.binding)
-      )
+      if (!validatedDevice(s, a.device)?.nat?.bindings.some((entry) => entry.id === a.binding))
         throw new Error('Timer sem tradução NAT.');
     } else if (a.kind === 'probe-timeout' && !s.probes.some((p) => p.id === a.probeId))
       throw new Error('Timeout sem probe');

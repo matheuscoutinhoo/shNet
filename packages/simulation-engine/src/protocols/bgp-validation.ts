@@ -2,6 +2,7 @@ import type { Device, Snapshot } from '../model';
 import { isUnicast } from './dhcp-config';
 import { bgpPrefixKey, type BgpConfig } from './bgp-model';
 import { installedBgpRoutes, validBgpPrefix } from './bgp-routing';
+import { checkDevice } from '../core/validation-scope';
 
 export function validateBgpConfig(device: Device, config: BgpConfig) {
   if (
@@ -58,6 +59,10 @@ export function validateBgp(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
     const state = device.bgp;
     if (!state) continue;
+    if (!checkDevice(device.id)) {
+      for (const timer of ticks.get(device.id) ?? []) usedTimers.add(timer.action);
+      continue;
+    }
     validateBgpConfig(device, state);
     if (
       state.peers.length !== state.neighbors.length ||

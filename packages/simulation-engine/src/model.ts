@@ -1526,6 +1526,14 @@ export const snapshotTrustedLogsSchema = snapshotSchema.extend({
     .strict()
     .optional(),
 });
+/** Trusted logs, unchanged devices and existing queue entries; new ones are parsed individually. */
+export const snapshotScopedSchema = snapshotTrustedLogsSchema.extend({
+  devices: z.array(z.any()).max(2000),
+  queue: z.array(z.any()).max(100000),
+});
+export const queueEntrySchema = z
+  .object({ at: finite.nonnegative(), order: z.number().int().nonnegative(), action: actionSchema })
+  .strict();
 export type Device = z.infer<typeof deviceSchema>;
 export type BridgeId = z.infer<typeof bridgeIdSchema>;
 export type Bpdu = z.infer<typeof bpduSchema>;

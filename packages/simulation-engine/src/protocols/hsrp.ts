@@ -20,6 +20,7 @@ import {
 import { interfaceOperational, routingEnabled } from './layer3';
 import { ipNumber, sameSubnet, subnet } from './ipv4';
 import { isUnicast } from './dhcp-config';
+import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
 
 export function hsrpConfig(d: Device): HsrpConfig[] {
   return (
@@ -344,11 +345,18 @@ export function validateHsrp(s: Snapshot) {
   const tokens = new Set<string>();
   for (const d of s.devices) {
     if (!d.hsrp) continue;
+    if (!checkDevice(d.id)) {
+      for (const g of d.hsrp.groups) {
+        if (tokens.has(g.token)) throw new Error('Invalid HSRP runtime state.');
+        tokens.add(g.token);
+      }
+      continue;
+    }
     validateConfig(d, hsrpConfig(d));
     for (const g of d.hsrp.groups) {
       const p = d.interfaces.find((p) => p.id === g.port)!,
-        timers = s.queue.filter(
-          (q) => q.action.kind === 'hsrp-tick' && q.action.device === d.id && q.action.token === g.token
+        timers = deviceTimers(s, d.id, 'hsrp-tick').filter(
+          (q) => q.action.kind === 'hsrp-tick' && q.action.token === g.token
         );
       if (
         tokens.has(g.token) ||
@@ -371,7 +379,7 @@ export function validateHsrp(s: Snapshot) {
   for (const { action } of s.queue)
     if (
       action.kind === 'hsrp-tick' &&
-      !s.devices.some((d) => d.id === action.device && d.hsrp?.groups.some((g) => g.token === action.token))
+      !validatedDevice(s, action.device)?.hsrp?.groups.some((g) => g.token === action.token)
     )
       throw new Error('Orphan HSRP timer.');
 }

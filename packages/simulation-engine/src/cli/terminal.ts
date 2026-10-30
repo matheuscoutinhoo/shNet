@@ -1,7 +1,7 @@
 import { accountTacacs } from '../protocols/tacacs';
 import { redactNetworkSecrets } from './aaa';
 import type { SimulationEngine } from '../core/engine';
-import type { Snapshot } from '../model';
+import { changedSince, type StateMark } from '../core/state-mark';
 import type { Context } from './registry';
 import { makeRegistry } from './commands';
 import { validateSnapshot } from '../core/validation';
@@ -14,6 +14,8 @@ import { reloadStartup, saveStartup } from './startup';
 export class TerminalSession {
   context: Context = { mode: 'user' };
   history: string[] = [];
+  /** State before the last successful mutating command, for undo history (see StateMark). */
+  lastMark?: StateMark;
   private registry = makeRegistry();
   constructor(
     readonly engine: SimulationEngine,
@@ -125,6 +127,7 @@ export class TerminalSession {
     }
   }
   execute(input: string) {
+    this.lastMark = undefined;
     if (this.context.auth) {
       const secret = this.engine.device(this.deviceId).enableSecret;
       if (secret && verifyIosSecret(input, secret)) {
@@ -142,7 +145,7 @@ export class TerminalSession {
     if (line.startsWith('!')) return '';
     if (line.endsWith('?')) return this.help(line.slice(0, -1).trimEnd());
     const context = { ...this.context };
-    let before: Snapshot | undefined;
+    let before: StateMark | undefined;
     try {
       const d = this.engine.device(this.deviceId);
       const filter = /\s*\|\s*(include|exclude|begin)\s+(.+)$/i.exec(line);
@@ -175,7 +178,7 @@ export class TerminalSession {
         throw new Error('AAA: comando não autorizado pela política do servidor.');
       // Reads and mode changes need no rollback point, protocol refresh or revalidation.
       const readOnly = READ_ONLY.test(authorized);
-      if (!readOnly) before = this.engine.checkpoint();
+      if (!readOnly) before = this.engine.mark();
       let result = this.registry.execute(line, this.engine, this.engine.device(this.deviceId), this.context);
       if (!readOnly) refreshInterfacePat(this.engine, this.engine.device(this.deviceId));
       if (filter) {
@@ -197,7 +200,9 @@ export class TerminalSession {
       if (readOnly) return terminalText(result);
       this.engine.refreshSpanningTree();
       this.engine.refreshBgp();
-      validateSnapshot(this.engine.state, { trustedLogs: true });
+      // Only devices changed by this command need their own invariants rechecked.
+      const changed = changedSince(before!, this.engine.state);
+      validateSnapshot(this.engine.state, changed ? { changed } : { trustedLogs: true });
       if (
         !/^(ipconfig(?: \/all)?$|ip (?:addr|address|link|route) show$|route print$|arp -a$|wifi scan$)/i.test(
           authorized
@@ -216,9 +221,10 @@ export class TerminalSession {
               .replace(/(sdwan site .+ key) \S+/i, '$1 [redacted]')
               .replace(/("key"\s*:\s*)"[^"]*"/gi, '$1"[redacted]"')
         );
+      this.lastMark = before;
       return terminalText(result);
     } catch (error) {
-      if (before) this.engine.state = before;
+      if (before) this.engine.restore(before);
       this.context = context;
       return '% ' + cliErrorText(error);
     }
