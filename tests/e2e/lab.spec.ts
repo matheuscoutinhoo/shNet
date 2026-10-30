@@ -19,6 +19,106 @@ import { syslogCaptureFixture } from '../fixtures/syslog-captures';
 const email = 'shlab-e2e-' + Date.now() + '@example.test',
   password = 'My-Network-Lab-123!';
 
+test('Cisco CLI: edição, ajuda, senha oculta e startup sobrevivem à restauração', async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'cisco-cli-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  const name = 'Cisco CLI ' + Date.now();
+  await page.getByLabel('Nome do laboratório').fill(name);
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  const engine = new SimulationEngine(),
+    router = engine.addProfile('router');
+  router.hostname = 'R-CISCO';
+  await page
+    .locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]')
+    .setInputFiles({
+      name: 'cisco-cli.shlab.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(engine.snapshot())),
+    });
+  await inspectDevice(page, 'R-CISCO');
+  const inspector = page.locator('.inspector');
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  const terminal = inspector.locator('.terminal-host'),
+    input = page.locator('.xterm-helper-textarea');
+  const command = async (text: string) => {
+    await input.focus();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+  };
+  await command('en');
+  await command('conf t');
+  await page.keyboard.type('hostname R-EDT');
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.type('I');
+  await page.keyboard.press('Enter');
+  await expect(inspector.locator('.terminal-heading')).toContainText('R-EDIT');
+  await page.keyboard.type('int');
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('Gi0/1');
+  await page.keyboard.press('Enter');
+  await command('ip address 192.0.2.1 255.255.255.0');
+  const description = 'START-' + '0123456789'.repeat(8);
+  await page.keyboard.type('description ' + description);
+  await page.keyboard.press('Home');
+  for (let i = 0; i < 12; i++) await page.keyboard.press('ArrowRight');
+  await page.keyboard.type('EDIT-');
+  await page.keyboard.press('Enter');
+  await command('do show interfaces Gi0/1');
+  await expect(terminal).toContainText('EDIT-START-');
+  await page.keyboard.type('ip ');
+  await page.keyboard.type('?');
+  await expect(terminal).toContainText('address');
+  await page.keyboard.press('Control+c');
+  await page.keyboard.press('Control+z');
+  await command('conf t');
+  const secret = 'Browser-Secret-482!';
+  await command('ena sec ' + secret);
+  await command('end');
+  await command('copy running-config startup-config');
+  await expect(terminal).toContainText('[OK]');
+  await command('conf t');
+  await command('hostname UNSAVED');
+  await command('end');
+  await command('reload');
+  await expect(terminal).toContainText('Save? [yes/no]:');
+  await command('no');
+  await expect(terminal).toContainText('[confirm]');
+  await command('');
+  await command('en');
+  await expect(terminal).toContainText('Password:');
+  await page.keyboard.type('never-display-this-password');
+  await expect(terminal).not.toContainText('never-display-this-password');
+  await page.keyboard.press('Enter');
+  await expect(terminal).toContainText('Bad secrets');
+  await input.focus();
+  await page.keyboard.type(secret);
+  await page.keyboard.press('Enter');
+  await command('show startup-config | include enable secret');
+  await expect(terminal).toContainText('enable secret 9 $9$');
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Resumo', exact: true }).click();
+  await expect(page.getByLabel('Hostname', { exact: true })).toHaveValue('R-EDIT');
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  await expect(terminal).not.toContainText(secret);
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  const projects: ProjectSummary[] = await (await page.request.get('/api/projects')).json(),
+    project: Project = await (
+      await page.request.get('/api/projects/' + projects.find((p) => p.name === name)!.id)
+    ).json();
+  const saved = project.topology.devices.find((d) => d.id === router.id)!;
+  expect(saved.hostname).toBe('R-EDIT');
+  expect(saved.interfaces[0].description).toBe('EDIT-' + description);
+  expect(saved.startupConfig).toBeDefined();
+  expect(JSON.stringify(project.topology)).not.toContain(secret);
+  expect(errors).toEqual([]);
+  await page.screenshot({ path: testInfo.outputPath('cisco-cli-startup.png'), fullPage: true });
+});
+
 test('SQL com quorum: cliente gráfico, confirmação e restauração do projeto', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -85,8 +185,38 @@ test('SQL com quorum: cliente gráfico, confirmação e restauração do projeto
   const replicas = saved.topology.devices.filter((d: { databaseHa?: unknown }) => d.databaseHa);
   expect(replicas).toHaveLength(3);
   for (const replica of replicas) expect(replica.database.tables[0].rows).toEqual([{ valor: 42 }]);
+  await page.getByLabel('Modo de simulação', { exact: true }).selectOption('realtime');
+  await page.getByRole('button', { name: 'Desligar equipamento', exact: true }).click();
+  await inspectDevice(page, 'SQL-CLIENT');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  await page.locator('.database-query').getByLabel('Descobrir líder automaticamente').check();
+  await page
+    .locator('.database-query')
+    .getByLabel('Réplicas IPv4/IPv6')
+    .fill(
+      [
+        active.interfaces[0].ip!,
+        ...['10.90.0.11', '10.90.0.12', '10.90.0.13'].filter((ip) => ip !== active.interfaces[0].ip),
+      ].join(', ')
+    );
+  await page.locator('.database-query').getByLabel('Consulta SQL').fill('SELECT * FROM estudo');
+  await page
+    .locator('.database-query')
+    .getByRole('button', { name: 'Enviar consulta SQL', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Executar simulação', exact: true }).click();
+  await expect(page.locator('.database-client-results')).toContainText('Concluída', { timeout: 20000 });
+  await expect(page.locator('.database-client-results')).toContainText('"valor":42');
+  await page.getByRole('button', { name: 'Pausar simulação', exact: true }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('.project-title')).toContainText('Salvo');
+  await page.reload();
+  await page.getByRole('heading', { name: 'SQL Quorum UI', exact: true }).click();
+  await inspectDevice(page, 'SQL-CLIENT');
+  await page.locator('.inspector-tabs').getByRole('button', { name: 'Banco de dados', exact: true }).click();
+  await expect(page.locator('.database-client-results')).toContainText('Concluída');
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('.database-ha-panel').scrollIntoViewIfNeeded();
+  await page.locator('.database-client-results').scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });

@@ -61,8 +61,18 @@ export const ospfLsaSchema = z.discriminatedUnion('type', [
     .object({
       ...lsaBase,
       type: z.literal('router'),
+      flags: z.number().int().min(0).max(7).optional(),
       links: z
-        .array(z.object({ kind: z.enum(['router', 'network']), id: ipv4Schema, cost }).strict())
+        .array(
+          z
+            .object({
+              kind: z.enum(['router', 'network']),
+              id: ipv4Schema,
+              data: ipv4Schema.optional(),
+              cost,
+            })
+            .strict()
+        )
         .max(256),
       prefixes: z.array(z.object({ network: ipv4Schema, prefix, cost }).strict()).max(48),
     })
@@ -89,7 +99,16 @@ export const ospfLsaSchema = z.discriminatedUnion('type', [
 export type OspfLsa = z.infer<typeof ospfLsaSchema>;
 export const lsaKey = (lsa: Pick<OspfLsa, 'area' | 'type' | 'id' | 'advertisingRouter'>) =>
   `${lsa.area}:${lsa.type}:${lsa.id}:${lsa.advertisingRouter}`;
-export const lsaHeaderSchema = z.object({ key: z.string().min(1).max(140), sequence }).strict();
+export const lsaHeaderSchema = z
+  .object({
+    key: z.string().min(1).max(140),
+    sequence,
+    wire: z
+      .string()
+      .regex(/^[a-f0-9]{40}$/)
+      .optional(),
+  })
+  .strict();
 export type LsaHeader = z.infer<typeof lsaHeaderSchema>;
 export const ospfMessageSchema = z.discriminatedUnion('type', [
   z
@@ -131,10 +150,16 @@ export const ospfPacketSchema = z
     protocol: z.literal('OSPF'),
     routerId: ipv4Schema,
     authentication: z
-      .object({ sequence: z.number().int().positive(), digest: z.string().regex(/^[a-f0-9]{64}$/) })
+      .object({
+        sequence: z.number().int().positive(),
+        digest: z.string().regex(/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/),
+        algorithm: z.enum(['md5', 'hmac-sha256']).optional(),
+        keyId: z.number().int().min(1).max(255).optional(),
+      })
       .strict()
       .optional(),
     area,
+    sentAt: timeSchema.optional(),
     message: ospfMessageSchema,
     bytes: z.number().int().min(44).max(65535),
   })
@@ -142,11 +167,15 @@ export const ospfPacketSchema = z
 export type OspfPacket = z.infer<typeof ospfPacketSchema>;
 export const ospfInterfaceSchema = z
   .object({
+    networkManaged: z.boolean().optional(),
     port: idSchema,
     area,
     cost: cost.default(1),
     passive: z.boolean().default(false),
-    authenticationKey: z.string().min(8).max(64).optional(),
+    authenticationKey: z.string().min(1).max(64).optional(),
+    authenticationMode: z.enum(['md5', 'hmac-sha256']).optional(),
+    authenticationKeyId: z.number().int().min(1).max(255).optional(),
+    autoCost: z.boolean().optional(),
     networkType: z.enum(['point-to-point', 'broadcast']).default('point-to-point'),
     priority: z.number().int().min(0).max(255).default(1),
     helloMs: z.number().int().min(1000).max(60000).multipleOf(1000).default(OSPF.helloMs),
@@ -162,6 +191,31 @@ export const ospfConfigSchema = z
   .object({
     enabled: z.boolean(),
     routerId: ipv4Schema,
+    processId: z.number().int().min(1).max(65535).optional(),
+    autoRouterId: z.boolean().optional(),
+    maximumPaths: z.number().int().min(1).max(32).default(4),
+    referenceBandwidth: z.number().int().min(1).max(4294967).default(100),
+    passiveDefault: z.boolean().default(false),
+    passiveOverrides: z
+      .array(z.object({ port: idSchema, passive: z.boolean() }).strict())
+      .max(48)
+      .default([]),
+    summaryRanges: z
+      .array(z.object({ area, network: ipv4Schema, prefix, cost: cost.optional() }).strict())
+      .max(48)
+      .default([]),
+    defaultOriginate: z
+      .object({
+        always: z.boolean().default(false),
+        cost: z.number().int().min(1).max(16777215).default(1),
+        metricType: z.enum(['E1', 'E2']).default('E2'),
+      })
+      .strict()
+      .optional(),
+    networks: z
+      .array(z.object({ address: ipv4Schema, wildcard: ipv4Schema, area }).strict())
+      .max(48)
+      .optional(),
     interfaces: z.array(ospfInterfaceSchema).max(48),
     areas: z
       .array(

@@ -1,6 +1,7 @@
 import type { Device, Snapshot } from '../model';
 import { ipNumber, sameSubnet, subnet, resolveRoute } from './ipv4';
 import { BGP, bgpPrefixKey, type BgpNeighbor, type BgpPath, type BgpState } from './bgp-model';
+import { applyRouteMap, prefixListPermits } from './routing-policy';
 
 export function validBgpPrefix(path: { network: string; prefix: number }) {
   return subnet(path.network, path.prefix).network === path.network && ipNumber(path.network) < 0xe0000000;
@@ -73,14 +74,26 @@ export function bestBgpPaths(device: Device): BgpCandidate[] {
       external: false,
       remoteId: state.routerId,
     }));
+  // Many paths share a next hop; resolve each one once per selection.
+  const nextHops = new Map<string, ReturnType<typeof bgpNextHop>>();
   for (const path of state.rib) {
     const config = state.neighbors.find((peer) => peer.ip === path.peer),
       peer = state.peers.find((peer) => peer.ip === path.peer);
-    const resolved = bgpNextHop(device, path.nextHop);
-    if (!config || peer?.state !== 'Established' || !resolved || !bgpPermits(config.importFilter, path))
+    if (!nextHops.has(path.nextHop)) nextHops.set(path.nextHop, bgpNextHop(device, path.nextHop));
+    const resolved = nextHops.get(path.nextHop);
+    if (
+      !config ||
+      peer?.state !== 'Established' ||
+      !resolved ||
+      !bgpPermits(config.importFilter, path) ||
+      !prefixListPermits(device, config.importPrefixList, path)
+    )
       continue;
+    const mapped = applyRouteMap(device, config.importRouteMap, path);
+    if (!mapped) continue;
     paths.push({
       ...path,
+      ...mapped,
       port: resolved.port.id,
       gateway: resolved.nextHop,
       external: config.remoteAs !== state.asn,
@@ -98,8 +111,15 @@ export function bestBgpPaths(device: Device): BgpCandidate[] {
     ipNumber(a.remoteId) - ipNumber(b.remoteId) ||
     ipNumber(a.peer ?? state.routerId) - ipNumber(b.peer ?? state.routerId);
   const result: BgpCandidate[] = [];
-  for (const key of [...new Set(paths.map(bgpPrefixKey))].sort()) {
-    const candidates = paths.filter((path) => bgpPrefixKey(path) === key);
+  const byPrefix = new Map<string, BgpCandidate[]>();
+  for (const path of paths) {
+    const key = bgpPrefixKey(path),
+      group = byPrefix.get(key);
+    if (group) group.push(path);
+    else byPrefix.set(key, [path]);
+  }
+  for (const key of [...byPrefix.keys()].sort()) {
+    const candidates = byPrefix.get(key)!;
     // Deterministic MED: compare MED within an origin AS before comparing across ASes.
     const winners = [...new Set(candidates.map((path) => path.asPath[0] ?? state.asn))].map(
       (asn) =>
@@ -129,8 +149,16 @@ export function exportedBgpPaths(device: Device, neighbor: BgpNeighbor): BgpPath
     external = state.asn !== neighbor.remoteAs;
   const source = bgpNextHop(device, neighbor.ip)?.port.ip;
   if (!source) return [];
-  return bestBgpPaths(device).flatMap((path) => {
-    if (path.peer === neighbor.ip || !bgpPermits(neighbor.exportFilter, path)) return [];
+  return bestBgpPaths(device).flatMap((original) => {
+    const mapped = applyRouteMap(device, neighbor.exportRouteMap, original);
+    if (!mapped) return [];
+    const path = { ...original, ...mapped };
+    if (
+      path.peer === neighbor.ip ||
+      !bgpPermits(neighbor.exportFilter, path) ||
+      !prefixListPermits(device, neighbor.exportPrefixList, path)
+    )
+      return [];
     const learned = state.neighbors.find((peer) => peer.ip === path.peer);
     const reflection = !external && learned?.remoteAs === state.asn;
     if (reflection && !learned?.reflectorClient && !neighbor.reflectorClient) return [];
@@ -146,7 +174,7 @@ export function exportedBgpPaths(device: Device, neighbor: BgpNeighbor): BgpPath
         asPath,
         origin: path.origin,
         localPref: external ? 100 : path.localPref,
-        med: external ? neighbor.med : path.med,
+        med: external ? (neighbor.exportRouteMap ? path.med : neighbor.med) : path.med,
         ...(!external && (reflection || path.originatorId)
           ? { originatorId: path.originatorId ?? path.remoteId }
           : {}),

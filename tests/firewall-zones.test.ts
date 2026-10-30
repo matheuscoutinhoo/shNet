@@ -285,27 +285,27 @@ describe('firewall por zonas', () => {
     const { engine, edge } = network();
     const expected = structuredClone(edge.firewall!.zonePolicy);
     const cli = new TerminalSession(engine, edge.id);
+    expect(cli.execute('enable')).toBe('');
     const config = cli
       .execute('show running-config')
       .split('\n')
       .filter((line) => line.startsWith('firewall ') || line.endsWith('service firewall'));
     engine.configureFirewall(edge.id, { enabled: false, trustedPorts: [] });
-    for (const command of ['enable', 'configure terminal', ...config])
-      expect(cli.execute(command)).toBe('OK');
+    for (const command of ['configure terminal', ...config]) expect(cli.execute(command)).toBe('');
     expect(engine.device(edge.id).firewall!.zonePolicy).toEqual(expected);
-    expect(cli.execute('firewall protocols tcp')).toBe('OK');
-    expect(cli.execute('no service firewall')).toBe('OK');
-    expect(cli.execute('service firewall')).toBe('OK');
+    expect(cli.execute('firewall protocols tcp')).toBe('');
+    expect(cli.execute('no service firewall')).toBe('');
+    expect(cli.execute('service firewall')).toBe('');
     expect(engine.device(edge.id).firewall!.zonePolicy).toEqual(expected);
     expect(cli.execute('firewall zone DMZ Gi0/1')).toMatch(/^%/);
     expect(engine.device(edge.id).firewall!.zonePolicy).toEqual(expected);
-    expect(cli.execute('firewall rule 5 WAN LAN deny ip')).toBe('OK');
-    expect(cli.execute('show firewall zones')).toContain('firewall rule 5 WAN LAN deny ip');
-    expect(cli.execute('no firewall rule 5')).toBe('OK');
-    expect(cli.execute('no firewall zone DMZ')).toBe('OK');
+    expect(cli.execute('firewall rule 5 WAN LAN deny ip')).toBe('');
+    expect(cli.execute('do show firewall zones')).toContain('firewall rule 5 WAN LAN deny ip');
+    expect(cli.execute('no firewall rule 5')).toBe('');
+    expect(cli.execute('no firewall zone DMZ')).toBe('');
     expect(engine.device(edge.id).firewall!.zonePolicy!.rules).toHaveLength(1);
-    expect(cli.execute('firewall trust Gi0/1')).toBe('OK');
-    expect(cli.execute('firewall mode trusted')).toBe('OK');
+    expect(cli.execute('firewall trust Gi0/1')).toBe('');
+    expect(cli.execute('firewall mode trusted')).toBe('');
     expect(engine.device(edge.id).firewall!.zonePolicy).toBeUndefined();
     validateSnapshot(engine.snapshot());
   });

@@ -1,0 +1,272 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\coding\\netlab\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "tests/e2e/lab.spec.ts:2973",
+      "tests/e2e/lab.spec.ts:3180",
+      "tests/e2e/lab.spec.ts:3378",
+      "tests/e2e/lab.spec.ts:4110",
+      "tests/e2e/lab.spec.ts:4380",
+      "--config",
+      "artifacts/cisco-completeness-audit-2026-10-26/playwright.config.ts"
+    ],
+    "configFile": "C:\\coding\\netlab\\artifacts\\cisco-completeness-audit-2026-10-26\\playwright.config.ts",
+    "rootDir": "C:/coding/netlab/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/coding/netlab/.data/cisco-completeness-audit-2026-10-26/browser-recheck-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "sistema-claro",
+        "name": "sistema-claro",
+        "testDir": "C:/coding/netlab/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "browser-recheck.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "node --import tsx artifacts/cisco-completeness-audit-2026-10-26/browser-server.ts",
+      "cwd": "../..",
+      "url": "http://127.0.0.1:5194/api/health",
+      "timeout": 60000,
+      "reuseExistingServer": false,
+      "env": {
+        "API_PORT": "3094",
+        "WEB_PORT": "5194"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "lab.spec.ts",
+      "file": "lab.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "canvas: grupos, notas, grade e reabertura",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14313,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T17:31:25.410Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-b35066c740ba31790c40",
+          "file": "lab.spec.ts",
+          "line": 2973,
+          "column": 1
+        },
+        {
+          "title": "RSTP: redundância, BPDUs, falha, recuperação e persistência mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 63822,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T17:31:40.320Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-9497ba5ec59a909dda56",
+          "file": "lab.spec.ts",
+          "line": 3180,
+          "column": 1
+        },
+        {
+          "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 31291,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T17:32:44.162Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-7d97be568bdf35c2ea27",
+          "file": "lab.spec.ts",
+          "line": 3378,
+          "column": 1
+        },
+        {
+          "title": "LACP: negocia, conserva HTTP com membro restante e persiste no mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 134095,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T17:33:15.471Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-8dcbbd50783db6745e9a",
+          "file": "lab.spec.ts",
+          "line": 4110,
+          "column": 1
+        },
+        {
+          "title": "Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 110274,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T17:35:29.591Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-f283a8eb31cee583de19",
+          "file": "lab.spec.ts",
+          "line": 4380,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-26T17:31:17.806Z",
+    "duration": 367984.31200000003,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

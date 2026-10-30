@@ -1,0 +1,302 @@
+[
+  {
+    "device": "NYC-CORE-A",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-A",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-A",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-A",
+    "command": "spanning-tree vlan 10,20,99 priority 4096",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-A",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "command": "spanning-tree vlan 10,20,99 priority 8192",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "command": "spanning-tree vlan 10,20,99 priority 4096",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "command": "spanning-tree vlan 10,20,99 priority 8192",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-A",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-A",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-A",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-A",
+    "command": "spanning-tree vlan 10,20,99 priority 4096",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-A",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-B",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-B",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-B",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-B",
+    "command": "spanning-tree vlan 10,20,99 priority 8192",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-B",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "command": "spanning-tree vlan 10,20,99 priority 4096",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "command": "spanning-tree vlan 10,20,99 priority 8192",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "command": "spanning-tree vlan 10,20,99 priority 4096",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "command": "spanning-tree vlan 10,20,99 priority 8192",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "command": "spanning-tree vlan 10,20,99 priority 4096",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "command": "end",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "command": "enable",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "command": "conf t",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "command": "spanning-tree mode rapid-pvst",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "command": "spanning-tree vlan 10,20,99 priority 8192",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "command": "end",
+    "response": "OK"
+  }
+]

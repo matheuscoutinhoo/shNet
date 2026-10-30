@@ -51,8 +51,46 @@ export function validateConnection(state: Snapshot, link: Link, ignoreId?: strin
     )
       throw new Error('Interface já utilizada por outro cabo');
   validateMedia(link, a.port, b.port);
-  if (a.port.speed !== b.port.speed)
+  if (a.port.speed !== b.port.speed && negotiatedSpeed(a, b) === undefined)
     throw new Error('Velocidades incompatíveis: configure ambas as interfaces');
+}
+type Speed = NetworkInterface['speed'];
+/** Hardware maximum of a port; auto-negotiation may run it slower. */
+export const hardwareSpeed = (p: NetworkInterface): Speed => p.maxSpeed ?? p.speed;
+type End = { device: Device; port: NetworkInterface };
+/**
+ * Copper auto-negotiation (IOS "speed auto", the default): two auto ports use the highest common
+ * speed; an auto port facing a fixed port follows it. Fiber, fixed pairs and patch panels do not negotiate.
+ */
+export function negotiatedSpeed(a: End, b: End): Speed | undefined {
+  if (a.port.media !== 'rj45' || b.port.media !== 'rj45' || a.device.infrastructure || b.device.infrastructure)
+    return undefined;
+  const autoA = a.port.speedAuto !== false,
+    autoB = b.port.speedAuto !== false;
+  if (autoA && autoB) return Math.min(hardwareSpeed(a.port), hardwareSpeed(b.port)) as Speed;
+  if (autoA) return b.port.speed <= hardwareSpeed(a.port) ? b.port.speed : undefined;
+  if (autoB) return a.port.speed <= hardwareSpeed(b.port) ? a.port.speed : undefined;
+  return undefined;
+}
+function runAt(p: NetworkInterface, speed: Speed) {
+  const max = hardwareSpeed(p);
+  p.speed = speed;
+  if (speed === max) delete p.maxSpeed;
+  else p.maxSpeed = max;
+}
+const negotiable = (end: End) => end.port.media === 'rj45' && end.port.speedAuto !== false && !end.device.infrastructure;
+/** Re-runs negotiation on both ends of a cable. */
+export function negotiateLink(state: Snapshot, link: Link) {
+  if (!['copper', 'crossover'].includes(link.cable)) return;
+  const a = endpoint(state, link.a),
+    b = endpoint(state, link.b);
+  for (const end of [a, b]) if (negotiable(end)) runAt(end.port, hardwareSpeed(end.port));
+  const speed = negotiatedSpeed(a, b);
+  if (speed !== undefined) for (const end of [a, b]) if (negotiable(end)) runAt(end.port, speed);
+}
+/** A disconnected auto port returns to its hardware speed. */
+export function releaseNegotiatedSpeed(port: NetworkInterface) {
+  if (port.media === 'rj45' && port.speedAuto !== false && port.maxSpeed) runAt(port, port.maxSpeed);
 }
 export function validateMedia(link: Link, a: NetworkInterface, b: NetworkInterface) {
   if (link.cable === 'serial' || link.cable === 'console') {
@@ -110,6 +148,8 @@ export function linkOperational(state: Snapshot, link: Link) {
     b.device.power &&
     a.port.adminUp &&
     b.port.adminUp &&
+    !a.port.errDisabled &&
+    !b.port.errDisabled &&
     a.port.speed === b.port.speed &&
     (link.cable !== 'console' || a.port.console?.baud === b.port.console?.baud)
   );

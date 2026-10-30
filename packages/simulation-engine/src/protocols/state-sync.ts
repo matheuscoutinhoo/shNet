@@ -1,5 +1,6 @@
 import type { Action, Device, FirewallSession, NatBinding, Snapshot } from '../model';
 import type { SimulationEngine } from '../core/engine';
+import { natPools } from './nat-selection';
 import { random } from '../core/queue';
 import { cableMetrics, linkOperational } from '../links/physical';
 import { canonicalScenarioJson as canonicalJson } from '../canonical-json';
@@ -76,9 +77,16 @@ export function stateSyncCompatible(d: Device, peer: Device) {
           enabled: x.nat.enabled,
           statics: x.nat.statics.map((p) => ({
             ...p,
-            outside: translate ? mapped(x, p.outside) : p.outside,
+            outside: translate && p.outside !== '*' ? mapped(x, p.outside) : p.outside,
           })),
-          pools: x.nat.pools.map((p) => ({ ...p, outside: translate ? mapped(x, p.outside) : p.outside })),
+          pools: natPools(x).map((p) => ({ ...p, outside: translate ? mapped(x, p.outside) : p.outside })),
+          accessLists: x.nat.interfaceRules?.length
+            ? x.accessLists?.map((a) => ({
+                ...a,
+                implicitDrops: 0,
+                rules: a.rules.map((r) => ({ ...r, hits: 0 })),
+              }))
+            : undefined,
         }
       : null;
   return (
@@ -323,7 +331,7 @@ function install(e: SimulationEngine, d: Device, source: Device, a: Delivery) {
         !config.enabled
       )
         return false;
-      const pool = config.pools.find((p) => p.name === binding.pool);
+      const pool = natPools(d).find((p) => p.name === binding.pool);
       if (
         !pool ||
         !sameSubnet(pool.source.network, binding.inside, pool.source.prefix) ||
@@ -481,7 +489,7 @@ function validateStateSyncPair(d: Device, peer: Device) {
       ...(x.firewall?.trustedPorts ?? []),
       ...(x.firewall?.zonePolicy?.zones.flatMap((z) => z.ports) ?? []),
       ...(x.nat?.pools.map((p) => p.outside) ?? []),
-      ...(x.nat?.statics.map((p) => p.outside) ?? []),
+      ...(x.nat?.statics.filter((p) => p.outside !== '*').map((p) => p.outside) ?? []),
     ];
     if (used.includes(s.port) || used.some((id) => !s.portMap.some((p) => p.local === id)))
       throw new Error('Mapeie todas as interfaces de firewall/NAT e reserve uma porta dedicada.');

@@ -103,6 +103,7 @@ export function configureBond(
     adminUp: old?.adminUp ?? true,
     mtu: old?.mtu ?? mtu,
     installedNic: undefined,
+    authenticationControl:undefined,udld:undefined,bfd:undefined,voiceVlan:undefined,portSecurity:undefined,stpGuard:undefined,ospfAuthentication:undefined,
     qos: undefined,
     channel: undefined,
     spanningTree: undefined,

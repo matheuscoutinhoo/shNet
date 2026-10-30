@@ -132,12 +132,12 @@ describe('spanning tree por BPDUs', () => {
     engine.advanceTo(100);
     const cli = new TerminalSession(engine, switches[2].id);
     for (const command of ['enable', 'configure terminal', 'spanning-tree priority 4096'])
-      expect(cli.execute(command)).toBe('OK');
+      expect(cli.execute(command)).toBe('');
     engine.advanceTo(5000);
     expect(switches.every((device) => device.spanningTree?.root.mac === switches[2].interfaces[0].mac)).toBe(
       true
     );
-    expect(cli.execute('show spanning-tree')).toContain('4096.');
+    expect(cli.execute('do show spanning-tree')).toContain('4096.');
     const before = engine.snapshot();
     expect(cli.execute('spanning-tree priority 123')).toMatch(/^%/);
     expect(engine.snapshot()).toEqual(before);
@@ -514,7 +514,7 @@ describe('comportamento real da rede', () => {
       'interface Gi0/1',
       'ip access-group FILTER in',
     ])
-      expect(cli.execute(command)).toBe('OK');
+      expect(cli.execute(command)).toBe('');
     const result = evaluateLab('nat-boundary', engine.snapshot());
     expect(result.complete).toBe(true);
     expect(result.tasks.find((task) => task.id === 'translated')?.passed).toBe(true);
@@ -547,13 +547,13 @@ describe('comportamento real da rede', () => {
       'interface Gi0/1',
       'ip access-group DNS in',
     ])
-      expect(cli.execute(command)).toBe('OK');
+      expect(cli.execute(command)).toBe('');
     const lookup = engine.lookupDns(client.id, 'outside.lab');
     engine.advanceTo(200);
     expect(client.dnsQueries?.find((query) => query.id === lookup)?.status).toBe('success');
     expect(router.nat!.bindings[0].protocol).toBe('UDP');
-    expect(cli.execute('show access-lists')).toContain('hits=1');
-    expect(cli.execute('show ip nat translations')).toContain('192.168.20.100');
+    expect(cli.execute('do show access-lists')).toContain('hits=1');
+    expect(cli.execute('do show ip nat translations')).toContain('192.168.20.100');
     expect(() => validateSnapshot(engine.snapshot())).not.toThrow();
     const bad = engine.snapshot();
     bad.devices.find((device) => device.type === 'router')!.nat!.bindings[0].globalToken = 'invalid';
@@ -759,7 +759,7 @@ describe('comportamento real da rede', () => {
     const r = e.state.devices.find((d) => d.type === 'router')!;
     const cli = new TerminalSession(e, r.id);
     for (const cmd of ['enable', 'configure terminal', 'interface GigabitEthernet 0/2', 'shutdown'])
-      expect(cli.execute(cmd)).toBe('OK');
+      expect(cli.execute(cmd)).toBe('');
     expect(probe(e).status).toBe('unreachable');
     cli.execute('no shutdown');
     expect(probe(e).status).toBe('success');

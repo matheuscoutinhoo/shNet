@@ -173,13 +173,13 @@ export const supplicantStateSchema = supplicantConfigSchema
   })
   .strict();
 export const eapolSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('start') }).strict(),
-  z.object({ type: z.literal('logoff'), session: idSchema }).strict(),
-  z.object({ type: z.literal('identity-request'), session: idSchema }).strict(),
-  z.object({ type: z.literal('identity-response'), session: idSchema, username }).strict(),
-  z.object({ type: z.literal('challenge'), session: idSchema, challenge: idSchema }).strict(),
-  z.object({ type: z.literal('response'), session: idSchema, username, proof }).strict(),
-  z.object({ type: z.enum(['success', 'failure']), session: idSchema }).strict(),
+  z.object({ type: z.literal('start'),identifier:z.number().int().min(0).max(255).optional() }).strict(),
+  z.object({ type: z.literal('logoff'), session: idSchema,identifier:z.number().int().min(0).max(255).optional() }).strict(),
+  z.object({ type: z.literal('identity-request'), session: idSchema,identifier:z.number().int().min(0).max(255).optional() }).strict(),
+  z.object({ type: z.literal('identity-response'), session: idSchema, username,identifier:z.number().int().min(0).max(255).optional() }).strict(),
+  z.object({ type: z.literal('challenge'), session: idSchema, challenge: idSchema,identifier:z.number().int().min(0).max(255).optional() }).strict(),
+  z.object({ type: z.literal('response'), session: idSchema, username, proof,identifier:z.number().int().min(0).max(255).optional() }).strict(),
+  z.object({ type: z.enum(['success', 'failure']), session: idSchema,identifier:z.number().int().min(0).max(255).optional() }).strict(),
 ]);
 export const dot1xTimerSchema = z
   .object({

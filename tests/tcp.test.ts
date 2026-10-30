@@ -230,12 +230,12 @@ describe('TCP sobre a rede simulada', () => {
       'service firewall',
       'access-list WEB 10 permit tcp any any eq 8080',
     ])
-      expect(routing.execute(command)).toBe('OK');
+      expect(routing.execute(command)).toBe('');
     const endpoint = new TerminalSession(engine, client.id);
     expect(endpoint.execute('http get 203.0.113.20 8080')).toContain('HTTP GET enfileirado');
     engine.advanceTo(1000);
     expect(endpoint.execute('show tcp')).toContain('200 OK');
-    expect(routing.execute('show firewall')).toContain('CLOSING');
+    expect(routing.execute('do show firewall')).toContain('CLOSING');
     const before = engine.snapshot();
     expect(endpoint.execute('http get 203.0.113.20; powershell')).toMatch(/^%/);
     expect(engine.snapshot()).toEqual(before);

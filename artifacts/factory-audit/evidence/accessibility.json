@@ -1,0 +1,18 @@
+{
+  "violations": [
+    {
+      "id": "heading-order",
+      "impact": "moderate",
+      "description": "Ensure the order of headings is semantically correct",
+      "nodes": [
+        {
+          "target": [
+            "h4"
+          ],
+          "summary": "Fix any of the following:\n  Heading order invalid"
+        }
+      ]
+    }
+  ],
+  "passes": 44
+}

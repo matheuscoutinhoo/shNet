@@ -345,10 +345,10 @@ describe('VRRPv3 IPv4 por anúncios Ethernet', () => {
       'vrrp 10 advertisement-interval 500',
       'no vrrp 10 preempt',
     ])
-      expect(cli.execute(cmd)).toBe('OK');
+      expect(cli.execute(cmd)).toBe('');
     expect(engine.device(a.id).vrrp!.groups[1]).toEqual(timer);
-    expect(cli.execute('show running-config')).toContain('no vrrp 10 preempt');
-    expect(cli.execute('show vrrp')).toContain('00:00:5e:00:01:0a');
+    expect(cli.execute('do show running-config')).toContain('no vrrp 10 preempt');
+    expect(cli.execute('do show vrrp')).toContain('00:00:5e:00:01:0a');
     expect(cli.execute('vrrp 10 priority 255')).toMatch(/Erro|Error|%/);
     expect(() =>
       engine.configureVrrp(a.id, { enabled: true, groups: [{ port: 'p0', vrid: 1, vip: '192.168.99.1' }] })

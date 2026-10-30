@@ -1,0 +1,161 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\coding\\netlab\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "artifacts/global-enterprise-validation-2026-10-26/playwright.config.ts"
+    ],
+    "configFile": "C:\\coding\\netlab\\artifacts\\global-enterprise-validation-2026-10-26\\playwright.config.ts",
+    "rootDir": "C:/coding/netlab/artifacts/global-enterprise-validation-2026-10-26",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/coding/netlab/.data/global-enterprise-validation-2026-10-26/browser-rerun-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "enterprise-desktop",
+        "name": "enterprise-desktop",
+        "testDir": "C:/coding/netlab/artifacts/global-enterprise-validation-2026-10-26",
+        "testIgnore": [],
+        "testMatch": [
+          "enterprise-ui.spec.ts"
+        ],
+        "timeout": 240000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "browser-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "enterprise-ui.spec.ts",
+      "file": "enterprise-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Six-region enterprise: import, CLI, scenario, server replay, persistence and export",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "enterprise-desktop",
+              "projectName": "enterprise-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 205470,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: 'Verificar no servidor', exact: true })\nExpected: visible\nTimeout: 180000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('button', { name: 'Verificar no servidor', exact: true }) with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Verificar no servidor', exact: true })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: 'Verificar no servidor', exact: true })\nExpected: visible\nTimeout: 180000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('button', { name: 'Verificar no servidor', exact: true }) with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Verificar no servidor', exact: true })\u001b[22m\n\n    at C:\\coding\\netlab\\artifacts\\global-enterprise-validation-2026-10-26\\enterprise-ui.spec.ts:41:83",
+                    "location": {
+                      "file": "C:\\coding\\netlab\\artifacts\\global-enterprise-validation-2026-10-26\\enterprise-ui.spec.ts",
+                      "column": 83,
+                      "line": 41
+                    },
+                    "snippet": "  39 |  const scenario={name:'Six-region applications and guest isolation',durationMs:6000,intervalMs:3000,deadlineMs:2500,warmupMs:0,flows:[...codes.map(code=>({name:code+' corporate ERP',source:code+'-USER',target:'10.1.10.80',protocol:'http',expect:'allow',maxLossPercent:0,requireFinalSuccess:true})),...codes.map(code=>({name:code+' guest isolation',source:code+'-GUEST',target:'10.1.10.80',protocol:'http',expect:'deny',denyEvidence:'policy',maxLossPercent:0}))],faults:[]};\n  40 |  await page.getByLabel('Definição do cenário').fill(JSON.stringify(scenario));await page.getByRole('button',{name:'Salvar cenário no laboratório',exact:true}).click();await page.getByRole('button',{name:'Executar cenário',exact:true}).click();\n> 41 |  await expect(page.getByRole('button',{name:'Verificar no servidor',exact:true})).toBeVisible({timeout:180000});\n     |                                                                                   ^\n  42 |  await writeFile(out+'/ui-scenario.txt',await page.getByRole('dialog').innerText());await page.screenshot({path:out+'/screenshots/scenario-results.png',fullPage:true});\n  43 |  await page.getByRole('button',{name:'Verificar no servidor',exact:true}).click();await expect(page.getByRole('status')).toContainText('resultado confirmado',{timeout:180000});\n  44 |  await page.getByRole('button',{name:'Fechar',exact:true}).click();await page.getByRole('button',{name:'Salvar',exact:true}).click();await expect(page.locator('.project-title')).toContainText('Salvo');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\coding\\netlab\\artifacts\\global-enterprise-validation-2026-10-26\\enterprise-ui.spec.ts",
+                        "column": 83,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('button', { name: 'Verificar no servidor', exact: true })\nExpected: visible\nTimeout: 180000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('button', { name: 'Verificar no servidor', exact: true }) with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Verificar no servidor', exact: true })\u001b[22m\n\n\n  39 |  const scenario={name:'Six-region applications and guest isolation',durationMs:6000,intervalMs:3000,deadlineMs:2500,warmupMs:0,flows:[...codes.map(code=>({name:code+' corporate ERP',source:code+'-USER',target:'10.1.10.80',protocol:'http',expect:'allow',maxLossPercent:0,requireFinalSuccess:true})),...codes.map(code=>({name:code+' guest isolation',source:code+'-GUEST',target:'10.1.10.80',protocol:'http',expect:'deny',denyEvidence:'policy',maxLossPercent:0}))],faults:[]};\n  40 |  await page.getByLabel('Definição do cenário').fill(JSON.stringify(scenario));await page.getByRole('button',{name:'Salvar cenário no laboratório',exact:true}).click();await page.getByRole('button',{name:'Executar cenário',exact:true}).click();\n> 41 |  await expect(page.getByRole('button',{name:'Verificar no servidor',exact:true})).toBeVisible({timeout:180000});\n     |                                                                                   ^\n  42 |  await writeFile(out+'/ui-scenario.txt',await page.getByRole('dialog').innerText());await page.screenshot({path:out+'/screenshots/scenario-results.png',fullPage:true});\n  43 |  await page.getByRole('button',{name:'Verificar no servidor',exact:true}).click();await expect(page.getByRole('status')).toContainText('resultado confirmado',{timeout:180000});\n  44 |  await page.getByRole('button',{name:'Fechar',exact:true}).click();await page.getByRole('button',{name:'Salvar',exact:true}).click();await expect(page.locator('.project-title')).toContainText('Salvo');\n    at C:\\coding\\netlab\\artifacts\\global-enterprise-validation-2026-10-26\\enterprise-ui.spec.ts:41:83"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-27T00:15:47.628Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\coding\\netlab\\.data\\global-enterprise-validation-2026-10-26\\browser-rerun-results\\enterprise-ui-Six-region-e-a7c56-play-persistence-and-export-enterprise-desktop\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\coding\\netlab\\.data\\global-enterprise-validation-2026-10-26\\browser-rerun-results\\enterprise-ui-Six-region-e-a7c56-play-persistence-and-export-enterprise-desktop\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\coding\\netlab\\.data\\global-enterprise-validation-2026-10-26\\browser-rerun-results\\enterprise-ui-Six-region-e-a7c56-play-persistence-and-export-enterprise-desktop\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\coding\\netlab\\artifacts\\global-enterprise-validation-2026-10-26\\enterprise-ui.spec.ts",
+                    "column": 83,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "8df3f748642af7c3b2af-8ae6b995e54683fe7cca",
+          "file": "enterprise-ui.spec.ts",
+          "line": 19,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-27T00:15:47.137Z",
+    "duration": 209479.073,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

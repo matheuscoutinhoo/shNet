@@ -39,7 +39,7 @@ export function validateSpanningTree(snapshot: Snapshot) {
         new Set(c.mappings.map((m) => m.vlan)).size !== c.mappings.length ||
         c.mappings.some((m) => !device.vlans.some((v) => v.id === m.vlan)) ||
         new Set(c.priorities.map((m) => m.instance)).size !== c.priorities.length ||
-        c.priorities.some((m) => m.instance !== 0 && !expected.includes(m.instance))
+        (c.mode !== 'pvst' && c.priorities.some((m) => m.instance !== 0 && !expected.includes(m.instance)))
       )
         throw new Error('Configuração de instâncias STP inconsistente.');
     }

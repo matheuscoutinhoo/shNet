@@ -14,6 +14,7 @@ export const databaseHaSchema = z
             term: z.number().int().positive(),
             index: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
             deadline: timeSchema,
+            discovery: z.literal(true).optional(),
           })
           .strict()
       )

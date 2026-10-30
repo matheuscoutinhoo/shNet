@@ -166,6 +166,12 @@ describe('Interfaces lógicas e tabelas VRF', () => {
       'end',
     ])
       expect(cli.execute(cmd)).not.toMatch(/Erro|%/);
+    expect(cli.execute('show ip route vrf BLUE')).not.toContain('10.0.0.0/24');
+    const pc = e.addDevice('pc');
+    for (const command of ['conf t', 'interface Gi0/1', 'switchport access vlan 10', 'end'])
+      expect(cli.execute(command)).toBe('');
+    e.connect({ device: sw.id, port: 'p0' }, { device: pc.id, port: 'p0' });
+    e.advanceTo(31000);
     expect(cli.execute('show ip route vrf BLUE')).toContain('10.0.0.0/24');
     expect(cli.execute('show running-config')).toContain('vrf forwarding BLUE');
     const r = new TerminalSession(e, router.id);

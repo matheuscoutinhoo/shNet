@@ -44,9 +44,16 @@ export function HardwarePanel({ lab, device }: { lab: LabController; device: Dev
     )
   );
   const [output, setOutput] = useState('');
+  const [selectedConsole, setSelectedConsole] = useState('');
   const consoleLinks = lab.engine.state.links.filter(
     (l) => l.cable === 'console' && [l.a, l.b].some((p) => p.device === device.id)
   );
+  const consoleLink = consoleLinks.find((l) => l.id === selectedConsole) ?? consoleLinks[0];
+  const consolePeer =
+    consoleLink && (consoleLink.a.device === device.id ? consoleLink.b.device : consoleLink.a.device);
+  const consoleSecret = !!lab.engine.state.devices
+    .find((d) => d.id === consolePeer)
+    ?.consoleSessions?.find((s) => s.link === consoleLink?.id)?.context.auth;
   return (
     <section>
       <h4>Alimentação PoE e portas de gerenciamento</h4>
@@ -158,6 +165,7 @@ export function HardwarePanel({ lab, device }: { lab: LabController; device: Dev
           onSubmit={(ev) => {
             ev.preventDefault();
             const f = new FormData(ev.currentTarget);
+            (ev.currentTarget.elements.namedItem('command') as HTMLInputElement).value = '';
             lab.change((e) => {
               const response = e.consoleCommand(device.id, String(f.get('link')), String(f.get('command')));
               setOutput((v) => (v + '\n' + response).slice(-12000));
@@ -166,7 +174,11 @@ export function HardwarePanel({ lab, device }: { lab: LabController; device: Dev
         >
           <label>
             Cabo console
-            <select name="link">
+            <select
+              name="link"
+              value={consoleLink?.id ?? ''}
+              onChange={(event) => setSelectedConsole(event.target.value)}
+            >
               {consoleLinks.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.id}
@@ -175,8 +187,14 @@ export function HardwarePanel({ lab, device }: { lab: LabController; device: Dev
             </select>
           </label>
           <label>
-            Comando UART
-            <input name="command" maxLength={512} required />
+            {consoleSecret ? 'Senha UART' : 'Comando UART'}
+            <input
+              name="command"
+              type={consoleSecret ? 'password' : 'text'}
+              autoComplete="off"
+              maxLength={512}
+              required
+            />
           </label>
           <button className="button small">Enviar pela console</button>
           <pre className="terminal-output">{output}</pre>

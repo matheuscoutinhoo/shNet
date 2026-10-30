@@ -3,7 +3,7 @@ import { idSchema, timeSchema } from '../schemas';
 const mac = z.string().regex(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i);
 const number = z.number().int().min(1).max(64);
 export const LACP = { mac: '01:80:c2:00:00:02', tickMs: 1000, timeoutMs: 3000 } as const;
-const identity = z.object({ system: mac, key: number, port: idSchema }).strict();
+const identity = z.object({ system: mac, key: number, port: idSchema,portNumber:z.number().int().min(1).max(65535).optional(),systemPriority:z.number().int().min(0).max(65535).optional(),portPriority:z.number().int().min(0).max(65535).optional(),state:z.number().int().min(0).max(255).optional() }).strict();
 export const lacpPduSchema = z
   .object({
     actor: identity,

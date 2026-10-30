@@ -26,15 +26,37 @@ export const bgpNeighborSchema = z
     prepend: z.number().int().min(0).max(5).default(0),
     importFilter: z.array(bgpFilterSchema).max(32).default([]),
     exportFilter: z.array(bgpFilterSchema).max(32).default([]),
+    importPrefixList: z.string().max(32).optional(),
+    exportPrefixList: z.string().max(32).optional(),
+    importRouteMap: z.string().max(32).optional(),
+    exportRouteMap: z.string().max(32).optional(),
+    maximumPrefix: z.number().int().min(1).max(512).optional(),
+    password: z.string().min(1).max(80).optional(),
+    bfd: z.boolean().optional(),
+    bfdStrict: z.boolean().optional(),
+    peerGroup: z.string().max(32).optional(),
+    peerGroupOverrides: z.array(z.string().max(32)).max(32).optional(),
   })
   .strict();
 const configShape = {
   enabled: z.boolean(),
   asn,
   routerId: ipv4Schema,
+  autoRouterId: z.boolean().optional(),
   holdMs: z.number().int().min(3000).max(180000).multipleOf(1000).default(90000),
   networks: z.array(prefix).max(128),
   neighbors: z.array(bgpNeighborSchema).max(32),
+  peerGroups: z
+    .array(
+      z
+        .object({
+          name: z.string().regex(/^[\w-]{1,32}$/),
+          settings: bgpNeighborSchema.omit({ ip: true, peerGroup: true, peerGroupOverrides: true }).partial(),
+        })
+        .strict()
+    )
+    .max(32)
+    .optional(),
 };
 export const bgpConfigSchema = z.object(configShape).strict();
 export const bgpPathSchema = prefix
@@ -98,6 +120,7 @@ export const bgpPeerSchema = z
     sent: z.number().int().nonnegative(),
     received: z.number().int().nonnegative(),
     advertised: z.array(bgpPathSchema).max(BGP.maxRoutes),
+    maximumPrefixExceeded: z.boolean().optional(),
     evpnAdvertised: z.array(evpnMacSchema).max(512).optional(),
     evpnImetAdvertised: z.array(evpnImetSchema).max(48).optional(),
   })

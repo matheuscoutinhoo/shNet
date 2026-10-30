@@ -530,6 +530,38 @@ function createProfileHardware(e: SimulationEngine, id: string, position: { x: n
 /** Factory hardware for the equipment catalog. Provisioning belongs to the user. */
 export function addFactoryProfile(e: SimulationEngine, id: string, position = { x: 100, y: 100 }) {
   const { device: d, feature: f } = createProfileHardware(e, id, position);
+  if (
+    [
+      'switch-l2',
+      'switch-l3',
+      'access',
+      'distribution',
+      'core',
+      'industrial',
+      'router',
+      'edge',
+      'branch',
+      'virtual-router',
+      'isp',
+      'nat-gateway',
+      'vpn-gateway',
+    ].includes(id)
+  ) {
+    d.bootManaged = true;
+    d.operatingSystem = { family: 'ios-xe', release: '17.12', subset: 'shlab-core-v1' };
+    d.discovery = {
+      cdp: true,
+      lldp: false,
+      cdpTimer: 60,
+      cdpHoldtime: 180,
+      lldpTimer: 30,
+      lldpHoldtime: 120,
+      token: e.id('discovery'),
+      nextCdp: e.state.clock,
+      nextLldp: e.state.clock,
+      neighbors: [],
+    };
+  }
   d.power = f === 'rack' || f === 'patch-panel';
   if (f === 'rack') d.infrastructure = { kind: 'rack', units: 42, ambientC: 22, ventilation: 1, slots: [] };
   else if (f === 'patch-panel') d.infrastructure = { kind: 'patch-panel', pairs: [] };

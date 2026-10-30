@@ -2,7 +2,60 @@ import type { Device } from '../model';
 import { ipv4Schema } from '../model';
 import { parsePrefix, subnet } from '../protocols/ipv4';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { showRoutes, interfaceName } from './operational';
+import { rebuildSpanningTree } from '../protocols/stp';
 export function registerLayer3Commands(r: CommandRegistry) {
+  r.register({
+    pattern:
+      /^(no )?ip route (?:vrf ([\w-]{1,32}) )?([\d.]+) ([\d.]+) ([a-z][\w/.-]*)(?: ((?:\d{1,3}\.){3}\d{1,3}))?(?: (\d+))?(?: track (\d+))?$/i,
+    syntax: [
+      'ip route <network> <mask> <interface>',
+      'ip route <network> <mask> <interface> <next-hop> <distance>',
+      'ip route <network> <mask> <interface> <distance>',
+    ],
+    modes: CONFIG_MODES,
+    run: (m, _e, d) => {
+      const network = ipv4Schema.parse(m[3]),
+        prefix = parsePrefix(m[4]),
+        p = d.interfaces.find((p) => p.name.toLowerCase() === interfaceName(m[5]).toLowerCase()),
+        distance = m[7] ? Number(m[7]) : undefined;
+      if (
+        !['router', 'switch'].includes(d.type) ||
+        !p ||
+        p.mode !== 'routed' ||
+        p.vrf !== m[2] ||
+        (m[2] && !d.vrfs?.includes(m[2]))
+      )
+        throw new Error('Exit interface must be a routed interface in this VRF.');
+      if (subnet(network, prefix).network !== network) throw new Error('Network must align to its mask.');
+      if (distance !== undefined && (distance < 1 || distance > 255))
+        throw new Error('Administrative distance must be between 1 and 255.');
+      const nextHop = m[6] ? ipv4Schema.parse(m[6]) : '0.0.0.0';
+      d.routes = d.routes.filter(
+        (r) =>
+          !(
+            r.vrf === m[2] &&
+            r.network === network &&
+            r.prefix === prefix &&
+            r.port === p.id &&
+            r.nextHop === nextHop
+          )
+      );
+      if (!m[1]) {
+        if (d.routes.length >= 256) throw new Error('Route limit reached.');
+        d.routes.push({
+          network,
+          prefix,
+          nextHop,
+          metric: 1,
+          port: p.id,
+          ...(m[2] ? { vrf: m[2] } : {}),
+          ...(distance !== undefined ? { distance } : {}),
+          ...(m[8] ? { track: Number(m[8]) } : {}),
+        });
+      }
+    },
+  });
   r.register({
     pattern: /^no interface (\S+)$/i,
     modes: CONFIG_MODES,
@@ -24,7 +77,22 @@ export function registerLayer3Commands(r: CommandRegistry) {
   r.register({
     pattern: /^(no )?vrf definition ([\w-]{1,32})$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureVrf(d.id, m[2], !!m[1]),
+    run: (m, e, d, c) => {
+      e.configureVrf(d.id, m[2], !!m[1]);
+      if (!m[1]) {
+        c.mode = 'vrf';
+        c.vrf = m[2];
+        delete c.router;
+      }
+    },
+  });
+  r.register({
+    pattern: /^address-family (ipv4|ipv6)(?: unicast)?$/i,
+    syntax: ['address-family ipv4', 'address-family ipv6'],
+    modes: ['vrf'],
+    run: (_m, _e, _d, c) => {
+      c.mode = 'address-family';
+    },
   });
   r.register({
     pattern: /^(?:ip )?vrf forwarding ([\w-]{1,32})$/i,
@@ -55,12 +123,12 @@ export function registerLayer3Commands(r: CommandRegistry) {
       if (d.type !== 'switch' || port.logical) throw new Error('Use uma porta física do switch.');
       port.mode = 'routed';
       delete port.spanningTree;
-      if (d.spanningTree?.enabled)
-        e.configureSpanningTree(d.id, d.spanningTree.mode, d.spanningTree.priority);
+      delete port.spanningInstances;
+      if (d.spanningTree?.enabled) rebuildSpanningTree(e, d);
     },
   });
   r.register({
-    pattern: /^(no )?ip route vrf ([\w-]{1,32}) ([\d.]+)(?:\/|\s+)([\d.]+) ([\d.]+)$/i,
+    pattern: /^(no )?ip route vrf ([\w-]{1,32}) ([\d.]+)(?:\/|\s+)([\d.]+) ([\d.]+)(?: (\d+))?$/i,
     modes: CONFIG_MODES,
     run: (m, _e, d) => {
       if (!d.vrfs?.includes(m[2])) throw new Error('VRF inexistente.');
@@ -73,7 +141,17 @@ export function registerLayer3Commands(r: CommandRegistry) {
       );
       if (!m[1]) {
         if (d.routes.length >= 256) throw new Error('Limite de rotas.');
-        d.routes.push({ network, prefix, nextHop, metric: 1, vrf: m[2] });
+        const distance = m[6] ? Number(m[6]) : undefined;
+        if (distance !== undefined && (distance < 1 || distance > 255))
+          throw new Error('Administrative distance must be between 1 and 255.');
+        d.routes.push({
+          network,
+          prefix,
+          nextHop,
+          metric: 1,
+          vrf: m[2],
+          ...(distance !== undefined ? { distance } : {}),
+        });
       }
     },
   });
@@ -96,16 +174,9 @@ export function registerLayer3Commands(r: CommandRegistry) {
   r.register({
     pattern: /^show ip route vrf ([\w-]{1,32})$/i,
     modes: ALL_MODES,
-    run: (m, _e, d) => {
+    run: (m, e, d) => {
       if (!d.vrfs?.includes(m[1])) throw new Error('VRF inexistente.');
-      return (
-        [
-          ...d.interfaces
-            .filter((p) => p.vrf === m[1] && p.ip)
-            .map((p) => `C ${subnet(p.ip!, p.prefix!).network}/${p.prefix}, ${p.name}`),
-          ...d.routes.filter((p) => p.vrf === m[1]).map((p) => `S ${p.network}/${p.prefix} via ${p.nextHop}`),
-        ].join('\n') || 'Nenhuma rota'
-      );
+      return showRoutes(e, d, m[1]);
     },
   });
   r.register({
@@ -122,7 +193,7 @@ export function registerLayer3Commands(r: CommandRegistry) {
 }
 export function layer3RunningConfig(d: Device) {
   return [
-    ...(d.vrfs ?? []).map((v) => 'vrf definition ' + v),
+    ...(d.vrfs ?? []).flatMap((v) => ['vrf definition ' + v, 'exit']),
     ...(d.type === 'switch' && d.ipRouting ? ['ip routing'] : []),
   ];
 }

@@ -60,29 +60,29 @@ describe('OSPF pela rede simulada', () => {
     const engine = new SimulationEngine(makeTemplate('ospf'));
     const router = engine.state.devices[0],
       cli = new TerminalSession(engine, router.id);
-    expect(cli.execute('enable')).toBe('OK');
-    expect(cli.execute('conf t')).toBe('OK');
+    expect(cli.execute('enable')).toBe('');
+    expect(cli.execute('conf t')).toBe('');
     for (const command of [
       'access-list BLOCK 10 deny ospf any any',
       'access-list BLOCK 20 permit ip any any',
       'interface Gi0/1',
       'ip access-group BLOCK in',
     ])
-      expect(cli.execute(command)).toBe('OK');
+      expect(cli.execute(command)).toBe('');
     engine.advanceTo(1000);
     expect(router.ospf!.neighbors.some((entry) => entry.port === 'p0')).toBe(false);
-    expect(cli.execute('show ip route')).toContain('[110/31] via 10.0.13.3');
-    expect(cli.execute('show ip ospf database')).toContain('router');
-    expect(cli.execute('show running-config')).toContain('router ospf 1.1.1.1');
+    expect(cli.execute('do show ip route')).toContain('[110/31] via 10.0.13.3');
+    expect(cli.execute('do show ip ospf database')).toContain('router');
+    expect(cli.execute('do show running-config')).toContain('router-id 1.1.1.1');
     const client = engine.state.devices.find((device) => device.type === 'pc')!;
     engine.httpGet(client.id, '192.168.20.10');
     engine.advanceTo(2000);
     expect(client.tcpConnections![0].received).toContain('200 OK');
-    expect(cli.execute('no ip access-group BLOCK in')).toBe('OK');
-    expect(cli.execute('ip ospf cost 9')).toBe('OK');
+    expect(cli.execute('no ip access-group BLOCK in')).toBe('');
+    expect(cli.execute('ip ospf cost 9')).toBe('');
     engine.advanceTo(15000);
-    expect(cli.execute('show ip route')).toContain('[110/20] via 10.0.12.2');
-    expect(cli.execute('no service ospf')).toBe('OK');
+    expect(cli.execute('do show ip route')).toContain('[110/20] via 10.0.12.2');
+    expect(cli.execute('no service ospf')).toBe('');
     expect(engine.state.devices[0].ospf!.routes).toEqual([]);
   });
   it('forma adjacências, aprende por LSAs e reconverge após falha', () => {

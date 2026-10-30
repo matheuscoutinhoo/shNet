@@ -2,7 +2,15 @@ import type { Device } from '../model';
 import { type DynamicRoute, type OspfLsa } from './ospf-model';
 import { sameSubnet } from './ipv4';
 
-type Hop = { cost: number; port?: string; nextHop?: string };
+type NextHop = { port: string; nextHop: string };
+type Hop = { cost: number; port?: string; nextHop?: string; alternatives?: NextHop[] };
+const hops = (path: Hop): NextHop[] =>
+  path.alternatives ?? (path.port && path.nextHop ? [{ port: path.port, nextHop: path.nextHop }] : []);
+function mergeHops(values: NextHop[], maximum = 32) {
+  return [...new Map(values.map((h) => [h.nextHop + ':' + h.port, h])).values()]
+    .sort((a, b) => a.nextHop.localeCompare(b.nextHop) || a.port.localeCompare(b.port))
+    .slice(0, maximum);
+}
 const nodeKey = (kind: string, id: string) => kind + ':' + id;
 export function ospfRouterPaths(device: Device, area: number) {
   const state = device.ospf!;
@@ -33,7 +41,7 @@ export function ospfRouterPaths(device: Device, area: number) {
       let hop: Hop = { ...path, cost: path.cost + edge.cost };
       if (!hop.port && edge.key.startsWith('router:')) {
         const routerId = edge.key.slice(7);
-        const neighbor = state.neighbors
+        const neighbors = state.neighbors
           .filter(
             (entry) =>
               entry.area === area &&
@@ -53,18 +61,30 @@ export function ospfRouterPaths(device: Device, area: number) {
               (state.interfaces.find((entry) => entry.port === a.port)?.cost ?? 1) -
                 (state.interfaces.find((entry) => entry.port === b.port)?.cost ?? 1) ||
               a.port.localeCompare(b.port)
-          )[0];
-        if (!neighbor) continue;
-        hop = { ...hop, nextHop: neighbor.ip, port: neighbor.port };
+          );
+        const cost = neighbors.length
+          ? state.interfaces.find((p) => p.port === neighbors[0].port)?.cost
+          : undefined;
+        const alternatives = mergeHops(
+          neighbors
+            .filter((n) => state.interfaces.find((p) => p.port === n.port)?.cost === cost)
+            .map((n) => ({ port: n.port, nextHop: n.ip }))
+        );
+        if (!alternatives.length) continue;
+        hop = { ...hop, ...alternatives[0], alternatives };
       }
       const previous = best.get(edge.key);
       if (hop.cost > 16777215) continue;
-      if (
-        !previous ||
-        hop.cost < previous.cost ||
-        (hop.cost === previous.cost && `${hop.nextHop}:${hop.port}` < `${previous.nextHop}:${previous.port}`)
-      )
+      if (!previous || hop.cost < previous.cost) {
         best.set(edge.key, hop);
+        visited.delete(edge.key);
+      } else if (hop.cost === previous.cost) {
+        const alternatives = mergeHops([...hops(previous), ...hops(hop)]);
+        if (JSON.stringify(alternatives) !== JSON.stringify(hops(previous))) {
+          best.set(edge.key, { ...previous, ...alternatives[0], alternatives });
+          visited.delete(edge.key);
+        }
+      }
     }
   }
   const summaries = database.filter((l) => l.type === 'asbr-summary');
@@ -97,12 +117,12 @@ export function ospfSpf(device: Device, area: number): DynamicRoute[] {
     for (const prefix of prefixes) {
       const metric = path.cost + prefix.cost;
       if (metric > 16777215) continue;
-      if (path.port && path.nextHop)
+      for (const hop of hops(path))
         routes.push({
           ...prefix,
           metric,
-          port: path.port,
-          nextHop: path.nextHop,
+          port: hop.port,
+          nextHop: hop.nextHop,
           protocol: 'OSPF',
           distance: 110,
           area,
@@ -134,19 +154,20 @@ export function ospfSpf(device: Device, area: number): DynamicRoute[] {
     if (!path?.port || !path.nextHop) continue;
     const metric = lsa.metricType === 'E1' ? lsa.cost + path.cost : lsa.cost;
     if (metric > 16777215) continue;
-    routes.push({
-      network: lsa.network,
-      prefix: lsa.prefix,
-      nextHop: path.nextHop,
-      port: path.port,
-      metric,
-      internalCost: path.cost,
-      tag: lsa.tag,
-      protocol: 'OSPF',
-      distance: 110,
-      area,
-      pathType: lsa.type === 'nssa' ? (lsa.metricType === 'E1' ? 'N1' : 'N2') : lsa.metricType,
-    });
+    for (const hop of hops(path))
+      routes.push({
+        network: lsa.network,
+        prefix: lsa.prefix,
+        nextHop: hop.nextHop,
+        port: hop.port,
+        metric,
+        internalCost: path.cost,
+        tag: lsa.tag,
+        protocol: 'OSPF',
+        distance: 110,
+        area,
+        pathType: lsa.type === 'nssa' ? (lsa.metricType === 'E1' ? 'N1' : 'N2') : lsa.metricType,
+      });
   }
   // Do not leak the LSA-only cost property into persisted route contracts.
   const attached = state.lsdb.flatMap<{ network: string; prefix: number }>((lsa) =>
@@ -192,7 +213,7 @@ export function ospfSpf(device: Device, area: number): DynamicRoute[] {
 }
 const rank = (p: DynamicRoute['pathType']) =>
   p === 'intra' ? 0 : p === 'inter' ? 1 : p === 'E1' || p === 'N1' ? 2 : 3;
-export function bestOspfRoutes(routes: DynamicRoute[]) {
+export function bestOspfRoutes(routes: DynamicRoute[], maximumPaths = 4) {
   const sorted = [...routes].sort(
     (a, b) =>
       rank(a.pathType) - rank(b.pathType) ||
@@ -201,12 +222,22 @@ export function bestOspfRoutes(routes: DynamicRoute[]) {
       a.nextHop.localeCompare(b.nextHop) ||
       a.port.localeCompare(b.port)
   );
-  const chosen = new Map<string, DynamicRoute>();
+  const chosen = new Map<string, DynamicRoute[]>();
   for (const route of sorted) {
     const key = `${route.network}/${route.prefix}`;
-    if (!chosen.has(key)) chosen.set(key, route);
+    const existing = chosen.get(key);
+    if (!existing) chosen.set(key, [route]);
+    else if (
+      existing.length < maximumPaths &&
+      rank(route.pathType) === rank(existing[0].pathType) &&
+      route.metric === existing[0].metric &&
+      (route.internalCost ?? 0) === (existing[0].internalCost ?? 0) &&
+      !existing.some((r) => r.port === route.port && r.nextHop === route.nextHop)
+    )
+      existing.push(route);
   }
   return [...chosen.values()]
+    .flat()
     .sort((a, b) => a.network.localeCompare(b.network) || a.prefix - b.prefix)
     .slice(0, 1024);
 }

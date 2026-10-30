@@ -45,8 +45,8 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'DATABASE_QUORUM_SCOPE',
           'info',
           d.quorum.node.members,
-          'Banco replicado usa IP individual do líder; não há migração de TCP, descoberta automática de endpoint ou VIP gerenciado pelo quorum.',
-          'Após eleição, consulte o novo líder. Timeout de alteração tem resultado indeterminado; confirme o estado antes de repetir. Compactação preserva dados confirmados; até 256 entradas retidas e 512 KiB por checkpoint.'
+          'Banco replicado usa IPs individuais; clientes podem descobrir o líder por HTTP/TCP com cluster e réplicas explícitos. Não há migração de TCP ou VIP gerenciado pelo quorum.',
+          'Use descoberta para novas consultas após eleição. Timeout de alteração tem resultado indeterminado; confirme o estado antes de repetir. Compactação preserva dados confirmados; até 256 entradas retidas e 512 KiB por checkpoint.'
         );
       const dataBytes = Math.max(
         ...s.devices
@@ -145,7 +145,9 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           x.interfaces.some(
             (q) =>
               domain(x, q) === domain(d, p) &&
-              (q.ip === gateway || x.vrrp?.groups.some((g) => g.port === q.id && g.vip === gateway))
+              (q.ip === gateway ||
+                x.vrrp?.groups.some((g) => g.port === q.id && g.vip === gateway) ||
+                x.hsrp?.groups.some((g) => g.port === q.id && g.vip === gateway))
           )
         );
         if (!available)
@@ -205,28 +207,25 @@ export function preflight(s: Snapshot): PreflightIssue[] {
         `${d.hostname}: cargas solicitadas excedem a potência máxima.`,
         'Redimensione a UPS e valide a carga integral com a outra fonte indisponível.'
       );
-    if (
-      !d.infrastructure &&
-      d.interfaces.some((p) => p.ip) &&
-      s.links.filter((l) => l.a.device === d.id || l.b.device === d.id).length === 1
-    )
+    const attachments = s.links.filter((l) => l.a.device === d.id || l.b.device === d.id);
+    // End hosts are single-homed by design; only servers are reviewed for access redundancy.
+    if (!d.infrastructure && d.type === 'server' && d.interfaces.some((p) => p.ip) && attachments.length === 1)
       add(
         'SINGLE_ATTACHMENT',
-        'warning',
+        'info',
         [d.id],
         `${d.hostname}: apenas um caminho físico de acesso.`,
         'Verifique se o SLA exige interface, switch e alimentação redundantes.'
       );
-    if (
-      d.type === 'switch' &&
-      !d.infrastructure &&
-      s.links.filter((l) => l.a.device === d.id || l.b.device === d.id).length > 2
-    )
+    // Redundant uplinks of a host/router that all land on one switch share that switch's failure domain.
+    const peers = new Set(attachments.map((l) => (l.a.device === d.id ? l.b.device : l.a.device)));
+    const peer = peers.size === 1 ? s.devices.find((x) => x.id === [...peers][0]) : undefined;
+    if (d.type !== 'switch' && !d.infrastructure && attachments.length > 1 && peer?.type === 'switch' && !peer.infrastructure)
       add(
         'SWITCH_FAILURE_DOMAIN',
         'info',
-        [d.id],
-        `${d.hostname}: múltiplos enlaces compartilham o mesmo equipamento.`,
+        [d.id, peer.id],
+        `${d.hostname}: ${attachments.length} enlaces terminam no mesmo equipamento (${peer.hostname}).`,
         'Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia.'
       );
     for (const route of d.routes) {
@@ -351,6 +350,15 @@ export function preflight(s: Snapshot): PreflightIssue[] {
       const servers = s.devices.filter(
         (x) => x.dhcpServer?.enabled && x.interfaces.some((q) => p.dhcpRelay!.includes(q.ip ?? ''))
       );
+      // A server selects the relay pool by exact giaddr or, failing that, by the pool network containing it.
+      const scoped = servers.filter((server) =>
+        server.dhcpServer!.pools.some(
+          (pool) =>
+            pool.relayAddress === p.ip ||
+            (pool.relayAddresses ?? []).includes(p.ip!) ||
+            (!!pool.relayAddress && sameSubnet(p.ip!, pool.network, pool.prefix))
+        )
+      );
       if (servers.length < 2)
         add(
           'RELAY_SINGLE_SERVER',
@@ -359,19 +367,22 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           `${d.hostname}/${p.name}: relay depende de ${servers.length} servidor(es) DHCP disponível(is) na configuração.`,
           'Configure destinos e escopos redundantes; valide continuidade de leases, renovação e rebinding.'
         );
-      for (const server of servers)
-        if (
-          !server.dhcpServer!.pools.some(
-            (pool) => pool.relayAddress === p.ip || (pool.relayAddresses ?? []).includes(p.ip!)
-          )
-        )
-          add(
-            'RELAY_SCOPE_MISSING',
-            'error',
-            [d.id, server.id],
-            `${d.hostname}/${p.name}: giaddr ${p.ip} sem pool em ${server.hostname}.`,
-            'Inclua o giaddr do backup em relayAddresses do mesmo pool; para pools separados, use intervalos sem sobreposição.'
-          );
+      else if (scoped.length === 1)
+        add(
+          'RELAY_SINGLE_SERVER',
+          'warning',
+          [d.id, scoped[0].id],
+          `${d.hostname}/${p.name}: somente ${scoped[0].hostname} possui pool para giaddr ${p.ip}.`,
+          'Replique o escopo (intervalos sem sobreposição) em outro servidor de destino para manter novas concessões após falha.'
+        );
+      if (servers.length && !scoped.length)
+        add(
+          'RELAY_SCOPE_MISSING',
+          'error',
+          [d.id, ...servers.map((x) => x.id)],
+          `${d.hostname}/${p.name}: giaddr ${p.ip} sem pool em ${servers.map((x) => x.hostname).join(', ')}.`,
+          'Crie, em pelo menos um servidor de destino, um pool cuja rede contenha o giaddr; pools separados devem usar intervalos sem sobreposição.'
+        );
     }
     for (const p of d.interfaces.filter((p) => p.vxlan?.enabled && p.vxlan.evpn)) {
       const v = p.vxlan!;
@@ -427,15 +438,17 @@ export function preflight(s: Snapshot): PreflightIssue[] {
         `${d.hostname}: inspeção de aplicação usa somente IPv4; zonas de trânsito cobrem IPv4/IPv6.`,
         'Configure ACL/zonas IPv6 equivalentes ou recuse o caso que depende de inspeção de aplicação em IPv6.'
       );
-    if (d.type === 'switch' && d.ipRouting && !d.firewall)
-      add(
-        'FIREWALL_CAPABILITY',
-        'info',
-        [d.id],
-        `${d.hostname}: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.`,
-        'Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful.'
-      );
   }
+  // One capability note for all L3 switches instead of one per switch.
+  const routedSwitches = s.devices.filter((d) => d.type === 'switch' && d.ipRouting && !d.firewall);
+  if (routedSwitches.length)
+    add(
+      'FIREWALL_CAPABILITY',
+      'info',
+      routedSwitches.map((d) => d.id),
+      `${routedSwitches.length} switch(es) L3 encaminham IP; firewall stateful de trânsito requer roteador no modelo atual.`,
+      'Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful.'
+    );
   for (const [ip, devices] of addresses)
     if (devices.length > 1)
       add(

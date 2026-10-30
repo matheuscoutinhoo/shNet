@@ -180,6 +180,7 @@ export function configureTunnel(e: SimulationEngine, d: Device, input: unknown) 
       media: 'rj45',
       transceiver: undefined,
       dot1x: undefined,
+      authenticationControl:undefined,udld:undefined,bfd:undefined,voiceVlan:undefined,portSecurity:undefined,stpGuard:undefined,ospfAuthentication:undefined,
       supplicant: undefined,
       logical: undefined,
       qos: undefined,

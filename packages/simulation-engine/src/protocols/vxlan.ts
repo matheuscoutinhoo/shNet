@@ -79,6 +79,7 @@ export function configureVxlan(e: SimulationEngine, d: Device, input: unknown) {
       channel: undefined,
       aggregate: undefined,
       dot1x: undefined,
+      authenticationControl:undefined,udld:undefined,bfd:undefined,voiceVlan:undefined,portSecurity:undefined,stpGuard:undefined,ospfAuthentication:undefined,
       supplicant: undefined,
       logical: undefined,
       tunnel: undefined,

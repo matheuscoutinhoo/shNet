@@ -96,8 +96,8 @@ describe('SD-WAN usa caminhos e políticas transportados pela rede', () => {
     const prior = e.snapshot();
     expect(cli.execute('tunnel configure ' + JSON.stringify({ ...c, underlay: 'tun2' }))).toMatch(/^%/);
     expect(e.snapshot()).toEqual(prior);
-    expect(cli.execute('show tunnels')).toContain('Tunnel1');
-    expect(cli.execute('show running-config')).toContain('[configured]');
-    expect(cli.execute('show running-config')).not.toContain(c.key);
+    expect(cli.execute('do show tunnels')).toContain('Tunnel1');
+    expect(cli.execute('do show running-config')).toContain('[configured]');
+    expect(cli.execute('do show running-config')).not.toContain(c.key);
   });
 });

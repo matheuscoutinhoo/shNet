@@ -60,6 +60,7 @@ export const tcpOptionsSchema = z
       .max(4)
       .optional(),
     timestamp: z.object({ value: uint32Schema, echo: uint32Schema }).strict().optional(),
+    md5:z.string().regex(/^[a-f0-9]{32}$/).optional(),
   })
   .strict();
 export const tcpOptionBytes = (options?: z.infer<typeof tcpOptionsSchema>) =>
@@ -68,7 +69,7 @@ export const tcpOptionBytes = (options?: z.infer<typeof tcpOptionsSchema>) =>
         ((options.mss ? 4 : 0) +
           (options.sackPermitted ? 2 : 0) +
           (options.sack ? 2 + 8 * options.sack.length : 0) +
-          (options.timestamp ? 10 : 0)) /
+          (options.timestamp ? 10 : 0)+(options.md5?18:0)) /
           4
       ) * 4
     : 0;

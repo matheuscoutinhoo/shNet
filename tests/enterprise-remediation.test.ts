@@ -524,7 +524,11 @@ describe('Correções enterprise/datacenter', () => {
     expect(preflight(s).filter((i) => i.code === 'DUPLICATE_IP')).toEqual([]);
     expect(preflight(s).filter((i) => i.code === 'RELAY_SCOPE_MISSING')).toEqual([]);
     const server = s.devices.find((d) => d.dhcpServer)!;
+    // Relayed pools are selected by giaddr subnet, so removing only relayAddresses keeps the scope.
     for (const p of server.dhcpServer!.pools) delete p.relayAddresses;
+    expect(preflight(s).filter((i) => i.code === 'RELAY_SCOPE_MISSING')).toEqual([]);
+    server.dhcpServer!.bindings = [];
+    server.dhcpServer!.pools = [];
     expect(
       preflight(s).some(
         (i) =>

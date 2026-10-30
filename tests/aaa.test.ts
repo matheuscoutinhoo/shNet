@@ -97,8 +97,8 @@ describe('AAA e controlled port usam a rede simulada', () => {
     expect(cli.execute('aaa login admin rede-admin')).toContain('pending');
     e.advanceTo(4000);
     expect(e.device(sw.id).networkAuth?.privilege).toBe(15);
-    expect(cli.execute('configure terminal')).toBe('OK');
-    expect(cli.execute('hostname SW-ADMIN')).toBe('OK');
+    expect(cli.execute('configure terminal')).toBe('');
+    expect(cli.execute('hostname SW-ADMIN')).toBe('');
     expect(cli.history.join()).not.toContain('rede-admin');
     expect(
       e.state.events.some(
@@ -160,8 +160,8 @@ describe('AAA e controlled port usam a rede simulada', () => {
     e.advanceTo(2000);
     const cli = new TerminalSession(e, sw.id);
     cli.execute('enable');
-    expect(cli.execute('configure terminal')).toBe('OK');
-    expect(cli.execute('hostname AUTORIZADO')).toBe('OK');
+    expect(cli.execute('configure terminal')).toBe('');
+    expect(cli.execute('hostname AUTORIZADO')).toBe('');
     expect(cli.execute('ip route 10.99.0.0 255.255.255.0 192.0.2.2')).toContain('comando não autorizado');
     cli.execute('aaa logout');
     e.advanceTo(3000);

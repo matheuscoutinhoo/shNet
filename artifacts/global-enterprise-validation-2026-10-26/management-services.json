@@ -1,0 +1,67 @@
+{
+  "results": [
+    {
+      "device": "NYC-ADMIN",
+      "synchronized": true,
+      "offsetMs": -7.275957614183426e-12,
+      "receivedSyslog": true
+    },
+    {
+      "device": "SAO-ADMIN",
+      "synchronized": true,
+      "offsetMs": 7.275957614183426e-12,
+      "receivedSyslog": true
+    },
+    {
+      "device": "LON-ADMIN",
+      "synchronized": true,
+      "offsetMs": 0,
+      "receivedSyslog": true
+    },
+    {
+      "device": "FRA-ADMIN",
+      "synchronized": true,
+      "offsetMs": -3.637978807091713e-12,
+      "receivedSyslog": true
+    },
+    {
+      "device": "SIN-ADMIN",
+      "synchronized": true,
+      "offsetMs": 7.275957614183426e-12,
+      "receivedSyslog": true
+    },
+    {
+      "device": "SYD-ADMIN",
+      "synchronized": true,
+      "offsetMs": 0,
+      "receivedSyslog": true
+    }
+  ],
+  "messages": [
+    {
+      "device": "NYC-ADMIN",
+      "id": "syslog-177626"
+    },
+    {
+      "device": "SAO-ADMIN",
+      "id": "syslog-177634"
+    },
+    {
+      "device": "LON-ADMIN",
+      "id": "syslog-177642"
+    },
+    {
+      "device": "FRA-ADMIN",
+      "id": "syslog-177650"
+    },
+    {
+      "device": "SIN-ADMIN",
+      "id": "syslog-177658"
+    },
+    {
+      "device": "SYD-ADMIN",
+      "id": "syslog-177666"
+    }
+  ],
+  "passed": true
+}

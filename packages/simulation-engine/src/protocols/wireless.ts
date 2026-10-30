@@ -102,6 +102,7 @@ export function configureWireless(e: SimulationEngine, d: Device, input: unknown
       aggregate: undefined,
       channel: undefined,
       dot1x: undefined,
+      authenticationControl:undefined,udld:undefined,bfd:undefined,voiceVlan:undefined,portSecurity:undefined,stpGuard:undefined,ospfAuthentication:undefined,
       supplicant: undefined,
       logical: undefined,
       vrf: undefined,

@@ -1,0 +1,154 @@
+[
+  {
+    "device": "WAN-PROVIDER-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "WAN-PROVIDER-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "NYC-WAN-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "NYC-WAN-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "NYC-CORE-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "NYC-ACCESS-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "NYC-ACCESS-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SAO-WAN-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SAO-WAN-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SAO-ACCESS-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SAO-ACCESS-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "LON-WAN-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "LON-WAN-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "LON-CORE-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "LON-CORE-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "LON-ACCESS-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "LON-ACCESS-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "FRA-WAN-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "FRA-WAN-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "FRA-ACCESS-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "FRA-ACCESS-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SIN-WAN-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SIN-WAN-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SIN-ACCESS-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SIN-ACCESS-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SYD-WAN-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SYD-WAN-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SYD-ACCESS-A",
+    "response": "Building configuration...\n[OK]"
+  },
+  {
+    "device": "SYD-ACCESS-B",
+    "response": "Building configuration...\n[OK]"
+  }
+]

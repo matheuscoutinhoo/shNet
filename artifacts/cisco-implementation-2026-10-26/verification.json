@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-10-26T23:29:33.048Z",
+  "engineContract": "2026.10.26.1",
+  "engineSourceHash": "a88f28765ef1cee6351eebaeb3917e17c2efdce413fbdc13be429f05d6222024",
+  "auditSourceMatches": true,
+  "selectedCommandChecks": {
+    "checks": 42,
+    "passed": 41,
+    "gaps": 1,
+    "profiles": 49,
+    "profileSmokePassed": 49
+  },
+  "commandRatioIsNotProductCompletion": true,
+  "openSelectedChecks": [
+    {
+      "id": "SEC-03"
+    }
+  ],
+  "unit": {
+    "files": 102,
+    "total": 1038,
+    "initialTotal": 1037,
+    "passed": 1036,
+    "failed": 0,
+    "skipped": 2,
+    "success": true,
+    "initialRunSuccess": false,
+    "initialFailures": [
+      {
+        "key": "C:/coding/netlab/tests/bgp.test.ts / BGP por sessões TCP reais do modelo mantém sessões longas consumindo o fluxo TCP sem esgotar o limite de 16 KiB",
+        "file": "C:/coding/netlab/tests/bgp.test.ts",
+        "title": "BGP por sessões TCP reais do modelo mantém sessões longas consumindo o fluxo TCP sem esgotar o limite de 16 KiB",
+        "status": "failed",
+        "failureMessages": [
+          "Error: Test timed out in 20000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2681:43)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2698:16)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2471:28)\n    at chain (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1859:14)\n    at C:/coding/netlab/tests/bgp.test.ts:117:3\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:52\n    at runWithSuite (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3250:8)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:22)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2768:51)\n    at async file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3451:26"
+        ]
+      },
+      {
+        "key": "C:/coding/netlab/tests/database-ha.test.ts / SQL service with majority-confirmed operations (R08) runs more than 256 network transactions and restores compacted SQL state",
+        "file": "C:/coding/netlab/tests/database-ha.test.ts",
+        "title": "SQL service with majority-confirmed operations (R08) runs more than 256 network transactions and restores compacted SQL state",
+        "status": "failed",
+        "failureMessages": [
+          "Error: Test timed out in 20000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2681:43)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2698:16)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2471:28)\n    at chain (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1859:14)\n    at C:/coding/netlab/tests/database-ha.test.ts:44:3\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:52\n    at runWithSuite (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3250:8)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:22)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2768:51)\n    at async file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3451:26"
+        ]
+      },
+      {
+        "key": "C:/coding/netlab/tests/device-integrity.test.ts / Integridade dos perfis de equipamentos APs, WLCs, switches e endpoints possuem opções distintas",
+        "file": "C:/coding/netlab/tests/device-integrity.test.ts",
+        "title": "Integridade dos perfis de equipamentos APs, WLCs, switches e endpoints possuem opções distintas",
+        "status": "failed",
+        "failureMessages": [
+          "AssertionError: expected [ 'overview', 'interfaces', …(21) ] to not include 'ospf'\n    at Proxy.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/index.C4tKZ0yW.js:2077:15)\n    at Proxy.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/index.C4tKZ0yW.js:1944:14)\n    at Proxy.methodWrapper (file:///C:/coding/netlab/node_modules/chai/index.js:1737:25)\n    at C:/coding/netlab/tests/device-integrity.test.ts:160:60\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1628:35\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2783:26\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3321:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3316:10)\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3301:20"
+        ]
+      },
+      {
+        "key": "C:/coding/netlab/tests/industrial-process.test.ts / Processo PLC e varredura HMI por Modbus TCP executa os cinco presets com cargas reais de HMI, SCADA e MES, falhas e assertions de alarme",
+        "file": "C:/coding/netlab/tests/industrial-process.test.ts",
+        "title": "Processo PLC e varredura HMI por Modbus TCP executa os cinco presets com cargas reais de HMI, SCADA e MES, falhas e assertions de alarme",
+        "status": "failed",
+        "failureMessages": [
+          "Error: Test timed out in 20000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2681:43)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2698:16)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2471:28)\n    at chain (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1859:14)\n    at C:/coding/netlab/tests/industrial-process.test.ts:37:3\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:52\n    at runWithSuite (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3250:8)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:22)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2768:51)\n    at async file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3451:26"
+        ]
+      },
+      {
+        "key": "C:/coding/netlab/tests/industrial-remediation.test.ts / Transações industriais e cenários oferece e executa os cenários nativos da fábrica para nove protocolos e alimentação",
+        "file": "C:/coding/netlab/tests/industrial-remediation.test.ts",
+        "title": "Transações industriais e cenários oferece e executa os cenários nativos da fábrica para nove protocolos e alimentação",
+        "status": "failed",
+        "failureMessages": [
+          "Error: Test timed out in 60000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2681:43)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2698:16)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2471:28)\n    at chain (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1859:14)\n    at C:/coding/netlab/tests/industrial-remediation.test.ts:140:3\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:52\n    at runWithSuite (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3250:8)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:22)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2768:51)\n    at async file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3451:26"
+        ]
+      },
+      {
+        "key": "C:/coding/netlab/tests/quorum-compaction.test.ts / Quorum checkpoint compaction and installation converges across repeated elections, mixed checkpoint positions, duplication and lost messages",
+        "file": "C:/coding/netlab/tests/quorum-compaction.test.ts",
+        "title": "Quorum checkpoint compaction and installation converges across repeated elections, mixed checkpoint positions, duplication and lost messages",
+        "status": "failed",
+        "failureMessages": [
+          "Error: Test timed out in 20000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2681:43)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2698:16)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2471:28)\n    at chain (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1859:14)\n    at C:/coding/netlab/tests/quorum-compaction.test.ts:88:3\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:52\n    at runWithSuite (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3250:8)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:22)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2768:51)\n    at async file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3451:26"
+        ]
+      },
+      {
+        "key": "C:/coding/netlab/tests/quorum.test.ts / quorum message-driven replication foundation (R08) keeps committed prefixes identical under seeded partitions, loss, duplication and reordering",
+        "file": "C:/coding/netlab/tests/quorum.test.ts",
+        "title": "quorum message-driven replication foundation (R08) keeps committed prefixes identical under seeded partitions, loss, duplication and reordering",
+        "status": "failed",
+        "failureMessages": [
+          "Error: Test timed out in 20000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2681:43)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2698:16)\n    at Object.<anonymous> (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2471:28)\n    at chain (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1859:14)\n    at C:/coding/netlab/tests/quorum.test.ts:15:3\n    at file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:52\n    at runWithSuite (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3250:8)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2763:22)\n    at Object.collect (file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2768:51)\n    at async file:///C:/coding/netlab/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3451:26"
+        ]
+      }
+    ],
+    "postFixReports": [
+      "firstboot-tests.json",
+      "slow-regression.json"
+    ],
+    "serialRecheckedTests": 293,
+    "unresolved": []
+  },
+  "postgres": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "browser": {
+    "inventory": 73,
+    "productionInitial": {
+      "startTime": "2026-10-26T22:45:05.002Z",
+      "duration": 1628452.591,
+      "expected": 70,
+      "skipped": 0,
+      "unexpected": 3,
+      "flaky": 0
+    },
+    "serialRechecks": 4,
+    "finalPassed": 73,
+    "unresolved": [],
+    "initialFailures": [
+      {
+        "key": "lab.spec.ts / TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile / sistema-claro",
+        "title": "TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile",
+        "project": "sistema-claro",
+        "status": "unexpected",
+        "passed": false,
+        "results": [
+          {
+            "status": "timedOut",
+            "error": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+          }
+        ]
+      },
+      {
+        "key": "lab.spec.ts / cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação / sistema-claro",
+        "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+        "project": "sistema-claro",
+        "status": "unexpected",
+        "passed": false,
+        "results": [
+          {
+            "status": "timedOut",
+            "error": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+          }
+        ]
+      },
+      {
+        "key": "lab.spec.ts / Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile / sistema-claro",
+        "title": "Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile",
+        "project": "sistema-claro",
+        "status": "unexpected",
+        "passed": false,
+        "results": [
+          {
+            "status": "timedOut",
+            "error": "\u001b[31mTest timeout of 150000ms exceeded.\u001b[39m"
+          }
+        ]
+      }
+    ],
+    "globalErrors": []
+  },
+  "dependencies": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "limits": [
+    "Selected Cisco command checks are not complete Cisco compatibility.",
+    "Native SSH/VTY and the advanced backlog remain open.",
+    "Interrupted development runs are excluded; see aborted-runs.json.",
+    "Full runs preceded the first-boot correction. Affected unit files and browser workflows were rechecked after the fix.",
+    "One browser project covers the app, which forces its own dark appearance."
+  ]
+}

@@ -1,0 +1,1724 @@
+{
+  "total": 61,
+  "passed": 44,
+  "gaps": 17,
+  "rows": [
+    {
+      "id": "N01",
+      "category": "management",
+      "requirement": "Native SSH VTY configuration",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "line vty 0 4",
+          "response": "% Invalid input detected at: line"
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "category": "management",
+      "requirement": "Native local admin account",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "username netadmin privilege 15 secret Audit-Only-123!",
+          "response": "% Invalid input detected at: username"
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "category": "management",
+      "requirement": "Native domain name for SSH key generation",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip domain name corp.test",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "category": "management",
+      "requirement": "Native SSH version 2 configuration",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip ssh version 2",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "category": "management",
+      "requirement": "Native AAA enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "aaa new-model",
+          "response": "% Invalid input detected at: new-model"
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "category": "management",
+      "requirement": "Native RADIUS server submode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "radius server ISE-PRIMARY",
+          "response": "% Invalid input detected at: radius"
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "category": "management",
+      "requirement": "SNMPv3 authenticated/private management",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "snmp-server group NMS v3 priv",
+          "response": "% Invalid input detected at: group"
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "category": "management",
+      "requirement": "Standard NTP server command",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ntp server 10.1.99.123",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N09",
+      "category": "management",
+      "requirement": "Standard syslog target command",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "logging host 10.1.99.14",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "category": "management",
+      "requirement": "NETCONF native enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "netconf-yang",
+          "response": "% Invalid input detected at: netconf-yang"
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "category": "management",
+      "requirement": "Standard clock timezone",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "clock timezone UTC 0",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "category": "management",
+      "requirement": "Secure HTTP management",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip http secure-server",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "category": "management",
+      "requirement": "Configuration archive",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "archive",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "category": "management",
+      "requirement": "Native IP SLA probe",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip sla 10",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N15",
+      "category": "management",
+      "requirement": "Native object tracking",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "track 10 ip sla 10 reachability",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N16",
+      "category": "routing",
+      "requirement": "OSPF passive-interface default",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "passive-interface default",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N17",
+      "category": "routing",
+      "requirement": "OSPF reference bandwidth",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "auto-cost reference-bandwidth 10000",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N18",
+      "category": "routing",
+      "requirement": "OSPF stub area",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "area 10 stub",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N19",
+      "category": "routing",
+      "requirement": "OSPF ABR summarization",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "area 10 range 10.10.0.0 255.255.0.0",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N20",
+      "category": "routing",
+      "requirement": "OSPF default origination",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "default-information originate",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N21",
+      "category": "routing",
+      "requirement": "OSPF authentication",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip ospf authentication message-digest",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N22",
+      "category": "routing",
+      "requirement": "OSPFv3 process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospfv3 100",
+          "response": "% Invalid input detected at: ospfv3"
+        }
+      ]
+    },
+    {
+      "id": "N23",
+      "category": "routing",
+      "requirement": "EIGRP process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router eigrp 100",
+          "response": "% Invalid input detected at: eigrp"
+        }
+      ]
+    },
+    {
+      "id": "N24",
+      "category": "routing",
+      "requirement": "IS-IS process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router isis CORE",
+          "response": "% Invalid input detected at: isis"
+        }
+      ]
+    },
+    {
+      "id": "N25",
+      "category": "routing",
+      "requirement": "Native prefix-list policy",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip prefix-list CORP seq 10 permit 10.0.0.0/8 le 24",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N26",
+      "category": "routing",
+      "requirement": "Native route-map policy submode",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "route-map WAN-OUT permit 10",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N27",
+      "category": "routing",
+      "requirement": "Native BGP peer group",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor WAN peer-group",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N28",
+      "category": "routing",
+      "requirement": "Native BGP maximum-prefix protection",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 remote-as 65002",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 maximum-prefix 100",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N29",
+      "category": "routing",
+      "requirement": "Native BGP authentication",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 remote-as 65002",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 password AuditOnly",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N30",
+      "category": "routing",
+      "requirement": "Native BFD timer configuration",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "bfd interval 50 min_rx 50 multiplier 3",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N31",
+      "category": "segmentation",
+      "requirement": "VRF definition enters config-vrf mode",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "vrf definition CORP",
+          "response": "OK"
+        }
+      ],
+      "observed": true
+    },
+    {
+      "id": "N32",
+      "category": "segmentation",
+      "requirement": "VRF-aware OSPF process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100 vrf CORP",
+          "response": "% Invalid input detected at: vrf"
+        }
+      ]
+    },
+    {
+      "id": "N33",
+      "category": "segmentation",
+      "requirement": "Native MPLS LDP enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "mpls ip",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N34",
+      "category": "wan",
+      "requirement": "Native IKEv2 proposal",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "crypto ikev2 proposal CORP",
+          "response": "% Invalid input detected at: crypto"
+        }
+      ]
+    },
+    {
+      "id": "N35",
+      "category": "wan",
+      "requirement": "Native tunnel interface",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Tunnel0",
+          "response": "% Interface inexistente"
+        }
+      ]
+    },
+    {
+      "id": "N36",
+      "category": "wan",
+      "requirement": "Native PAT overload",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip nat inside source list 1 interface Gi0/2 overload",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N37",
+      "category": "switching",
+      "requirement": "Native LACP member configuration",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "channel-group 1 mode active",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N38",
+      "category": "switching",
+      "requirement": "Native Port-channel interface",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "channel-group 1 mode active",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Port-channel1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N39",
+      "category": "switching",
+      "requirement": "Native MST region submode",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree mst configuration",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N40",
+      "category": "switching",
+      "requirement": "Root guard",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "spanning-tree guard root",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N41",
+      "category": "switching",
+      "requirement": "Loop guard default",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree loopguard default",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N42",
+      "category": "switching",
+      "requirement": "UDLD aggressive",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "udld port aggressive",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N43",
+      "category": "security",
+      "requirement": "Native DHCP snooping enable",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "ip dhcp snooping",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N44",
+      "category": "security",
+      "requirement": "Native DAI VLAN protection",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "ip arp inspection vlan 10",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N45",
+      "category": "security",
+      "requirement": "Native port security",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport port-security",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N46",
+      "category": "security",
+      "requirement": "Native IP source guard",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "ip verify source",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N47",
+      "category": "security",
+      "requirement": "Native dot1x system control",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "dot1x system-auth-control",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N48",
+      "category": "switching",
+      "requirement": "Native voice VLAN",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "vlan 30",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-vlan)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport voice vlan 30",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N49",
+      "category": "security",
+      "requirement": "Standard extended ACL TCP established qualifier",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip access-list extended RETURN",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-ext-nacl)#",
+          "command": "permit tcp any any established",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N50",
+      "category": "security",
+      "requirement": "Standard numbered extended ACL",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "access-list 101 permit tcp any any eq 443",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N51",
+      "category": "qos",
+      "requirement": "MQC class-map submode",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "class-map match-any VOICE",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N52",
+      "category": "qos",
+      "requirement": "MQC policy-map submode",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "policy-map WAN-QOS",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N53",
+      "category": "qos",
+      "requirement": "Native egress service-policy",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "policy-map WAN-QOS",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-pmap)#",
+          "command": "class class-default",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-pmap-c)#",
+          "command": "shape average 100000000",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-pmap-c)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-pmap)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "service-policy output WAN-QOS",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N54",
+      "category": "redundancy",
+      "requirement": "HSRP interface tracking",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip address 192.0.2.1 255.255.255.0",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 ip 192.0.2.254",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 track Gi0/2 30",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N55",
+      "category": "redundancy",
+      "requirement": "HSRP authentication",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip address 192.0.2.1 255.255.255.0",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 ip 192.0.2.254",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 authentication md5 key-string AuditOnly",
+          "response": "% Invalid input detected at: authentication"
+        }
+      ]
+    },
+    {
+      "id": "N56",
+      "category": "operations",
+      "requirement": "Standard show inventory",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show inventory",
+          "response": "NAME: \"R-01\", DESCR: \"shLab virtual router\"\nPID: router, VID: shlab-core-v1, SN: device-1\nGi0/1: rj45, 1000 Mbps\nGi0/2: rj45, 1000 Mbps\nGi0/3: rj45, 1000 Mbps\nGi0/4: rj45, 1000 Mbps\nGi0/5: sfp, 1000 Mbps, single-mode\nGi0/6: sfp, 1000 Mbps, single-mode"
+        }
+      ]
+    },
+    {
+      "id": "N57",
+      "category": "operations",
+      "requirement": "Standard show environment",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show environment",
+          "response": "Power: ON\nTemperature: 22 C\nCPU: 0%\nMemory: 64 KiB\nVirtual resource model; no physical sensor or ASIC is emulated."
+        }
+      ]
+    },
+    {
+      "id": "N58",
+      "category": "operations",
+      "requirement": "Standard show interfaces counters errors",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show interfaces counters errors",
+          "response": "PORT RX TX ERRORS\nGi0/1 0 0 0\nGi0/2 0 0 0\nGi0/3 0 0 0\nGi0/4 0 0 0\nGi0/5 0 0 0\nGi0/6 0 0 0\nGi0/7 0 0 0\nGi0/8 0 0 0\nGi0/9 0 0 0\nGi0/10 0 0 0"
+        }
+      ]
+    },
+    {
+      "id": "N59",
+      "category": "operations",
+      "requirement": "Standard show etherchannel summary",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show etherchannel summary",
+          "response": "Nenhum EtherChannel"
+        }
+      ]
+    },
+    {
+      "id": "N60",
+      "category": "operations",
+      "requirement": "Standard show ip cef",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show ip cef",
+          "response": "Virtual forwarding table (no hardware CEF ASIC)\nNenhuma rota"
+        }
+      ]
+    },
+    {
+      "id": "N61",
+      "category": "switching",
+      "requirement": "no switchport preserves globally configured Rapid PVST",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "vlan 10",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-vlan)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree mode rapid-pvst",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "no switchport",
+          "response": "OK"
+        }
+      ],
+      "observed": true
+    }
+  ],
+  "ecmp": {
+    "expectedNextHops": 2,
+    "observedRoutes": [
+      {
+        "network": "10.100.0.0",
+        "prefix": 24,
+        "nextHop": "192.0.1.2",
+        "port": "p0",
+        "metric": 30,
+        "protocol": "OSPF",
+        "distance": 110,
+        "area": 0,
+        "pathType": "intra"
+      },
+      {
+        "network": "10.100.0.0",
+        "prefix": 24,
+        "nextHop": "192.0.2.2",
+        "port": "p1",
+        "metric": 30,
+        "protocol": "OSPF",
+        "distance": 110,
+        "area": 0,
+        "pathType": "intra"
+      }
+    ],
+    "resolved": {
+      "port": {
+        "id": "p0",
+        "name": "Gi0/1",
+        "mac": "02:00:00:01:00:00",
+        "media": "rj45",
+        "adminUp": true,
+        "speed": 1000,
+        "duplex": "full",
+        "mtu": 1500,
+        "mode": "routed",
+        "accessVlan": 1,
+        "nativeVlan": 1,
+        "allowedVlans": [
+          1
+        ],
+        "description": "",
+        "rx": 22,
+        "tx": 22,
+        "errors": 0,
+        "ip": "192.0.1.1",
+        "prefix": 30
+      },
+      "nextHop": "192.0.1.2",
+      "prefix": 24
+    }
+  },
+  "ospfCapture": {
+    "packets": 216,
+    "excluded": []
+  }
+}

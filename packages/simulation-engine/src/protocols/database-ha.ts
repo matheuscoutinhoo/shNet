@@ -60,6 +60,21 @@ export function submitDatabaseHa(e: SimulationEngine, d: Device, c: TcpConnectio
   ha.pending.push({ connection: c.id, ...receipt, deadline: e.state.clock + deadlineMs });
 }
 
+export function submitDatabaseDiscovery(e: SimulationEngine, d: Device, c: TcpConnection) {
+  const ha = d.databaseHa,
+    n = d.quorum?.node;
+  if (!ha || !d.database?.enabled || n?.role !== 'leader' || n.cluster !== ha.cluster) {
+    answer(e, d, c.id, '503 Service Unavailable', { error: 'Sem autoridade de líder confirmada.' });
+    return;
+  }
+  if (ha.pending.length >= 32) {
+    answer(e, d, c.id, '503 Service Unavailable', { error: 'Limite de solicitações pendentes.' });
+    return;
+  }
+  const receipt = proposeQuorumLab(e, d, { kind: 'barrier' });
+  ha.pending.push({ connection: c.id, ...receipt, deadline: e.state.clock + deadlineMs, discovery: true });
+}
+
 export function applyDatabaseHa(e: SimulationEngine, d: Device) {
   const ha = d.databaseHa,
     n = d.quorum?.node,
@@ -83,6 +98,20 @@ export function applyDatabaseHa(e: SimulationEngine, d: Device) {
     const entry = quorumEntryAt(n, index)!;
     const result = applyQuorumData(view!, entry.command);
     view = result.data;
+    const discovery = ha.pending.find((p) => p.discovery && p.index === index && p.term === entry.term);
+    if (discovery && e.state.clock < discovery.deadline) {
+      const current = n.role === 'leader' && n.term === entry.term;
+      answer(
+        e,
+        d,
+        discovery.connection,
+        current ? '200 OK' : '503 Service Unavailable',
+        current
+          ? { cluster: n.cluster, term: n.term, index }
+          : { error: 'Liderança mudou durante a descoberta.' }
+      );
+      ha.pending = ha.pending.filter((p) => p !== discovery);
+    }
     if (entry.command.kind === 'database') {
       db.tables = result.data.tables;
       const status = result.error ? '400 Bad Request' : '200 OK',
@@ -172,12 +201,15 @@ export function validateDatabaseHa(s: Snapshot) {
         p.index <= ha.applied ||
         p.index <= ha.start ||
         entry?.term !== p.term ||
-        entry.command.kind !== 'database' ||
+        (p.discovery ? entry.command.kind !== 'barrier' : entry.command.kind !== 'database') ||
         !c ||
         c.role !== 'server' ||
         c.service !== 'database' ||
         !c.httpHandled ||
-        JSON.parse(httpMessage(c.received)?.body ?? 'null')?.query !== entry.command.query ||
+        (p.discovery
+          ? httpMessage(c.received)?.line !== 'GET /leader HTTP/1.1'
+          : entry.command.kind !== 'database' ||
+            JSON.parse(httpMessage(c.received)?.body ?? 'null')?.query !== entry.command.query) ||
         p.deadline > s.clock + deadlineMs
       )
         throw new Error('Banco replicado: operação pendente incoerente.');

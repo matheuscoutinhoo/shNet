@@ -11,6 +11,8 @@ export const fragmentSchema = z
     offset: z.number().int().min(0).max(65512).multipleOf(8),
     more: z.boolean(),
     data: z.array(z.number().int().min(0).max(255)).min(1).max(9196),
+    encoding:z.literal('ipv4').optional(),
+    original:z.string().min(1).max(100000).optional(),
     bytes: z.number().int().min(21).max(9216),
     dscp: z.number().int().min(0).max(63).optional(),
     traceId: idSchema.optional(),
@@ -22,6 +24,7 @@ export const fragmentSchema = z
       f.bytes !== 20 + f.data.length ||
       f.offset + f.data.length > 65515 ||
       (f.more && f.data.length % 8) ||
+      (f.original!==undefined&&(f.encoding!=='ipv4'||f.offset!==0)) ||
       (f.first &&
         (f.offset !== 0 || f.first.src !== f.src || f.first.dst !== f.dst || f.first.protocol !== f.protocol))
     )

@@ -13,6 +13,7 @@ import {
 } from './tcp-model';
 import { growTcpWindow, sampleTcpRtt, tcpFlow, tcpReceiveWindow } from './tcp-flow';
 import { extendTcpPacket } from './tcp-extensions';
+import {signTcp} from './tcp-auth';
 
 export function clearTcpTimer(
   engine: SimulationEngine,
@@ -107,6 +108,7 @@ export function transmitTcp(
   vrf?: string,
   scope?: string
 ) {
+  signTcp(device,packet);
   engine.emit(
     'TCP_SENT',
     device.id,

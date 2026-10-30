@@ -13,7 +13,10 @@ export const dhcpSnoopingConfigSchema = z
     vlans: z.array(vlan).max(256),
     trustedPorts: z.array(id).max(48),
     sourceGuard: z.boolean().default(false),
+    sourceGuardPorts:z.array(id).max(48).default([]),
     arpInspection: z.boolean().default(false),
+    arpInspectionVlans:z.array(vlan).max(256).default([]),
+    arpTrustedPorts:z.array(id).max(48).default([]),
     staticBindings: z.array(binding).max(256).default([]),
   })
   .strict();

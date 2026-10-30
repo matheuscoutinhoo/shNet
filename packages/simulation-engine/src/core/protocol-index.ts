@@ -1,5 +1,6 @@
 import type { Device, Snapshot } from '../model';
-type Feature = 'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'bond' | 'dot1x' | 'stp' | 'ups' | 'rack';
+type Feature =
+  'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'bond' | 'dot1x' | 'stp' | 'ups' | 'rack' | 'discovery' | 'hsrp';
 const caches = new WeakMap<
   Snapshot,
   { array: Device[]; length: number; features: Map<Feature, { device: Device; index: number }[]> }

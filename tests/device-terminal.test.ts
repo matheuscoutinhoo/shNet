@@ -32,7 +32,7 @@ describe('Terminais por função do equipamento', () => {
       cli = new TerminalSession(e, d.id);
     for (const entry of deviceCommandHelp(d, cli.context)) {
       expect(cli.execute(entry.example), profile.id + ': ' + entry.example).not.toMatch(
-        /Comando não reconhecido|Este comando não se aplica/
+        /Comando não reconhecido|Este comando não se aplica|Invalid input detected at '\^' marker/
       );
     }
     validateSnapshot(e.snapshot());
@@ -128,9 +128,9 @@ describe('Terminais por função do equipamento', () => {
       cli.execute('configure terminal');
       for (const command of ['vlan 10', 'exit', 'interface Vlan10', 'ip address 192.0.2.1/24'])
         expect(cli.execute(command)).toBe('OK');
-      expect(cli.execute('show vlan')).toContain('10');
-      expect(cli.execute('show spanning-tree')).toContain('não se aplica');
-      expect(cli.execute('show ip ospf')).toContain('não se aplica');
+      expect(cli.execute('do show vlan')).toContain('10');
+      expect(cli.execute('do show spanning-tree')).toContain('não se aplica');
+      expect(cli.execute('do show ip ospf')).toContain('não se aplica');
       validateSnapshot(e.snapshot());
     }
   );
@@ -141,11 +141,11 @@ describe('Terminais por função do equipamento', () => {
     expect(cli.prompt).toBe(d.hostname + '>');
     cli.execute('enable');
     cli.execute('configure terminal');
-    expect(cli.execute('vlan 20')).toBe('OK');
-    expect(cli.execute('show vlan')).toContain('20');
+    expect(cli.execute('vlan 20')).toBe('');
+    expect(cli.execute('do show vlan')).toContain('20');
     for (const command of ['ipconfig', 'wifi scan', 'router ospf 1.1.1.1', 'service http 80'])
       expect(cli.execute(command)).toContain('não se aplica');
-    expect(cli.execute('show spanning-tree')).not.toMatch(/não se aplica|não reconhecido/);
+    expect(cli.execute('do show spanning-tree')).not.toMatch(/não se aplica|não reconhecido|Invalid input detected at/);
   });
   it.each(['phone', 'printer', 'mqtt', 'proxy'])(
     '%s possui serviço próprio e rejeita os demais perfis',

@@ -113,20 +113,28 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     setSaveStatus('Alterações pendentes');
   }, []);
   const change = useCallback(
-    <T>(action: (e: SimulationEngine) => T, checkpoint = true, simulationMutation = true): T | undefined => {
+    <T>(
+      action: (e: SimulationEngine) => T,
+      checkpoint = true,
+      simulationMutation = true,
+      // The action already refreshed protocols and validated the state (e.g. a terminal command).
+      validated = false
+    ): T | undefined => {
       if (simulationMutation) {
         workerGeneration.current++;
         setSimulationRevision((value) => value + 1);
         setPlaying(false);
       }
-      const before = checkpoint ? engine.snapshot() : null;
+      const before = checkpoint ? engine.checkpoint() : null;
       try {
         const result = action(engine);
-        engine.refreshSpanningTree();
-        engine.refreshVrrp();
-        engine.refreshBgp();
+        if (!validated) {
+          engine.refreshSpanningTree();
+          engine.refreshVrrp();
+          engine.refreshBgp();
+        }
         if (before) {
-          validateSnapshot(engine.state);
+          if (!validated) validateSnapshot(engine.state, { trustedLogs: true });
           snapshots.current.checkpoint(before);
         }
         refresh();

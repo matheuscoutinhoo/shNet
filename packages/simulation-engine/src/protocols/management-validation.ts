@@ -7,10 +7,12 @@ import { managementEnabled } from './layer3';
 
 export function validateManagement(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
+    // Agent/client configuration may precede the management address (IOS); active queries and a
+    // collector cannot run without one.
     if (
       device.type === 'switch' &&
       !managementEnabled(device) &&
-      (device.snmpAgent || device.snmpQueries?.length || device.syslogClient || device.syslogServer)
+      (device.snmpQueries?.length || device.syslogServer)
     )
       throw new Error('Gerenciamento IPv4 não disponível no switch L2.');
     if (device.snmpAgent && device.snmpAgent.startedAt > snapshot.clock)

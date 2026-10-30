@@ -7,6 +7,7 @@ export type DeviceTerminalState = {
   cli: TerminalSession;
   output: string;
   line: string;
+  cursor?: number;
   prompt: string;
   initialized: boolean;
   historyIndex: number;

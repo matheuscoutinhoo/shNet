@@ -36,7 +36,11 @@ export function validateOspf(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
     const state = device.ospf;
     if (!state) continue;
-    if (device.type !== 'router' || !ipNumber(state.routerId) || ipNumber(state.routerId) >= 0xe0000000)
+    if (
+      !['router', 'switch'].includes(device.type) ||
+      (!ipNumber(state.routerId) && !(state.autoRouterId && !state.enabled)) ||
+      ipNumber(state.routerId) >= 0xe0000000
+    )
       throw new Error('Processo OSPF inválido.');
     unique(state.interfaces.map((entry) => entry.port));
     unique(state.ports.map((entry) => entry.port));
@@ -94,7 +98,8 @@ export function validateOspf(snapshot: Snapshot) {
     const expected = bestOspfRoutes(
       areas
         .flatMap((area) => ospfSpf(device, area))
-        .filter((route) => !abr || route.area === 0 || route.pathType !== 'inter')
+        .filter((route) => !abr || route.area === 0 || route.pathType !== 'inter'),
+      state.maximumPaths
     );
     if (JSON.stringify(state.routes) !== JSON.stringify(expected))
       throw new Error('Rotas OSPF não correspondem à LSDB local.');
@@ -107,7 +112,11 @@ export function validateOspf(snapshot: Snapshot) {
       throw new Error('Timer OSPF sem processo.');
     const packet = action.kind === 'deliver' ? action.frame.packet : undefined;
     if (packet?.protocol === 'OSPF') {
-      if (packet.bytes !== ospfBytes(packet.message) + (packet.authentication ? 40 : 0))
+      if (
+        packet.bytes !==
+        ospfBytes(packet.message) +
+          (packet.authentication ? (packet.authentication.algorithm === 'md5' ? 16 : 40) : 0)
+      )
         throw new Error('Comprimento OSPF inválido.');
       if (packet.message.type === 'update') validateOspfLsa(packet.message.lsa, snapshot.clock);
     }

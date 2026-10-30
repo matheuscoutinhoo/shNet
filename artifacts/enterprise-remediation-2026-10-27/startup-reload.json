@@ -1,0 +1,154 @@
+[
+  {
+    "device": "WAN-PROVIDER-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "WAN-PROVIDER-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "NYC-WAN-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "NYC-WAN-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "NYC-CORE-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "NYC-CORE-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "NYC-ACCESS-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "NYC-ACCESS-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SAO-WAN-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SAO-WAN-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SAO-CORE-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SAO-CORE-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SAO-ACCESS-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SAO-ACCESS-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "LON-WAN-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "LON-WAN-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "LON-CORE-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "LON-CORE-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "LON-ACCESS-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "LON-ACCESS-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "FRA-WAN-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "FRA-WAN-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "FRA-CORE-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "FRA-CORE-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "FRA-ACCESS-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "FRA-ACCESS-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SIN-WAN-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SIN-WAN-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SIN-CORE-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SIN-CORE-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SIN-ACCESS-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SIN-ACCESS-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SYD-WAN-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SYD-WAN-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SYD-CORE-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SYD-CORE-B",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SYD-ACCESS-A",
+    "response": "Reload complete."
+  },
+  {
+    "device": "SYD-ACCESS-B",
+    "response": "Reload complete."
+  }
+]

@@ -1,5 +1,6 @@
 import { validateDatabase } from '../protocols/database';
 import { validateDatabaseHa } from '../protocols/database-ha';
+import { validateDatabaseClient } from '../protocols/database-client';
 import { validateModbus } from '../protocols/modbus';
 import { validatePlcProcesses } from '../protocols/plc-process';
 import { validateHmiScans } from '../protocols/hmi-scan';
@@ -31,7 +32,7 @@ import { validateLayer3 } from '../protocols/layer3';
 import { validateLacp } from '../protocols/lacp';
 import { validateBonds } from '../protocols/bond';
 import { validateVrrp } from '../protocols/vrrp';
-import { snapshotSchema, type Snapshot } from '../model';
+import { snapshotSchema, snapshotTrustedLogsSchema, type Snapshot } from '../model';
 import { endpoint, validateMedia } from '../links/physical';
 import { validateDhcpDevice } from '../protocols/dhcp-config';
 import { validateDnsState } from '../protocols/dns-records';
@@ -42,24 +43,41 @@ import { validateCanvas } from '../canvas';
 import { validateTcp } from '../protocols/tcp-validation';
 import { validateFirewall } from '../protocols/firewall';
 import { validateOspf } from '../protocols/ospf-validation';
+import { validateMonitoring } from '../protocols/monitoring';
+import { validateUdld } from '../protocols/udld';
+import { validateBfd } from '../protocols/bfd';
+import { validateRoutingPolicy } from '../protocols/routing-policy';
+import { validateMqc } from '../protocols/mqc';
 import { validateRip } from '../protocols/rip-validation';
 import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
 import { validateStateSync } from '../protocols/state-sync';
 import { validateDhcpHa } from '../protocols/dhcp-ha';
 import { validateQuorumLab } from '../protocols/quorum-lab';
-export function validateSnapshot(value: unknown): Snapshot {
-  const s = snapshotSchema.parse(value);
+import { validateDiscovery } from '../protocols/discovery';
+import { validateHsrp } from '../protocols/hsrp';
+/**
+ * Full snapshot validation. `trustedLogs` is for re-validating the live engine state after a local
+ * edit: event/capture records written by the engine are not schema-checked again.
+ */
+export function validateSnapshot(value: unknown, options: { trustedLogs?: boolean } = {}): Snapshot {
+  const s = (options.trustedLogs ? snapshotTrustedLogsSchema : snapshotSchema).parse(value) as Snapshot;
+  validateMonitoring(s);
+  validateMqc(s);
+  for (const d of s.devices) validateRoutingPolicy(d);
   if (s.capture) {
     if (
       s.capture.startedAt > s.clock ||
       s.capture.frames.some((e) => e.type !== 'FRAME_SENT' || !e.frame || e.time > s.clock)
     )
       throw new Error('Captura contém frames ou horários inválidos.');
-    s.capture.bytes = s.capture.frames.reduce((total, e) => total + JSON.stringify(e).length * 2, 0);
+    if (!options.trustedLogs || s.capture.bytes === undefined)
+      s.capture.bytes = s.capture.frames.reduce((total, e) => total + JSON.stringify(e).length * 2, 0);
     if (s.capture.bytes > 2 * 1024 * 1024) throw new Error('Captura excede o limite de 2 MiB.');
   }
   validateTelemetry(s);
+  validateDiscovery(s);
+  validateHsrp(s);
   validateNtp(s);
   validateRemote(s);
   validateAaa(s);
@@ -94,8 +112,11 @@ export function validateSnapshot(value: unknown): Snapshot {
   validateDhcpHa(s);
   validateQuorumLab(s);
   validateDatabaseHa(s);
+  validateDatabaseClient(s);
   validateInspection(s);
   validateOspf(s);
+  validateUdld(s);
+  validateBfd(s);
   validateRip(s);
   validateManagement(s);
   validateArp(s);
@@ -132,11 +153,18 @@ export function validateSnapshot(value: unknown): Snapshot {
       dnsTimers.set(JSON.stringify([action.device, action.queryId]), { at, attempt: action.attempt });
   }
   for (const d of s.devices) {
+    if (
+      (d.bootManaged || d.startupConfig || d.operatingSystem) &&
+      (!['router', 'switch'].includes(d.type) || ['ap', 'mesh', 'wlc'].includes(d.profile ?? ''))
+    )
+      throw new Error('IOS startup lifecycle requires a core router/switch profile.');
     if (d.profile && !deviceProfiles.some((p) => p.id === d.profile && p.type === d.type))
       throw new Error('Perfil de equipamento inválido.');
     validateDhcpDevice(d, s.clock);
     validateDnsState(d, s.clock, dnsTimers);
     for (const port of d.interfaces) {
+      if (port.errDisabled && port.errDisabled.at > s.clock)
+        throw new Error('Err-disable timestamp is in the future.');
       const client = port.dhcp;
       if (!client) continue;
       if (client.requestedAt !== undefined && client.requestedAt > s.clock)

@@ -18,7 +18,7 @@ import { compareOids, snmpMib } from './snmp-mib';
 import { managementPacket } from './management-wire';
 
 export function configureSnmpAgent(engine: SimulationEngine, device: Device, input: unknown) {
-  if (!managementEnabled(device)) throw new Error('Configure uma SVI IPv4 para gerenciar o switch L2.');
+  // As on IOS, the community can be configured before the switch has a management address.
   const fields = snmpAgentSchema.omit({ startedAt: true }).parse(input);
   device.snmpAgent = {
     ...fields,

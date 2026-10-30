@@ -68,7 +68,14 @@ export function remoteRunningConfig(d: Device) {
             JSON.stringify({ enabled: d.telemetryCollector.enabled, key: d.telemetryCollector.key }),
         ]
       : []),
-    ...(d.networkClock ? ['clock configure ' + JSON.stringify(d.networkClock)] : []),
-    ...(d.ntp ? ['ntp configure ' + JSON.stringify(ntpConfig(d))] : []),
+    // The clock offset is runtime state (like "clock set"); only the NTP server role is configuration.
+    ...(d.networkClock?.server
+      ? ['ntp master' + (d.networkClock.stratum !== 8 ? ' ' + d.networkClock.stratum : '')]
+      : []),
+    ...(d.ntp
+      ? d.ntp.enabled && d.ntp.intervalMs === 64000
+        ? d.ntp.servers.map((s) => 'ntp server ' + s)
+        : ['ntp configure ' + JSON.stringify(ntpConfig(d))]
+      : []),
   ].map(redactNetworkSecrets);
 }

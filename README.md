@@ -6,6 +6,8 @@ Recuperação de rascunhos/conflitos, lotes com revisão/rollback, formulários 
 
 Um laboratório de redes web em português, com motor determinístico de eventos discretos. O canvas, os terminais por perfil e o inspetor consomem o mesmo estado.
 
+A [implementação e validação empresarial de 27/10/2026](docs/enterprise-remediation-2026-10-27.md) documenta os testes com seis unidades globais, os comandos Cisco implementados e as lacunas que ainda impedem equivalência completa com uma rede Cisco.
+
 ## Executar
 
 Requer Node.js 24+.
@@ -40,13 +42,17 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 
 [Guia de conceitos e experimentos](docs/network-concepts.md) · [Checklist de implementação de redes](docs/network-implementation.md) · [Cobertura e limites](docs/requirements-coverage.md)
 
+**Compatibilidade Cisco:** equipamentos de rede aplicáveis devem seguir a família Cisco correspondente. O núcleo IOS/IOS XE já inclui modos, ajuda, startup, ACL/NAT estático, CDP/LLDP, HSRP e `enable secret`. A cobertura permanece parcial; veja a [implementação e os limites atuais](docs/cisco-implementation-2026-10-26.md) e a [auditoria original](docs/cisco-simulator-audit-2026-10-26.md).
+
+A [validação enterprise com seis unidades globais](docs/global-enterprise-validation-2026-10-26.md) registra uma topologia de 72 dispositivos, falhas reproduzíveis de STP/DHCP, limites de CLI e os resultados de tráfego, recuperação e persistência. O aplicativo ainda não reproduz o comportamento exato de uma rede Cisco completa.
+
 ## O que funciona
 
 - Eventos com explicação do acontecimento, próxima verificação sugerida e campos técnicos acompanhados de significado. As camadas exibidas correspondem ao pacote observado; anúncios Wi-Fi não são apresentados como tráfego IPv4 ou Ethernet II. O painel inferior filtra registros, testes de ping e categorias pelas capacidades e pelo tráfego registrado do equipamento selecionado; limpar a seleção restaura a visão da rede inteira e todas as categorias.
 - Painel inferior expansível pela alça superior com mouse, toque ou teclado (↑/↓, Home e End). A altura acompanha o espaço disponível, preserva uma área do canvas e mantém a rolagem dos registros e as notas ao trocar de aba.
 - Orientações nos painéis de equipamentos e no inspetor da rede explicam campos, pré-requisitos e experiências. Recursos específicos, como telefonia, MQTT, CAPWAP e IDS/IPS, recebem explicações conforme o perfil.
 - Busca do canvas por nome, IPv4, IPv6 ou MAC. Um resultado único ou nome exato é centralizado; resultados ambíguos oferecem seleção e Enter centraliza o primeiro.
-- Terminais HostShell, ServiceShell e NetOS por função, com ajuda, exemplos e execução limitada pelas mesmas capacidades dos menus. Hosts usam `ipconfig`, `ip addr`, `ip route`, `ip link` e, quando possuem rádio, `wifi`; switches oferecem VLAN/MAC/STP/LACP. Serviços de telefone, impressora, broker e banco têm seus próprios comandos. [Decisões e limites](docs/adr/041-educational-events-device-terminals.md).
+- Terminais HostShell, ServiceShell e subconjunto CLI IOS/IOS XE no núcleo de rede, com extensões didáticas, ajuda e execução limitada pelas mesmas capacidades dos menus. Hosts usam `ipconfig`, `ip addr`, `ip route`, `ip link` e, quando possuem rádio, `wifi`; switches oferecem VLAN/MAC/STP/LACP. Serviços de telefone, impressora, broker e banco têm seus próprios comandos. [Implementação e limites atuais](docs/cisco-implementation-2026-10-26.md).
 - Cadastro, verificação de e-mail, login, logout, reenvio de verificação, recuperação e alteração de senha, revogação de sessões.
 - Nome de perfil, sessões individuais revogáveis e exclusão da própria conta com senha. Identidade visual em azul profundo e verde-água, com acentos neon e tipografia local.
 - Meus laboratórios com busca, filtros por modo/progresso/favoritos e ordenação. Templates e trilhas em um catálogo separado, com filtros por tema, conteúdo e nível.
@@ -65,7 +71,7 @@ Depois execute `npm run db:migrate` e `npm run dev`. Os e-mails aparecem no Mail
 - STP/RSTP em árvore comum: BPDUs, eleição por prioridade/MAC/custo, root/designated/alternate, estados de portas, PortFast, reconvergência e limpeza da tabela MAC. Painel, CLI e bloqueios no canvas.
 - UDP e DHCPv4: DORA, pools locais/remotos, relay, reservas por MAC, exclusões, gateway/DNS, leases, renovação T1/T2, NAK, release e expiração no tempo virtual. Configuração pela CLI e pelo inspetor.
 - DNS sobre UDP/IPv4: registros A, AAAA e CNAME, nslookup, ping por nome, cache com TTL, servidores alternativos, timeout e inspeção de consultas/respostas. Usa servidores configurados na interface ou recebidos por DHCP.
-- Terminal xterm com DSL NetOS, histórico e comandos que alteram a simulação.
+- Terminal xterm com subconjunto CLI IOS/IOS XE no núcleo de rede, extensões didáticas, edição, histórico e comandos que alteram a simulação.
 - Tempo virtual, pause/play/step, velocidade, frames animados, timeline, resultados de probes e inspetor com explicação dos eventos.
 - Testes de domínio, integração, autorização e fluxo no navegador.
 - ACL de entrada/saída, NAT estático/dinâmico/PAT e firewall TCP/UDP/Echo, com zonas, regras por porta e erros ICMP relacionados/citados.

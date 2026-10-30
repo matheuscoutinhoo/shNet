@@ -36,6 +36,16 @@ export function networkAnalysis(s: Snapshot, view: string): AnalysisRow[] {
         );
       if (d.rip) add('RIP', d.rip.enabled ? 'ativo' : 'desativado', d.rip.table.length + ' entradas');
       if (d.vrrp) for (const g of d.vrrp.groups) add('VRRP ' + g.vrid, g.state, 'VIP ' + g.vip);
+      if (d.hsrp)
+        for (const g of d.hsrp.groups) add('HSRP ' + g.group, g.state, 'VIP ' + (g.vip ?? 'unassigned'));
+      if (d.discovery)
+        for (const protocol of ['CDP', 'LLDP'] as const)
+          add(
+            protocol,
+            (protocol === 'CDP' ? d.discovery.cdp : d.discovery.lldp) ? 'ativo' : 'desativado',
+            d.discovery.neighbors.filter((n) => n.protocol === protocol && n.expiresAt > s.clock).length +
+              ' vizinhos'
+          );
       for (const p of d.interfaces) {
         if (p.bond)
           add(

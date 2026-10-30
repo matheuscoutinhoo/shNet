@@ -47,10 +47,42 @@ export const consoleSessionsSchema = z
         link: idSchema,
         context: z
           .object({
-            mode: z.enum(['user', 'privileged', 'config', 'interface', 'vlan', 'dhcp']),
+            mode: z.enum([
+              'user',
+              'privileged',
+              'config',
+              'interface',
+              'vlan',
+              'dhcp',
+              'router',
+              'address-family',
+              'acl',
+              'line',
+              'vrf',
+              'mst',
+              'archive',
+              'ip-sla',
+              'route-map',
+              'class-map','policy-map','policy-class','key-chain','key-chain-key','bfd-template',
+            ]),
             port: idSchema.optional(),
             vlan: z.number().int().min(1).max(4094).optional(),
             pool: z.string().max(50).optional(),
+            ports: z.array(idSchema).max(48).optional(),
+            router: z.enum(['ospf', 'bgp', 'rip']).optional(),
+            process: z.number().int().min(1).max(65535).optional(),
+            acl: z.string().max(32).optional(),
+            aclType: z.enum(['standard', 'extended']).optional(),
+            line: z.enum(['console', 'vty']).optional(),
+            vrf: z.string().max(32).optional(),
+            sla:z.number().int().positive().optional(),
+            name:z.string().max(32).optional(),
+            sequence:z.number().int().min(1).max(65535).optional(),
+            className:z.string().max(32).optional(),
+            auth: z
+              .object({ kind: z.literal('enable'), attempts: z.number().int().min(0).max(2) })
+              .strict()
+              .optional(),
           })
           .strict(),
         history: z.array(z.string().max(512)).max(200),

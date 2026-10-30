@@ -19,8 +19,7 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
     <section className="protocol-panel quorum-panel" data-quorum-role={q?.node.role ?? 'disabled'}>
       <h4>Laboratório de quorum e dados replicados</h4>
       <p className="muted">
-        Três réplicas completas, eleição por votos e confirmação por maioria. Cada par usa um cabo dedicado
-        sem IP.{' '}
+        Réplicas completas, eleição por votos e confirmação por maioria. Cada par usa um cabo dedicado sem IP.{' '}
         {device.databaseHa
           ? 'Este grupo está vinculado ao banco SQL; use consultas pela rede.'
           : 'Este armazenamento é independente do banco SQL e dos demais serviços.'}
@@ -29,6 +28,9 @@ export function QuorumPanel({ lab, device }: { lab: LabController; device: Devic
         <>
           <p aria-live="polite">
             {q.node.role} · termo {q.node.term} · commit {q.node.commit}/{quorumLastIndex(q.node)}
+          </p>
+          <p>
+            Cluster: <code>{q.node.cluster}</code>
           </p>
           <p data-quorum-checkpoint={quorumBase(q.node)}>
             Checkpoint {quorumBase(q.node)} · {q.node.log.length}/256 entradas retidas ·{' '}

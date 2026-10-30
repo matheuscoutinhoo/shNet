@@ -32,11 +32,11 @@ describe('Serial, console e PoE', () => {
       b = e.addHardwarePort(r.id, 'console');
     const l = e.connect({ device: pc.id, port: a.id }, { device: r.id, port: b.id }, 'console');
     for (const command of ['enable', 'conf t', 'hostname R-CONSOLE'])
-      expect(e.consoleCommand(pc.id, l.id, command)).toBe('OK');
+      expect(e.consoleCommand(pc.id, l.id, command)).toBe('');
     expect(r.hostname).toBe('R-CONSOLE');
     validateSnapshot(e.snapshot());
     const resumed = new SimulationEngine(e.snapshot());
-    expect(resumed.consoleCommand(pc.id, l.id, 'hostname R-RESTORED')).toBe('OK');
+    expect(resumed.consoleCommand(pc.id, l.id, 'hostname R-RESTORED')).toBe('');
     expect(resumed.device(r.id).hostname).toBe('R-RESTORED');
     b.console!.baud = '115200';
     expect(() => e.consoleCommand(pc.id, l.id, 'show interfaces')).toThrow(/baud/);

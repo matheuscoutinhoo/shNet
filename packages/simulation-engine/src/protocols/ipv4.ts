@@ -10,6 +10,7 @@ import { receiveOspf } from './ospf';
 import { ripRoutes } from './rip';
 import { sendIcmpError } from './icmp';
 import { receiveVrrp, acceptsVrrpAddress } from './vrrp';
+import { receiveHsrp, acceptsHsrpAddress } from './hsrp';
 import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
@@ -91,76 +92,133 @@ export function resolveRoute(
   device: Device,
   dst: string,
   vrf?: string,
-  snapshot?: Snapshot
+  snapshot?: Snapshot,
+  visited: ReadonlySet<string> = new Set(),
+  flowKey?: string
 ): { port: NetworkInterface; nextHop: string; prefix: number } | undefined {
-  const usable = (p: NetworkInterface) =>
-    interfaceUp(device, p) && (!snapshot || interfaceOperational(snapshot, device, p));
-  const connected = device.interfaces
-    .filter(
-      (i) =>
-        usable(i) &&
-        i.vrf === vrf &&
-        i.ip !== undefined &&
-        i.prefix !== undefined &&
-        sameSubnet(i.ip, dst, i.prefix)
-    )
-    .sort((a, b) => b.prefix! - a.prefix!);
-  const candidates = [
-    ...connected.map((port) => ({ port, nextHop: dst, prefix: port.prefix!, metric: -1, distance: 0 })),
-    ...resolveDefaultRoutes(device, vrf).map((route) => ({ ...route, distance: 1 })),
-  ];
-  if (routingEnabled(device)) {
-    for (const port of device.interfaces.filter((p) => p.tunnel && interfaceUp(device, p) && p.vrf === vrf))
-      for (const prefix of port.tunnel!.remotePrefixes)
-        if (sameSubnet(prefix.network, dst, prefix.prefix))
-          candidates.push({
-            port,
-            nextHop: port.tunnel!.peerIp,
-            prefix: prefix.prefix,
-            metric: 1,
-            distance: 200,
-          });
-    for (const r of device.routes.filter((r) => r.vrf === vrf && sameSubnet(r.network, dst, r.prefix))) {
-      const port = device.interfaces.find(
+  type Resolution = { port: NetworkInterface; nextHop: string; prefix: number };
+  const work = { remaining: 1024 },
+    direct = new Map<string, Resolution | undefined>();
+  function lookup(dst: string, visited: ReadonlySet<string>, directOnly = false): Resolution | undefined {
+    const usable = (p: NetworkInterface) =>
+      interfaceUp(device, p) && (!snapshot || interfaceOperational(snapshot, device, p));
+    const connected = device.interfaces
+      .filter(
         (i) =>
           usable(i) &&
           i.vrf === vrf &&
-          i.ip &&
+          i.ip !== undefined &&
           i.prefix !== undefined &&
-          sameSubnet(i.ip, r.nextHop, i.prefix)
-      );
-      if (port)
-        candidates.push({ port, nextHop: r.nextHop, prefix: r.prefix, metric: r.metric, distance: 1 });
-    }
-    for (const route of vrf
-      ? []
-      : [
-          ...(device.ospf?.enabled ? device.ospf.routes : []),
-          ...ripRoutes(device),
-          ...(device.bgp?.enabled ? device.bgp.routes : []),
-        ]) {
-      const port = device.interfaces.find(
-        (entry) =>
-          entry.id === route.port &&
-          usable(entry) &&
-          entry.vrf === vrf &&
-          entry.ip &&
-          entry.prefix !== undefined &&
-          sameSubnet(entry.ip, route.nextHop, entry.prefix)
-      );
-      if (port && sameSubnet(route.network, dst, route.prefix))
+          sameSubnet(i.ip, dst, i.prefix)
+      )
+      .sort((a, b) => b.prefix! - a.prefix!);
+    const candidates: {
+      port?: NetworkInterface;
+      nextHop: string;
+      prefix: number;
+      metric: number;
+      distance: number;
+      key?: string;
+    }[] = [
+      ...connected.map((port) => ({ port, nextHop: dst, prefix: port.prefix!, metric: -1, distance: 0 })),
+      ...(visited.size ? [] : resolveDefaultRoutes(device, vrf).map((route) => ({ ...route, distance: 1 }))),
+    ];
+    if (routingEnabled(device)) {
+      for (const port of device.interfaces.filter((p) => p.tunnel && interfaceUp(device, p) && p.vrf === vrf))
+        for (const prefix of port.tunnel!.remotePrefixes)
+          if (sameSubnet(prefix.network, dst, prefix.prefix))
+            candidates.push({
+              port,
+              nextHop: port.tunnel!.peerIp,
+              prefix: prefix.prefix,
+              metric: 1,
+              distance: 200,
+            });
+      for (const r of device.routes.filter((r) => r.vrf === vrf && sameSubnet(r.network, dst, r.prefix))) {
+        if(r.track&&!device.monitoring?.tracks.find(t=>t.id===r.track)?.state)continue;
+        const key = JSON.stringify([vrf, r.network, r.prefix, r.nextHop, r.port]);
+        if (r.distance === 255 || visited.has(key) || visited.size >= 16 || (visited.size && !r.prefix))
+          continue;
+        const port = r.port
+          ? device.interfaces.find(
+              (p) =>
+                p.id === r.port &&
+                p.vrf === vrf &&
+                p.ip &&
+                p.prefix !== undefined &&
+                usable(p) &&
+                (r.nextHop === '0.0.0.0' || sameSubnet(p.ip, r.nextHop, p.prefix))
+            )
+          : undefined;
+        if (r.port && !port) continue;
         candidates.push({
           port,
-          nextHop: route.nextHop,
-          prefix: route.prefix,
-          metric: route.metric,
-          distance: route.distance,
+          nextHop: r.nextHop === '0.0.0.0' && port ? dst : r.nextHop,
+          prefix: r.prefix,
+          metric: r.metric,
+          distance: r.distance ?? 1,
+          key,
         });
+      }
+      for (const route of vrf
+        ? []
+        : [
+            ...(device.ospf?.enabled ? device.ospf.routes : []),
+            ...ripRoutes(device),
+            ...(device.bgp?.enabled ? device.bgp.routes : []),
+          ]) {
+        const port = device.interfaces.find(
+          (entry) =>
+            entry.id === route.port &&
+            usable(entry) &&
+            entry.vrf === vrf &&
+            entry.ip &&
+            entry.prefix !== undefined &&
+            sameSubnet(entry.ip, route.nextHop, entry.prefix)
+        );
+        if (port && sameSubnet(route.network, dst, route.prefix))
+          candidates.push({
+            port,
+            nextHop: route.nextHop,
+            prefix: route.prefix,
+            metric: route.metric,
+            distance: route.distance,
+          });
+      }
+    }
+    // Resolve candidates only when they can win the RIB selection. Eagerly
+    // resolving less-specific routes can expand a cyclic graph exponentially,
+    // even when the next hop already has a directly connected path.
+    candidates.sort((a, b) => b.prefix - a.prefix || a.distance - b.distance || a.metric - b.metric);
+    if(flowKey && !visited.size && candidates[0]?.distance>0) {
+      const best=candidates[0], count=candidates.findIndex(c=>c.prefix!==best.prefix||c.distance!==best.distance||c.metric!==best.metric);
+      const equal=candidates.splice(0,count<0?candidates.length:count);
+      let hash=2166136261;
+      for(const char of flowKey)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
+      const offset=hash%equal.length;
+      candidates.unshift(...equal.slice(offset),...equal.slice(0,offset));
+    }
+    for (const candidate of candidates) {
+      if (candidate.port) {
+        if (usable(candidate.port))
+          return { port: candidate.port, nextHop: candidate.nextHop, prefix: candidate.prefix };
+        continue;
+      }
+      if (!candidate.key || directOnly) continue;
+      const path = new Set([...visited, candidate.key]);
+      let resolved: Resolution | undefined;
+      if (work.remaining > 0) {
+        work.remaining--;
+        resolved = lookup(candidate.nextHop, path);
+      } else {
+        if (!direct.has(candidate.nextHop))
+          direct.set(candidate.nextHop, lookup(candidate.nextHop, path, true));
+        resolved = direct.get(candidate.nextHop);
+      }
+      if (resolved) return { ...resolved, prefix: candidate.prefix };
     }
   }
-  return candidates
-    .filter((c) => usable(c.port))
-    .sort((a, b) => b.prefix - a.prefix || a.distance - b.distance || a.metric - b.metric)[0];
+  return lookup(dst, visited);
 }
 export function receiveIp(
   e: SimulationEngine,
@@ -171,6 +229,10 @@ export function receiveIp(
   fromWire = true
 ) {
   if (fromWire && !permitPacket(e, d, port, 'in', packet)) return;
+  if (packet.protocol === 'UDP' && packet.payload.protocol === 'HSRP') {
+    receiveHsrp(e, d, port, packet);
+    return;
+  }
   if (packet.protocol === 'VRRP') {
     receiveVrrp(e, d, port, packet, sourceMac);
     return;
@@ -178,6 +240,15 @@ export function receiveIp(
   const virtual = d.vrrp?.groups.find(
     (group) => group.vip === packet.dst && d.interfaces.find((p) => p.id === group.port)?.vrf === port.vrf
   );
+  if (
+    d.hsrp?.groups.some(
+      (g) => g.vip === packet.dst && d.interfaces.find((p) => p.id === g.port)?.vrf === port.vrf
+    ) &&
+    !acceptsHsrpAddress(e.state, d, packet.dst, port.vrf)
+  ) {
+    e.drop(d, 'HSRP virtual IP is not active on this device.', port.id);
+    return;
+  }
   const localVirtual = virtual && acceptsVrrpAddress(e.state, d, packet.dst, port.vrf);
   if (virtual && !localVirtual) {
     e.drop(d, 'IP virtual VRRP não aceita tráfego local neste estado; use-o como gateway.', port.id);
@@ -200,6 +271,7 @@ export function receiveIp(
   if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return;
   if (
     d.interfaces.some((i) => interfaceUp(d, i) && i.vrf === port.vrf && i.ip === packet.dst) ||
+    acceptsHsrpAddress(e.state, d, packet.dst, port.vrf) ||
     (packet.dst === virtual?.vip ? localVirtual : acceptsVrrpAddress(e.state, d, packet.dst, port.vrf)) ||
     (packet.protocol === 'UDP' && packet.dst === '255.255.255.255')
   ) {

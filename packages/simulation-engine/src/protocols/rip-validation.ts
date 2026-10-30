@@ -10,7 +10,7 @@ export function validateRip(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
     const state = device.rip;
     if (!state) continue;
-    if (device.type !== 'router') throw new Error('RIP exige roteador.');
+    if (!['router', 'switch'].includes(device.type)) throw new Error('RIP exige roteador ou switch L3.');
     unique(state.interfaces.map((entry) => entry.port));
     unique(state.ports.map((entry) => entry.port));
     unique(state.table.map((entry) => `${entry.network}/${entry.prefix}`));

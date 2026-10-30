@@ -78,6 +78,7 @@ export function configureLacp(
     mac:
       old?.mac ?? base.mac.split(':').slice(0, 4).join(':') + ':02:' + number.toString(16).padStart(2, '0'),
     dot1x: undefined,
+    authenticationControl:undefined,udld:undefined,bfd:old?.bfd,voiceVlan:old?.voiceVlan,portSecurity:undefined,stpGuard:old?.stpGuard,ospfAuthentication:old?.ospfAuthentication,
     supplicant: undefined,
     logical: undefined,
     qos: undefined,
@@ -162,7 +163,7 @@ function send(e: SimulationEngine, d: Device, aggregate: NetworkInterface, membe
   const pdu: LacpPdu = lacpPduSchema.parse({
     version: 1,
     active: agg.mode === 'active',
-    actor: { system: d.interfaces[0].mac, key: agg.number, port: member.id },
+    actor: { system: d.interfaces[0].mac, key: agg.number, port: member.id,portNumber:d.interfaces.indexOf(member)+1,systemPriority:32768,portPriority:32768,state:(agg.mode==='active'?1:0)|2|4|(agg.selected.includes(member.id)?8|16|32:0) },
     ...(received ? { partner: { ...received.pdu.actor } } : {}),
   });
   const frame: Frame = { src: member.mac, dst: LACP.mac, etherType: 'LACP', lacp: pdu, hops: LIMITS.l2Hops };

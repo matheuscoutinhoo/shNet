@@ -29,7 +29,7 @@ describe('terminal por dispositivo na sessão do laboratório', () => {
     expect(reopened.historyIndex).toBe(1);
     expect(reopened.seen.has('completed-query')).toBe(true);
     expect(reopened.cli.history).toEqual(['enable', 'configure terminal']);
-    expect(reopened.cli.execute('hostname PERSISTED')).toBe('OK');
+    expect(reopened.cli.execute('hostname PERSISTED')).toBe('');
     expect(device.hostname).toBe('PERSISTED');
     expect(reopened.cli.prompt).toBe('PERSISTED(config)#');
   });

@@ -1,0 +1,4385 @@
+{
+  "date": "2026-10-26",
+  "engineContract": "2026.10.26.1",
+  "engineSourceHash": "a88f28765ef1cee6351eebaeb3917e17c2efdce413fbdc13be429f05d6222024",
+  "scope": "Selected IOS/IOS XE baseline commands plus catalog, help, schema and restore smoke checks",
+  "limitations": "No Cisco firmware, physical device, Cisco CML comparison, or full standards certification. Passing catalog smoke checks do not validate all device protocols.",
+  "summary": {
+    "checks": 42,
+    "passed": 41,
+    "gaps": 1,
+    "profiles": 49,
+    "profileSmokePassed": 49
+  },
+  "checks": [
+    {
+      "id": "CLI-01",
+      "requirement": "Unambiguous keyword abbreviations",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "en",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "CLI-02",
+      "requirement": "Abbreviated operational command",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "sh ip int br",
+          "response": "Interface              IP-Address      OK? Method Status                 Protocol\nGi0/1                  unassigned      YES manual down                   down\nGi0/2                  unassigned      YES manual down                   down\nGi0/3                  unassigned      YES manual down                   down\nGi0/4                  unassigned      YES manual down                   down\nGi0/5                  unassigned      YES manual down                   down\nGi0/6                  unassigned      YES manual down                   down"
+        }
+      ]
+    },
+    {
+      "id": "CLI-03",
+      "requirement": "Context-sensitive keyword help",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show ip ?",
+          "response": "  bgp\n  dhcp\n  interface\n  nat\n  ospf\n  rip\n  route"
+        }
+      ]
+    },
+    {
+      "id": "CLI-04",
+      "requirement": "EXEC command from configuration mode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "do show ip interface brief",
+          "response": "Interface              IP-Address      OK? Method Status                 Protocol\nGi0/1                  unassigned      YES manual down                   down\nGi0/2                  unassigned      YES manual down                   down\nGi0/3                  unassigned      YES manual down                   down\nGi0/4                  unassigned      YES manual down                   down\nGi0/5                  unassigned      YES manual down                   down\nGi0/6                  unassigned      YES manual down                   down"
+        }
+      ]
+    },
+    {
+      "id": "CLI-05",
+      "requirement": "Disable returns to user EXEC",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "disable",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "CLI-06",
+      "requirement": "Running configuration requires privileged EXEC by default",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "show running-config",
+          "response": "% Privileged EXEC mode required. Use enable."
+        }
+      ]
+    },
+    {
+      "id": "CLI-07",
+      "requirement": "EXEC show requires do in configuration mode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "show ip interface brief",
+          "response": "% EXEC command requires do in configuration mode."
+        }
+      ]
+    },
+    {
+      "id": "CLI-08",
+      "requirement": "Remove interface description with the standard no form",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "description AUDIT-DESCRIPTION",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "no description",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "CLI-09",
+      "requirement": "Full GigabitEthernet interface name",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface GigabitEthernet0/1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "CLI-10",
+      "requirement": "Interface range configuration",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface range Gi0/1 - 2",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "CLI-11",
+      "requirement": "Output filters",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show running-config | include hostname",
+          "response": "hostname R-01"
+        }
+      ]
+    },
+    {
+      "id": "CLI-12",
+      "requirement": "Platform identification",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show version",
+          "response": "IOS/IOS XE · shLab core subset\nshLab educational behavioral simulator; supported IOS/IOS XE command subset.\nVirtual hardware: Roteador\nR-01 uptime: 0.000 simulated seconds\n6 network interfaces; no vendor firmware is executed."
+        }
+      ]
+    },
+    {
+      "id": "CFG-01",
+      "requirement": "Save running configuration to startup configuration",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "copy running-config startup-config",
+          "response": "Building configuration...\n[OK]"
+        }
+      ]
+    },
+    {
+      "id": "CFG-02",
+      "requirement": "Inspect startup configuration",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show startup-config",
+          "response": "startup-config is not present"
+        }
+      ]
+    },
+    {
+      "id": "CFG-03",
+      "requirement": "Reload with startup configuration lifecycle",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "reload",
+          "response": "Reload complete."
+        }
+      ]
+    },
+    {
+      "id": "CFG-04",
+      "requirement": "Erase startup configuration",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "erase startup-config",
+          "response": "Erase of nvram: complete"
+        }
+      ]
+    },
+    {
+      "id": "CFG-05",
+      "requirement": "Running config preserves interface description",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "description AUDIT-DESCRIPTION",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show running-config",
+          "response": "hostname R-01\ninterface Gi0/1\n description AUDIT-DESCRIPTION\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/2\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/3\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/4\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/5\n duplex full\n no shutdown\n speed 1000\n transceiver single-mode\nexit\ninterface Gi0/6\n duplex full\n no shutdown\n speed 1000\n transceiver single-mode\nexit"
+        }
+      ]
+    },
+    {
+      "id": "CFG-06",
+      "requirement": "Running config preserves nondefault MTU",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "mtu 1400",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show running-config",
+          "response": "hostname R-01\ninterface Gi0/1\n mtu 1400\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/2\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/3\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/4\n duplex full\n no shutdown\n speed 1000\nexit\ninterface Gi0/5\n duplex full\n no shutdown\n speed 1000\n transceiver single-mode\nexit\ninterface Gi0/6\n duplex full\n no shutdown\n speed 1000\n transceiver single-mode\nexit"
+        }
+      ]
+    },
+    {
+      "id": "L2-01",
+      "requirement": "Access VLAN configuration",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "vlan 10",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-vlan)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport access vlan 10",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L2-02",
+      "requirement": "Incremental trunk allowed VLAN updates",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport mode trunk",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport trunk allowed vlan add 10",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L2-03",
+      "requirement": "Rapid PVST mode",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree mode rapid-pvst",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L2-04",
+      "requirement": "Per-VLAN STP bridge priority",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree vlan 1 priority 4096",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L2-05",
+      "requirement": "BPDU Guard on edge ports",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "spanning-tree bpduguard enable",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L2-06",
+      "requirement": "Trunk operational diagnostics",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show interfaces trunk",
+          "response": "Port           Status        Native vlan  Vlans allowed on trunk\n"
+        }
+      ]
+    },
+    {
+      "id": "L2-07",
+      "requirement": "LACP active membership",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "channel-group 1 mode active",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L2-08",
+      "requirement": "CDP neighbor diagnostics",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show cdp neighbors",
+          "response": "No CDP neighbors found."
+        }
+      ]
+    },
+    {
+      "id": "L2-09",
+      "requirement": "LLDP neighbor diagnostics",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show lldp neighbors",
+          "response": "No LLDP neighbors found."
+        }
+      ]
+    },
+    {
+      "id": "L3-01",
+      "requirement": "L2 switch management SVI",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Vlan1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-02",
+      "requirement": "L2 switch management default gateway",
+      "profile": "switch-l2",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "ip default-gateway 192.0.2.1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-03",
+      "requirement": "IOS OSPF numeric process ID and router configuration mode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-04",
+      "requirement": "IOS OSPF interface process binding",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip ospf 1 area 0",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-05",
+      "requirement": "OSPF supported on multilayer switches",
+      "profile": "switch-l3",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "router ospf 1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-06",
+      "requirement": "BGP router configuration submode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-07",
+      "requirement": "RIP router configuration submode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router rip",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-08",
+      "requirement": "Floating static routes with administrative distance",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip route 198.51.100.0 255.255.255.0 192.0.2.1 200",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "L3-09",
+      "requirement": "HSRP virtual gateway",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 1 ip 192.0.2.254",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "SEC-01",
+      "requirement": "Named extended ACL configuration submode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip access-list extended WEB",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "SEC-02",
+      "requirement": "Cisco static NAT syntax",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip nat inside source static 192.0.2.10 198.51.100.10",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "SEC-03",
+      "requirement": "SSH virtual terminal line configuration",
+      "profile": "router",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "line vty 0 4",
+          "response": "% Invalid input detected at: line"
+        }
+      ]
+    },
+    {
+      "id": "SEC-04",
+      "requirement": "Enable secret configuration",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "enable secret AuditOnly-12345",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "OPS-01",
+      "requirement": "Down interfaces are absent from installed connected routes",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip address 192.0.2.1 255.255.255.0",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "shutdown",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show ip route",
+          "response": "Nenhuma rota"
+        }
+      ]
+    },
+    {
+      "id": "OPS-02",
+      "requirement": "DHCP pool submode",
+      "profile": "router",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip address 192.0.2.1 255.255.255.0",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip dhcp pool USERS",
+          "response": "OK"
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "plc",
+      "model": "NL PLC Modbus",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "hmi",
+      "model": "NL HMI",
+      "type": "pc",
+      "terminal": "HostShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "database",
+      "model": "NL Banco de dados",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "database",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": true,
+        "database": true
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "rack",
+      "model": "NL Rack",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": true,
+      "tabs": [
+        "overview",
+        "infrastructure",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": false,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [],
+        "power": false,
+        "ports": false,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": false,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "patch-panel",
+      "model": "NL Patch panel",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": true,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "infrastructure",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": false,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [],
+        "power": false,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": false,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "ups",
+      "model": "NL UPS",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "infrastructure",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": false,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": false,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "wlc",
+      "model": "NL Wireless Controller",
+      "type": "switch",
+      "terminal": "NetOS WLAN Controller",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "telemetry",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": true,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [
+          "wlc"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "mesh",
+      "model": "NL Mesh AP",
+      "type": "switch",
+      "terminal": "NetOS Wireless",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "wireless",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "telemetry",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": true,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [
+          "eapAuthenticator",
+          "mesh",
+          "wtp"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": true,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": true,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "ids",
+      "model": "NL IDS",
+      "type": "router",
+      "terminal": "NetOS Routing",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "ips",
+      "model": "NL IPS",
+      "type": "router",
+      "terminal": "NetOS Routing",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "proxy",
+      "model": "NL Proxy HTTP",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [
+          "proxy"
+        ],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "load-balancer",
+      "model": "NL Balanceador HTTP",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [
+          "proxy"
+        ],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "mqtt",
+      "model": "NL Broker MQTT",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [
+          "broker"
+        ],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "desktop",
+      "model": "NL Computador",
+      "type": "pc",
+      "terminal": "HostShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "database",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "request",
+          "automation",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": true,
+        "tcpServer": true,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": true
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "laptop",
+      "model": "NL Notebook",
+      "type": "pc",
+      "terminal": "HostShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "wireless",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "database",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "request",
+          "automation",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [
+          "eapSupplicant"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": true,
+        "clientApplications": true,
+        "tcpServer": true,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": true
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "smartphone",
+      "model": "NL Smartphone",
+      "type": "pc",
+      "terminal": "HostShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "cli",
+        "tables",
+        "ipv6",
+        "wireless",
+        "advancedNetwork",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [
+          "eapSupplicant"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": true,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": false,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "printer",
+      "model": "NL Impressora IP",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [
+          "printer"
+        ],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "phone",
+      "model": "NL Telefone IP",
+      "type": "pc",
+      "terminal": "HostShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [
+          "phone"
+        ],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": true,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "iot",
+      "model": "NL Dispositivo IoT",
+      "type": "pc",
+      "terminal": "HostShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": true,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": true,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "switch-l2",
+      "model": "NL Switch L2",
+      "type": "switch",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "vxlan",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "stp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "telemetry",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": true,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client",
+          "dot1x"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": false,
+        "lacp": true,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": true,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": true,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "switch-l3",
+      "model": "NL Switch L3",
+      "type": "switch",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "vxlan",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "stp",
+        "ospf",
+        "rip",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": true,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client",
+          "dot1x"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": true,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": true,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "access",
+      "model": "NL Switch de acesso",
+      "type": "switch",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "stp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "telemetry",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": true,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client",
+          "dot1x"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": false,
+        "lacp": true,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": true,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "distribution",
+      "model": "NL Switch de distribuição",
+      "type": "switch",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "vxlan",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "stp",
+        "ospf",
+        "rip",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": true,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client",
+          "dot1x"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": true,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": true,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "core",
+      "model": "NL Switch de core",
+      "type": "switch",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "vxlan",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "stp",
+        "ospf",
+        "rip",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": true,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client",
+          "dot1x"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": true,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "industrial",
+      "model": "NL Switch industrial",
+      "type": "switch",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "stp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "telemetry",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": true,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client",
+          "dot1x"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": false,
+        "lacp": true,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": true,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "router",
+      "model": "NL Roteador",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "edge",
+      "model": "NL Roteador de borda",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "branch",
+      "model": "NL Roteador de filial",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "virtual-router",
+      "model": "NL Roteador virtual",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": false,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "ap",
+      "model": "NL Access point",
+      "type": "switch",
+      "terminal": "NetOS Wireless",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "wireless",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "telemetry",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": true,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": false,
+        "advancedKinds": [
+          "eapAuthenticator",
+          "mesh",
+          "wtp"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": false,
+        "lacp": false,
+        "bond": false,
+        "vrrp": false,
+        "vxlan": false,
+        "wireless": true,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": true,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "sdwan-edge",
+      "model": "NL SD-WAN Edge",
+      "type": "router",
+      "terminal": "IOS/IOS XE · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "sdwan-controller",
+      "model": "NL SD-WAN Controller",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "sdwanController",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": true,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "sdwan-gateway",
+      "model": "NL SD-WAN Gateway",
+      "type": "router",
+      "terminal": "IOS/IOS XE · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "firewall",
+      "model": "NL Firewall",
+      "type": "router",
+      "terminal": "IOS/IOS XE · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "ngfw",
+      "model": "NL Firewall de aplicação",
+      "type": "router",
+      "terminal": "IOS/IOS XE · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "vpn-gateway",
+      "model": "NL VPN Gateway",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "server",
+      "model": "NL Servidor",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "sdwanController",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "database",
+        "applications",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "collector",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [
+          "eapServer"
+        ],
+        "applicationKinds": [
+          "phone",
+          "proxy",
+          "printer",
+          "broker"
+        ],
+        "aaaKinds": [
+          "server",
+          "client",
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": true,
+        "tcpServer": true,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": true,
+        "databaseServer": true,
+        "database": true
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "dns",
+      "model": "NL DNS Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "dhcp",
+      "model": "NL DHCP Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "ntp",
+      "model": "NL NTP Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "aaa",
+      "model": "NL AAA Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [
+          "eapServer"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "server",
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "radius",
+      "model": "NL RADIUS Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [
+          "eapServer"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "server",
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "tacacs",
+      "model": "NL TACACS+ Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "server",
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "web",
+      "model": "NL Web Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": true,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "syslog",
+      "model": "NL Syslog Server",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "snmp",
+      "model": "NL SNMP Manager",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "collector",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "remote",
+      "model": "NL Servidor de automação",
+      "type": "server",
+      "terminal": "ServiceShell",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "bond",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "vrrp",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "ntp"
+        ],
+        "syslogServer": false,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": false,
+        "routingProtocols": false,
+        "endpoint": true,
+        "advancedKinds": [],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "supplicant"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": false,
+        "vrf": false,
+        "lacp": false,
+        "bond": true,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": false,
+        "dnsServer": false,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": false,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "isp",
+      "model": "NL ISP",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "lacp",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": true,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    },
+    {
+      "id": "nat-gateway",
+      "model": "NL NAT Gateway",
+      "type": "router",
+      "terminal": "IOS XE 17.12 · shLab core subset",
+      "power": false,
+      "tabs": [
+        "overview",
+        "interfaces",
+        "layer3",
+        "cli",
+        "tables",
+        "aaa",
+        "ipv6",
+        "forwarding",
+        "tunnels",
+        "advancedNetwork",
+        "hardware",
+        "infrastructure",
+        "dhcp",
+        "dns",
+        "tcp",
+        "ospf",
+        "rip",
+        "vrrp",
+        "bgp",
+        "policy",
+        "management",
+        "logs"
+      ],
+      "capabilities": {
+        "remoteKinds": [
+          "server",
+          "request",
+          "automation",
+          "telemetry",
+          "clock",
+          "ntp"
+        ],
+        "syslogServer": true,
+        "active": true,
+        "ap": false,
+        "controller": false,
+        "switching": false,
+        "routing": true,
+        "routingProtocols": true,
+        "endpoint": false,
+        "advancedKinds": [
+          "ids"
+        ],
+        "applicationKinds": [],
+        "aaaKinds": [
+          "client"
+        ],
+        "power": true,
+        "ports": true,
+        "layer3": true,
+        "vrf": true,
+        "lacp": false,
+        "bond": false,
+        "vrrp": true,
+        "vxlan": false,
+        "wireless": false,
+        "clientApplications": false,
+        "tcpServer": false,
+        "dhcpServer": true,
+        "dnsServer": true,
+        "poeSupply": false,
+        "poeLoad": false,
+        "serial": true,
+        "console": true,
+        "sdwanController": false,
+        "databaseServer": false,
+        "database": false
+      },
+      "smokePassed": true
+    }
+  ]
+}

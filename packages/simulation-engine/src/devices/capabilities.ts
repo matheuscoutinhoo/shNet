@@ -163,7 +163,7 @@ export function inspectorTabIds(d: Device): string[] {
     'dns',
     'tcp',
     ...(c.switching ? ['stp'] : []),
-    ...(d.type === 'router' && c.routingProtocols ? ['ospf', 'rip'] : []),
+    ...(c.routingProtocols ? ['ospf', 'rip'] : []),
     ...(c.vrrp ? ['vrrp'] : []),
     ...(c.routingProtocols ? ['bgp'] : []),
     ...(c.routing ? ['policy'] : []),

@@ -1,0 +1,15 @@
+{
+  "result": {
+    "id": "S29",
+    "label": "Snapshot restaura estado convergido",
+    "wallMs": 37,
+    "detail": {
+      "devices": 38,
+      "links": 46,
+      "clock": 6000,
+      "queue": 113
+    }
+  },
+  "events": [],
+  "probes": []
+}

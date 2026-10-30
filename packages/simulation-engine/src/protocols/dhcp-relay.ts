@@ -10,6 +10,7 @@ import {
 } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { sameSubnet } from './ipv4';
+import { routingEnabled, interfaceOperational } from './layer3';
 
 export function relayDhcpRequest(
   engine: SimulationEngine,
@@ -17,7 +18,7 @@ export function relayDhcpRequest(
   port: NetworkInterface,
   packet: UdpPacket
 ) {
-  if (packet.payload.protocol !== 'DHCP' || device.type !== 'router' || !port.ip || !port.dhcpRelay?.length)
+  if (packet.payload.protocol !== 'DHCP' || !routingEnabled(device) || !port.ip || !port.dhcpRelay?.length || !interfaceOperational(engine.state, device, port))
     return;
   const message = packet.payload.message;
   if (!['discover', 'request', 'decline'].includes(message.type) || packet.dst !== DHCP.broadcastIp) return;
@@ -25,6 +26,8 @@ export function relayDhcpRequest(
   // through both members can produce competing allocations for the same client.
   const groups = device.vrrp?.enabled ? device.vrrp.groups.filter((group) => group.port === port.id) : [];
   if (groups.length && !groups.some((group) => group.state === 'ACTIVE')) return;
+  const hsrp = device.hsrp?.groups.filter((group) => group.port === port.id) ?? [];
+  if (hsrp.length && !hsrp.some((group) => group.state === 'ACTIVE')) return;
   // One relay hop: routed unicast renewals and replies never enter this branch.
   if ((message.giaddr && message.giaddr !== DHCP.unspecifiedIp) || (message.hops ?? 0) !== 0) {
     engine.drop(
@@ -65,8 +68,9 @@ export function relayDhcpReply(engine: SimulationEngine, device: Device, packet:
     (entry) => entry.adminUp && entry.ip === message.giaddr && entry.dhcpRelay?.includes(packet.src)
   );
   if (
-    device.type !== 'router' ||
+    !routingEnabled(device) ||
     !port?.ip ||
+    !interfaceOperational(engine.state, device, port) ||
     packet.dst !== port.ip ||
     packet.destinationPort !== DHCP.serverPort ||
     !['offer', 'ack', 'nak'].includes(message.type) ||

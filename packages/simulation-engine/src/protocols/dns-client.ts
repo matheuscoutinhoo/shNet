@@ -161,11 +161,12 @@ export function lookupDns(
   const servers = server
     ? [transportAddressSchema.parse(server)]
     : [
-        ...new Set(
-          device.interfaces
+        ...new Set([
+          ...(device.nameServers ?? []),
+          ...device.interfaces
             .filter((port) => port.adminUp)
-            .flatMap((port) => [...(port.dns ?? []), ...(port.dhcp6?.dns ?? [])])
-        ),
+            .flatMap((port) => [...(port.dns ?? []), ...(port.dhcp6?.dns ?? [])]),
+        ]),
       ].slice(0, 8);
   if (
     !servers.length ||

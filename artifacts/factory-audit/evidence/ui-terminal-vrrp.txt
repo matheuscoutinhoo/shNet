@@ -1,0 +1,15 @@
+ Ativo local · timer 414.063 ms · TX/R
+X 8/0
+Gi0/1.99 VRID 99 VIP 10.20.99.1 ACTIVE
+ MAC 00:00:5e:00:01:63 · prioridade 15
+0 (efetiva 150) · preempt on · anúncio
+s 1000 ms
+ Ativo local · timer 414.063 ms · TX/R
+X 8/0
+Gi0/2 VRID 200 VIP 172.20.0.254 ACTIVE
+ MAC 00:00:5e:00:01:c8 · prioridade 15
+0 (efetiva 150) · preempt on · anúncio
+s 1000 ms
+ Ativo local · timer 414.063 ms · TX/R
+X 2/0
+FW-A>  

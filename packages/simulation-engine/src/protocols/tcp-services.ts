@@ -1,4 +1,5 @@
 import { receiveDatabase } from './database';
+import { receiveDatabaseClient } from './database-client';
 import { receiveModbus } from './modbus';
 import { receiveSpecialApplication } from './applications';
 import { receiveRemote } from './remote-wire';
@@ -70,6 +71,7 @@ export function receiveTcpApplication(
     device.id,
     `${connection.id}: ${tcpBytes(data, connection.encoding)} bytes recebidos por ${connection.service}.`
   );
+  if (receiveDatabaseClient(engine, device, connection)) return;
   if (connection.service === 'database') {
     receiveDatabase(engine, device, connection);
     return;

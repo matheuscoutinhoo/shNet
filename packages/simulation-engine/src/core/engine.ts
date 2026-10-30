@@ -1,5 +1,21 @@
 import { invalidateProtocolIndex } from './protocol-index';
 import {
+  configureDiscovery,
+  handleDiscoveryTick,
+  receiveDiscovery,
+  refreshDiscovery,
+} from '../protocols/discovery';
+import {
+  configureHsrp,
+  refreshHsrp,
+  handleHsrpTick,
+  acceptsHsrpMac,
+  acceptsHsrpAddress,
+} from '../protocols/hsrp';
+import { hsrpMulticast } from '../protocols/hsrp-model';
+import { reloadStartup } from '../cli/startup';
+import { makeRegistry } from '../cli/commands';
+import {
   configureQuorumLab,
   compactQuorumLab,
   removeQuorumLab,
@@ -25,6 +41,11 @@ import { findDevice, findLink, linksAt } from './topology-index';
 import { interfaceSchema } from '../model';
 import { configureDatabase, queryDatabase } from '../protocols/database';
 import { configureDatabaseHa } from '../protocols/database-ha';
+import {
+  configureDatabaseClient,
+  queryDatabaseCluster,
+  handleDatabaseClientTick,
+} from '../protocols/database-client';
 import {
   configureInfrastructure,
   configureSystem,
@@ -74,6 +95,7 @@ import {
 } from '../protocols/applications';
 import { submitPrint } from '../protocols/applications-http';
 import { configurePhone, callPhone, hangupPhone, handleVoiceTick } from '../protocols/voice';
+import {phoneEgressFrame,phoneIngressFrame} from '../protocols/voice-vlan';
 import { expireSipAlg } from '../protocols/nat-sip';
 import { handleHairpinExpiry, hairpinError } from '../protocols/nat-hairpin';
 import { fragmentFrame, receiveFragment, handleFragmentAction } from '../protocols/fragment';
@@ -82,6 +104,9 @@ import { spanningPortState, frameVlan } from '../protocols/stp-scope';
 import { addFactoryProfile, addProfile } from '../devices/profiles';
 import { configureTelemetry, configureCollector, handleTelemetry } from '../protocols/telemetry';
 import { configureClock, configureNtp, handleNtp, stampNtp } from '../protocols/ntp';
+import { monitorTick } from '../protocols/monitoring';
+import { receiveUdld, udldTick } from '../protocols/udld';
+import { bfdTick } from '../protocols/bfd';
 import { configureRemote } from '../protocols/remote';
 import {
   requestRemote,
@@ -100,7 +125,7 @@ import {
   permitDot1x,
 } from '../protocols/dot1x';
 import { configureVxlan, sendVxlanFrame } from '../protocols/vxlan';
-import { configureQos, enqueueQos, handleQosTick } from '../protocols/qos';
+import { configureQos, enqueueQos, handleQosTick,permitIngressQos } from '../protocols/qos';
 import { configureMpls, mplsRoute, pushMpls, receiveMpls } from '../protocols/mpls';
 import { configureSdwan, configureSdwanController, handleSdwanTick, selectSdwan } from '../protocols/sdwan';
 import { configureTunnel, handleTunnelTick, sendTunnelFrame } from '../protocols/tunnel';
@@ -150,7 +175,14 @@ import {
   type Snapshot,
 } from '../model';
 import { createDevice } from '../devices/catalog';
-import { cableMetrics, endpoint, linkOperational, validateConnection } from '../links/physical';
+import {
+  cableMetrics,
+  endpoint,
+  linkOperational,
+  negotiateLink,
+  releaseNegotiatedSpeed,
+  validateConnection,
+} from '../links/physical';
 import { enqueue, enqueueAt, random } from './queue';
 import { validateSnapshot } from './validation';
 import { receiveArp, sendWithArp, handleArpTimer } from '../protocols/arp';
@@ -164,7 +196,7 @@ import {
   sviOperational,
 } from '../protocols/layer3';
 import { ipNumber, receiveIp, resolveRoute } from '../protocols/ipv4';
-import { configureDhcpPool, configureDhcpRelay } from '../protocols/dhcp-config';
+import { configureDhcpPool, configureDhcpRelay, refreshDhcpPools } from '../protocols/dhcp-config';
 import {
   configureDhcpHaPair,
   disableDhcpHa,
@@ -192,6 +224,8 @@ import {
   receiveBpdu,
   refreshSpanningTree,
   invalidateSpanningRefresh,
+  syncPvstInstances,
+  applyDefaultSpanningTree,
 } from '../protocols/stp';
 
 import { configureAcl, permitPacket } from '../protocols/acl';
@@ -204,7 +238,12 @@ import { configureDhcp6Relay } from '../protocols/dhcp6-relay';
 import { configureFirewall, expireFirewall, permitFirewall } from '../protocols/firewall';
 import { configureStateSyncPair, disableStateSync, handleStateSync } from '../protocols/state-sync';
 import { sendIcmpError } from '../protocols/icmp';
-import { configureOspf, handleOspfTick } from '../protocols/ospf';
+import {
+  configureOspf,
+  handleOspfTick,
+  refreshOspfConfiguration,
+  selectOspfRouterId,
+} from '../protocols/ospf';
 import { OSPF } from '../protocols/ospf-model';
 import { configureRip, handleRipTick } from '../protocols/rip';
 import { RIP } from '../protocols/rip-model';
@@ -255,6 +294,25 @@ export class SimulationEngine {
   snapshot(): Snapshot {
     return structuredClone(this.state);
   }
+  /**
+   * Rollback point for a local edit. Event, diagnostic and capture records are immutable once
+   * emitted, so those logs are copied shallowly instead of deep-cloned.
+   */
+  checkpoint(): Snapshot {
+    const { events, diagnostics, capture } = this.state;
+    const copy: Snapshot = structuredClone({
+      ...this.state,
+      events: [],
+      diagnostics: undefined,
+      capture: undefined,
+    } as Snapshot);
+    copy.events = [...events];
+    if (diagnostics) copy.diagnostics = [...diagnostics];
+    else delete copy.diagnostics;
+    if (capture) copy.capture = { ...capture, frames: [...capture.frames] };
+    else delete copy.capture;
+    return copy;
+  }
   configurePlcProcess(deviceId: string, input: unknown) {
     configurePlcProcess(this, this.device(deviceId), input);
   }
@@ -274,6 +332,12 @@ export class SimulationEngine {
   }
   addProfile(id: string, position = { x: 100, y: 100 }) {
     return addProfile(this, id, position);
+  }
+  configureDiscovery(deviceId: string, input: unknown) {
+    configureDiscovery(this, this.device(deviceId), input);
+  }
+  configureHsrp(deviceId: string, input: unknown) {
+    configureHsrp(this, this.device(deviceId), input);
   }
   addFactoryProfile(id: string, position = { x: 100, y: 100 }) {
     return addFactoryProfile(this, id, position);
@@ -400,9 +464,9 @@ export class SimulationEngine {
   configureVxlan(deviceId: string, input: unknown) {
     return configureVxlan(this, this.device(deviceId), input);
   }
-  configureQos(deviceId: string, portId: string, input: unknown) {
+  configureQos(deviceId: string, portId: string, input: unknown,direction:'in'|'out'='out') {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
-    configureQos(this, device, port, input);
+    configureQos(this, device, port, input,direction);
   }
   configureMpls(deviceId: string, input: unknown) {
     configureMpls(this, this.device(deviceId), input);
@@ -489,7 +553,7 @@ export class SimulationEngine {
       rx: 0,
       tx: 0,
       errors: 0,
-      description: 'Endpoint IP estável',
+      description: '',
     });
     d.interfaces.push(p);
     this.emit('CONFIG_CHANGED', d.id, p.name + ' criada.', { port: p.id });
@@ -499,7 +563,9 @@ export class SimulationEngine {
     sendIp6(this, this.device(deviceId), packet, ingress, vrf, scope);
   }
   addSvi(deviceId: string, vlan: number) {
-    return createLogicalInterface(this, this.device(deviceId), 'svi', vlan);
+    const port = createLogicalInterface(this, this.device(deviceId), 'svi', vlan);
+    syncPvstInstances(this, this.device(deviceId));
+    return port;
   }
   removeLogicalInterface(deviceId: string, portId: string) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
@@ -534,6 +600,7 @@ export class SimulationEngine {
       device.wtp?.underlay === portId ||
       device.eapAuthenticator?.underlay === portId ||
       device.routes6?.some((r) => r.port === portId) ||
+      device.routes.some((r) => r.port === portId) ||
       device.dhcpServer?.pools.some((p) => p.port === portId) ||
       device.dhcpHa?.port === portId ||
       Object.values(device.quorum?.ports ?? {}).includes(portId) ||
@@ -542,6 +609,7 @@ export class SimulationEngine {
       device.ospf?.interfaces.some((p) => p.port === portId) ||
       device.rip?.interfaces.some((p) => p.port === portId) ||
       device.vrrp?.groups.some((g) => g.port === portId) ||
+      device.hsrp?.groups.some((g) => g.port === portId || g.track.some((t) => t.port === portId)) ||
       device.vrrp?.groups.some((g) => g.track?.some((t) => t.port === portId)) ||
       device.firewall?.trustedPorts.includes(portId) ||
       device.firewall?.zonePolicy?.zones.some((z) => z.ports.includes(portId)) ||
@@ -600,6 +668,8 @@ export class SimulationEngine {
     if (port.mode !== 'routed') throw new Error('VRF exige interface routed.');
     if (device.routes6?.some((r) => r.port === portId && r.vrf !== vrf))
       throw new Error('Remova as rotas IPv6 antes de mudar a VRF.');
+    if (device.routes.some((r) => r.port === portId && r.vrf !== vrf))
+      throw new Error('Remove exit-interface static routes before changing the VRF.');
     if (
       vrf &&
       (port.dhcp ||
@@ -607,6 +677,7 @@ export class SimulationEngine {
         device.nat?.enabled ||
         device.ospf?.interfaces.some((p) => p.port === portId) ||
         device.rip?.interfaces.some((p) => p.port === portId) ||
+        device.hsrp?.groups.some((g) => g.port === portId) ||
         device.vrrp?.groups.some((g) => g.port === portId))
     )
       throw new Error('Remova protocolos incompatíveis antes de associar a VRF.');
@@ -689,6 +760,7 @@ export class SimulationEngine {
     if (this.state.links.length >= 8000) throw new Error('Limite de cabos atingido');
     validateConnection(this.state, link);
     this.state.links.push(link);
+    negotiateLink(this.state, link);
     refreshPower(this);
     const operational = linkOperational(this.state, link);
     this.emit(
@@ -705,8 +777,13 @@ export class SimulationEngine {
     return link;
   }
   removeLink(id: string, refreshProtocols = true) {
+    const removed = this.state.links.find((l) => l.id === id);
     for (const d of this.state.devices) d.consoleSessions = d.consoleSessions?.filter((c) => c.link !== id);
     this.state.links = this.state.links.filter((l) => l.id !== id);
+    for (const end of removed ? [removed.a, removed.b] : []) {
+      const port = this.state.devices.find((d) => d.id === end.device)?.interfaces.find((p) => p.id === end.port);
+      if (port) releaseNegotiatedSpeed(port);
+    }
     this.state.canvasItems = this.state.canvasItems?.filter(
       (item) => !(item.anchor?.kind === 'link' && item.anchor.target === id)
     );
@@ -734,8 +811,16 @@ export class SimulationEngine {
     }
     if (refreshProtocols) this.refreshSpanningTree();
   }
+  /** Renegotiates the cable attached to a port after its speed configuration changed. */
+  renegotiatePort(deviceId: string, portId: string) {
+    const link = this.state.links.find((l) =>
+      [l.a, l.b].some((end) => end.device === deviceId && end.port === portId)
+    );
+    if (link) negotiateLink(this.state, link);
+  }
   setPort(deviceId: string, portId: string, up: boolean) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
+    if (up && !port.adminUp) delete port.errDisabled;
     port.adminUp = up;
     device.arpTable = device.arpTable.filter((a) => a.port !== portId);
     device.macTable = device.macTable.filter((m) => m.port !== portId);
@@ -752,6 +837,7 @@ export class SimulationEngine {
     assertDhcpHaPoolEditable(device);
     const pool = configureDhcpPool(device, input);
     refreshVrrp(this);
+    refreshHsrp(this);
     const remaining = new Set(device.dhcpServer!.bindings.map((binding) => binding.id));
     this.state.queue = this.state.queue.filter(
       ({ action }) =>
@@ -798,8 +884,27 @@ export class SimulationEngine {
     if (device.spanningTree?.enabled) updateSpanningTreePort(this, device, port, edgeChanged);
   }
   refreshSpanningTree() {
+    refreshDiscovery(this);
+    refreshHsrp(this);
+    for (const d of this.state.devices) {
+      refreshOspfConfiguration(this, d);
+      // IOS DHCP pools follow interface addressing (pools may be declared before the interfaces).
+      if (d.dhcpServer && refreshDhcpPools(d)) {
+        const remaining = new Set(d.dhcpServer.bindings.map((binding) => binding.id));
+        this.state.queue = this.state.queue.filter(
+          ({ action }) =>
+            action.kind !== 'dhcp-binding-expire' || action.device !== d.id || remaining.has(action.binding)
+        );
+      }
+      if (d.bgp?.autoRouterId && d.bgp.routerId === '0.0.0.0') {
+        const routerId = selectOspfRouterId(d);
+        if (routerId !== '0.0.0.0') configureBgp(this, d, { ...bgpConfig(d), routerId, enabled: true });
+      }
+    }
     invalidateSpanningRefresh(this.state);
     invalidateBgpRefresh(this.state);
+    // VLANs may be created by the CLI, panels or imports; PVST needs one tree per VLAN.
+    for (const d of this.state.devices) if (d.multiSpanningTree?.mode === 'pvst') syncPvstInstances(this, d);
     refreshPower(this);
     refreshMesh(this);
     refreshDot1x(this);
@@ -808,6 +913,7 @@ export class SimulationEngine {
     refreshBonds(this);
     refreshSpanningTree(this);
     refreshVrrp(this);
+    refreshHsrp(this);
     refreshBgp(this);
   }
   configureWlc(device: string, input: unknown) {
@@ -843,8 +949,20 @@ export class SimulationEngine {
     configureSystem(this, this.device(device), input);
   }
   setDevicePower(device: string, power: boolean) {
+    const previous = this.device(device);
+    const wasPowered = previous.power;
+    const boot = power && !previous.power && previous.bootManaged;
+    const loadStartup = previous.booted || !!previous.startupConfig;
     setInfrastructurePower(this, this.device(device), power);
     setDevicePower(this, this.device(device), power);
+    if (boot && this.device(device).power) {
+      // Offline catalog provisioning is the initial boot image. Subsequent
+      // power cycles use NVRAM, just like an explicit reload.
+      if (loadStartup) reloadStartup(this, this.device(device), makeRegistry());
+      else applyDefaultSpanningTree(this, this.device(device));
+      this.device(device).booted = true;
+    }
+    if (!wasPowered && this.device(device).power) this.device(device).bootStartedAt = this.state.clock;
     this.refreshSpanningTree();
   }
   addHardwarePort(device: string, media: 'serial' | 'console', input?: unknown) {
@@ -861,6 +979,12 @@ export class SimulationEngine {
   }
   queryDatabase(device: string, target: string, query: string, key: string, port = 8080) {
     return queryDatabase(this, this.device(device), target, query, key, port);
+  }
+  configureDatabaseClient(device: string, input: unknown) {
+    return configureDatabaseClient(this, this.device(device), input);
+  }
+  queryDatabaseCluster(device: string, query: string, input?: unknown) {
+    return queryDatabaseCluster(this, this.device(device), query, input);
   }
   configureProxy(device: string, input: unknown) {
     configureProxy(this, this.device(device), input);
@@ -963,6 +1087,7 @@ export class SimulationEngine {
     device.dhcpServer ??= { enabled, pools: [], bindings: [] };
     device.dhcpServer.enabled = enabled;
     refreshVrrp(this);
+    refreshHsrp(this);
     this.emit('CONFIG_CHANGED', deviceId, 'Serviço DHCP ' + (enabled ? 'habilitado.' : 'desabilitado.'));
   }
   removeDhcpPool(deviceId: string, name: string) {
@@ -1058,6 +1183,7 @@ export class SimulationEngine {
   }
   refreshVrrp() {
     refreshVrrp(this);
+    refreshHsrp(this);
     refreshBgp(this);
   }
   configureRip(deviceId: string, input: unknown) {
@@ -1102,8 +1228,9 @@ export class SimulationEngine {
     );
   }
   bindAcl(deviceId: string, portId: string, direction: 'in' | 'out', name?: string) {
-    const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
-    if (port.mode !== 'routed' || (name && !device.accessLists?.some((acl) => acl.name === name)))
+    const { port } = endpoint(this.state, { device: deviceId, port: portId });
+    // IOS accepts a reference to an ACL defined later; until then the interface permits all traffic.
+    if (port.mode !== 'routed' || (name !== undefined && !/^[\w-]{1,32}$/.test(name)))
       throw new Error('ACL ou interface inválida.');
     const key = direction === 'in' ? 'aclIn' : 'aclOut';
     if (name) port[key] = name;
@@ -1135,9 +1262,10 @@ export class SimulationEngine {
   sendSyslog(deviceId: string, text: string, severity = 6) {
     return sendSyslog(this, this.device(deviceId), text, severity);
   }
-  removeAcl(deviceId: string, name: string) {
+  /** The panel refuses to delete an applied ACL; the IOS CLI keeps the interface reference (permit all). */
+  removeAcl(deviceId: string, name: string, keepReferences = false) {
     const device = this.device(deviceId);
-    if (device.interfaces.some((port) => port.aclIn === name || port.aclOut === name))
+    if (!keepReferences && device.interfaces.some((port) => port.aclIn === name || port.aclOut === name))
       throw new Error('Remova a ACL das interfaces antes de excluí-la.');
     device.accessLists = device.accessLists?.filter((acl) => acl.name !== name);
   }
@@ -1187,8 +1315,11 @@ export class SimulationEngine {
       const control =
         event.frame.bpdu ||
         event.frame.lacp ||
+        event.frame.discovery ||
+        event.frame.udld ||
         ['VRRP', 'OSPF'].includes(event.frame.packet?.protocol ?? '') ||
-        (event.frame.packet?.protocol === 'UDP' && event.frame.packet.payload.protocol === 'RIP');
+        (event.frame.packet?.protocol === 'UDP' &&
+          ['RIP', 'BFD', 'HSRP'].includes(event.frame.packet.payload.protocol));
       if (!control || this.state.capture.includeControl) {
         const trace =
           event.frame.packet?.protocol === 'TCP'
@@ -1248,6 +1379,7 @@ export class SimulationEngine {
   }
   sendFrame(deviceId: string, portId: string, frame: Frame) {
     const { device: d, port } = endpoint(this.state, { device: deviceId, port: portId });
+    frame=phoneEgressFrame(this.state,d,port,frame);
     if (port.capwapPeer) {
       sendCapwapFrame(this, d, port, frame);
       return;
@@ -1357,6 +1489,8 @@ export class SimulationEngine {
       !frame.lacp &&
       !frame.wifi &&
       !frame.meshHello &&
+      !frame.discovery &&
+      !frame.udld &&
       spanningPortState(d, port, frameVlan(port, frame.vlan)) &&
       spanningPortState(d, port, frameVlan(port, frame.vlan))?.state !== 'forwarding'
     ) {
@@ -1442,9 +1576,11 @@ export class SimulationEngine {
       this.drop(d, 'Equipamento desligado');
       return;
     }
-    const virtualPort = acceptsVrrpAddress(this.state, d, packet.dst, vrf)
-      ? d.vrrp!.groups.find((g) => g.vip === packet.dst)!.port
-      : undefined;
+    const virtualPort = acceptsHsrpAddress(this.state, d, packet.dst, vrf)
+      ? d.hsrp!.groups.find((g) => g.vip === packet.dst)!.port
+      : acceptsVrrpAddress(this.state, d, packet.dst, vrf)
+        ? d.vrrp!.groups.find((g) => g.vip === packet.dst)!.port
+        : undefined;
     const local = d.interfaces.find(
       (port) =>
         interfaceUp(d, port) && port.vrf === vrf && (port.ip === packet.dst || port.id === virtualPort)
@@ -1454,7 +1590,15 @@ export class SimulationEngine {
       return;
     }
     const labelRoute = mplsRoute(d, packet, vrf);
-    const baseline = labelRoute ?? resolveRoute(d, packet.dst, vrf, this.state);
+    const flowKey = JSON.stringify([
+      packet.src,
+      packet.dst,
+      packet.protocol,
+      ...(packet.protocol === 'TCP' || packet.protocol === 'UDP'
+        ? [packet.sourcePort, packet.destinationPort]
+        : []),
+    ]);
+    const baseline = labelRoute ?? resolveRoute(d, packet.dst, vrf, this.state, new Set(), flowKey);
     const connected = baseline && !baseline.port.tunnel && baseline.nextHop === packet.dst;
     const selection = !vrf && !connected && !labelRoute ? selectSdwan(this, d, packet) : undefined;
     const route = selection?.blocked ? undefined : (selection?.route ?? baseline);
@@ -1506,7 +1650,15 @@ export class SimulationEngine {
     if (labelRoute) pushMpls(this, d, route.port, route.nextHop, translated, labelRoute.fec.labels);
     else sendWithArp(this, d, route.port, route.nextHop, translated);
   }
-  ping(deviceId: string, target: string, ttl = 64, vrf?: string, bytes = 84, df = false) {
+  ping(
+    deviceId: string,
+    target: string,
+    ttl = 64,
+    vrf?: string,
+    bytes = 84,
+    df = false,
+    sourcePort?: string
+  ) {
     const d = this.device(deviceId);
     requireVrf(d, vrf);
     const destination =
@@ -1522,7 +1674,9 @@ export class SimulationEngine {
     if (!Number.isInteger(bytes) || bytes < 28 || bytes > 65535)
       throw new Error('Tamanho IPv4 deve estar entre 28 e 65535 bytes.');
     const route = resolveRoute(d, destination, vrf);
-    const source = route?.port.ip ?? d.interfaces.find((i) => i.ip && i.vrf === vrf)?.ip;
+    const source = sourcePort
+      ? d.interfaces.find((p) => p.id === sourcePort && p.vrf === vrf && interfaceUp(d, p))?.ip
+      : (route?.port.ip ?? d.interfaces.find((i) => i.ip && i.vrf === vrf)?.ip);
     if (!source) throw new Error('Configure um endereço IPv4 na interface de origem');
     if (this.state.probes.length >= LIMITS.probes) {
       const finished = this.state.probes.findIndex((p) => p.status !== 'pending');
@@ -1579,6 +1733,7 @@ export class SimulationEngine {
     refreshSpanningTree(this);
     refreshBonds(this);
     refreshVrrp(this);
+    refreshHsrp(this);
     refreshBgp(this);
     const item = this.state.queue.shift();
     if (!item) return false;
@@ -1586,9 +1741,20 @@ export class SimulationEngine {
     refreshInfrastructure(this);
     expireDeviceCaches(this.state);
     const a = item.action;
-    if (a.kind === 'telemetry-tick') handleTelemetry(this, a);
+    if (a.kind === 'hsrp-tick') handleHsrpTick(this, a);
+    else if (a.kind === 'discovery-tick') handleDiscoveryTick(this, a);
+    else if (a.kind === 'telemetry-tick') handleTelemetry(this, a);
     else if (a.kind === 'ntp-tick') handleNtp(this, a);
-    else if (a.kind === 'remote-timeout') handleRemoteTimeout(this, a);
+    else if (a.kind === 'monitoring-tick') monitorTick(this, this.device(a.device), a.token);
+    else if (a.kind === 'udld-tick') {
+      const d = this.device(a.device),
+        p = d.interfaces.find((p) => p.id === a.port);
+      if (p) udldTick(this, d, p, a.token);
+    } else if (a.kind === 'bfd-tick') {
+      const d = this.device(a.device),
+        p = d.interfaces.find((p) => p.id === a.port);
+      if (p) bfdTick(this, d, p, a.token);
+    } else if (a.kind === 'remote-timeout') handleRemoteTimeout(this, a);
     else if (a.kind === 'automation-next') handleAutomation(this, a);
     else if (a.kind === 'dot1x-tick') handleDot1xTick(this, a);
     else if (a.kind === 'inspection-expire') expireInspection(this, this.device(a.device), a.flow, a.at);
@@ -1617,6 +1783,7 @@ export class SimulationEngine {
     )
       handleSpanningTreeAction(this, a);
     else if (a.kind === 'quorum-tick' || a.kind === 'quorum-deliver') handleQuorumLab(this, a);
+    else if (a.kind === 'database-client-tick') handleDatabaseClientTick(this, a);
     else if (a.kind === 'state-sync-tick' || a.kind === 'state-sync-deliver') handleStateSync(this, a);
     else if (
       a.kind === 'dhcp-ha-tick' ||
@@ -1663,6 +1830,7 @@ export class SimulationEngine {
     refreshLacp(this);
     refreshBonds(this);
     refreshVrrp(this);
+    refreshHsrp(this);
     refreshBgp(this);
     return true;
   }
@@ -1711,6 +1879,14 @@ export class SimulationEngine {
       frame: a.frame,
     });
     if (passiveForward(this, d, port.id, a.frame)) return;
+    if (a.frame.discovery) {
+      receiveDiscovery(this, d, physical, a.frame);
+      return;
+    }
+    if (a.frame.udld) {
+      receiveUdld(this, d, physical, a.frame);
+      return;
+    }
     if (a.frame.meshHello) {
       receiveMeshHello(this, d, port.id, a.frame, a.from);
       return;
@@ -1740,6 +1916,7 @@ export class SimulationEngine {
       return;
     }
     if (!permitDot1x(this, d, physical, a.frame, 'in')) return;
+    if(!permitIngressQos(this,d,physical,a.frame))return;
     if (a.frame.wifi) {
       receiveWireless(this, d, a.frame, a.link);
       return;
@@ -1777,6 +1954,9 @@ export class SimulationEngine {
       switchFrame(this, d, port, a.frame);
       return;
     }
+    const phoneIngress=phoneIngressFrame(this.state,d,port,a.frame);
+    if(phoneIngress.error){this.drop(d,phoneIngress.error,port.id,a.frame);return;}
+    a.frame=phoneIngress.frame;
     const logical =
       a.frame.vlan === undefined
         ? undefined
@@ -1817,6 +1997,12 @@ export class SimulationEngine {
       a.frame.dst !== BROADCAST &&
       !(a.frame.ipv6 && a.frame.dst.startsWith('33:33:')) &&
       !acceptsVrrpMac(this.state, d, input, a.frame.dst) &&
+      !acceptsHsrpMac(this.state, d, input, a.frame.dst) &&
+      !(
+        a.frame.packet?.protocol === 'UDP' &&
+        a.frame.packet.payload.protocol === 'HSRP' &&
+        a.frame.dst === hsrpMulticast(a.frame.packet.payload.message.version).mac
+      ) &&
       !(a.frame.packet?.protocol === 'VRRP' && a.frame.dst === VRRP.mac) &&
       !(a.frame.packet?.protocol === 'OSPF' && a.frame.dst === OSPF.mac) &&
       !(
@@ -1851,8 +2037,10 @@ export class SimulationEngine {
       refreshWireless(this);
       refreshLacp(this);
       refreshBonds(this);
+      refreshDiscovery(this);
       refreshSpanningTree(this);
       refreshVrrp(this);
+      refreshHsrp(this);
       refreshBgp(this);
     }
     let count = 0;
@@ -1870,6 +2058,7 @@ export class SimulationEngine {
       throw new Error('Orçamento de simulação esgotado antes do instante solicitado.');
     this.state.clock = time;
     refreshInfrastructure(this, true);
+    refreshDiscovery(this);
     refreshDot1x(this);
     refreshWireless(this);
     refreshLacp(this);

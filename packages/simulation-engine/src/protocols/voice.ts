@@ -4,6 +4,7 @@ import { phoneConfigSchema, type sipSchema } from './voice-model';
 import type { z } from 'zod';
 import { resolveRoute } from './ipv4';
 import { isUnicast } from './dhcp-config';
+import { configureDiscovery, discoveryConfig } from './discovery';
 type Call = NonNullable<Device['phone']>['calls'][number];
 function sendSip(
   e: SimulationEngine,
@@ -18,6 +19,7 @@ function sendSip(
     dst: c.remote,
     ttl: 64,
     protocol: 'UDP',
+    dscp: 24,
     sourcePort: p.sipPort,
     destinationPort: c.remotePort,
     bytes: 320,
@@ -50,6 +52,7 @@ export function configurePhone(e: SimulationEngine, d: Device, input: unknown) {
   if (p.sipPort === p.rtpPort) throw new Error('SIP e RTP exigem portas distintas.');
   e.state.queue = e.state.queue.filter((q) => q.action.kind !== 'voice-tick' || q.action.device !== d.id);
   d.phone = { ...p, calls: [] };
+  if (p.autoVoiceVlan && !d.discovery) configureDiscovery(e, d, discoveryConfig(d));
   e.emit('CONFIG_CHANGED', d.id, 'Telefone SIP/RTP configurado.');
 }
 export function callPhone(e: SimulationEngine, d: Device, target: string, port = 5060) {
@@ -196,6 +199,7 @@ export function handleVoiceTick(e: SimulationEngine, a: Extract<Action, { kind: 
       dst: c.media.address,
       ttl: 64,
       protocol: 'UDP',
+      dscp: 46,
       sourcePort: d.phone!.rtpPort,
       destinationPort: c.media.port,
       bytes: 200,
@@ -247,4 +251,9 @@ export function validateVoice(s: Snapshot) {
   }
   for (const q of s.queue)
     if (q.action.kind === 'voice-tick' && !used.has(q.action)) throw new Error('Timer SIP órfão.');
+}
+export function phoneConfig(d: Device) {
+  if (!d.phone) throw new Error('Phone is not configured.');
+  const { enabled, number, sipPort, rtpPort, autoAnswer, autoVoiceVlan } = d.phone;
+  return { enabled, number, sipPort, rtpPort, autoAnswer, autoVoiceVlan };
 }

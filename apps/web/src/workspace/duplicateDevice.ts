@@ -8,9 +8,14 @@ import {
   sdwanConfig,
   plcProcessConfig,
   hmiScanConfig,
+  hsrpConfig,
+  discoveryConfig,
   type Device,
   type SimulationEngine,
 } from '@shlab/engine';
+import { scheduleMonitoring } from '../../../../packages/simulation-engine/src/protocols/monitoring';
+import { configureUdld } from '../../../../packages/simulation-engine/src/protocols/udld';
+import { configureBfd } from '../../../../packages/simulation-engine/src/protocols/bfd';
 
 /** Duplicate explicit configuration, without synthesizing profile demonstrations. */
 export function duplicateDevice(e: SimulationEngine, d: Device) {
@@ -20,14 +25,27 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       ? e.addFactoryProfile(d.profile, position)
       : e.addFactoryDevice(d.type, position);
   copy.profile = d.profile;
+  copy.enableSecret = d.enableSecret;
   if (d.modbus) copy.modbus = structuredClone(d.modbus);
   copy.power = d.power;
+  if (copy.bootManaged && copy.power) copy.booted = true;
   copy.hostname = d.hostname.slice(0, 24) + '-copy';
   let suffix = 2;
   while (e.state.devices.some((other) => other.id !== copy.id && other.hostname === copy.hostname))
     copy.hostname = d.hostname.slice(0, 22) + '-copy' + suffix++;
   copy.ipRouting = d.ipRouting;
   copy.ipv6Routing = d.ipv6Routing;
+  copy.loopGuardDefault = d.loopGuardDefault;
+  if(d.keyChains)copy.keyChains=structuredClone(d.keyChains);
+  if(d.bfdTemplates)copy.bfdTemplates=structuredClone(d.bfdTemplates);
+  copy.dot1xSystemAuthControl = d.dot1xSystemAuthControl;
+  if (d.iosSystem)
+    copy.iosSystem = {
+      ...structuredClone(d.iosSystem),
+      ...(d.iosSystem.archive ? { archive: { ...d.iosSystem.archive, copies: [] } } : {}),
+    };
+  if (d.routingPolicy) copy.routingPolicy = structuredClone(d.routingPolicy);
+  if (d.mqc) copy.mqc = structuredClone(d.mqc);
   if (d.system)
     copy.system = {
       ...structuredClone(d.system),
@@ -115,6 +133,9 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
   copy.interfaces.forEach((p) => {
     if (p.dot1x) p.accessVlan = p.dot1x.baseVlan;
     delete p.dot1x;
+    delete p.authenticationControl;
+    if (p.udld) configureUdld(e, copy, p, p.udld.mode);
+    if (p.bfd) configureBfd(e, copy, p, p.bfd);
     delete p.supplicant;
     delete p.ip;
     delete p.prefix;
@@ -129,6 +150,11 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     delete p.spanningTree;
     delete p.spanningInstances;
     delete p.mstBoundary;
+    delete p.errDisabled;
+    if (p.portSecurity) {
+      p.portSecurity.learned = [];
+      p.portSecurity.violations = 0;
+    }
     delete p.ipv6;
     delete p.dhcp6;
     delete p.dhcp6Relay;
@@ -201,7 +227,43 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     if (p.ipv4Mode === 'dhcp') e.requestDhcp(copy.id, p.id);
   });
   copy.vlans = structuredClone(d.vlans);
-  copy.routes = structuredClone(d.routes);
+  copy.routes = structuredClone(d.routes).map((route) => ({
+    ...route,
+    ...(route.port ? { port: portMapping.get(route.port)! } : {}),
+  }));
+  if (d.monitoring) {
+    copy.monitoring = {
+      token: e.id('monitor'),
+      operations: d.monitoring.operations.map((o) => ({
+        id: o.id,
+        target: o.target,
+        sourcePort: o.sourcePort ? portMapping.get(o.sourcePort) : undefined,
+        timeoutMs: o.timeoutMs,
+        frequencyMs: o.frequencyMs,
+        scheduled: o.scheduled,
+        status: 'unknown',
+      })),
+      tracks: d.monitoring.tracks.map((t) => ({
+        id: t.id,
+        kind: t.kind,
+        operation: t.operation,
+        port: t.port ? portMapping.get(t.port) : undefined,
+        state: false,
+        changedAt: e.state.clock,
+      })),
+    };
+    scheduleMonitoring(e, copy);
+  }
+  if (d.discovery&&!d.phone) e.configureDiscovery(copy.id, discoveryConfig(d));
+  if (d.hsrp)
+    e.configureHsrp(copy.id, {
+      groups: hsrpConfig(d).map((g) => ({
+        ...g,
+        port: portMapping.get(g.port)!,
+        vip: undefined,
+        track: g.track.map((t) => ({ ...t, port: portMapping.get(t.port)! })),
+      })),
+    });
   if (copy.infrastructure?.kind === 'patch-panel')
     copy.infrastructure.pairs = copy.infrastructure.pairs.map((pair) => ({
       a: portMapping.get(pair.a)!,
@@ -254,7 +316,9 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       sipPort: d.phone.sipPort,
       rtpPort: d.phone.rtpPort,
       autoAnswer: d.phone.autoAnswer,
+      autoVoiceVlan:d.phone.autoVoiceVlan,
     });
+  if(d.phone&&d.discovery)e.configureDiscovery(copy.id,discoveryConfig(d));
   if (d.printer)
     e.configurePrinter(copy.id, {
       enabled: d.printer.enabled,
@@ -341,6 +405,7 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
   if (d.multiSpanningTree)
     e.configureMultiSpanningTree(copy.id, {
       mode: d.multiSpanningTree.mode,
+      protocol: d.multiSpanningTree.protocol,
       region: d.multiSpanningTree.region,
       revision: d.multiSpanningTree.revision,
       priorities: d.multiSpanningTree.priorities,

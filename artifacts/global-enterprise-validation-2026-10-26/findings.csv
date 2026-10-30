@@ -1,0 +1,15 @@
+id,priority,type,title,evidence,acceptance_criteria
+GE-01,P1,bug,no switchport removes Rapid PVST,N61 and storm-diagnosis.json,Preserve global per-VLAN trees and prevent the six-site forwarding storm
+GE-02,P1,feature failure,Multilayer-switch SVI DHCP relay rejected,relay-attempts.json and DHCP-01,Accept valid SVI relay and acquire all six leases with failover tests
+GE-03,P2,CLI semantics,VRF definition does not enter VRF mode,N31,Enter config-vrf and preserve native address-family context
+GE-04,P2,bug,Device uptime reports lab clock,operational-probes.json,Reset device uptime on boot and reload without resetting lab time
+GE-05,P1,fidelity,OSPF retains one equal-cost next hop,native-workflows.json ecmp,Install both equal-cost paths and verify forwarding distribution and failure handling
+GE-06,P2,observability,OSPF and HSRP omitted from PCAP,native-workflows.json and capture-summary.json,Encode valid interoperable packets and retain explicit exclusion diagnostics
+GE-07,P1,missing native workflow,Secure management plane,N01-N07 N10 N12,Exercise native SSH VTY AAA users and SNMPv3 with positive and negative authentication tests
+GE-08,P1,missing native workflow,Enterprise routing controls,N16-N21 N25-N30,Support native routing policy and validate real route filtering and convergence
+GE-09,P1,missing native workflow,WAN encryption PAT and tenant routing,N32-N36,Complete a native segmented encrypted dual-provider WAN configuration
+GE-10,P1,missing native workflow,Campus access security and guards,N40-N47,Validate spoofing and unauthorized access defenses through native configuration
+GE-11,P2,missing native workflow,Cisco MQC and voice VLAN,N48 N51-N53,Configure native voice and queue policy and test contention behavior
+GE-12,P2,missing native workflow,Operational management commands,N08-N15 N37-N38 N54 N56-N60,Complete standard operations and verify resulting management traffic
+GE-13,P2,missing native workflow,MST ACL and HSRP native coverage,N39 N49-N50 N55,Complete native modes qualifiers and authentication with behavior tests
+GE-14,P1 for exact equivalence,coverage and fidelity contract,Platform and dynamic IPv6 equivalence,N22-N24 and show version,Define per-family release contracts and compare representative behavior against reference devices

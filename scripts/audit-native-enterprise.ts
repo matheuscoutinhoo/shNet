@@ -1,0 +1,311 @@
+﻿import { writeFileSync } from 'node:fs';
+import {
+  SimulationEngine,
+  TerminalSession,
+  exportPcap,
+  resolveRoute,
+} from '../packages/simulation-engine/src';
+const out = process.argv[2] ?? 'artifacts/enterprise-remediation-2026-10-27';
+type Row = {
+  id: string;
+  category: string;
+  requirement: string;
+  status: string;
+  transcript: { prompt: string; command: string; response: string }[];
+  observed?: unknown;
+};
+const rows: Row[] = [];
+function probe(
+  id: string,
+  category: string,
+  requirement: string,
+  profile: string,
+  setup: string[],
+  target: string,
+  check?: (e: SimulationEngine, t: TerminalSession, response: string) => unknown
+) {
+  const e = new SimulationEngine(),
+    d = e.addFactoryProfile(profile);
+  e.setDevicePower(d.id, true);
+  const t = new TerminalSession(e, d.id),
+    transcript: Row['transcript'] = [];
+  for (const command of ['enable', 'configure terminal', ...setup]) {
+    const prompt = t.prompt,
+      response = t.execute(command);
+    transcript.push({ prompt, command, response });
+    if (response.startsWith('%')) throw new Error(id + ' setup: ' + command + ' ' + response);
+  }
+  const prompt = t.prompt,
+    response = t.execute(target);
+  transcript.push({ prompt, command: target, response });
+  const observed = check?.(e, t, response);
+  rows.push({
+    id,
+    category,
+    requirement,
+    status: !response.startsWith('%') && (check ? observed === true : true) ? 'pass' : 'gap',
+    transcript,
+    observed,
+  });
+}
+const p = (id: string, cat: string, req: string, setup: string[], target: string, profile = 'router') =>
+  probe(id, cat, req, profile, setup, target);
+p('N01', 'management', 'Native SSH VTY configuration', [], 'line vty 0 4');
+p(
+  'N02',
+  'management',
+  'Native local admin account',
+  [],
+  'username netadmin privilege 15 secret Audit-Only-123!'
+);
+p('N03', 'management', 'Native domain name for SSH key generation', [], 'ip domain name corp.test');
+p('N04', 'management', 'Native SSH version 2 configuration', [], 'ip ssh version 2');
+p('N05', 'management', 'Native AAA enable', [], 'aaa new-model');
+p('N06', 'management', 'Native RADIUS server submode', [], 'radius server ISE-PRIMARY');
+p('N07', 'management', 'SNMPv3 authenticated/private management', [], 'snmp-server group NMS v3 priv');
+p('N08', 'management', 'Standard NTP server command', [], 'ntp server 10.1.99.123');
+p('N09', 'management', 'Standard syslog target command', [], 'logging host 10.1.99.14');
+p('N10', 'management', 'NETCONF native enable', [], 'netconf-yang');
+p('N11', 'management', 'Standard clock timezone', [], 'clock timezone UTC 0');
+p('N12', 'management', 'Secure HTTP management', [], 'ip http secure-server');
+p('N13', 'management', 'Configuration archive', [], 'archive');
+p('N14', 'management', 'Native IP SLA probe', [], 'ip sla 10');
+p('N15', 'management', 'Native object tracking', [], 'track 10 ip sla 10 reachability');
+p(
+  'N16',
+  'routing',
+  'OSPF passive-interface default',
+  ['router ospf 100', 'router-id 1.1.1.1'],
+  'passive-interface default'
+);
+p(
+  'N17',
+  'routing',
+  'OSPF reference bandwidth',
+  ['router ospf 100', 'router-id 1.1.1.1'],
+  'auto-cost reference-bandwidth 10000'
+);
+p('N18', 'routing', 'OSPF stub area', ['router ospf 100', 'router-id 1.1.1.1'], 'area 10 stub');
+p(
+  'N19',
+  'routing',
+  'OSPF ABR summarization',
+  ['router ospf 100', 'router-id 1.1.1.1'],
+  'area 10 range 10.10.0.0 255.255.0.0'
+);
+p(
+  'N20',
+  'routing',
+  'OSPF default origination',
+  ['router ospf 100', 'router-id 1.1.1.1'],
+  'default-information originate'
+);
+p('N21', 'routing', 'OSPF authentication', ['interface Gi0/1'], 'ip ospf authentication message-digest');
+p('N22', 'routing', 'OSPFv3 process', [], 'router ospfv3 100');
+p('N23', 'routing', 'EIGRP process', [], 'router eigrp 100');
+p('N24', 'routing', 'IS-IS process', [], 'router isis CORE');
+p('N25', 'routing', 'Native prefix-list policy', [], 'ip prefix-list CORP seq 10 permit 10.0.0.0/8 le 24');
+p('N26', 'routing', 'Native route-map policy submode', [], 'route-map WAN-OUT permit 10');
+p('N27', 'routing', 'Native BGP peer group', ['router bgp 65001'], 'neighbor WAN peer-group');
+p(
+  'N28',
+  'routing',
+  'Native BGP maximum-prefix protection',
+  ['router bgp 65001', 'neighbor 192.0.2.2 remote-as 65002'],
+  'neighbor 192.0.2.2 maximum-prefix 100'
+);
+p(
+  'N29',
+  'routing',
+  'Native BGP authentication',
+  ['router bgp 65001', 'neighbor 192.0.2.2 remote-as 65002'],
+  'neighbor 192.0.2.2 password AuditOnly'
+);
+p(
+  'N30',
+  'routing',
+  'Native BFD timer configuration',
+  ['interface Gi0/1'],
+  'bfd interval 50 min_rx 50 multiplier 3'
+);
+probe(
+  'N31',
+  'segmentation',
+  'VRF definition enters config-vrf mode',
+  'router',
+  [],
+  'vrf definition CORP',
+  (_e, t) => t.context.mode === 'vrf'
+);
+p('N32', 'segmentation', 'VRF-aware OSPF process', [], 'router ospf 100 vrf CORP');
+p('N33', 'segmentation', 'Native MPLS LDP enable', ['interface Gi0/1'], 'mpls ip');
+p('N34', 'wan', 'Native IKEv2 proposal', [], 'crypto ikev2 proposal CORP');
+p('N35', 'wan', 'Native tunnel interface', [], 'interface Tunnel0');
+p('N36', 'wan', 'Native PAT overload', [], 'ip nat inside source list 1 interface Gi0/2 overload');
+p(
+  'N37',
+  'switching',
+  'Native LACP member configuration',
+  ['interface Gi0/1'],
+  'channel-group 1 mode active',
+  'switch-l3'
+);
+p(
+  'N38',
+  'switching',
+  'Native Port-channel interface',
+  ['interface Gi0/1', 'channel-group 1 mode active', 'exit'],
+  'interface Port-channel1',
+  'switch-l3'
+);
+p('N39', 'switching', 'Native MST region submode', [], 'spanning-tree mst configuration', 'switch-l3');
+p('N40', 'switching', 'Root guard', ['interface Gi0/1'], 'spanning-tree guard root', 'switch-l3');
+p('N41', 'switching', 'Loop guard default', [], 'spanning-tree loopguard default', 'switch-l3');
+p('N42', 'switching', 'UDLD aggressive', ['interface Gi0/1'], 'udld port aggressive', 'switch-l3');
+p('N43', 'security', 'Native DHCP snooping enable', [], 'ip dhcp snooping', 'switch-l3');
+p('N44', 'security', 'Native DAI VLAN protection', [], 'ip arp inspection vlan 10', 'switch-l3');
+p('N45', 'security', 'Native port security', ['interface Gi0/1'], 'switchport port-security', 'switch-l3');
+p('N46', 'security', 'Native IP source guard', ['interface Gi0/1'], 'ip verify source', 'switch-l3');
+p('N47', 'security', 'Native dot1x system control', [], 'dot1x system-auth-control', 'switch-l3');
+p(
+  'N48',
+  'switching',
+  'Native voice VLAN',
+  ['vlan 30', 'exit', 'interface Gi0/1'],
+  'switchport voice vlan 30',
+  'switch-l3'
+);
+p(
+  'N49',
+  'security',
+  'Standard extended ACL TCP established qualifier',
+  ['ip access-list extended RETURN'],
+  'permit tcp any any established'
+);
+p('N50', 'security', 'Standard numbered extended ACL', [], 'access-list 101 permit tcp any any eq 443');
+p('N51', 'qos', 'MQC class-map submode', [], 'class-map match-any VOICE');
+p('N52', 'qos', 'MQC policy-map submode', [], 'policy-map WAN-QOS');
+p(
+  'N53',
+  'qos',
+  'Native egress service-policy',
+  ['policy-map WAN-QOS', 'class class-default', 'shape average 100000000', 'exit', 'exit', 'interface Gi0/1'],
+  'service-policy output WAN-QOS'
+);
+p(
+  'N54',
+  'redundancy',
+  'HSRP interface tracking',
+  ['interface Gi0/1', 'ip address 192.0.2.1 255.255.255.0', 'standby 10 ip 192.0.2.254'],
+  'standby 10 track Gi0/2 30'
+);
+p(
+  'N55',
+  'redundancy',
+  'HSRP authentication',
+  ['interface Gi0/1', 'ip address 192.0.2.1 255.255.255.0', 'standby 10 ip 192.0.2.254'],
+  'standby 10 authentication md5 key-string AuditOnly'
+);
+p('N56', 'operations', 'Standard show inventory', ['end'], 'show inventory');
+p('N57', 'operations', 'Standard show environment', ['end'], 'show environment');
+p(
+  'N58',
+  'operations',
+  'Standard show interfaces counters errors',
+  ['end'],
+  'show interfaces counters errors',
+  'switch-l3'
+);
+p(
+  'N59',
+  'operations',
+  'Standard show etherchannel summary',
+  ['end'],
+  'show etherchannel summary',
+  'switch-l3'
+);
+p('N60', 'operations', 'Standard show ip cef', ['end'], 'show ip cef');
+probe(
+  'N61',
+  'switching',
+  'no switchport preserves globally configured Rapid PVST',
+  'switch-l3',
+  ['vlan 10', 'exit', 'spanning-tree mode rapid-pvst', 'interface Gi0/1'],
+  'no switchport',
+  (e, t) => e.device(t.deviceId).multiSpanningTree?.mode === 'pvst'
+);
+// Independent equal-cost diamond, using native OSPF and network commands.
+const ec = new SimulationEngine();
+ec.state.capture = { frames: [], dropped: 0, includeControl: true, startedAt: 0 };
+const rs = [1, 2, 3, 4].map(() => ec.addProfile('router'));
+for (const [i, d] of rs.entries()) {
+  const t = new TerminalSession(ec, d.id);
+  for (const c of [
+    'enable',
+    'conf t',
+    'router ospf 1',
+    'router-id ' + `${i + 1}.${i + 1}.${i + 1}.${i + 1}`,
+    'exit',
+  ])
+    if (t.execute(c).startsWith('%')) throw new Error(c);
+}
+function link(a: number, ap: number, b: number, bp: number, subnet: number) {
+  for (const [idx, p, suffix] of [
+    [a, ap, 1],
+    [b, bp, 2],
+  ]) {
+    const d = rs[idx];
+    Object.assign(d.interfaces[p], { ip: `192.0.${subnet}.${suffix}`, prefix: 30 });
+  }
+  ec.connect({ device: rs[a].id, port: 'p' + ap }, { device: rs[b].id, port: 'p' + bp });
+}
+link(0, 0, 1, 0, 1);
+link(0, 1, 2, 0, 2);
+link(1, 1, 3, 0, 3);
+link(2, 1, 3, 1, 4);
+Object.assign(rs[3].interfaces[2], { ip: '10.100.0.1', prefix: 24 });
+const endpoint = ec.addDevice('pc');
+Object.assign(endpoint.interfaces[0], { ip: '10.100.0.10', prefix: 24 });
+endpoint.gateway = '10.100.0.1';
+ec.connect({ device: rs[3].id, port: 'p2' }, { device: endpoint.id, port: 'p0' });
+for (const d of rs)
+  ec.configureOspf(d.id, {
+    enabled: true,
+    routerId: d.ospf!.routerId,
+    interfaces: d.interfaces
+      .filter((p) => p.ip)
+      .map((p) => ({
+        port: p.id,
+        area: 0,
+        cost: 10,
+        networkType: 'point-to-point',
+        passive: d === rs[3] && p.id === 'p2',
+      })),
+  });
+ec.advanceTo(12000, 200000);
+const routes = rs[0].ospf!.routes.filter((r) => r.network === '10.100.0.0');
+const capture = exportPcap(ec.snapshot());
+writeFileSync(
+  out + '/native-workflows.json',
+  JSON.stringify(
+    {
+      total: rows.length,
+      passed: rows.filter((r) => r.status === 'pass').length,
+      gaps: rows.filter((r) => r.status === 'gap').length,
+      rows,
+      ecmp: { expectedNextHops: 2, observedRoutes: routes, resolved: resolveRoute(rs[0], '10.100.0.10') },
+      ospfCapture: { packets: capture.packets, excluded: capture.excluded },
+    },
+    null,
+    2
+  )
+);
+console.log(
+  JSON.stringify({
+    total: rows.length,
+    passed: rows.filter((r) => r.status === 'pass').length,
+    gaps: rows.filter((r) => r.status === 'gap').length,
+    ecmpRoutes: routes.length,
+    ospfPcapExcluded: capture.excluded.length,
+  })
+);

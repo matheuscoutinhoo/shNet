@@ -102,6 +102,6 @@ describe('MPLS estático encaminha pelo label', () => {
         'mpls lfib {"incoming":100,"operation":"swap","outgoing":[200],"port":"p1","nextHop":"198.51.100.2"}'
       )
     ).not.toMatch(/^%/);
-    expect(cli.execute('show mpls forwarding-table')).toContain('200');
+    expect(cli.execute('do show mpls forwarding-table')).toContain('200');
   });
 });
