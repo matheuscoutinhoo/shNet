@@ -39,6 +39,8 @@ import { registerIosOperations, iosSystemRunning } from './ios-operations';
 import { registerMonitoring, monitoringRunning } from './monitoring';
 import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
 import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
+import { showVlan } from './ios-show';
+import { registerPingCommands } from './ping';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -499,10 +501,10 @@ export function makeRegistry() {
     },
   });
   r.register({
-    pattern: /^show vlan(?: brief)?$/i,
+    pattern: /^show vlan(?: (brief))?$/i,
     syntax: ['show vlan', 'show vlan brief'],
     modes: all,
-    run: (_m, _e, d) => 'VLAN   NAME\n' + d.vlans.map((v) => String(v.id).padEnd(7) + v.name).join('\n'),
+    run: (m, _e, d) => showVlan(d, !!m[1]),
   });
   r.register({
     pattern: /^show mac address-table$/i,
@@ -665,24 +667,8 @@ export function makeRegistry() {
         ...hsrpRunningConfig(d),
       ].join('\n'),
   });
-  r.register({
-    pattern: /^ping ([a-z0-9_.-]+)(?: size (\d+))?(?: (df))?$/i,
-    modes: all,
-    run: (m, e, d) => {
-      const id = e.ping(d.id, m[1], 64, undefined, Number(m[2] ?? 84), !!m[3]);
-      if (id.startsWith('dns-query-'))
-        return 'Resolução DNS enfileirada [' + id + ']; o ping será enviado após a resposta A.';
-      return 'ICMP enfileirado [' + id + ']. Execute ou avance a simulação para receber o resultado.';
-    },
-  });
-  r.register({
-    pattern: /^traceroute ([a-z0-9_.-]+)$/i,
-    modes: all,
-    run: (m, e, d) => {
-      for (let ttl = 1; ttl <= 8; ttl++) e.ping(d.id, m[1], ttl);
-      return '8 probes ICMP com TTL 1…8 enfileirados. Resultados no painel Tráfego.';
-    },
-  });
+  // Synchronous ping/traceroute advance the simulation until replies arrive (IOS and host formats).
+  registerPingCommands(r);
   r.register({
     pattern: /^(write memory|copy (?:system:)?running-config (?:nvram:)?startup-config)$/i,
     syntax: ['write memory', 'copy running-config startup-config'],

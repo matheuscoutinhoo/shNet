@@ -207,7 +207,7 @@ export class TerminalSession {
         !/^(ipconfig(?: \/all)?$|ip (?:addr|address|link|route) show$|route print$|arp -a$|wifi scan$)/i.test(
           authorized
         ) &&
-        !/^(show|help|\?|ping|traceroute|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf)/i.test(
+        !/^(show|help|\?|ping|traceroute|tracert|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf)/i.test(
           authorized
         )
       )

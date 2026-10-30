@@ -1,6 +1,7 @@
 import type { Device, NetworkInterface, OspfConfig } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { showOspfNeighbors } from './ios-show';
 import { defaultOspfNetworkType, newOspfInterfaceSettings, selectOspfRouterId } from '../protocols/ospf';
 import { OSPF } from '../protocols/ospf-model';
 import { ipNumber } from '../protocols/ipv4';
@@ -333,16 +334,7 @@ export function registerOspfCommands(registry: CommandRegistry) {
     run: (match, engine, device) => {
       const state = device.ospf;
       if (!state) return 'OSPF não configurado.';
-      if (match[1]?.toLowerCase() === 'neighbor')
-        return (
-          'ROUTER ID       STATE      ADDRESS         PORT  DEAD(s)\n' +
-          state.neighbors
-            .map(
-              (n) =>
-                `${n.routerId.padEnd(16)}${n.state.padEnd(11)}${n.ip.padEnd(16)}${device.interfaces.find((p) => p.id === n.port)?.name}  ${Math.max(0, (n.deadAt - engine.state.clock) / 1000).toFixed(1)}`
-            )
-            .join('\n')
-        );
+      if (match[1]?.toLowerCase() === 'neighbor') return showOspfNeighbors(engine, device);
       if (match[1]?.toLowerCase() === 'database')
         return (
           'AREA TYPE     LINK STATE ID       ADVERTISING ROUTER  SEQUENCE AGE(s)\n' +

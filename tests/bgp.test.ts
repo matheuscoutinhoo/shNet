@@ -229,9 +229,10 @@ describe('BGP por sessões TCP reais do modelo', () => {
     ])
       expect(cli.execute(command)).toBe('');
     engine.advanceTo(15000);
-    expect(cli.execute('do show ip bgp summary')).toContain('Established');
+    // IOS shows the received prefix count in State/PfxRcd once the session is established.
+    expect(cli.execute('do show ip bgp summary')).toMatch(/^10\.0\.12\.2\s+4\s+65002 .*\s1$/m);
     expect(cli.execute('do show running-config')).toContain('prefix-filter in 10 permit 192.168.20.0/24');
-    expect(cli.execute('do show ip route')).toContain('B 192.168.20.0/24 [20/0] via 10.0.12.2');
+    expect(cli.execute('do show ip route')).toMatch(/^B\s+192\.168\.20\.0\/24 \[20\/0\] via 10\.0\.12\.2/m);
     const before = engine.snapshot();
     expect(cli.execute('neighbor 10.0.12.2 route-reflector-client')).toMatch(/%/);
     expect(engine.snapshot()).toEqual(before);

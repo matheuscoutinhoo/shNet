@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { SimulationEngine, TerminalSession, makeTemplate, validateSnapshot } from '../packages/simulation-engine/src';
+import {
+  SimulationEngine,
+  TerminalSession,
+  makeTemplate,
+  validateSnapshot,
+} from '../packages/simulation-engine/src';
 import { changedSince, markState, materializeMark } from '../packages/simulation-engine/src/core/state-mark';
 import { SnapshotHistory } from '../apps/web/src/workspace/snapshot-history';
 

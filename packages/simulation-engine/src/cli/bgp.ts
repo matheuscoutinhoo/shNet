@@ -2,6 +2,7 @@ import type { Device } from '../model';
 import { bgpConfig, clearBgpPeers } from '../protocols/bgp';
 import { bgpNeighborSchema, type BgpConfig } from '../protocols/bgp-model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { showBgpNeighbors, showBgpSummary, showBgpTable } from './ios-show';
 import { parsePrefix, subnet, ipString, mask } from '../protocols/ipv4';
 import { selectOspfRouterId } from '../protocols/ospf';
 import { interfaceName } from './operational';
@@ -309,28 +310,14 @@ export function registerBgpCommands(registry: CommandRegistry) {
   registry.register({
     pattern: /^show ip bgp(?: (summary|neighbors))?$/i,
     modes: ALL_MODES,
-    run: (match, _engine, device) => {
-      const state = device.bgp;
-      if (!state) return 'BGP não configurado.';
-      if (match[1])
-        return (
-          `BGP AS ${state.asn}, Router ID ${state.routerId}\n` +
-          state.peers
-            .map(
-              (peer) =>
-                `${peer.ip} AS ${state.neighbors.find((config) => config.ip === peer.ip)!.remoteAs} ${peer.state} · ${peer.connection ?? 'sem TCP'} · TX/RX ${peer.sent}/${peer.received} · prefixos ${state.rib.filter((path) => path.peer === peer.ip).length}`
-            )
-            .join('\n')
-        );
-      return (
-        'PREFIXO             NEXT_HOP         LOCAL_PREF MED AS_PATH\n' +
-        state.rib
-          .map(
-            (path) =>
-              `${device.bgp!.routes.some((route) => route.peer === path.peer && route.network === path.network && route.prefix === path.prefix) ? '>' : ' '}${(path.network + '/' + path.prefix).padEnd(20)}${path.nextHop.padEnd(17)}${path.localPref} ${path.med} ${path.asPath.join(' ')} ${path.origin}`
-          )
-          .join('\n')
-      );
+    run: (match, engine, device) => {
+      if (!device.bgp) return 'BGP não configurado.';
+      const view = match[1]?.toLowerCase();
+      return view === 'summary'
+        ? showBgpSummary(engine, device)
+        : view === 'neighbors'
+          ? showBgpNeighbors(engine, device)
+          : showBgpTable(device);
     },
   });
 }

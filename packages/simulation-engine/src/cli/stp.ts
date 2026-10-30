@@ -2,6 +2,7 @@ import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort } from './registr
 import { bridgeId, bridgeLabel, portCost } from '../protocols/stp-election';
 import type { Device } from '../model';
 import { multiStpConfig,updateSpanningTreePort } from '../protocols/stp';
+import { showSpanningTree } from './ios-show';
 
 export function registerStpCommands(registry: CommandRegistry) {
   registry.register({pattern:/^(no )?spanning-tree guard (root|loop)$/i,modes:['interface'],run:(m,e,d,c)=>{
@@ -147,7 +148,15 @@ export function registerStpCommands(registry: CommandRegistry) {
       engine.setSpanningTreePort(device.id, currentPort(device, context).id, { cost: undefined }),
   });
   registry.register({
-    pattern: /^show spanning-tree(?: instance (\d+))?$/i,
+    pattern: /^show spanning-tree(?: vlan (\d+))?$/i,
+    syntax: ['show spanning-tree', 'show spanning-tree vlan <vlan>'],
+    modes: ALL_MODES,
+    run: (match, engine, device) =>
+      showSpanningTree(engine, device, match[1] === undefined ? undefined : Number(match[1])),
+  });
+  registry.register({
+    // Simulator detail view of one tree, including guard and boundary states.
+    pattern: /^show spanning-tree instance (\d+)$/i,
     modes: ALL_MODES,
     run: (match, _engine, device) => {
       const instance = Number(match[1] ?? 0);

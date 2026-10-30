@@ -1,4 +1,5 @@
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort } from './registry';
+import { showAccessLists, showNatTranslations } from './ios-show';
 import { type Device, type NatConfig } from '../model';
 import { parsePrefix, sameSubnet } from '../protocols/ipv4';
 import { registerNativeAclCommands, aclAddress } from './acl';
@@ -171,59 +172,15 @@ export function registerPolicyCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^show access-lists$/i,
+    pattern: /^show (?:ip )?access-lists(?: ([\w-]{1,32}))?$/i,
+    syntax: ['show access-lists', 'show access-lists <name>', 'show ip access-lists', 'show ip access-lists <name>'],
     modes: ALL_MODES,
-    run: (_match, _engine, device) =>
-      device.accessLists
-        ?.map(
-          (acl) =>
-            acl.name +
-            ' (implicit drops: ' +
-            acl.implicitDrops +
-            ')\n' +
-            acl.rules
-              .map(
-                (rule) =>
-                  rule.sequence +
-                  ' ' +
-                  rule.action +
-                  ' ' +
-                  rule.protocol +
-                  ' ' +
-                  rule.source.network +
-                  '/' +
-                  rule.source.prefix +
-                  ' -> ' +
-                  rule.destination.network +
-                  '/' +
-                  rule.destination.prefix +
-                  (rule.destinationPort ? ' eq ' + rule.destinationPort : '') +
-                  ' hits=' +
-                  rule.hits
-              )
-              .join('\n')
-        )
-        .join('\n') || 'Nenhuma ACL',
+    run: (match, _engine, device) => showAccessLists(device, match[1]) || 'Nenhuma ACL',
   });
   registry.register({
     pattern: /^show ip nat translations$/i,
     modes: ALL_MODES,
-    run: (_match, engine, device) =>
-      [
-        'INSIDE LOCAL          INSIDE GLOBAL         PROTOCOL / REMAINING',
-        ...(device.nat?.statics.map(
-          (entry) => entry.inside.padEnd(22) + entry.global.padEnd(22) + 'static'
-        ) ?? []),
-        ...(device.nat?.bindings.map(
-          (entry) =>
-            (entry.inside + ':' + (entry.insideToken ?? '*')).padEnd(22) +
-            (entry.global + ':' + (entry.globalToken ?? '*')).padEnd(22) +
-            entry.protocol +
-            ' ' +
-            Math.ceil((entry.expiresAt - engine.state.clock) / 1000) +
-            's'
-        ) ?? []),
-      ].join('\n'),
+    run: (_match, _engine, device) => showNatTranslations(device),
   });
 }
 

@@ -2595,7 +2595,17 @@ test('zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistênci
     160
   );
   await page.locator('.event-filters').getByRole('button', { name: 'ICMP', exact: true }).click();
-  await page.locator('.event-table-wrap tr').filter({ hasText: 'FRAME_SENT' }).first().click();
+  // Traceroute runs synchronously and ends with the destination's echo reply, so look for the
+  // time-exceeded frame among the ICMP frames.
+  const icmpFrames = page.locator('.event-table-wrap tr').filter({ hasText: 'FRAME_SENT' });
+  for (let row = 0; row < Math.min(await icmpFrames.count(), 40); row++) {
+    await icmpFrames.nth(row).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('Por que isso aconteceu?');
+    if (await dialog.getByText('Pacote que provocou o erro').count()) break;
+    await dialog.locator('.modal-head').getByRole('button', { name: 'Fechar', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+  }
   await expect(page.getByRole('dialog')).toContainText('Pacote que provocou o erro');
   await expect(page.getByRole('dialog')).toContainText('time-exceeded');
   await expect(page.getByRole('dialog')).toContainText('192.168.10.10');
