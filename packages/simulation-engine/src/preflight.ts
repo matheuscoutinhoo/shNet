@@ -1,4 +1,7 @@
-import type { Snapshot } from './model';
+import type { NetworkInterface, Snapshot } from './model';
+import type { OspfInterface } from './protocols/ospf-model';
+import { bgpCandidates } from './protocols/bgp-routing';
+import { bgpPrefixKey } from './protocols/bgp-model';
 import { linkOperational } from './links/physical';
 import { networkDomains } from './network-domains';
 import { ipNumber, sameSubnet, subnet } from './protocols/ipv4';
@@ -209,7 +212,12 @@ export function preflight(s: Snapshot): PreflightIssue[] {
       );
     const attachments = s.links.filter((l) => l.a.device === d.id || l.b.device === d.id);
     // End hosts are single-homed by design; only servers are reviewed for access redundancy.
-    if (!d.infrastructure && d.type === 'server' && d.interfaces.some((p) => p.ip) && attachments.length === 1)
+    if (
+      !d.infrastructure &&
+      d.type === 'server' &&
+      d.interfaces.some((p) => p.ip) &&
+      attachments.length === 1
+    )
       add(
         'SINGLE_ATTACHMENT',
         'info',
@@ -220,7 +228,13 @@ export function preflight(s: Snapshot): PreflightIssue[] {
     // Redundant uplinks of a host/router that all land on one switch share that switch's failure domain.
     const peers = new Set(attachments.map((l) => (l.a.device === d.id ? l.b.device : l.a.device)));
     const peer = peers.size === 1 ? s.devices.find((x) => x.id === [...peers][0]) : undefined;
-    if (d.type !== 'switch' && !d.infrastructure && attachments.length > 1 && peer?.type === 'switch' && !peer.infrastructure)
+    if (
+      d.type !== 'switch' &&
+      !d.infrastructure &&
+      attachments.length > 1 &&
+      peer?.type === 'switch' &&
+      !peer.infrastructure
+    )
       add(
         'SWITCH_FAILURE_DOMAIN',
         'info',
@@ -439,6 +453,111 @@ export function preflight(s: Snapshot): PreflightIssue[] {
         'Configure ACL/zonas IPv6 equivalentes ou recuse o caso que depende de inspeção de aplicação em IPv6.'
       );
   }
+  // OSPF interfaces that share a segment must agree on the parameters carried in Hello packets.
+  const segments = new Map<
+    string,
+    { d: (typeof s.devices)[number]; p: NetworkInterface; o: OspfInterface }[]
+  >();
+  for (const d of s.devices.filter((d) => d.ospf?.enabled))
+    for (const o of d.ospf!.interfaces) {
+      const p = d.interfaces.find((p) => p.id === o.port);
+      if (!p?.ip || p.prefix === undefined || o.passive) continue;
+      const key = domain(d, p) + ':' + subnet(p.ip, p.prefix).network + '/' + p.prefix;
+      segments.set(key, [...(segments.get(key) ?? []), { d, p, o }]);
+    }
+  for (const members of segments.values())
+    for (const [i, x] of members.entries())
+      for (const y of members.slice(i + 1)) {
+        const pair = `${x.d.hostname} ${x.p.name} ↔ ${y.d.hostname} ${y.p.name}`;
+        if (x.o.helloMs !== y.o.helloMs || x.o.deadMs !== y.o.deadMs)
+          add(
+            'OSPF_TIMER_MISMATCH',
+            'error',
+            [x.d.id, y.d.id],
+            `${pair}: Hello/Dead ${x.o.helloMs / 1000}/${x.o.deadMs / 1000} s vs ${y.o.helloMs / 1000}/${y.o.deadMs / 1000} s; a adjacência não forma.`,
+            'Use os mesmos ip ospf hello-interval e dead-interval no segmento.'
+          );
+        if (x.o.area !== y.o.area)
+          add(
+            'OSPF_AREA_MISMATCH',
+            'error',
+            [x.d.id, y.d.id],
+            `${pair}: áreas OSPF ${x.o.area}/${y.o.area} no mesmo segmento; a adjacência não forma.`,
+            'Coloque as duas interfaces na mesma área.'
+          );
+        if (x.o.networkType !== y.o.networkType)
+          add(
+            'OSPF_NETWORK_TYPE_MISMATCH',
+            'warning',
+            [x.d.id, y.d.id],
+            `${pair}: tipos de rede ${x.o.networkType}/${y.o.networkType}; a adjacência pode formar, mas o SPF descarta o enlace.`,
+            'Use o mesmo ip ospf network nas duas pontas.'
+          );
+        if (
+          x.p.mtu !== y.p.mtu &&
+          !s.links.some((l) => [l.a.port, l.b.port].includes(x.p.id) && [l.a.port, l.b.port].includes(y.p.id))
+        )
+          add(
+            'MTU_MISMATCH',
+            'warning',
+            [x.d.id, y.d.id],
+            `${pair}: MTU IP ${x.p.mtu}/${y.p.mtu} no segmento OSPF; a adjacência fica presa em EXSTART/EXCHANGE.`,
+            'Alinhe o MTU das interfaces do segmento.'
+          );
+      }
+  for (const d of s.devices.filter((d) => d.bgp?.enabled)) {
+    const local = new Set(
+      bgpCandidates(d)
+        .filter((p) => !p.peer)
+        .map(bgpPrefixKey)
+    );
+    const missing = d.bgp!.networks.filter((n) => !local.has(bgpPrefixKey(n)));
+    if (missing.length)
+      add(
+        'BGP_NETWORK_NOT_IN_RIB',
+        'warning',
+        [d.id],
+        `${d.hostname}: network ${missing
+          .slice(0, 5)
+          .map((n) => n.network + '/' + n.prefix)
+          .join(', ')} sem rota exata na tabela; o prefixo não é anunciado.`,
+        'O BGP só anuncia um network com rota idêntica (conectada, estática ou IGP). Crie a rota exata ou ajuste a máscara do network.'
+      );
+  }
+  for (const d of s.devices.filter((d) => d.nat?.enabled)) {
+    const nat = d.nat!;
+    const rules = nat.statics.length + nat.pools.length + (nat.interfaceRules?.length ?? 0);
+    const roles = new Set(d.interfaces.map((p) => p.natRole).filter(Boolean));
+    if (rules && (!roles.has('inside') || !roles.has('outside')))
+      add(
+        'NAT_ROLE_MISSING',
+        'error',
+        [d.id],
+        `${d.hostname}: regras NAT sem interface ${roles.has('inside') ? 'ip nat outside' : roles.has('outside') ? 'ip nat inside' : 'ip nat inside/outside'}; nada é traduzido.`,
+        'Marque a interface LAN com ip nat inside e a de saída com ip nat outside.'
+      );
+  }
+  // Two NAT exits for the same inside network without shared state break return traffic.
+  const natInside = s.devices
+    .filter((d) => d.nat?.enabled && !d.vrrp?.enabled)
+    .flatMap((d) =>
+      d.interfaces.filter((p) => p.natRole === 'inside' && p.ip).map((p) => ({ d, key: domain(d, p) }))
+    );
+  for (const [i, x] of natInside.entries())
+    for (const y of natInside.slice(i + 1))
+      if (
+        x.d.id !== y.d.id &&
+        x.key === y.key &&
+        x.d.stateSync?.peer !== y.d.id &&
+        y.d.stateSync?.peer !== x.d.id
+      )
+        add(
+          'NAT_ASYMMETRIC_EXIT',
+          'warning',
+          [x.d.id, y.d.id],
+          `${x.d.hostname} e ${y.d.hostname} traduzem a mesma rede interna sem estado NAT compartilhado; respostas que voltam pelo outro roteador são descartadas.`,
+          'Garanta saída e retorno pelo mesmo roteador (rotas/prioridade HSRP), ou configure um par HA com réplica de estado.'
+        );
   // One capability note for all L3 switches instead of one per switch.
   const routedSwitches = s.devices.filter((d) => d.type === 'switch' && d.ipRouting && !d.firewall);
   if (routedSwitches.length)
@@ -507,6 +626,78 @@ export function preflight(s: Snapshot): PreflightIssue[] {
         [l.a.device, l.b.device],
         `Enlace ${l.id}: VLANs nativas ${a.nativeVlan}/${b.nativeVlan} diferentes.`,
         'Alinhe as VLANs nativas nas duas extremidades.'
+      );
+    const da = s.devices.find((d) => d.id === l.a.device)!,
+      db = s.devices.find((d) => d.id === l.b.device)!;
+    const label = `${da.hostname} ${a.name} ↔ ${db.hostname} ${b.name}`;
+    // Access points and controllers bridge wireless clients; their uplinks are not switchports.
+    const switchPort = (d: typeof da, p: typeof a) =>
+      d.type === 'switch' &&
+      !d.wireless &&
+      !['ap', 'mesh', 'wlc'].includes(d.profile ?? '') &&
+      !p.logical &&
+      p.mode !== 'routed';
+    if (switchPort(da, a) && switchPort(db, b)) {
+      if (a.mode !== b.mode)
+        add(
+          'TRUNK_MODE_MISMATCH',
+          'warning',
+          [da.id, db.id],
+          `${label}: uma ponta é trunk e a outra access; apenas a VLAN nativa/de acesso passa.`,
+          'Configure switchport mode trunk nas duas pontas (uplink) ou access nas duas (porta de usuário).'
+        );
+      else if (a.mode === 'access' && a.accessVlan !== b.accessVlan)
+        add(
+          'ACCESS_VLAN_MISMATCH',
+          'warning',
+          [da.id, db.id],
+          `${label}: portas access nas VLANs ${a.accessVlan}/${b.accessVlan} unem dois domínios de broadcast.`,
+          'Use a mesma VLAN nas duas pontas ou um trunk; CDP do IOS reportaria native VLAN mismatch.'
+        );
+      else if (a.mode === 'trunk') {
+        const onlyA = a.allowedVlans.filter((v) => !b.allowedVlans.includes(v)),
+          onlyB = b.allowedVlans.filter((v) => !a.allowedVlans.includes(v));
+        if (onlyA.length || onlyB.length)
+          add(
+            'TRUNK_ALLOWED_MISMATCH',
+            'info',
+            [da.id, db.id],
+            `${label}: VLANs permitidas só em uma ponta — ${da.hostname}: ${onlyA.slice(0, 10).join(',') || '-'}; ${db.hostname}: ${onlyB.slice(0, 10).join(',') || '-'}.`,
+            'Essas VLANs não atravessam o trunk; alinhe switchport trunk allowed vlan se forem necessárias.'
+          );
+      }
+    }
+    for (const [d, p] of [
+      [da, a],
+      [db, b],
+    ] as const) {
+      // VLAN 1 always exists; trunks may allow VLANs that are not created locally (IOS prunes them).
+      if (!switchPort(d, p) || p.mode !== 'access' || p.accessVlan === 1) continue;
+      const missing = d.vlans.some((vlan) => vlan.id === p.accessVlan) ? [] : [p.accessVlan];
+      if (missing.length)
+        add(
+          'VLAN_NOT_DEFINED',
+          'warning',
+          [d.id],
+          `${d.hostname}/${p.name}: porta access na VLAN ${p.accessVlan}, que não existe no switch.`,
+          'Crie a VLAN (vlan N); no IOS uma porta access em VLAN inexistente fica inativa.'
+        );
+    }
+    if (a.duplex !== b.duplex)
+      add(
+        'DUPLEX_MISMATCH',
+        'warning',
+        [da.id, db.id],
+        `${label}: duplex ${a.duplex}/${b.duplex}; espere colisões tardias e perda sob carga.`,
+        'Use o mesmo duplex (ou autonegociação) nas duas pontas.'
+      );
+    if (a.mode === 'routed' && b.mode === 'routed' && a.ip && b.ip && a.mtu !== b.mtu)
+      add(
+        'MTU_MISMATCH',
+        'warning',
+        [da.id, db.id],
+        `${label}: MTU IP ${a.mtu}/${b.mtu}; OSPF fica preso em EXSTART/EXCHANGE e pacotes grandes são descartados.`,
+        'Alinhe o MTU (ou ip mtu) nas duas pontas.'
       );
     if (l.up && !linkOperational(s, l))
       add(
