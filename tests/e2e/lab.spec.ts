@@ -3514,11 +3514,17 @@ test('cadastro → LAN do zero → ping → save/reload → redes roteadas → f
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
   await connect(page, clientA, 'Eth0', switchName, 'Gi0/1');
   await connect(page, clientB, 'Eth0', switchName, 'Gi0/2');
-  await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
-  await page.getByLabel('Destino IPv4 ou hostname').fill('192.168.10.20');
-  await page.getByRole('button', { name: 'Enfileirar ping' }).click();
-  await page.getByLabel('Velocidade', { exact: true }).selectOption('5');
-  await page.getByRole('button', { name: 'Executar simulação' }).click();
+  // Factory switches run Rapid-PVST+: access ports without PortFast forward after 2 × forward delay
+  // (~30 s), so the first pings time out exactly as on a Catalyst switch.
+  for (let attempt = 0; attempt < 30; attempt++) {
+    await page.getByRole('button', { name: 'Enviar ping', exact: true }).click();
+    await page.getByLabel('Destino IPv4 ou hostname').fill('192.168.10.20');
+    await page.getByRole('button', { name: 'Enfileirar ping' }).click();
+    if (attempt === 0) await page.getByLabel('Velocidade', { exact: true }).selectOption('5');
+    await page.getByRole('button', { name: 'Executar simulação' }).click();
+    await expect(page.locator('.probe-toast')).toContainText(/Resposta em|timeout/, { timeout: 20000 });
+    if ((await page.locator('.probe-toast').innerText()).includes('Resposta em')) break;
+  }
   await expect(page.locator('.probe-toast')).toContainText('Resposta em');
   await expect(page.locator('.event-table')).toContainText('ARP_REQUEST');
   await page.getByRole('button', { name: 'Pausar simulação' }).click();
