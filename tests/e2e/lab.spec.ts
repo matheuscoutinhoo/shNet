@@ -7,6 +7,7 @@ import {
   makeTemplate,
   deviceProfiles,
   SimulationEngine,
+  TerminalSession,
   wirelessConfig,
   vxlanConfig,
 } from '../../packages/simulation-engine/src';
@@ -1634,6 +1635,8 @@ test('Canvas: categorias recolhíveis, ações com botão direito e dicas por la
   await node(initialName).click({ button: 'right' });
   await expect(page.getByRole('menu', { name: 'Ações de ' + initialName })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Conectar', exact: true })).toBeDisabled();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('menuitem', { name: 'Abrir terminal', exact: true })).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('menuitem', { name: 'Renomear', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
@@ -5252,5 +5255,128 @@ test('DHCP HA: configurar réplica, promover com fencing e salvar em mobile', as
   await panel.getByRole('heading', { name: 'Disponibilidade DHCP', exact: true }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/dhcp-ha-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais em abas e configuração em massa', async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'large-lab-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Novo laboratório', exact: true }).click();
+  await page.getByLabel('Nome do laboratório').fill('Empresa com sites');
+  await page.getByRole('button', { name: 'Criar e abrir laboratório' }).click();
+  // HQ and BR sites: one router and one switch each; OSPF area 0 and eBGP on the WAN link.
+  const e = new SimulationEngine();
+  const add = (profile: string, hostname: string, x: number, y: number) => {
+    const d = e.addFactoryProfile(profile, { x, y });
+    e.setDevicePower(d.id, true);
+    const t = new TerminalSession(e, d.id);
+    for (const line of ['enable', 'configure terminal', 'hostname ' + hostname]) t.execute(line);
+    return { id: d.id, t };
+  };
+  const r1 = add('router', 'HQ-R1', 100, 100),
+    s1 = add('switch-l2', 'HQ-SW1', 100, 400),
+    r2 = add('router', 'BR-R2', 700, 100),
+    s2 = add('switch-l2', 'BR-SW2', 700, 400);
+  e.connect({ device: r1.id, port: 'p0' }, { device: r2.id, port: 'p0' });
+  e.connect({ device: r1.id, port: 'p1' }, { device: s1.id, port: 'p0' });
+  e.connect({ device: r2.id, port: 'p1' }, { device: s2.id, port: 'p0' });
+  for (const [r, ip, asn, peer, peerAs] of [
+    [r1, '10.0.12.1', 65001, '10.0.12.2', 65002],
+    [r2, '10.0.12.2', 65002, '10.0.12.1', 65001],
+  ] as const)
+    for (const line of [
+      'interface Gi0/1',
+      'ip address ' + ip + ' 255.255.255.252',
+      'ip ospf network point-to-point',
+      'ip ospf 1 area 0',
+      'router bgp ' + asn,
+      'neighbor ' + peer + ' remote-as ' + peerAs,
+      'end',
+    ])
+      expect(r.t.execute(line), line).not.toMatch(/^%/);
+  e.advanceTo(90000, 3_000_000);
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'sites.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  await expect(page.locator('.network-device')).toHaveCount(4);
+  const options = async (item: string) => {
+    await page.getByRole('button', { name: 'Opções do laboratório' }).click();
+    await page.locator('.dropdown').getByRole('button', { name: item }).click();
+  };
+  await options('Agrupar por site');
+  await expect(page.locator('.canvas-group')).toHaveCount(2);
+  await options('Recolher todos os grupos');
+  await expect(page.locator('.collapsed-group')).toHaveCount(2);
+  await expect(page.locator('.network-device')).toHaveCount(0);
+  // The WAN cable now joins the two collapsed sites.
+  await expect(page.locator('.cable-label')).toHaveText(['Gi0/1 ↔ Gi0/1']);
+  await page.getByRole('button', { name: 'Expandir Site HQ' }).click();
+  await expect(page.locator('.network-device')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Recolher Site HQ' }).click();
+  await expect(page.locator('.collapsed-group')).toHaveCount(2);
+  await options('Expandir todos os grupos');
+  await expect(page.locator('.network-device')).toHaveCount(4);
+
+  const view = page.getByLabel('Vista da topologia');
+  await view.selectOption('ospf');
+  await expect(page.locator('.network-device')).toHaveCount(2);
+  await expect(page.locator('.cable-label')).toHaveText(['Área 0 · FULL']);
+  await view.selectOption('bgp');
+  await expect(page.locator('.cable-label')).toHaveText(['eBGP AS65001↔AS65002 · Established']);
+  await view.selectOption('l3');
+  await expect(page.locator('.cable-label')).toHaveText(['10.0.12.0/30']);
+  await view.selectOption('physical');
+  await expect(page.locator('.network-device')).toHaveCount(4);
+
+  // Terminal dock: two device tabs, each keeping its own session.
+  await page.locator('.network-device').filter({ hasText: 'HQ-R1' }).click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Abrir terminal' }).click();
+  const dock = page.getByRole('region', { name: 'Terminais' });
+  await expect(dock.getByRole('tab', { name: 'HQ-R1' })).toHaveAttribute('aria-selected', 'true');
+  await dock.getByLabel('Abrir terminal de outro equipamento').selectOption({ label: 'BR-R2' });
+  await expect(dock.getByRole('tab', { name: 'BR-R2' })).toHaveAttribute('aria-selected', 'true');
+  const type = async (text: string) => {
+    await dock.locator('.xterm-helper-textarea').focus();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+  };
+  await type('show ip bgp summary');
+  await expect(dock.locator('.xterm-rows')).toContainText('10.0.12.1');
+  await dock.getByRole('button', { name: 'Maximizar terminais' }).click();
+  await expect(dock).toHaveClass(/maximized/);
+  await dock.getByRole('button', { name: 'Restaurar terminais' }).click();
+  const [popup] = await Promise.all([
+    page.waitForEvent('popup'),
+    dock.getByRole('button', { name: 'Abrir terminais em outra janela' }).click(),
+  ]);
+  await expect(popup.locator('.terminal-dock .xterm')).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'terminais em outra janela' })).toBeVisible();
+  await popup.close();
+  await expect(page.getByRole('region', { name: 'Terminais' })).toBeVisible();
+  await page.getByRole('region', { name: 'Terminais' }).getByRole('button', { name: 'Fechar terminais' }).click();
+
+  // Bulk configuration on the two routers, then the running/startup diff in the inspector.
+  await options('Configuração em massa');
+  const bulk = page.getByRole('dialog', { name: 'Configuração em massa' });
+  await bulk.getByLabel('Filtrar por nome ou site').fill('R');
+  await bulk.getByLabel(/HQ-R1/).check();
+  await bulk.getByLabel(/BR-R2/).check();
+  await bulk.getByLabel('Comandos').fill('ntp server 10.0.0.{{index}}');
+  await expect(bulk.locator('pre')).toHaveText('ntp server 10.0.0.1');
+  await bulk.getByRole('button', { name: 'Aplicar em 2 equipamentos' }).click();
+  await expect(bulk.getByRole('status')).toHaveText('2 de 2 equipamentos configurados.');
+  await bulk.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await inspectDevice(page, 'BR-R2');
+  const inspector = page.locator('.inspector');
+  await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
+  await inspector.getByText('Alterações não salvas (running × startup)').click();
+  await expect(inspector.locator('.config-changes')).toContainText('Ainda não há startup-config');
   expect(errors).toEqual([]);
 });

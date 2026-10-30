@@ -41,6 +41,56 @@
   height: 32px;
 }
 
+.canvas-group {
+  position: relative;
+}
+
+.group-toggle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.collapsed-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-style: solid;
+  border-width: 2px;
+}
+
+.collapsed-group .group-toggle {
+  position: static;
+  flex: none;
+}
+
+.collapsed-group span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.collapsed-group strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsed-group small {
+  color: var(--muted);
+}
+
 .annotation-swatches {
   display: flex;
   gap: 6px;
@@ -2588,4 +2638,186 @@ td {
 .topology-view-switch span {
   flex-basis: 100%;
   max-width: 300px;
+}
+
+.bulk-config {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.bulk-config section {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-width: 0;
+}
+.bulk-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bulk-targets {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+}
+.bulk-targets small {
+  color: var(--muted);
+}
+.code-input,
+.code-output {
+  font-family: var(--font-data, Consolas, monospace);
+  font-size: 13px;
+  white-space: pre;
+}
+.code-output {
+  margin: 0;
+  padding: 8px 10px;
+  max-height: 260px;
+  overflow: auto;
+  background: var(--surface-hover);
+  border-radius: 6px;
+}
+.data-table td,
+.data-table th {
+  padding: 4px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.row-error td {
+  color: var(--danger-text, #b42318);
+}
+.config-diff-line.added {
+  color: var(--success-text, #217a3c);
+}
+.config-diff-line.removed {
+  color: var(--danger-text, #b42318);
+}
+@media (max-width: 760px) {
+  .bulk-config {
+    grid-template-columns: 1fr;
+  }
+}
+
+.canvas-and-timeline {
+  position: relative;
+}
+.terminal-dock {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  height: min(38vh, 380px);
+  min-height: 0;
+  border-top: 1px solid var(--control-border);
+  background: #0b202b;
+  color: #deedf1;
+}
+.terminal-dock.maximized {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  height: auto;
+}
+.terminal-popout {
+  margin: 0;
+  height: 100vh;
+  background: #0b202b;
+}
+.terminal-popout .terminal-dock {
+  height: 100vh;
+  border: 0;
+}
+.terminal-dock-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid #375b6a;
+}
+.terminal-tab {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #375b6a;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.terminal-tab.active {
+  background: #24555b;
+  border-color: #59e7cd;
+}
+.terminal-tab button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.terminal-tab .terminal-tab-close {
+  padding: 3px 5px;
+}
+.terminal-dock-add {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+}
+.terminal-dock-add select {
+  width: auto;
+  min-height: 0;
+  height: 26px;
+  padding: 2px 28px 2px 8px;
+  background-position: right 6px center;
+  font-size: 12px;
+}
+.canvas-heading {
+  margin: 0;
+  padding: 6px 12px;
+  border-left: 4px solid var(--teal);
+  background: var(--surface);
+  color: var(--text-strong);
+  font-size: 22px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.terminal-dock-tools {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.terminal-dock-tools .icon-button {
+  color: inherit;
+}
+.terminal-dock-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding: 6px;
+}
+.terminal-dock-body .muted {
+  color: #9db7c2;
+}
+.terminal-shell.compact .terminal-frame {
+  min-height: 0;
+  padding: 4px 6px;
+  border: 0;
+}
+.terminal-shell.compact .terminal-host {
+  min-height: 0;
+  padding: 4px;
+}
+.terminal-dock-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--control-border);
+  font-size: 13px;
 }

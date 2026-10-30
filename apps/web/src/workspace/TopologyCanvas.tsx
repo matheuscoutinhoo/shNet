@@ -35,7 +35,7 @@ import {
   type Connection,
   type Edge,
 } from '@xyflow/react';
-import { Network, MousePointer2, Wifi } from 'lucide-react';
+import { Network, MousePointer2, Wifi, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   type Device,
   type CanvasItem,
@@ -43,6 +43,7 @@ import {
   moveCanvasItem,
   removeCanvasItem,
   deviceParticipatesInVlan,
+  setGroupsCollapsed,
 } from '@shlab/engine';
 import { DeviceIcon } from '../components/DeviceIcon';
 import { DeviceActions, type DeviceAction } from './DeviceActions';
@@ -62,11 +63,57 @@ type DeviceNode = Node<
   },
   'device'
 >;
-type AnnotationNode = Node<{ item: CanvasItem; change: (value: Partial<CanvasItem>) => void }, 'annotation'>;
-type CanvasNode = DeviceNode | AnnotationNode;
+type AnnotationNode = Node<
+  {
+    item: CanvasItem;
+    change: (value: Partial<CanvasItem>) => void;
+    toggle?: () => void;
+    count?: number;
+  },
+  'annotation'
+>;
+type HeadingNode = Node<{ text: string }, 'heading'>;
+type CanvasNode = DeviceNode | AnnotationNode | HeadingNode;
+function HeadingView({ data }: NodeProps<HeadingNode>) {
+  return <h3 className="canvas-heading">{data.text}</h3>;
+}
 const annotationColors = { cyan: '#0c9ca5', lime: '#63a423', blue: '#217ddd', rose: '#c95b88' };
+const COLLAPSED_GROUP = { width: 260, height: 74 };
 function AnnotationView({ data, selected }: NodeProps<AnnotationNode>) {
   const item = data.item;
+  if (item.kind === 'group' && item.collapsed)
+    return (
+      <div
+        className="canvas-item canvas-group collapsed-group"
+        style={{ borderColor: annotationColors[item.color], background: annotationColors[item.color] + '22' }}
+      >
+        <button
+          type="button"
+          className="group-toggle nodrag"
+          aria-label={'Expandir ' + item.text}
+          title="Expandir grupo"
+          aria-expanded={false}
+          onClick={(event) => {
+            // Toggling must not also select the group node in React Flow.
+            event.stopPropagation();
+            data.toggle?.();
+          }}
+        >
+          <ChevronRight size={16} />
+        </button>
+        <span>
+          <strong>{item.text}</strong>
+          <small>{data.count} equipamentos</small>
+        </span>
+        <Handle
+          id="group"
+          type="source"
+          position={Position.Bottom}
+          isConnectable={false}
+          className="overview-handle"
+        />
+      </div>
+    );
   return (
     <>
       <NodeResizer
@@ -85,6 +132,22 @@ function AnnotationView({ data, selected }: NodeProps<AnnotationNode>) {
           background: annotationColors[item.color] + (item.kind === 'note' ? '22' : '0a'),
         }}
       >
+        {item.kind === 'group' && data.toggle && (
+          <button
+            type="button"
+            className="group-toggle nodrag"
+            aria-label={'Recolher ' + item.text}
+            title="Recolher grupo"
+            aria-expanded
+            onClick={(event) => {
+              // Toggling must not also select the group node in React Flow.
+              event.stopPropagation();
+              data.toggle?.();
+            }}
+          >
+            <ChevronDown size={16} />
+          </button>
+        )}
         {item.points && (
           <svg aria-label={item.text} viewBox={`0 0 ${item.width} ${item.height}`}>
             <polyline
@@ -412,6 +475,7 @@ const nodeTypes = {
         a.data.moving === b.data.moving
     ),
     annotation: AnnotationView,
+    heading: HeadingView,
   },
   edgeTypes = { cable: CableView };
 interface Props {
@@ -516,14 +580,19 @@ function Canvas({
   drawing,
   onDrawingDone,
 }: Props) {
-  const { engine, tick } = lab,
+  const { engine, tick, change } = lab,
     { screenToFlowPosition, fitView, setCenter, getViewport, getNode, setViewport } = useReactFlow();
   const motion = useCanvasMotion();
   const projection = useMemo(() => topologyView(engine.state, view), [engine, tick, view]);
   const activities = useCanvasActivities(lab, motion.visible);
   const canMove = motion.visible && !motion.reduced;
   const zoom = useStore((state) => state.transform[2]);
-  const overview = engine.state.devices.length > 20 && zoom < 0.55;
+  // Control-plane views always use compact nodes with one connection point.
+  const overview = projection.compact || (engine.state.devices.length > 20 && zoom < 0.55);
+  const handleFor = useCallback(
+    (end: { port: string }) => (end.port === 'group' ? 'group' : overview ? 'overview' : end.port),
+    [overview]
+  );
   // Nodes update after the viewport changes. Draw each cable only once both
   // endpoints have measured handles for that rendering mode. This also keeps
   // offscreen nodes unmeasured without hiding cables whose endpoints are ready.
@@ -533,10 +602,8 @@ function Canvas({
         [link.a, link.b].every((end) => {
           const node = state.nodeLookup.get(end.device);
           return (
-            node?.data.overview === overview &&
-            node.internals.handleBounds?.source?.some(
-              (handle) => handle.id === (overview ? 'overview' : end.port)
-            )
+            (end.port === 'group' || node?.data.overview === overview) &&
+            node?.internals.handleBounds?.source?.some((handle) => handle.id === handleFor(end))
           );
         })
       )
@@ -591,6 +658,8 @@ function Canvas({
     (id: string) => {
       const d = engine.state.devices.find((d) => d.id === id);
       if (!d) return;
+      const group = projection.hidden.get(id);
+      if (group) change((simulation) => setGroupsCollapsed(simulation, false, group), true, false);
       const node = getNode(id);
       onSelect([id]);
       void setCenter(
@@ -599,7 +668,7 @@ function Canvas({
         { zoom: 1.2, duration: motion.reduced ? 0 : 300 }
       );
     },
-    [engine, getNode, onSelect, setCenter, motion.reduced, projection]
+    [engine, getNode, onSelect, setCenter, motion.reduced, projection, change]
   );
   useEffect(() => {
     if (!query.trim()) {
@@ -662,12 +731,17 @@ function Canvas({
       position: canvasPosition(engine.state, item),
       selected: selected.includes(item.id),
       style: {
-        width: item.width,
-        height: item.height,
-        zIndex: ['note', 'comment'].includes(item.kind) ? 2 : -1,
+        width: item.collapsed ? COLLAPSED_GROUP.width : item.width,
+        height: item.collapsed ? COLLAPSED_GROUP.height : item.height,
+        zIndex: ['note', 'comment'].includes(item.kind) || item.collapsed ? 2 : -1,
       },
       data: {
         item,
+        count: item.members?.length ?? 0,
+        toggle:
+          item.kind === 'group'
+            ? () => lab.change((simulation) => setGroupsCollapsed(simulation, !item.collapsed, item.id))
+            : undefined,
         change: (value) =>
           lab.change((simulation) => {
             Object.assign(
@@ -740,9 +814,18 @@ function Canvas({
         className: searchIds.size && !searchIds.has(d.id) ? 'dim-node' : '',
       };
     });
+    const headings: HeadingNode[] = projection.headings.map((heading) => ({
+      id: heading.id,
+      type: 'heading',
+      position: heading.position,
+      selectable: false,
+      draggable: false,
+      focusable: false,
+      data: { text: heading.text },
+    }));
     setNodes((previous) => {
       const byId = new Map(previous.map((node) => [node.id, node]));
-      const next = [...annotations, ...devices].map((node) => {
+      const next = [...annotations, ...headings, ...devices].map((node) => {
         const old = byId.get(node.id);
         if (
           old?.type === 'device' &&
@@ -797,19 +880,21 @@ function Canvas({
   const baseEdges = useMemo<CableEdge[]>(() => {
     const devicesById = new Map(engine.state.devices.map((device) => [device.id, device]));
     const next = projection.links.map((l) => {
-      const a = devicesById.get(l.a.device)!,
-        b = devicesById.get(l.b.device)!;
-      const operational = linkOperational(engine.state, l);
+      // Projected edges (collapsed groups, control-plane views) carry their own state.
+      const projected = projection.status.get(l.id);
+      const a = devicesById.get(l.a.device),
+        b = devicesById.get(l.b.device);
+      const operational = projected ?? linkOperational(engine.state, l);
       const edge: CableEdge = {
         id: l.id,
         source: l.a.device,
-        sourceHandle: overview ? 'overview' : l.a.port,
+        sourceHandle: handleFor(l.a),
         target: l.b.device,
-        targetHandle: overview ? 'overview' : l.b.port,
+        targetHandle: handleFor(l.b),
         type: 'cable',
         label:
           projection.labels.get(l.id) ||
-          (overview
+          (overview || !a || !b
             ? ''
             : a.interfaces.find((p) => p.id === l.a.port)?.name +
               ' ↔ ' +
@@ -818,13 +903,16 @@ function Canvas({
           cable: l.cable,
           blocked: !operational,
           radioControlOperational:
-            ['wireless', 'mesh'].includes(l.cable) && wirelessMetrics(engine.state, l).operational,
+            projected === undefined &&
+            ['wireless', 'mesh'].includes(l.cable) &&
+            wirelessMetrics(engine.state, l).operational,
           moving: false,
           discarding:
+            projected === undefined &&
             operational &&
             [
-              a.interfaces.find((port) => port.id === l.a.port),
-              b.interfaces.find((port) => port.id === l.b.port),
+              a?.interfaces.find((port) => port.id === l.a.port),
+              b?.interfaces.find((port) => port.id === l.b.port),
             ].some((port) => port?.spanningTree && port.spanningTree.state !== 'forwarding'),
         },
       };
@@ -844,7 +932,7 @@ function Canvas({
     });
     previousEdges.current = new Map(next.map((edge) => [edge.id, edge]));
     return next;
-  }, [engine, tick, overview, projection]);
+  }, [engine, tick, overview, projection, handleFor]);
   const decoratedEdges = useRef(new Map<string, CableEdge>());
   const edges = useMemo<CableEdge[]>(() => {
     if (overview) return baseEdges;
@@ -913,7 +1001,7 @@ function Canvas({
       }}
       onDrop={(e) => {
         e.preventDefault();
-        if (view === 'logical') return;
+        if (view !== 'physical') return;
         const profile = e.dataTransfer.getData('application/shlab-profile');
         if (profile) {
           const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
@@ -950,7 +1038,7 @@ function Canvas({
           })
         }
         onMoveEnd={(_event, viewport) => {
-          if (view === 'logical') return;
+          if (view !== 'physical') return;
           const previous = engine.state.viewport;
           if (
             !previous ||
@@ -1006,7 +1094,10 @@ function Canvas({
         onConnect={view === 'physical' ? onConnect : undefined}
         nodesConnectable={view === 'physical'}
         nodesDraggable={view === 'physical'}
-        onEdgeClick={(_e, edge) => onEdge(edge.id)}
+        onEdgeClick={(_e, edge) => {
+          // Projected edges stand for groups or protocol sessions, not a cable to inspect.
+          if (engine.state.links.some((link) => link.id === edge.id)) onEdge(edge.id);
+        }}
         connectionMode={ConnectionMode.Loose}
         onNodesDelete={(deleted) =>
           lab.change((sim) => {
@@ -1040,11 +1131,13 @@ function Canvas({
           nodeColor={(n) =>
             n.type === 'annotation'
               ? annotationColors[(n.data.item as CanvasItem).color]
-              : (n.data.device as Device).type === 'router'
-                ? '#5986aa'
-                : (n.data.device as Device).type === 'switch'
-                  ? '#4caca7'
-                  : '#bbcbd7'
+              : n.type === 'heading'
+                ? 'transparent'
+                : (n.data.device as Device).type === 'router'
+                  ? '#5986aa'
+                  : (n.data.device as Device).type === 'switch'
+                    ? '#4caca7'
+                    : '#bbcbd7'
           }
           maskColor={engine.state.background === 'dark' ? '#11283ba6' : '#f2f6f9b0'}
           pannable

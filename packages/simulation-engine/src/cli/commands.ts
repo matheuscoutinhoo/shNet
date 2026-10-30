@@ -41,6 +41,7 @@ import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
 import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
 import { showVlan } from './ios-show';
 import { registerPingCommands } from './ping';
+import { registerConfigDiff } from './config-diff';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -67,6 +68,7 @@ export function makeRegistry() {
   registerLocalSecurityCommands(r);
   registerCampusCommands(r);
   registerIosOperations(r);
+  registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);
   registerMqc(r);

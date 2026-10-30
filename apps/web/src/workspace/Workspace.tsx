@@ -48,7 +48,9 @@ import {
   deviceProfiles,
   addCanvasItem,
   groupDevices,
+  groupBySite,
   layoutTopology,
+  setGroupsCollapsed,
   removeCanvasItem,
   type CanvasItem,
   type Device,
@@ -65,13 +67,17 @@ import { LabPanel } from './LabPanel';
 
 import { Timeline } from './Timeline';
 import { ConnectDialog, LinkDialog } from './Connections';
-import type { TopologyView } from './topologyView';
+import { TOPOLOGY_VIEWS, type TopologyView } from './topologyView';
+import { TerminalDock } from './TerminalDock';
 const CloneReview = lazy(() => import('./CloneReview').then((m) => ({ default: m.CloneReview })));
 const CommentDialog = lazy(() => import('./CommentDialog').then((m) => ({ default: m.CommentDialog })));
 const NetworkConceptGuide = lazy(() =>
   import('./NetworkConceptGuide').then((m) => ({ default: m.NetworkConceptGuide }))
 );
 const CaptureDialog = lazy(() => import('./CaptureDialog').then((m) => ({ default: m.CaptureDialog })));
+const BulkConfigDialog = lazy(() =>
+  import('./BulkConfigDialog').then((m) => ({ default: m.BulkConfigDialog }))
+);
 const FactoryTools = lazy(() => import('./FactoryTools').then((m) => ({ default: m.FactoryTools })));
 const NetworkInspector = lazy(() =>
   import('./NetworkInspector').then((m) => ({ default: m.NetworkInspector }))
@@ -113,6 +119,9 @@ export function Workspace({
     [factoryTools, setFactoryTools] = useState(false),
     [cloneReview, setCloneReview] = useState(false),
     [topologyView, setTopologyView] = useState<TopologyView>('physical'),
+    [bulkConfig, setBulkConfig] = useState(false),
+    [terminalTabs, setTerminalTabs] = useState<string[]>([]),
+    [terminalActive, setTerminalActive] = useState<string | null>(null),
     [renaming, setRenaming] = useState<Device | null>(null);
   const mode = lab.playbackMode;
   const importRef = useRef<HTMLInputElement>(null),
@@ -240,10 +249,15 @@ export function Workspace({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   });
+  function openTerminal(id: string) {
+    setTerminalTabs((tabs) => (tabs.includes(id) ? tabs : [...tabs, id]));
+    setTerminalActive(id);
+  }
   function deviceAction(action: DeviceAction, id: string) {
     const target = lab.engine.state.devices.find((entry) => entry.id === id);
     if (!target) return;
     if (action === 'inspect') inspect(id);
+    if (action === 'terminal') openTerminal(id);
     if (action === 'rename') {
       lab.setError('');
       setRenaming(target);
@@ -533,6 +547,56 @@ export function Workspace({
                   Organizar topologia
                 </button>
                 <button
+                  disabled={!lab.engine.state.devices.length}
+                  title="Cria um grupo por prefixo de hostname (ex.: HQ-CORE-1 → site HQ)"
+                  onClick={() => {
+                    lab.change((engine) => {
+                      engine.state = groupBySite(engine.state).snapshot;
+                    });
+                    setMore(false);
+                  }}
+                >
+                  Agrupar por site
+                </button>
+                {([true, false] as const).map((collapse) => (
+                  <button
+                    key={String(collapse)}
+                    disabled={
+                      !lab.engine.state.canvasItems?.some(
+                        (item) => item.kind === 'group' && !!item.collapsed !== collapse
+                      )
+                    }
+                    onClick={() => {
+                      lab.change((engine) => setGroupsCollapsed(engine, collapse));
+                      setMore(false);
+                    }}
+                  >
+                    {collapse ? 'Recolher todos os grupos' : 'Expandir todos os grupos'}
+                  </button>
+                ))}
+                <button
+                  disabled={!lab.engine.state.devices.some((d) => d.type === 'router' || d.type === 'switch')}
+                  onClick={() => {
+                    setBulkConfig(true);
+                    setMore(false);
+                  }}
+                >
+                  Configuração em massa
+                </button>
+                <button
+                  disabled={!lab.engine.state.devices.length}
+                  onClick={() => {
+                    const first =
+                      selected.find((id) => lab.engine.state.devices.some((d) => d.id === id)) ??
+                      lab.engine.state.devices.find((d) => d.type === 'router' || d.type === 'switch')?.id ??
+                      lab.engine.state.devices[0]?.id;
+                    if (first) openTerminal(first);
+                    setMore(false);
+                  }}
+                >
+                  Terminais em abas
+                </button>
+                <button
                   onClick={() => {
                     setFactoryTools(true);
                     setMore(false);
@@ -725,6 +789,14 @@ export function Workspace({
           <CommentDialog lab={lab} selected={selected[0]} onClose={() => setComment(false)} />
         </DeferredPanel>
       )}
+      {bulkConfig && (
+        <DeferredPanel
+          onClose={() => setBulkConfig(false)}
+          fallback={<p role="status">Carregando painel…</p>}
+        >
+          <BulkConfigDialog lab={lab} selected={selected} onClose={() => setBulkConfig(false)} />
+        </DeferredPanel>
+      )}
       {capture && (
         <DeferredPanel onClose={() => setCapture(false)} fallback={<p role="status">Carregando painel…</p>}>
           <CaptureDialog lab={lab} onClose={() => setCapture(false)} />
@@ -890,11 +962,14 @@ export function Workspace({
                   setSelected([]);
                 }}
               >
-                <option value="physical">Física</option>
-                <option value="logical">Lógica</option>
+                {TOPOLOGY_VIEWS.map((view) => (
+                  <option key={view.id} value={view.id}>
+                    {view.label}
+                  </option>
+                ))}
               </select>
-              {topologyView === 'logical' && (
-                <span>Projeção para consulta; agrupamentos de cabos não representam novos protocolos.</span>
+              {TOPOLOGY_VIEWS.find((view) => view.id === topologyView)?.hint && (
+                <span>{TOPOLOGY_VIEWS.find((view) => view.id === topologyView)!.hint}</span>
               )}
             </label>
             <TopologyCanvas
@@ -927,6 +1002,17 @@ export function Workspace({
             )}
           </div>
           <Timeline lab={lab} selected={selected} onSelect={inspect} onClearSelection={() => select([])} />
+          {terminalTabs.length > 0 && (
+            <TerminalDock
+              lab={lab}
+              tabs={terminalTabs}
+              active={terminalActive}
+              onActivate={setTerminalActive}
+              onOpen={openTerminal}
+              onCloseTab={(id) => setTerminalTabs((tabs) => tabs.filter((tab) => tab !== id))}
+              onClose={() => setTerminalTabs([])}
+            />
+          )}
         </div>
         {device && (
           <DeferredPanel

@@ -248,7 +248,7 @@ export class TerminalSession {
 const READ_ONLY = /^(?:show|help|enable|disable|end|exit|configure terminal|conf t)(?:\s|$)/i;
 
 /** Schema failures are reported per field instead of as raw JSON. */
-function cliErrorText(error: unknown) {
+export function cliErrorText(error: unknown) {
   const issues = (error as { issues?: { path: (string | number)[]; message: string }[] } | undefined)?.issues;
   if (error instanceof Error && Array.isArray(issues) && issues.length)
     return (

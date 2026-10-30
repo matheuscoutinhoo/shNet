@@ -18,7 +18,16 @@ import {
 } from './terminalState';
 import '@xterm/xterm/css/xterm.css';
 import { coloredTerminalCommand, coloredTerminalInput, coloredTerminalOutput } from './terminalColors';
-export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: string }) {
+export function Terminal({
+  lab,
+  deviceId,
+  compact = false,
+}: {
+  lab: LabController;
+  deviceId: string;
+  /** Terminal only, without heading, guide and shortcuts (terminal dock). */
+  compact?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null),
     stateRef = useRef<DeviceTerminalState | null>(null),
     labRef = useRef(lab),
@@ -300,7 +309,8 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       }
       if (batch.length) runBatch();
     });
-    const observer = new ResizeObserver(() => {
+    // A popped-out terminal lives in another window; observe it with that window's observer.
+    const observer = new (ref.current!.ownerDocument.defaultView ?? window).ResizeObserver(() => {
       try {
         fit.fit();
       } catch {
@@ -357,6 +367,14 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
   }, [lab.tick, lab.engine, deviceId]);
   const device = lab.engine.device(deviceId),
     identity = terminalIdentity(device);
+  if (compact)
+    return (
+      <div className="terminal-shell compact">
+        <div className="terminal-frame">
+          <div className="terminal-host" ref={ref} aria-label={'Terminal de ' + identity.name} />
+        </div>
+      </div>
+    );
   return (
     <div className="terminal-shell">
       <div className="terminal-heading">

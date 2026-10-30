@@ -218,6 +218,7 @@ export const canvasItemSchema = z
     height: finite.min(40).max(5000),
     color: z.enum(['cyan', 'lime', 'blue', 'rose']),
     members: z.array(id).max(200).optional(),
+    collapsed: z.literal(true).optional(),
     points: z
       .array(z.object({ x: finite.min(0).max(5000), y: finite.min(0).max(5000) }).strict())
       .min(2)

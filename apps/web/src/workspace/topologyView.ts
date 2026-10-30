@@ -1,14 +1,132 @@
-import { linkOperational, type Snapshot, type Link } from '@shlab/engine';
-export type TopologyView = 'physical' | 'logical';
+import { collapsedMembers, linkOperational, routingView, type Snapshot, type Link } from '@shlab/engine';
+export type TopologyView = 'physical' | 'logical' | 'l3' | 'ospf' | 'bgp';
+export const TOPOLOGY_VIEWS: { id: TopologyView; label: string; hint?: string }[] = [
+  { id: 'physical', label: 'Física' },
+  {
+    id: 'logical',
+    label: 'Lógica',
+    hint: 'Projeção para consulta; agrupamentos de cabos não representam novos protocolos.',
+  },
+  {
+    id: 'l3',
+    label: 'Camada 3 (sub-redes)',
+    hint: 'Roteadores e switches L3 ligados por sub-rede IPv4 comum.',
+  },
+  {
+    id: 'ospf',
+    label: 'OSPF (áreas)',
+    hint: 'Adjacências OSPF por área; tracejado indica vizinho ausente ou incompleto.',
+  },
+  {
+    id: 'bgp',
+    label: 'BGP (sistemas autônomos)',
+    hint: 'Sessões BGP agrupadas por AS; tracejado indica sessão não estabelecida.',
+  },
+];
+export interface Projection {
+  devices: Snapshot['devices'];
+  links: Link[];
+  labels: Map<string, string>;
+  positions: Map<string, { x: number; y: number }>;
+  /** Operational state for projected edges that are not physical links. */
+  status: Map<string, boolean>;
+  /** Draw devices as compact nodes with a single connection point. */
+  compact: boolean;
+  /** Device → collapsed group that stands in for it. */
+  hidden: Map<string, string>;
+  /** Block titles of control-plane views (area, AS or tier). */
+  headings: { id: string; text: string; position: { x: number; y: number } }[];
+}
+const edge = (id: string, a: string, b: string, up: boolean): Link => ({
+  id,
+  a: { device: a, port: 'overview' },
+  b: { device: b, port: 'overview' },
+  cable: 'copper',
+  up,
+  latency: 1,
+  jitter: 0,
+  loss: 0,
+  distance: 1,
+});
+function physical(s: Snapshot): Projection {
+  const hidden = collapsedMembers(s);
+  const base = {
+    labels: new Map<string, string>(),
+    positions: new Map<string, { x: number; y: number }>(),
+    status: new Map<string, boolean>(),
+    compact: false,
+    hidden,
+    headings: [],
+  };
+  if (!hidden.size) return { ...base, devices: s.devices, links: s.links };
+  const byId = new Map(s.devices.map((d) => [d.id, d]));
+  const name = (end: Link['a']) =>
+    byId.get(end.device)?.interfaces.find((p) => p.id === end.port)?.name ?? end.port;
+  const links: Link[] = [],
+    merged = new Map<string, { link: Link; count: number; up: boolean; sample: Link }>();
+  for (const l of s.links) {
+    const a = hidden.get(l.a.device),
+      b = hidden.get(l.b.device);
+    if (!a && !b) {
+      links.push(l);
+      continue;
+    }
+    if (a && a === b) continue;
+    const key = [a ?? l.a.device, b ?? l.b.device].sort().join('|');
+    const up = linkOperational(s, l);
+    const old = merged.get(key);
+    if (old) {
+      old.count++;
+      old.up ||= up;
+    } else
+      merged.set(key, {
+        // Group ends attach to the collapsed group's single handle; device ends keep their port.
+        link: {
+          ...l,
+          id: 'group:' + key,
+          a: a ? { device: a, port: 'group' } : l.a,
+          b: b ? { device: b, port: 'group' } : l.b,
+        },
+        count: 1,
+        up,
+        sample: l,
+      });
+  }
+  for (const { link, count, up, sample } of merged.values()) {
+    links.push(link);
+    base.status.set(link.id, up);
+    base.labels.set(link.id, count > 1 ? count + ' cabos' : name(sample.a) + ' ↔ ' + name(sample.b));
+  }
+  return { ...base, devices: s.devices.filter((d) => !hidden.has(d.id)), links };
+}
+function routing(s: Snapshot, view: 'l3' | 'ospf' | 'bgp'): Projection {
+  const projection = routingView(s, view);
+  const labels = new Map<string, string>(),
+    status = new Map<string, boolean>();
+  const links = projection.edges.map((e) => {
+    labels.set(e.id, e.label);
+    status.set(e.id, e.up);
+    return edge(e.id, e.a, e.b, e.up);
+  });
+  return {
+    devices: projection.devices,
+    links,
+    labels,
+    status,
+    positions: projection.positions,
+    compact: true,
+    hidden: new Map(),
+    headings: projection.blocks.map((block, index) => ({
+      id: 'heading:' + view + ':' + index,
+      text: block.name + ' · ' + block.devices.length,
+      position: block.position,
+    })),
+  };
+}
 /** Logical projection traces explicit panel jumpers; it never certifies reachability. */
-export function topologyView(s: Snapshot, view: TopologyView) {
-  if (view === 'physical')
-    return {
-      devices: s.devices,
-      links: s.links,
-      labels: new Map<string, string>(),
-      positions: new Map<string, { x: number; y: number }>(),
-    };
+export function topologyView(s: Snapshot, view: TopologyView): Projection {
+  if (view === 'physical') return physical(s);
+  if (view !== 'logical') return routing(s, view);
   const passive = new Set(
     s.devices
       .filter((d) => ['rack', 'ups', 'patch-panel'].includes(d.infrastructure?.kind ?? ''))
@@ -83,5 +201,14 @@ export function topologyView(s: Snapshot, view: TopologyView) {
       index = counts[row]++;
     positions.set(d.id, { x: 80 + (index % 12) * 350, y: 80 + row * 1800 + Math.floor(index / 12) * 240 });
   }
-  return { devices, links, labels, positions };
+  return {
+    devices,
+    links,
+    labels,
+    positions,
+    status: new Map<string, boolean>(),
+    compact: false,
+    hidden: new Map<string, string>(),
+    headings: [],
+  };
 }
