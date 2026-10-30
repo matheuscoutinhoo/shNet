@@ -1,0 +1,167 @@
+k7re5ml7	Ping sends an ICMP Echo request and waits for a reply. Success confirms round-trip IP connectivity at that moment. ICMP also reports forwarding problems, such as destination unreachable or hop limit exceeded. This limit is called TTL in IPv4 and Hop Limit in IPv6. A ping reply does not guarantee that HTTP is allowed.
+k6rk6ki2	A firewall can allow ping and block TCP/80. In that case, the host replies, but the page never arrives.
+mdoihfr0	Compare the source, destination, TTL or Hop Limit, and result of a ping.
+4ielr68j	Use a low hop limit on a routed network and examine which device returns the error.
+nd0w5l7o	RTT is calculated from the virtual clock, latencies, and event processing.
+oh9ax5vp	Routes and gateways
+8go2aaoa	The router looks for the route with the most specific prefix that matches the destination. That route defines the outgoing interface and, when necessary, the next hop. The default route covers destinations without a more specific match. The reply also needs a return path.
+gr9cni0u	A /24 route takes precedence over a /0 default route for the same destination. A route that exists only in the outbound direction can leave the connection without a reply.
+9bhkipnt	Check the routing table and identify the outgoing interface for each packet.
+w9isaa1y	Remove a return route and compare the events before and after.
+43e6ap83	Connected, static, and learned routes are used in the engine's actual forwarding.
+yssy3861	VLANs separate broadcast domains on the same switch. An access port associates frames with the configured VLAN. A trunk carries multiple VLANs, usually identified by 802.1Q tags. Routing is required for different VLANs to communicate.
+n0cyzk73	Two PCs in VLAN 20 can end up isolated if the trunk between the switches does not allow that VLAN.
+5ysjvlho	Compare the hosts' access VLAN with the VLANs allowed on the trunk.
+oqaz0fio	Open a frame on the link between switches and observe the 802.1Q tag.
+puaho1jm	The VLAN takes part in MAC learning and forwarding decisions; it is not just a visual label.
+dyyweimy	An SVI is an IP interface associated with a VLAN on the switch. A subinterface divides a physical port into logical interfaces, each with its own VLAN. Either can serve as a gateway; the device must have routing enabled, and the VLANs must reach the interface.
+1lwnktk7	The VLAN 20 SVI can be the 192.168.20.1 gateway, while the VLAN 30 SVI serves another subnet.
+bxa04ia4	Compare the host's gateway with the address of the SVI or subinterface.
+rmhnrhbb	Check ip routing and whether the VLANs are carried over the links.
+udlcwk5j	Logical interfaces use the ports and forwarding of the simulated topology.
+8h3zeutt	STP/RSTP and loop prevention
+yhf88wiu	Redundant links between switches can cause a frame to circulate indefinitely. STP elects a root and blocks paths that would form loops. RSTP speeds up the transition to another path when a failure occurs. A connected link can be blocked for data traffic as a result of that decision.
+r3wd26ge	In a triangle of switches, one of the paths does not forward data until it is needed for recovery.
+hwjjp59e	Compare the root, the cost, and the forwarding/discarding state of the ports.
+luolb5kl	Shut down an uplink and watch the path change before repeating the ping.
+6waac2b4	Port states and BPDUs are part of the simulation; reconvergence depends on the processed events.
+f2lsrb0m	PVST and MSTP: per-VLAN or per-instance trees
+44vgdtfg	PVST maintains one spanning tree per VLAN, allowing different roots and paths to be chosen. MSTP groups VLANs into instances that share a tree. Switches in the same MST region must agree on the name, revision, and VLAN mapping; different configurations create region boundaries.
+wggyagkb	VLANs 10 and 20 can use different uplinks with distinct roots in PVST, or share the same path if they belong to the same MST instance.
+y4k24c16	Compare roots and port states per VLAN or instance.
+h48qt7pp	Change a switch's VLAN mapping and check the resulting region and paths.
+brop95g8	The engine models instances, states, and BPDUs; changing the mode alters the topology's spanning trees.
+mt30t95a	LACP and link aggregation
+ga22gymt	LACP negotiates which ports can join an aggregated logical link. At least one side must start the negotiation in active mode; two passive sides never start it. The members must be compatible. If one member is lost, the remaining members can keep the bundle operational.
+bc925klz	Two cables between switches are not automatically combined into a single link; the negotiation and configuration must match.
+dwqqywpq	Check the selected members and the active/passive modes.
+8w92928p	Disable a member and start a new connection to test the remaining path.
+g1xtu1m8	Aggregation is modeled as negotiation and forwarding; it does not reproduce every behavior of an ASIC.
+kdvya5ix	VRRP and gateway redundancy
+chy0yqye	VRRP presents a virtual IP as the hosts' gateway. The routers elect one of them to be responsible for that IP; another can take over if it fails. Priority influences the election. Tracking lowers the priority when a monitored interface or route loses connectivity.
+6k44lcro	The PC keeps the same gateway while responsibility for it moves between two routers.
+tdt0bts8	Compare the virtual IP, priority, and state of each router.
+30izyagj	Cause an uplink failure and test a new connection after the election.
+s66rru7s	The implementation covers IPv4 VRRP and tracking on the virtual clock.
+d36vsvtb	VRF: separate routing tables
+nw89lmvk	A VRF maintains an independent routing table. The incoming interface determines which table is used to look up the packet. This allows networks with overlapping IP addresses to coexist without mixing traffic. Having a route in one VRF does not make it available in another.
+fg6jirbz	BLUE and RED can use the same server IP and reply over different paths.
+bdbbf5g1	Check the routes and interfaces of each VRF.
+buem5ims	Send traffic through both tables and compare which server replies.
+bd8zo42l	Routes are not exchanged automatically between VRFs; each flow uses its own table.
+ln1tq84o	DHCPv4 and leases
+4rj5b595	DHCP provides the client with an address, mask, and other options through a temporary lease. The initial exchange uses Discover, Offer, Request, and ACK. A relay forwards the messages when the server is on another network; the server uses that information to choose the appropriate pool.
+49zg63a0	Two clients can receive different addresses from the same pool and use the gateway provided by the server.
+piut4c21	Set the interface to DHCP and follow the four messages.
+019wdljc	Compare the pool, lease, gateway, and renewal on the client and the server.
+92yn0cg5	Pools, reservations, relay, expiration, and conflicts are evaluated through the lab's events.
+vt7b7zm8	DNS: names and records
+fzo0nrnp	DNS looks up records associated with a name. An A record maps to an IPv4 address, AAAA to an IPv6 address, and a CNAME points to another name. The cache avoids repeating queries while the TTL is valid. Resolving a name does not confirm that the service at that address is available.
+moi4yhip	app.lab can resolve to 192.168.10.20 and still not respond to HTTP if TCP/80 is blocked.
+19hfg92o	Query a name and examine the question, answer, and records.
+o5e1paib	Repeat the query and check the cache and TTL before changing the record.
+kt0frz8j	The server and caches are local to the simulation; queries are not sent to the Internet.
+t7v4ny2b	TCP establishes a connection with SYN, SYN-ACK, and ACK. Data is sequenced and acknowledged; losses can cause retransmission. The window and congestion control limit sending. HTTP uses this connection to request a resource and receive a response: the handshake alone does not prove that the application responded.
+xt5c3f6e	A GET request travels over TCP/80; you can follow the connection setup and the HTTP response separately.
+zh9t9lof	Open a connection and compare SYN, ACK, data, and FIN in the packets.
+gxcwzu7p	Introduce loss and observe in-flight segments, retransmissions, and the HTTP result.
+awihmh0a	TCP has persisted timers and states; HTTP is an application subset implemented for the lab.
+nbaqzdut	UDP and ports
+ih43t6c9	UDP delivers datagrams identified by source and destination ports, without establishing a connection or acknowledging delivery. The application must handle loss and retries when necessary. DNS, DHCP, and several monitoring services use UDP, each with its own rules.
+uvnyipk2	A DNS query can go unanswered if the return datagram is lost, even with the link up.
+v0q0vl0s	Open a packet and compare the source and destination ports.
+ixvupth4	Introduce loss and check the timeout or retry performed by the application.
+n14pg2r3	Datagrams traverse links, routes, ACLs, and NAT the same way as other IP packets.
+mm2puy0y	OSPF and path cost
+qce2jnkk	OSPF forms adjacencies and exchanges information about the links in the area. Each router calculates paths based on cumulative cost and installs the resulting routes. Finding a neighbor is not enough: the adjacency, the advertisements, and the forwarding table must all be correct.
+xhf6yh5p	After a failure, a route can move to a higher-cost path that still reaches the destination.
+agr9gtr5	Compare neighbors, adjacency, and learned routes.
+4hg958ec	Disable a link and check the new route before testing HTTP.
+6psozq0t	Areas and advertisements are modeled with simulator PDUs; there is no session with external routers.
+ratxudm4	RIP and hop count
+ri8mwupy	RIP advertises networks and their hop count to neighbors. The router selects the usable advertisements, adds the local hop, and installs the routes. Timers remove stale information; unreachable-route advertisements help propagate a failure. The usable limit is 15 hops.
+75pbcwgq	If a neighbor stops advertising a network, the route can remain for a while until it expires.
+hcp2mqlx	Compare the received advertisements with the hop count of the installed route.
+mhcg5hvd	Stop the protocol and advance virtual time to observe the expiration.
+4us2uy9t	The engine models RIPv2, filters, and timers; it does not query external networks.
+q3ud9plm	BGP and advertisement policies
+v7161jl0	BGP exchanges prefixes between neighbors and applies policies to select and advertise paths. AS_PATH records the autonomous systems traversed and helps prevent loops. An established session does not guarantee traffic: the prefix must be accepted and the next hop must be reachable.
+y2vaou8w	A filter can remove a network from the advertisements while the TCP session between the routers stays up.
+h647bz14	Check the session, the received prefixes, and AS_PATH.
+2y73wpmj	Change a policy and compare the installed route with the result of a new connection.
+1xn6427c	BGP uses typed messages over the simulated network and does not interoperate with external sessions.
+rqeqskim	IPv6 uses 128-bit addresses. NDP resolves neighbors and checks for duplicates with DAD. Routers send RAs to advertise prefixes and gateways; with SLAAC, the host forms an address from the prefix. An address that is still tentative is not ready for normal use.
+5qeqskp7	A PC can learn the prefix from an RA and resolve the gateway's MAC address through NDP before sending the ping.
+mtllrkpr	Compare tentative/preferred addresses, RAs, and the neighbor table.
+c9fk2zd4	Send an IPv6 ping between subnets and observe the Hop Limit.
+rtg62n4q	NDP replaces ARP in this flow; TCP and UDP over IPv6 use the same forwarding decisions.
+uurixqic	DHCPv6 and prefix delegation
+0woytdsv	DHCPv6 can provide addresses and options, or delegate a prefix to another network. It does not provide the default gateway: that role belongs to RAs. IA_NA represents an address association; IA_PD represents a delegated-prefix association.
+wkbd7prc	A client can have an address leased by DHCPv6 and still need an RA to reach another subnet.
+f37q5m3b	Compare the address/prefix leases on the client and the server.
+nwq59nbx	Check the RA and the default route separately from the DHCPv6 lease.
+b6co8ktz	Leases, renewal, and relay use IPv6 datagrams in the topology.
+totduwnz	Wi-Fi: association, signal, and authentication
+jaf3z7cg	The client must find a compatible AP and complete authentication before exchanging data over the wireless network. The SSID, security settings, and credentials must match. Distance, channel, and interference affect signal, loss, and capacity; associating is no substitute for configuring IP.
+jug5nlf0	A laptop can see the SSID and still fail to associate because of an incorrect key. After associating, it still needs to reach its gateway.
+uf07l23l	Check the association, key, channel, and signal strength.
+0wa2gv1n	Move the client farther away or change the channel, and compare traffic loss.
+llrxmiyk	The radio is a coverage/interference model; it does not control a real Wi-Fi adapter.
+odiv02x1	A wireless LAN controller (WLC) centralizes AP configuration. CAPWAP carries control traffic and, in centralized mode, client data to the controller. The AP must reach the WLC over the IP network before it receives a usable WLAN.
+lwecyqej	An AP can have its radio on and still not offer the expected WLAN because it cannot reach the controller.
+et5owue0	Check discovery, the AP session, and the WLAN profiles on the WLC.
+p8l9m9y8	Break the IP path to the controller and observe the effect on client traffic.
+0jqssf5f	Control and data traffic travel through the modeled network; there is no external CAPWAP interoperability.
+ajrwr0my	Wireless mesh network
+x2s1kh6n	In a mesh, APs form wireless neighbor relationships to forward data to a root or exit point. The link between APs is separate from client association. The mesh identity, security, and path must be correct to avoid a client that is associated but cannot access the destination network.
+n7iscslx	A client can associate with a remote AP whose mesh path to the root is unavailable.
+0kv6qroz	Compare the neighbors and the path to the mesh root.
+3fbs8bjw	Power off an intermediate AP and check whether another usable path exists.
+ze49amc8	Mesh discovery and forwarding are limited to the engine's rules.
+qgunmenz	VPN and transport network
+ywhfnzb8	A VPN tunnel carries inner packets across an outer network called the underlay. The peers must reach each other and negotiate compatible parameters before protecting data. A route through the tunnel interface does not fix a failure in the route to the other peer.
+wtzsqo51	An incorrect key can prevent negotiation even when the outer addresses have IP connectivity.
+epe4mrd8	Compare the peers, credentials, and negotiation state.
+g7j8v9zt	Open the outer traffic and compare it with the destination of the encapsulated packet.
+a0jbncwa	Encryption and states are modeled in the lab; the tunnel does not connect to a real VPN.
+gaojyzni	SD-WAN and path selection
+uebh7de1	SD-WAN distributes policies and chooses transports based on the application and measured conditions. RTT, loss, and availability can change which tunnel is used. A received policy does not create connectivity: the transports and routes of each tunnel must also work.
+5dyjs4ag	HTTP can switch transports when the first path no longer meets the policy's loss threshold.
+wo66kho6	Compare the received policy and the transport measurements.
+40mkt1cz	Cause a failure and observe the path of a new connection.
+auh3zts8	Measurements and policies depend on virtual events and the configured tunnels.
+5zsrsc0z	QoS, classification, and queuing
+wxedo4w9	When an outgoing interface receives more traffic than it can transmit, frames wait in queues or are dropped. QoS classifies that traffic and defines how the queues share capacity. DSCP is a classification marking; marking a packet does not increase link capacity.
+9830zbps	A priority class can wait less while another accumulates drops on a congested outgoing interface.
+tmmfhn56	Reduce the capacity and compare marking, queues, and drops.
+mbh92gdt	Change the policy and observe the delay and the number of frames transmitted.
+dce5yg0r	Queues and their capacity are simplified; they do not represent specific hardware.
+h0rnnfx5	MPLS and labels
+vyg76rgx	MPLS maps traffic to a label-switched path. The ingress router pushes a label, intermediate devices look up the LFIB and swap it, and the egress router removes the encapsulation. The mapping of incoming label, outgoing label, and next interface must form a complete path.
+96ma52ey	A wrong label on the intermediate router can break the path even when the IP routes at the edges are correct.
+t5gfpobr	Follow the push, swap, and pop operations on the packets.
+9ktqheq7	Compare the observed labels with the LFIB entries.
+wgtz3nnw	MPLS paths are configured statically; the model has no LDP/RSVP.
+tqvpyb6j	VXLAN encapsulates an Ethernet frame in UDP to cross an IP network. The VNI identifies the logical network, and the VTEPs perform encapsulation and delivery. The local VLANs can differ, but the VNI, peers, and underlay connectivity must match.
+sua45ul0	Two switches can extend a local network over UDP/4789 without using the same VLAN number at each end.
+l0t60z44	Compare the VNI and the VTEP addresses.
+wyunx5jf	Open the outer UDP packet and the Ethernet frame carried inside it.
+xk5den3d	VXLAN uses the model's actual links and IP routes, without creating external connectivity.
+jcs5mk51	EVPN and MAC/IP location
+s2bn7v2g	EVPN uses BGP advertisements to indicate where a MAC/IP can be reached. Route targets determine which advertisements a network imports. This makes it possible to direct traffic to the correct VTEP; an active BGP session with mismatched route targets can leave destinations without a route.
+pby8kmrq	The remote MAC is advertised by one switch, but the other does not import it because it uses a different route target.
+1bupmy57	Compare MAC/IP advertisements and their route targets.
+ibz2ry7e	Fix the import and observe the VTEP chosen for the traffic.
+qwjq8mcr	The model covers a MAC/IP subset, not every EVPN service or redundancy mode.
+ylvj3uic	802.1X, RADIUS, and network access
+ay2a6jjw	802.1X controls a client's access to the network. The client is the supplicant, the switch/AP acts as the authenticator, and the RADIUS server evaluates authentication. Authorization can open the port and assign a VLAN. In enterprise Wi-Fi, PEAP/TLS also requires validating certificates and credentials.
+u3ouum65	A connected cable does not guarantee that data gets through: the port can remain unauthorized until the server accepts the client.
+1lrqcixk	Compare the port state before and after the RADIUS response.
+8118vvc2	Test incorrect credentials and check the resulting VLAN and authorization.
+2f94oc9z	Network credentials belong to the lab; they are not the account used to sign in to shLab.
+a7jej47m	AAA and TACACS+: terminal access
+j1558k5s	AAA combines authentication, authorization, and accounting. TACACS+ can verify who accesses a device and which commands that person can run. Being authenticated does not mean being authorized to change configurations; the policy must also permit the action.
+qwmx773u	A user can view routes and be denied when trying to change an interface.
+akc0waeg	Compare privilege levels and command policies on the server.
+jrvv802u	Run a read-only command and a configuration command, then check the accounting records.
+qc6gqhc5	Authorization controls the terminal of the simulated devices and does not change the application account.

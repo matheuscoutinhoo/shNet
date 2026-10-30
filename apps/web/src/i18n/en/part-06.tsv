@@ -1,0 +1,266 @@
+4xmtxd8v	ACL: rules and evaluation order
+ea4a6c70	An ACL compares the packet against rules based on source, destination, protocol, and ports. Order matters: the first matching rule determines the result. A conventional ACL does not track the entire connection like a stateful firewall; return traffic may need its own rules.
+ob0uinry	A general deny rule placed before a specific exception prevents the exception from being used.
+wqu8ulit	Compare the applied rule and its counters with the packet.
+jamdaqz5	Test outbound and return traffic after changing the ACL order or interface.
+3tezthtc	Rules and blocks are applied along the packet path, including NAT decisions when configured.
+z0pq54a1	NAT rewrites addresses between networks; PAT also uses ports to distinguish connections that share an outside address. The translation table allows the reply to be forwarded to the original host. NAT depends on routes and does not replace a security policy.
+m9pnz0ur	Two PCs can reach the same server using a single outside IP, with different translated ports.
+zjuqkwjd	Compare the address and port before and after translation.
+7o2biybf	Check the NAT entry and the return path to the original host.
+sz1ki8h8	Translations, expiration, and hairpinning are part of the lab state.
+wba0nrmy	Stateful firewall and application inspection
+29lwc8el	A stateful firewall tracks the state of flows and can tell replies apart from new connections. Zone policies control paths between networks. Application inspection uses data such as the HTTP Host/path or the DNS name to make decisions, in addition to addresses and ports.
+tonpncqc	Two requests to the same TCP/80 server can have different results because they use different Host names.
+9icp1t0h	Compare sessions, zones, and the rule that permitted or blocked the flow.
+s4pkswoq	Change only the HTTP Host and check the inspection decision.
+batztqii	Inspection examines supported protocols in cleartext; it does not decrypt external applications.
+9y0eywae	An IDS detects behaviors and signatures and logs alerts. An IPS can also block the matching traffic. High rates can trigger a rule even without a signature in the payload. An alert describes a match against the rule, not proof of an attack on a real network.
+6b1313np	A rate rule can raise an alert in the IDS and drop the same flow when configured for prevention in the IPS.
+jdecnvqa	Compare signatures, threshold, and alert counters.
+ollq0ayw	Repeat the traffic in detection and prevention modes and observe the drops.
+gbb7ry9m	Rules and signatures are limited to the content of the modeled packets.
+smdp0yln	NETCONF/RESTCONF and remote configuration
+189mhu6e	Management protocols let you query and change the configuration over the network. In NETCONF, candidate keeps a proposed change separate from the running configuration; validate checks the proposal and commit applies it. RESTCONF uses HTTP resources and can control concurrency with ETags. Connectivity and authorization are still required.
+iu3qxxum	Editing candidate does not change forwarding immediately; the effect appears after a successful commit.
+2xihjabf	Compare candidate and the running configuration before and after the commit.
+tica3tq3	Check the job response and test access without proper authorization.
+r6v4gl2z	XML/framing and HTTP resources are modeled with a limited set of configurations.
+4doeli78	SNMP, syslog, and telemetry
+2xkg9ey5	Monitoring observes the network without having to read each device's screen. SNMP polls values, syslog sends event logs, and telemetry publishes sensor measurements. Missing data may indicate a failure on the path to the collector, not a lack of activity on the device.
+dqlplscp	An interface can transmit frames while the collector receives no samples because an ACL blocks their delivery.
+5108x6f2	Compare local counters with the data received by the collector.
+ss18k2v6	Break the path to the collector and check queries, messages, and timeouts.
+fo3hfh6a	Collectors, events, and sensors are inside the simulated topology.
+kquag397	NTP and clock synchronization
+73cxoxx0	NTP exchanges timestamps to estimate the delay and clock offset between client and server. The client selects usable references and adjusts its offset. Stratum indicates the logical distance to a reference; a low number alone does not confirm that the server is reachable or correct.
+fb1ls0lw	A device with a high offset can correct it after receiving replies from a configured server.
+f0u3u937	Compare offset, delay, stratum, and the selected server.
+t3rzmu1i	Disable the server and watch for loss of synchronization.
+ief044v2	The adjustment uses virtual time and does not change the clock of the computer or operating system.
+hta1qpep	PoE and power budget
+cwzlpsdl	PoE supplies power over the Ethernet link. The power source is the PSE and the consumer is the PD. Class, standard, and available power must match. A switch with an exhausted budget can leave a device without a power feed even when the data cable is connected.
+vzmjl6dv	Two APs can compete for the switch's budget; priority determines which one stays powered.
+59hy48vs	Compare class, consumption, reserved power, and total budget.
+zi8u6xdu	Increase consumption or reduce the budget and observe the dependent devices.
+zrfj4s9e	Power and negotiation are model values, with no physical electrical effects.
+8sscg8iy	A point-to-point serial link requires compatible settings and a clock source. The DCE side provides the clocking used by the DTE. The clock rate limits transmission. IP traffic between the two ends does not use ARP as it would on an Ethernet LAN.
+g33t5334	Two enabled interfaces may fail to exchange data if neither end provides the required clock.
+o1oeyg6g	Compare DCE/DTE roles and speed on both ends.
+p7u28g0d	Send traffic and observe serialization and frame checking.
+9u2th9l1	The engine uses a simplified HDLC envelope and FCS check.
+4fvt4la9	Console and local access
+2m744kj6	A console connection provides terminal access without depending on an IP address, gateway, or route. The ports and serial speed must be compatible. This path is useful for configuring a device before network connectivity exists.
+lf8dhxhz	A router without an IP address can receive commands over the console from a device connected to its console port.
+kmvcu5n6	Connect console ports with a compatible baud rate.
+oh09c7v5	Run a command on the remote device and check the resulting configuration.
+6ww0evji	The console operates inside the lab; it does not open a real serial port on the computer.
+ggupk69z	MTU and IPv4 fragmentation
+0ud7jr8v	The MTU limits the size of a packet that fits on a link. IPv4 can fragment a larger packet, and the destination must reassemble it. With DF set, the router does not fragment and may respond with ICMP Fragmentation Needed. Losing a fragment prevents complete reassembly.
+57imguta	A small ping may succeed while a larger packet fails to cross a link with a smaller MTU.
+h1ccdtnu	Compare the packet size and the path MTU.
+8vj5bigz	Resend with and without DF and open the ICMP error or the fragments.
+7p73et92	Fragments and reassembly have limits and timers in the engine.
+1hy7ajsf	DNSSEC makes it possible to verify the authenticity of records through signatures and a chain of trust; it does not encrypt the query. EDNS extends the DNS message format and allows capabilities to be advertised, such as a larger UDP limit. A large or truncated response may require TCP transport.
+ermyke6c	An invalid signature can cause the resolver to reject a record even if the server answers the query.
+53b72upx	Compare the signature, trust, and validation result.
+90qmilfc	Change EDNS limits and check truncation and retry over TCP.
+59v8eh9l	DNSSEC uses the simulator's own signed representation, without validating real Internet zones.
+otfarkr6	A proxy receives a request from the client and opens another connection to the destination server. These are two separate flows, each with its own routes, TCP states, and policies. The client reaching the proxy does not guarantee that the proxy can reach the server.
+bkq4dviz	The request reaches the proxy, but access fails because the destination is not allowed or its route is missing.
+ag4sqe4s	Compare the client–proxy connection with the proxy–server connection.
+wlzujh6q	Change the list of allowed destinations and check the HTTP result.
+yd8t41ez	The proxy handles the lab's HTTP subset and does not browse the Internet.
+fgaswhxm	Load balancer
+xp9od0jp	A load balancer receives requests on a common entry point and chooses a destination server. Round-robin alternates between destinations and least-connections considers active connections. Health checks help remove unavailable servers; they also need connectivity to each backend.
+hc5e98qz	New requests may go to the second server after the first one fails its health check.
+c0yj4ke8	Compare the algorithm, the backends, and their health status.
+wmogbv77	Disable a server and observe the destination chosen for new requests.
+4rdyecd9	Selection and health checks use simulated HTTP connections.
+wwk8rhl8	IP phone, SIP, and RTP
+v75mh7fk	SIP signals call setup and teardown. SDP describes media parameters, and RTP carries the audio in a separate stream. Completing signaling does not guarantee that the media path works in both directions.
+2505ltxx	A call can be accepted and still have no audio if media datagrams are blocked.
+2jj8mpxi	Compare the SIP state with the addresses and ports negotiated for RTP.
+w1y0s8op	Break the media path and check the call result.
+o0jzl3b5	The lab models signaling and PCMU samples without calling an external phone.
+wqgyglb6	IP printer and IPP
+nz7cc2vj	A network printer receives jobs through an IP service. IPP, carried over HTTP, lets you submit, query, and cancel jobs. The queue can accept a request and still be waiting for paper or processing; connectivity and print completion are different states.
+41eeq9b4	A job enters the spool but stays pending when the printer runs out of paper.
+qtn79de8	Submit a job and check its status in the queue.
+pwxauvo7	Change paper availability and track completion or cancellation.
+6vf9ts6i	Pages, queue, and paper are simulated; no print job is sent to a real device.
+vqysoq8j	MQTT connects clients to a broker. A client publishes messages to topics and others receive them through subscriptions. Wildcards select families of topics, and a retained message can be delivered to a new subscriber. The sensor does not need to know the address of each consumer.
+tq82kk9p	A sensor publishes to room/temperature and a client subscribes to room/# to receive its measurements.
+u36c3hkt	Compare published topics, subscriptions, and received messages.
+9oapqdp7	Reconnect a subscriber and check retained messages and keepalive.
+22oqbr6k	The engine implements an MQTT 3.1.1 subset for the lab's clients and brokers.
+tc04q0wf	Database service over the network
+r22l3w45	A client must reach and authenticate with the service before querying data. The transport carrying the request to the server does not guarantee that the query is valid or allowed. Separating network, authentication, and query failures makes it easier to identify the cause of an error response.
+dt6uikea	The server may respond over HTTP but reject a query because of a wrong key or a nonexistent table.
+b226iqgm	Compare the connection, access key, and query response.
+ds4m88w1	Change a record and query the table again from the client.
+99unh1ct	The service provides limited SQL over HTTP/TCP and does not access the app's account database.
+sp5gqpje	Trunks
+gfwvhb3n	Event
+qng404yz	Reason
+45yx5nu0	Network inspector
+wg2nzqmn	Configuration references to scenario IPs. Presence and power are not proof of a route, ACL, or service; validate with traffic.
+z1j8ujtw	Network views
+q20uv8qu	Devices
+qj93jejp	Errors
+tf6df9l7	Path
+hfpp3sa4	Path source
+4h9u1rw4	Path destination
+ek3rrks4	Trace path
+u83kab5h	transmissions
+c49ptotz	Time
+nywgnbt3	From / interface
+78lmypzs	To
+tvq1x0tu	Destination MAC
+n4f76qc9	Inspect {0}
+vd8jn8oh	Inspect device
+dlsilgos	Routes learned from the network
+jzog4kkg	Hellos discover neighbors. Routers exchange LSAs and calculate the lowest cost using their own database. Advance the simulation to observe convergence.
+aacrnnq1	Stub/NSSA areas, redistribution, and authentication
+3xt0q8dr	Advanced OSPF JSON configuration
+6si031zy	Apply advanced configuration
+4jvshbw1	Enable OSPF
+0jn0ya83	Enable OSPF on
+2s1blico	Area
+d0clvakj	Network type
+c74ujt7l	Point-to-point
+8gb8l8ck	DR priority
+bx5gnmpe	Passive (advertise the network without Hellos)
+7advusbo	Applying restarts this router's adjacencies. Dead must be at least twice Hello.
+2qxa8jen	Apply OSPF
+e428are3	Stub/NSSA areas, external routes, and authentication
+xgcadowa	Edit the full configuration to choose area types, E1/E2 metrics, tags, and per-interface keys. Changes made in the form above preserve these fields.
+rwdwfuih	OSPF configuration (JSON)
+01docuoo	Apply advanced OSPF
+z4fvd2oz	OSPF neighbors
+vb0iyx2f	Router ID / port
+bwy9xrds	No neighbors discovered.
+yv0tm6qu	OSPF routes
+oyhd6p7n	No routes learned.
+z2hztwcw	LSAs
+ngqgxn72	· withdrawn
+fcvfgapt	· sequence
+mbu6a69g	Source → destination
+3mc5cvma	IP addresses of the sender and recipient of this datagram.
+dlq4kmxv	Protocol / hop limit
+w1bikbuu	The protocol identifies the carried content; TTL limits how many routers the packet can cross.
+6006y3wa	Message type
+u3uf1bkl	Indicates this packet's role in the protocol: discovering neighbors, advertising configuration, testing, or carrying data.
+c8dddrdv	Protection sequence
+khxwmd9o	Number used by the radio protection model to detect replayed messages. It is not the TCP sequence number.
+ptpxwpgz	Integrity check
+lt7gz73w	Value used to detect changes to the model's protected content.
+rbba1fug	Protected payload
+m1bfuq2l	Data protected on the wireless link; its recipient needs the matching association and key.
+zfwpfeva	MPLS label stack
+h9suminz	The outermost label is evaluated first. Each label includes a hop limit and a traffic class.
+a5w9w816	Encapsulated packet
+iazy8r68	Content carried inside the encapsulation; it is not the outer network header.
+nfl1cvir	Encapsulated Ethernet frame
+oy8tk0nv	Virtual network frame carried inside the VXLAN tunnel.
+hr59mm8u	STP domain / instance
+cuky6gc4	Identifies the set of VLANs or the instance in which this root election takes place.
+n7ocgwdu	Packet that caused the error
+wtxcptae	Part of the original packet returned in the ICMP message so the sender can identify the affected operation.
+q75afhsg	Sequence of the packet that caused the error
+w8mpg0ka	Ties the ICMP message to the original TCP segment.
+6tpfz6fi	Where this record was produced; not necessarily the original source of the packet.
+twpyk3sr	Port or radio related to the record. General changes may not have a specific interface.
+nixpaioc	Source MAC
+dvpk5gxb	Identifies the interface that sent the frame on this link.
+k1v9125l	Destination MAC
+lpjvifxr	Indicates who should receive the frame; ff:ff:ff:ff:ff:ff is broadcast, addressed to everyone on the link.
+bg36guco	Source IP
+zbyofdmp	Address of the host that originated this IP packet.
+30jby4qo	Destination IP
+x8axpp6e	Address that routing must reach.
+rq1ai60n	Address of this packet's source.
+od2sors4	Address the packet is headed to.
+6020w3of	Source port
+cvpbg74y	Identifies the sending endpoint of the transport communication. It is not a physical port.
+suyd8ldm	Identifies the receiving endpoint; it often corresponds to the requested service.
+jplop8ez	SYN opens the connection; ACK acknowledges; FIN closes one direction; RST aborts the connection.
+0liexhl8	TCP sequence
+k0rzokhz	Number of the first data byte in this segment. SYN and FIN also consume a sequence number.
+xhn4limz	TCP acknowledgment (ACK)
+6z5919c2	Next sequence number expected by the receiver; acknowledges receipt of the previous bytes when ACK is present.
+8hyvn4sb	Receive window
+ddnnkjvc	Number of bytes the receiver advertises it can accept beyond the ACK; it is not the sender's congestion window.
+t6phz0tt	TTL — hop limit
+2053c0a7	Decremented at each router; when it reaches zero, the packet is dropped to limit loops.
+1p22939w	IPv6 hop limit
+ost7zb6v	Decremented at each router; serves the same purpose as the IPv4 TTL.
+5mlw303a	Network name (SSID)
+p0cy7hvh	Advertised name of the Wi-Fi network; it does not identify a client and is not the password.
+38yya3ab	Advertised security
+my5rsmlh	Indicates how access is protected. An open network does not require key-based authentication.
+bv07cxub	Message
+zreolq8c	Control step or type carried in this packet.
+cahlkkxo	Type of request, response, or notification in this protocol.
+0xtk9740	Negotiation identifier
+d9q5c0sh	Correlates the steps of the same access attempt in this model.
+b45tiifn	Single-use value (nonce)
+o0j67g34	Value used in the authentication handshake to tell exchanges apart and reduce message replay.
+o2grj8w5	Payload protection
+etwwsri0	Identifies the algorithm represented by the simulation; it does not prove production-grade encryption.
+f6ie1rc1	Ethernet payload type
+xnn8flne	Indicates the protocol carried by the Ethernet frame.
+7ml3px2k	Encapsulation
+ftf5i40e	Indicates how the control protocol is carried in the frame.
+qmx6l1kb	VLAN identification
+2mjm1hq0	The tag identifies a VLAN on a trunk link. Without a tag, the VLAN depends on the port configuration.
+yukopez2	STP root identity
+56jw1d7j	Priority and MAC used to identify the elected root switch.
+c45qzjg5	Cost to root
+e43496j3	Accumulated path cost; STP compares costs to choose ports.
+8ky9i5yz	Switch identity
+emoyi64h	Priority and MAC of the switch advertising this BPDU.
+l0pf4mxa	Port identity
+j6mc8i4m	Identifies the port that advertised the BPDU and is used in tie-breaking.
+jhpieug4	Message age
+6zzst0ml	Accumulated time used to limit how long STP information remains valid.
+rsb359f8	Topology change
+xs103agp	Signals a path change; it can cause MAC table entries to be updated or aged out.
+j6qttloa	RSTP proposal / agreement
+vzwr5e5u	Flags used to coordinate a safe port transition. 1 means set; 0 means not set.
+93mf1pnz	ARP operation
+xzm32r6y	Request asks for the MAC of an IPv4 address; reply returns the mapping to the requester.
+z0m11lj9	Sender IPv4
+yvi9br3y	Address of the host providing or requesting the ARP mapping.
+5jtdd5om	Target IPv4
+6a2f0y8t	Address whose MAC is being resolved on the local network.
+w7dgyvt9	IPv4 identification
+egodz2mh	Links fragments of the same datagram for reassembly.
+sj331caa	Fragment offset
+qh82yoy1	Position of the data in the original datagram, expressed in 8-byte units.
+fq6k6fm8	More fragments?
+5oj5qkq8	True means this is not the last fragment of the datagram.
+vpzdnw58	Packet size
+rlkw23s9	Modeled length, in bytes.
+0zubebn4	Size
+ioixl5q8	Modeled length, in bytes; the content may occupy only part of it.
+u9cxddm2	ICMP type / code
+k7n3rsqk	Distinguishes a test message from an error and indicates the reported condition.
+p9xa17xx	Test identifier
+jeqkupms	Matches an ICMP reply to the corresponding request.
+mvuiv8f0	Transaction ID
+lbo9hv73	Matches the request and response of the same operation.
+4cvcylcd	DNS question
+tu8bwtnw	Name and record type the client wants to look up.
+opv4zkhb	Recursion desired
+5a074fqb	Indicates whether the client asked the server to find an answer on its behalf.
+1812jxbq	DNS response code
+dhv7uirl	NOERROR means the query was processed without error; NXDOMAIN means the name does not exist. A response without an error may still not contain the requested record.
+96zjg2xl	Authority / recursion / truncation
+5bann8zq	AA: authoritative answer; RA: recursion available; TC: truncated response. 1 means set; 0 means not set.
+hgslt0d4	DHCP client MAC
+uktvfzs0	Identifies the interface requesting the configuration.
+yz89w008	Current client IPv4
+sfj73sim	May be 0.0.0.0 while the client does not have an address yet.
+jj6rhgnd	DHCP relay address
+od5la99r	Identifies the network served by the agent that relays the request to the server.

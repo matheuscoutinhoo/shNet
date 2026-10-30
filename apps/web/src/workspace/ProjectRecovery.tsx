@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { configurationDiff, type Snapshot } from '@shlab/engine';
 import { api, download, type Project } from '../api';
 import type { LabController } from './useLab';
+import { formatLocale } from '../i18n';
 export function ProjectRecovery({ lab, onRecovered }: { lab: LabController; onRecovered: () => void }) {
   const [busy, setBusy] = useState(false);
   const action = async (fn: () => Promise<void>) => {
@@ -38,7 +39,7 @@ export function ProjectRecovery({ lab, onRecovered }: { lab: LabController; onRe
           {lab.drafts.map((d) => (
             <div key={d.key}>
               <p>
-                {d.name} · {new Date(d.updatedAt).toLocaleString('pt-BR')} · {differences(d.topology)}
+                {d.name} · {new Date(d.updatedAt).toLocaleString(formatLocale())} · {differences(d.topology)}
               </p>
               <button className="button" disabled={busy} onClick={() => lab.recoverDraft(d)}>
                 Recuperar rascunho

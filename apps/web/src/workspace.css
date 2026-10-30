@@ -756,8 +756,10 @@
   flex-shrink: 0;
 }
 
+/* Uppercase in CSS keeps the text node translatable. */
 .node-type {
   display: block;
+  text-transform: uppercase;
   font-size: 6px;
   font-weight: 700;
   letter-spacing: 0;
@@ -2759,8 +2761,14 @@ td {
   font-size: 12px;
   cursor: pointer;
 }
-.terminal-tab .terminal-tab-close {
+.terminal-tabs {
+  display: flex;
+  gap: 6px;
+}
+.terminal-tab-close {
+  display: inline-flex;
   padding: 3px 5px;
+  cursor: pointer;
 }
 .terminal-dock-add {
   display: inline-flex;

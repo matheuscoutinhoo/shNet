@@ -1,0 +1,336 @@
+xe5hqn29	IPv4/IPv6 server
+ifeeglt1	Server port
+x7ztwta4	Access key
+it2ck3l6	SQL query
+uic6fh58	Send SQL query
+ku6uqoqr	Panel unavailable
+av9wai6p	This panel could not be loaded. Close it and save or export the lab before reloading the page.
+g59iq4kf	Close panel
+e9jgkbis	Inspect
+m2yqge21	Open terminal
+t92msoy7	Rename
+jvpo06qd	Duplicate
+hmvr5gk6	Connect
+khvyg9f6	Power off
+74sysmsm	Power on
+te5aseg4	Delete
+3xlz7rh1	Options for device {0}
+a9vpyi4j	Close device actions
+qdxt3vv3	Actions for {0}
+pv308uac	↑ ↓ to navigate · Esc to close
+qajlmkdg	End devices
+9js4gu78	Switches
+rfp5rmvv	Routers
+qe4yg54x	Servers and services
+7j3oi1dv	Infrastructure
+7ulbqfji	DHCPv6 and UDP
+u4hssbbs	DHCPv6 provides the address, DNS, and prefix delegation; the gateway and on-link prefixes come from RAs. Enable IPv6 on the selected interface. For delegation, use requestPrefix and delegatePort with the LAN interface ID.
+onbspmus	Select an interface.
+p98syl2m	DHCPv6/UDP configuration
+f3fgp069	Interface DHCPv6 client
+fo0w99wy	DHCPv6 server and pools
+o2zfgrjx	IPv6 UDP echo service
+iaqh54iq	Interface DHCPv6 relay
+ufgobomb	IPv6 services configuration
+llqk7qbm	Apply IPv6 services
+e91il7qo	DHCPv6 relay:
+umtc6i5p	forwarded ·
+c3kiorhr	replies ·
+3gm2vxm2	correlations.
+s7sptgg3	DHCPv6:
+ypwn15e6	No address
+4cxsgvc0	not provided
+wc9sy75k	Release DHCPv6 lease
+qpttiw4e	DHCPv6 server:
+qucqc7pt	leases ·
+9niueqgk	quarantined addresses
+cicfj6kd	IPv6 UDP destination
+56606uc4	IPv6 UDP port
+sepvej3l	IPv6 UDP data
+mp7644eu	Send IPv6 UDP
+aqi6v3qs	Received
+2lk5u58z	Disabled
+t8w9lqqv	Configuration or cable mismatch
+bk9gfkw6	Active after fencing; no confirmed second copy
+6iethczh	Channel unavailable; replies suspended
+xdijzyyn	Replica confirmed
+c97luhwl	DHCP availability
+azp8c41m	The active server confirms offers and leases on the standby over the dedicated cable. Switchover is manual and powers off the former active server. There is no automatic election.
+1dqosd08	Active
+bzkho5tr	· local revision
+4o3u0nsk	· received
+j6lvnfsu	· confirmed
+g08cl25o	Promote standby and power off
+7y6pmgzh	Remove DHCP pair and disable the standby
+6yqtbzpp	Standby server
+1gkilj55	Select a server
+a5maxg12	Configure pools with identical names and policies, leave the standby without leases, and connect two dedicated NICs without IP addresses using a direct cable.
+vi51ubeu	Create DHCP pair with this server as active
+7v5w9eey	The replica preserves leases and quarantines; after switchover, renewal with the new server occurs at T2. The replication channel is not exported to PCAP.
+d80x0m4x	Static
+33jqw9al	Searching for server
+3xlvkm7o	Requesting address
+pnuexanx	Checking for conflicts via ARP
+sjrfw08z	Active lease
+417zi4in	Renewing (T1)
+rg5sus12	Released
+4b35bx3k	Expired
+ybkawj8z	No lease
+7qy6unbj	DHCP service
+0tx3moq6	Create DHCP pool
+il1xj90d	Configure a static IPv4 interface
+p7a65khn	New pool
+wlyd2b3s	No pools configured.
+jz5ln6xw	Edit pool {0}
+keozm5e2	Edit pool
+lnesihjf	Delete pool {0}
+wvnm4kap	Delete pool
+820r2pbo	Network / interface
+f2v2ohqg	Remote · giaddr
+rjvjml4z	Range
+2nnrpisp	Available to others / capacity
+4lb0bf1i	MAC reservations
+br5etewb	Offers / leases
+qhp991l0	{0} reservations
+msucodf3	Client MAC
+hye62980	Reserved IPv4
+usu2fiku	Leases
+3mferqoh	IPv4 / client
+7fnsjwjq	Remaining
+uuahl77x	Active
+hhqp4xio	Offer
+g7cvk3j6	No leases.
+gsp8m4tz	Not assigned
+o8ojry5l	Server
+zq119cwt	Expires in
+llmqstop	virtual seconds
+ht3oqz9w	Renew DHCP on {0}
+pzmm71mq	Renew
+5ag90o11	Release DHCP on {0}
+ryrevv5p	Release
+c45ygxjk	Use one reservation per line: MAC IPv4.
+5jvou0f1	Invalid pool.
+v0yb6009	Edit DHCP pool
+4dnej2ui	New DHCP pool
+1d2779wk	Pool name
+kagc6w4t	Pool type
+wyu8zxwc	Local · interface network
+9tvqznbn	Remote · network served by relay
+i9jjizqw	Relay IPv4 address (giaddr)
+ycub5vo5	Pool network
+rwk5vd1z	Pool prefix
+1umbc5l9	Range start
+pg39engx	Range end
+feejgbqi	Optional
+9c91h453	Lease (seconds)
+yx659ory	Excluded addresses
+p8yeeh8f	One reservation per line: MAC IPv4. The address must be within the range and is available only to that MAC. Reservations also have a lease and expire.
+6tzca4ap	Save pool
+ppgkj3wk	IPv4 conflict detection
+9zjv3a00	Before applying a new lease, the client sends three ARP probes. A conflict triggers DHCPDECLINE and a new discovery.
+6c9znwug	: check address via ARP
+dyfuj1j7	Conflict:
+5v9rqq7b	; quarantined until
+v8hh7gtx	In trustedPorts, list the IDs of the ports that lead to the server. REQUEST/ACK exchanges learn the IP/MAC/VLAN/port. Static addresses require staticBindings when DAI or Source Guard is enabled.
+t6vsxwxl	Switch DHCP protection
+vs751vr7	Apply DHCP protection
+6amwpvdx	Disabled
+s0g3r6ph	Forwards broadcast Discover and Request messages to up to eight servers. The interface IPv4 address identifies the client network (giaddr).
+77c0cpvf	Configure a static IPv4 interface on the router.
+kv97h8c6	Check the addresses and the interface configuration.
+ncxtao12	Relay servers
+b9lc77gk	Leave empty to disable.
+dl67wt61	Remove the local pool from this interface to use relay.
+et5emnbw	Replies return through routing and the configured ACLs.
+x08xkday	Apply relay
+vpvibgae	DNS service · UDP and TCP/53
+s3icr30g	DNS service
+djod075s	Records
+5tq66dek	New record
+fnrotl3j	Name / value
+6rcmsx8x	Edit record
+27jo3dgp	Edit {0} {1}
+7xcgwu63	Delete record
+46hohwhl	Delete {0} {1}
+dgoctqgb	No DNS records.
+uedm758m	Resolver
+6zhcd4tv	Resolver interface
+j8qz1bmo	No IPv4
+e4suzb2m	DNS servers (DHCP)
+h6dtxeov	Save resolver
+bso0semb	DNS query
+o7i78n3u	Queried name
+un6438tf	Query type
+czbdxoou	Query server
+aaaml7le	Automatic
+8i6d73zq	DNS transport
+o0jaoiva	Automatic (UDP, then TCP if truncated)
+s30vpizu	UDP only
+yc4cflty	Query DNS
+x11f8bwr	No queries.
+9jnwiofk	Clear DNS cache
+af0on5xf	Name / type
+u1bkyq62	Remaining TTL
+mxplikps	Query history
+naiquj4l	Invalid record.
+9tvpkqkf	Edit DNS record
+da56hf8u	New DNS record
+7mrw1jme	DNS name
+tdex2uya	Record type
+ux2de50z	TTL (seconds)
+zgp7h7dh	Record value
+6tkwgeq8	Save record
+dqv9ytm7	EDNS advertises the UDP size and DO requests signatures. To sign a zone, provide name, seed (64 hexadecimal digits), and validity in seconds. Copy its DS digest into the resolver anchors.
+ttgr2noe	DNSSEC / EDNS configuration
+b38frga3	Apply DNSSEC / EDNS
+wc1d1t28	· algorithm 15 / SHA-256
+hysnp6q4	Validation:
+2l6fkvxy	· last query:
+5f4ra7r5	Freehand drawing area
+yf7uz3st	Drag to draw. Press Escape to cancel.
+ad0ieeg8	No free address for the clone's isolated transport.
+v8ngx2ao	This view brings together the lab's devices. Power, interface count, and counters show different conditions: a powered-on device may still have no link or IP address.
+sm7h5whz	Open a device, compare its interfaces, and send traffic to see which counters change.
+7zitutq0	Number of frames received / sent by the device's interfaces. A sent frame does not prove reception at the other end.
+9ha7vlmu	Power
+5b60vety	Indicates the device's power feed; it does not confirm active ports, configuration, or service availability.
+fxnp6p51	The path is observed with a test across the simulated network. Each row records one transmission; it is not a connectivity prediction and does not guarantee that every transmission received a reply.
+ye5h62bv	Compare the outbound and return paths, MAC changes during routing, and the final test reply.
+utley4wt	MAC identifies delivery on the current link. IP indicates the packet's source and destination; routers rewrite the link-layer header at each hop.
+s6dlkmz4	The tag identifies the VLAN when present; without a tag, the VLAN depends on the port. TTL decreases at each router.
+wmysf35t	Round-trip time of the test, in virtual milliseconds. Without a reply, there is no complete measurement.
+lemkyg6g	This list highlights drops, rejections, and operations without a reply. The reason describes the observed condition; a timeout alone does not determine on which link the failure occurred.
+j0reh1z8	Open the device involved and compare addresses, routes, policies, and the send and reply events.
+ene19ju2	Drop / rejection
+2ndcjqal	A device or a rule prevented the traffic from continuing.
+zy2qfwd1	The operation did not receive the expected reply in time.
+r81fyfky	Dependencies map configuration references to the scenario's devices, for example a client pointing to a DNS server or controller.
+fd07remu	Check that the referenced address exists, then test communication and service availability.
+7rxmpn3v	Presence / power
+t92ct19l	They show that the reference has a matching device and its power feed status; they do not guarantee a route, authorization, or an active service.
+gp0dfo8p	This view summarizes configured protocols and their observed state. Active may only mean enabled; sessions, neighbors, and routes show different operational results.
+y98nraar	Open the protocol panel on the device and compare configuration, negotiation, and test traffic.
+oaf4g8j0	Neighbor / session
+jaet6zfo	Recognized peer or established control communication; it does not prove that a specific route is present.
+e3fzly7j	Routes / leases
+l0zjpzja	Information learned or assigned during operation; compare lifetimes, destination, and next hop.
+qszdlgsf	Virtual networks carry traffic over an external network. QoS classifies traffic and organizes how it is serviced; enabling encapsulation or a queue does not prove delivery.
+jlm4d07o	Test the external network first, then compare the virtual endpoints, classes, and traffic counters.
+v8dp8jga	The underlay is the network that carries the packets; the overlay is the virtual network provided on top of it.
+qwem1krt	VNI / label / class
+nwkbxyyw	They identify a VXLAN network, an MPLS decision, or QoS treatment; they do not replace the required IP path.
+sqa0tc9j	Security brings together traffic and identity policies. An enabled configuration does not confirm authentication, a translation, or that a specific packet was blocked.
+sg67aeu0	Check the matching rules, the authentication session, and the counters before concluding that traffic was permitted or blocked.
+lqk14tn2	They identify users and authorize actions or network access.
+4j4k2wf9	They evaluate rules and, when configured, connection state.
+jhvfd4lm	Translates addresses; translation by itself is not a security authorization.
+0er8d1sy	An interface is the entry or exit point for traffic. An installed cable is not enough: the device, port, and media must be active and compatible.
+em4x55vk	Power on both ends, check the link state, and only then test IP.
+n3ouay42	IP / prefix
+godvxeqn	The IP identifies the interface; /24, for example, indicates which addresses belong to the same subnet.
+89tc80cn	Administrative / operational
+aouze1fz	Administrative is the choice to enable the port. Operational indicates whether it can communicate under current conditions.
+i6l3l3te	Largest IP packet accepted by the interface, in bytes; mismatched values can prevent delivery of large packets.
+m3gqvszd	These tables show what the device knows right now. MAC, ARP, and routes serve different purposes and are learned or configured in different ways.
+7rd9s2zg	Run a ping and compare the entries before and after.
+7l09y1ex	On a switch, maps a MAC to the port and VLAN where it was learned.
+te16f59j	Maps a local or next-hop IPv4 address to the MAC needed to send the frame.
+4yxpttgy	Route
+gwkvkvv4	Selects the destination network, the exit interface, and the next hop. The reply also needs a return path.
+z6t700da	VLANs separate local networks. An SVI is the IP interface of a VLAN; VRFs keep independent routing tables on the same device.
+h8zxyifb	Compare the host's VLAN, its gateway, and the corresponding SVI before testing inter-VLAN communication.
+qa2wl587	Access serves one VLAN. Trunk carries multiple VLANs with 802.1Q tagging.
+ujg0uf3t	Can be the VLAN gateway if the device is routing-capable.
+1ir8yyuw	Separates routing decisions; it does not merge networks because they share addresses.
+vjlf1goo	LACP negotiates combining physical links into one logical link. Traffic is distributed among compatible members; a single flow does not automatically get the sum of all speeds.
+2l5kaca0	Disable a member and check whether the group keeps enough members to communicate.
+oc4i6tnv	Active starts the negotiation. Passive responds; two passive ends do not form a group.
+vshhk1k7	Minimum number of active members required for the group to operate.
+jrc4vnhy	AAA separates authentication (who the user is), authorization (what they can do), and accounting (a record of actions). 802.1X can block traffic on a port until authentication.
+4pijyzv8	Check the server, shared key, and credentials. Watch the requests and responses before considering the port authorized.
+xmffogtj	Protocols used to query the identity server; they are not the same as local login.
+sryp7lnm	Client requesting network access.
+gy12hbq5	Authorized VLAN
+u81ikvdr	Network the client is assigned to after the server responds.
+cq6o7lq6	IPv6 uses 128-bit addresses. NDP discovers neighbors and routers on the local network; it replaces the neighbor resolution performed by ARP in IPv4.
+3nvk96yc	Check the address, prefix, next hop, and neighbors before running an IPv6 ping.
+9yq8als8	Address used on the local link, usually in the fe80::/10 prefix; it is not routed between networks.
+nsai9493	Builds an address from a prefix advertised by a router.
+ttkugsaj	Limits the number of routers the packet can traverse.
+8a869qfc	QoS decides how to classify and service traffic when there is contention for resources. MPLS forwards using labels associated with paths.
+4czfxu41	Compare the class counters during competing traffic; classification without a congested queue may not change the result.
+ci5r28kc	Class-of-service marking in the IP packet; it does not guarantee priority by itself.
+g82iwb0d	Queue / limit
+gi0cawyc	Controls how the device services or drops packets.
+yq2scpjc	MPLS label
+8t9tsp2v	Identifies a forwarding decision, not an IP address.
+4pbkpahv	VXLAN carries an Ethernet network inside an IP network. EVPN distributes MAC and IP information to the devices participating in that virtual network.
+zj5z1969	First validate IP communication between the tunnel endpoints, then the VNI and EVPN routes.
+k65t4g6d	Virtual network identifier; both ends must agree on it.
+dqutn8c4	IP network that carries the encapsulated packets.
+714v48bp	Virtual network provided over the IP transport.
+ftjy0esu	A tunnel places one packet inside another to reach a remote network. The protection and negotiations shown here are lab models, not a production VPN.
+39xq5021	Test the remote address over the IP transport before testing destinations inside the tunnel.
+cnwnxpk3	Interface and network used to reach the other end.
+606wrplq	Remote prefixes
+qe5m3asx	Networks that must be reached through the tunnel.
+wr1cbopi	Delay, jitter, and loss thresholds used to choose an SD-WAN path.
+gjz0wlsz	The controller distributes policies to the sites. The sites forward traffic and choose paths according to those policies.
+vs6benah	Check whether the sites can reach the controller and whether they received the expected policy version.
+goqwqfcr	Identifies a participating location.
+m5ouuv1s	Policy
+5wkcy8xk	Maps destinations or applications to paths and quality criteria.
+gv74ot8g	The access point advertises a network. The client must detect that advertisement, associate, and complete authentication before it can carry data. Being connected to Wi-Fi does not guarantee an IP address.
+osa3iz3a	Check the SSID, security, channel, and signal; advance the simulation to observe the association. Then configure or obtain the IP address.
+0fed01et	Advertised name of the Wi-Fi network; it is neither a password nor proof of security.
+eog9oee3	RSSI measures received power in dBm. SNR compares signal and noise; higher values favor communication.
+2dibh41l	Channel / obstruction
+gogozn1e	Radios competing for the same channel and materials in the path can reduce quality.
+t9w5mjrz	This panel brings together device-specific features: AP management, Wi-Fi authentication, or traffic inspection. Choose the feature and check its prerequisites before enabling it.
+5310hmiw	Apply a configuration, advance the simulation, and compare state, sessions, and events. Configuration alone does not prove that the service is working.
+luptd0bz	CAPWAP connects managed APs to the WLAN controller over the IP network.
+7py39e2u	APs use wireless links between each other to reach a network uplink.
+axma43p0	IDS logs rule matches. IPS can also drop traffic that matches a block rule.
+miluzwet	Modules and the power feed are part of communication. PoE delivers power over the Ethernet cable; the console lets you manage a device over the local management connection.
+02lzwysb	Check the media on both ends and whether the PoE budget covers the devices' power draw.
+4fbabvm6	Interface modules that must be compatible with the cable, optical mode, and speed.
+ucggh3ol	The power source, standard, and available power must meet the needs of the powered device.
+fe6p2lfj	Serial can carry a WAN link. Console carries management commands, not regular IP packets.
+pf4g7mx2	Processing capacity, memory, and power feed limit how the device operates. A rack organizes mounting; a patch panel provides a physical pass-through and does not route packets.
+wzmuf9pw	Compare load with capacity and observe the effects of power loss or overheating in the lab.
+jbzhk6zv	CPU / memory
+7ftawe9x	They indicate resources used by the simulation workload; they are not measurements of your computer.
+gmhbe0i1	Supplies power to configured loads as long as a power feed or battery is available.
+zedm6c9h	Temperature
+axi14sae	Relates load, ambient conditions, and cooling in the thermal model.
+0l35mdys	A database serves client requests through a network service. The IP path and the transport connection must work before a query.
+9kk1qbcl	Check the address, port, and authentication; send a query and examine the response and counters.
+3q0zfyd3	Table / row
+gukxrjcj	A table organizes records; each row is a record with values per column.
+5qbfo219	Port / key
+g48fu5c8	The port identifies the service; the key controls access in the lab model.
+oy6s8loy	The available services depend on this device. Phone, printer, MQTT broker, proxy, and load balancer each have their own functions and flows.
+80bxl1wt	Check the service IP and port; perform a client operation and follow the events and the response.
+0jh5pa77	Clients publish messages to topics and receive messages from subscribed topics.
+0c5cnq2w	Proxy / load balancer
+242r6wyn	A proxy receives requests and forwards them. A load balancer chooses among destination servers.
+nojo7don	Telephony / printing
+ecpivr7t	Calls have signaling and media; print jobs enter a queue and consume resources.
+t2ehreu2	DHCP provides IP configuration for a limited time. Client and server have distinct roles: the client requests; the server chooses a lease from an allowed range.
+goy454i5	On the client, request DHCP and advance the simulation. On the server, check the offer, acknowledgment, and lease; the gateway and DNS must make sense for the network served.
+olf7089e	Range of addresses the server can lease in a subnet.
+y522e3z3	How long the address can be used; the client tries to renew before it expires.
+ljrhqi2y	Forwards requests between subnets, because local broadcasts do not cross an ordinary router.
+qkgj3d93	DNS translates names into information such as IP addresses. A client queries a server; the server responds with known records or an error.
+t4hbmprg	Use nslookup and check the server, queried name, and response. Then test the returned IP; correct DNS does not guarantee that the service is reachable.
+ylmvzuch	A publishes IPv4; AAAA publishes IPv6; CNAME points to another name.
+2mh52gve	Record TTL
+k9lepnpu	Time, in seconds, that the response can remain in the cache. It is not the hop limit of an IP packet.
+htsbwxhu	DNSSEC validates the authenticity of signed data. EDNS extends DNS options; neither one encrypts the query.
+gcov4nrb	TCP delivers an ordered byte stream and retransmits unacknowledged data. HTTP uses that stream to send page requests and responses.
+doy0g6fu	Check the IP, port, and enabled service. Watch SYN, SYN-ACK, and ACK, then the data; a successful ping does not prove that TCP is allowed.
+vp092a6s	Sequence / ACK
+4qujzhvz	The sequence number locates bytes in the stream. ACK indicates the next byte the receiver expects.
+3wdd069w	Window
+ap6ll3b0	Number of bytes the receiver advertises it can accept; it differs from the sender's congestion window.
+ukkwi4tl	Reset terminates or refuses a connection. Timeout indicates that an expected response did not arrive in time.

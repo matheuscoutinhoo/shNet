@@ -1,0 +1,494 @@
+zn3mfn24	The operation failed or was blocked
+ua79otvf	{0} In this record, the operation was refused, dropped, or did not receive the expected response. Check the specific reason below before changing the configuration.
+dwu1ycmw	Application
+szlqhjxt	Data carried over TCP
+hjknacg2	Transport
+plu8tcz6	IPv6 / ICMPv6
+30chewzx	Data link
+k1mmolzy	Physical
+u2i8hhsi	Radio
+ygidtvo4	Copper cable
+xctaiwdi	Crossover copper cable
+zihpc7pe	Single-mode fiber
+xp1ccck5	Multimode fiber
+bwck4o4x	DAC copper cable
+4pnutovu	Optical fiber
+uj88uh7m	Serial link
+afp5mxri	Console cable
+yu2btdjw	Local interface; unidentified medium
+aj6bexpz	All
+fwdjpomx	HA sync
+0ekb6e4y	Redundant NICs
+pa61cnuk	PLC / HMI / Process
+y2luh72s	Drops
+cp4ts29r	Factory availability
+smt7bedm	Main flow
+afb04l9k	Could not query local results: {0}
+tctg6nm3	Result calculated but not saved: {0}{1}
+xru591on	. Local storage unavailable: {0}. Export the scenario run before closing.
+08041nlj	Failed to run the scenario.
+rtzcl6d2	The run exceeded three minutes. Split the scenario; no partial report will be accepted.
+rz4iv3zc	Network and scenario validation
+7eycvu8b	Check topology
+pkn1fai6	Scenarios and SLAs
+xaj422t0	Model capabilities
+e3l09bnw	Configuration and review
+zf6af26u	errors ·
+hr86j0ix	warnings. Static verification does not prove availability or traffic blocking.
+ftthhc8h	No issues detected by the available rules.
+awfn8eba	Feature
+m8bfd88e	Availability
+fmmanfn0	Limits
+5ll6a3z6	Scenarios run on an isolated copy of the topology. Compare the baseline with faults; times and SLAs are virtual. Up to 180 samples per scenario. Scenario runs store the revision and source topology in the lab. The baseline keeps flows and SLAs and removes faults, scheduled actions, and checks that depend on the interventions.
+yfjcej1i	Load scenario
+hjzj5xxa	Select a scenario
+c7au5l7z	Saved:
+cf2nkuh3	Template:
+34cmuhic	Scenario format
+x1x94yo9	Flows: source by name/ID, IPv4/IPv6 target, optional vrf and scope for ICMP/HTTP/Modbus; protocol icmp/http/modbus/dns/dhcp/mqtt/snmp/ntp/syslog, expect allow/deny, maximum loss and latency. Faults: atMs, kind device/link/port/service/power, target by device name/ID or link ID, up false/true. A port fault requires port; a service fault requires service (dns/dhcp/http/modbus/mqtt/snmp/ntp/syslog); power cuts a UPS's utility power and battery. The deny expectation checks for the absence of a response within the deadline; denyEvidence policy requires a correlated rule. Investigate the cause in the report. Modbus requires transaction, unit, function (01/02/03/04/05/06/15/16), address, quantity, and values for writes; expectedRegisters validates the values read. requireFinalSuccess requires a response in the last allow sample; deny requires blocking in every sample, including the last one. DNS requires name and accepts expectedAnswers; DHCP requires interface and accepts expectedServer/expectedAddress. MQTT requires operation connect/publish; publishes use QoS 1, topic, and payload, with optional receiver/filter to validate delivery. SNMP requires community/oids and accepts expectedVarbinds. NTP requires maxOffsetMs; syslog requires text and accepts severity. DHCP/MQTT/NTP use dedicated devices and an interval greater than or equal to the deadline.
+zvubu47b	Edit with form
+esasjfwk	Scenario definition
+s9o0eq7x	Limit of 32 saved scenarios.
+w215olgg	Save scenario to lab
+5lubx4fj	Run scenario
+5lxcrukk	Run baseline
+xetrofo5	scenario
+y2imddk7	Export definition
+m1pzpwvv	Result not saved
+aexq2tyj	Canceled
+51plfk2b	Expired; result can be recovered
+0swkd1fx	Running
+zsz4n1z5	Scenario
+7rsg5r0z	Source and engine version
+uz2k9uz1	Client build:
+f1rwwh8t	· server engine:
+lx93gckp	· migrations
+sren0nty	Client-side run ·
+stpulvmm	Metrics recalculated by the API
+rbqxr1cc	Earlier or local result not yet revalidated
+en5j3l5g	. The hash identifies the source; it does not attest to an authoritative run.
+fqvpyfa1	Server replay:
+irzcctj7	result confirmed
+bsolgr7y	result differs
+mfe2vhi7	. Contract
+7hpqi68c	Verify on server
+5osbp9gb	{0}-result
+c74pbb61	Export scenario run
+hertxxg7	Retry saving result
+4mim4ly8	{0}-source
+1x0akv0l	Export source topology
+bwjrczcy	Delete scenario run
+wyouh5ym	failed samples. Recovery is observed with attempts every
+0j3fjnrd	ms; the response uses its virtual timestamp. Percentiles and jitter use successful responses.
+oahgtbqp	Faults and observed recovery
+x7robxlh	no recovery observed
+5eunno9g	{0} ms after the fault
+2lzw35to	· response at {0} ms
+qfpqijzd	· attempts every {0} ms
+3c8myyi4	· epoch
+eqji5g6e	· clock
+uou13q0k	Passed
+4bo33c8g	· observed
+pgucsk27	No response
+uu22qqyr	Blocked by policy
+bq9ww6hj	Link/interface failure
+ew03jg1o	Transport failure
+vtjzjha2	Unexpected response
+rosxtx4l	No response within deadline
+gywzosi7	Undetermined cause
+9r1dpzn7	· Observed devices:
+69d4evs1	Transport event sequence
+wn5m0at2	received
+aywzcioq	· Evidence limited by retention; check the source and rerun with an adequate capture.
+qyf3avek	{0}-scenarios
+c19bcj6d	Export results
+g78jdzfm	Scenario / flow
+2103hxpz	Loss
+ocm3y9gx	Jitter p95
+c9dtqfzv	Failed
+b8rcc9x4	Invalid rule: use sequence source destination action protocol [eq port].
+y82cgvjr	Enable firewall
+69wmd9t6	Firewall mode
+kz3yrs51	Trusted interfaces
+itecdpn9	Zones and rules
+sjt4ej1r	Tracked protocols
+uozojiy7	Unchecked protocols follow the ACLs. Returning ICMP errors must quote a packet that matches the tracked session. The router's own traffic follows the ACLs.
+edksknda	Zones per interface
+pmql05xt	No zone
+oilhx4a3	Inter-zone rules
+idkwk9vl	One rule per line: sequence, source zone, destination zone, action, and protocol. Use eq to filter the TCP/UDP destination port.
+evz96elt	The lowest matching sequence wins. inspect tracks the session and allows return traffic; permit allows traffic without a session; deny blocks, including return traffic. Without a rule, traffic between zones or without a zone is dropped. Within the same zone, it is permitted. Related ICMP errors go through the same ACLs and deny rules. The router's own traffic follows the ACLs.
+aiojev7e	Apply firewall
+st49rnea	Transit firewall
+nvn3hirh	Controls TCP, UDP, and ping between interfaces or zones, including return traffic and ICMP errors related to the sessions. ACLs still apply. Changing the policy clears the sessions.
+egu66s6j	Drops:
+0fmbhewt	· Sessions:
+8yqb2cfy	Client → server
+qdvkxgzk	Expires
+uvk0c148	QoS classifies and marks DSCP, applies a policer, and places frames in a queue with a capacity and output rate. Strict priority and WRR change the transmission order and the wait time.
+fplng648	QoS port
+4gc27f1f	QoS configuration JSON
+ch330qml	Apply QoS
+jbgvlfqt	Queue:
+n8ylrgiv	In/Out
+xrvnquq5	Conceptual MPLS
+fzbe6bff	The ingress FEC selects the path and applies labels. The LFIB determines swap/pop on the downstream routers; TTL and MTU still apply. Configure the IPv4 next hops and the return routes. There is no LDP/RSVP or contracted MPLS service.
+rcrbwds8	Apply MPLS
+ojh85rdb	· LFIB labels:
+ngvnsx2z	PoE power feed and management ports
+d1nj0z85	The PSE reserves power by class and priority. A PoE-dependent PD only works over a copper cable with a sufficient budget. Use required: true for phones, APs, or cameras powered by the network.
+l5pa9cud	Apply PoE
+74logak5	powered by {0}
+2ptb0zdw	no power feed
+sjrx6l04	local power feed
+28ecgb76	Add serial or console port
+rxmbqwgx	Socket
+90qtwus6	Serial role
+wf1vc5bz	Serial clock (bits/s)
+lxnanihj	Add socket
+60rah1hr	Connect Serial to Serial with one DCE and one DTE, or Console to Console. Console lets you configure the other device without an IP address; both ports must use the same baud rate.
+2rmax9km	Console cable
+kuciwfbx	UART password
+0yvn0ayc	UART command
+vo6i9puu	Send over console
+f1dtz3zu	Waiting for response
+p59qzdmo	Modbus exception {0}
+gnvgj4xs	Bits: {0}
+i9c0pjc4	Write confirmed
+m8zcou1a	Binary Modbus TCP: functions 01/02/03/04/05/06/15/16, coils, and 16-bit registers. Addresses start at zero. The tank process and the cycles below are simplified models without PLC firmware.
+q1f6zchw	PLC / server
+6wt6pjzc	Coils require 0 or 1.
+5uep8qhf	Discrete inputs require 0 or 1.
+l6tpdtsz	Server enabled
+nrjdocbj	Comma-separated registers
+579twbe3	Comma-separated input registers
+diko7rgd	Comma-separated coils (0/1)
+m7kj8sat	Comma-separated discrete inputs (0/1)
+vc4s5cqv	Apply PLC configuration
+5ev077b2	HMI / source
+yg12e9ke	01 · Read coils
+v8t8x3eg	02 · Read discrete inputs
+cc5zbwud	04 · Read input registers
+4iipjmfj	05 · Write coil (0/1)
+q1pv2ja8	15 · Write coils (0/1)
+0iecedaq	03 — Read holding registers
+oso9gn4h	06 — Write single register
+shqwtoga	16 — Write multiple registers
+m2ud107x	Starting address
+jv4ypn1d	Values to write
+6m13dirc	Run transaction
+1cd7b44v	PLC scan cycle (ms)
+dua1bte8	Initial level on apply (0–1000)
+ijvo4esn	Inflow rate (units/s)
+f9kcdewc	Outflow rate (units/s)
+i2a5o9xq	PLC low alarm
+5q4tvqed	PLC high alarm
+161mfqrt	Control hysteresis
+gmsfh892	Setpoint holding register
+qcxjvwm8	Level input register
+9zlg0kfa	Pump coil
+8rxk1zsm	Alarm discrete input
+p56jozot	HMI scan port
+lou4v9sy	HMI scan unit ID
+acx8aoty	HMI scan first register
+ddxk109n	HMI scan quantity
+qsecfx3f	HMI read interval (ms)
+mik5udgn	HMI read deadline (ms)
+6p2a33dd	Missed reads before alarm
+hnotngym	PLC scan cycle and tank process
+qgphw7sa	Tank model with a level from 0 to 1000. The PLC reads the sensor, controls the pump, and publishes the Modbus banks every cycle. Draining continues while the PLC is powered off; the pump stays off. Applying resets the level to the value entered. This model does not run ladder logic, firmware, or the safety functions of a real PLC.
+2nhu0psw	PLC process status
+re4sswzh	Level:
+1j2anhjo	on
+esuz365g	off
+ijmi6988	Alarm:
+8djxte22	· Low:
+jkksc940	· High:
+pji7b8qj	· Invalid setpoint:
+nj1zq56w	· Acknowledged:
+90rciks2	Acknowledge process alarm
+068u4xfn	Process enabled
+48b4fwaq	Tank control
+rstykdi8	Automatic via setpoint
+ueq41adp	Manual via coil
+7ay1pdv9	Setpoint, sensor, pump, and alarm use the bank addresses configured above. Automatic control accepts a setpoint from 0 to 1000; a higher value raises an alarm and turns off the pump.
+7hh6oplp	Apply PLC process
+s2mawtfh	HMI / SCADA / MES scan —
+ffxaqlo8	Periodic reads over Modbus TCP IPv4. The communication alarm counts consecutive reads without a valid response. The last value received remains visible and may become stale.
+oa6equ3y	HMI scan status
+egdsrv0f	Values:
+nup9gaef	no sample
+qsk4gkfb	· Samples:
+agde5a4a	· Missed:
+zytuccyz	Communication:
+xhnl9jqo	paused
+rxi84f4y	alarm
+ep6kg3yr	waiting for read
+okxpwdr9	· Value:
+6q1v46k2	· Last received:
+jut9tfgo	none
+tzvuygoq	{0} virtual ms
+n8ah1swi	· Latency:
+wr2qar0p	· Quality:
+f6ra7xz0	stale
+x7662nbi	current
+6ypndw4k	HMI scan enabled
+qxzwd8v5	PLC address for the HMI scan
+92uqucrc	Bank read by the HMI scan
+mfaxw5zi	03 — Holding registers (setpoint)
+b4qwrnh9	HMI sample low alarm (optional)
+bu194u2v	HMI sample high alarm (optional)
+a9ac3kxk	Apply HMI scan
+xh61xyc9	Infrastructure and capacity
+gczvrkak	Height (U)
+bfjh04d5	Ambient (°C)
+fr8bvz5j	Ventilation (0–1)
+tq7di536	Mounted devices
+evku6mes	Position
+h7zezbkf	Starting U
+wgldfd02	Occupied height (U)
+gfkk10hh	Remove position
+0aq2idzo	Mount device
+0yw9jdpu	Apply rack
+s194ja91	Each jumper connects two ports without learning MAC addresses or removing VLAN tags.
+pfdq1lb2	Jumper
+axh8zjmm	Remove jumper
+rd05kbvv	Add jumper
+f72vwh0z	Apply patch panel
+2jnf3mi4	Battery:
+00upv6t6	Wh · Output
+048dvcay	Utility power available
+jarz6s4y	Capacity (Wh)
+cva13b3r	Maximum power (W)
+46vov2ia	Efficiency (0.1–1)
+nidhpn64	Load
+fbp4l9i0	Load requested
+358m4jbv	Remove load
+vxpvkhf7	Add load
+7egcjn5o	Apply UPS
+cvuj68wi	Capacity limits the processing queue; memory is estimated from state and buffers. Temperature depends on the ambient temperature, the rack, and utilization. These are not measurements of the real computer.
+m0pnbrrf	Model resources
+6xm7m016	Capacity (packets/s)
+73imjsy6	Memory (KiB)
+ll3hduvd	Thermal limit (°C)
+72luoiyz	Apply capacity
+4zknq2fn	% · Memory
+pgd0ovzz	packets ·
+kyyrzkb6	thermal throttling
+remau5iq	normal capacity
+h8ez68vj	Application inspection
+uy1tihi8	Classifies the first plaintext HTTP request and real DNS queries. Ordered rules match Host, path prefix, or DNS suffix. Encrypted traffic is not read. Partial headers may pass through before classification; the segment that completes a blocked request is dropped.
+1n9dlxxb	HTTP/DNS inspection JSON
+zcvqeun0	Apply inspection
+ofsaz59j	Rule
+vlrpbvli	Application / action
+32fistpg	Hits
+sc04u83z	Decision
+15up592v	Enterprise EAP
+1zx2nker	Close inspector
+e7uwlgrc	Power off device
+sz6g4nk6	Power on device
+o1kss3z7	Device powered on
+dm7fbd2i	Device powered off
+k0v8uqls	Device features
+01g1j7o4	Overview
+gasf2do8	NIC redundancy
+kp74czl5	Tables
+bn3716km	Physical resources
+gac6s27n	Database
+syssm13d	Applications
+o8udzpzx	Policies
+sjf6d7cd	Configuration and status of
+i1fl5kd4	Profile review
+gwsu1j9k	Educational mode
+gx6ibl9a	What does this device do?
+8yotb91m	Invalid hostname
+lp3m9srh	Static gateway
+09zh4i9r	Apply configuration
+gdo9cgn5	● Powered on
+hvft7m1l	○ Powered off
+x3xzyt20	Passive
+37zdu3jd	Vendor / role
+jjrfy4w4	Layer
+zl9lljle	Received / sent
+p3jinvsx	Simulated time
+8ia9ibgu	Each interface has its own address, state, and configuration.
+6v94go51	No IPv4 address
+xjef2vfk	Loading terminal…
+8hwnh78n	MAC table
+6g82xbj4	ARP resolutions
+syq3gs3y	Attempt
+wj0h21wa	Next event
+x4g7z42l	IPv4 routes
+2g7njyio	Use the terminal to create VLANs and configure trunks and static routes.
+9l5gl0z6	No events on this device.
+a1rf7xck	No entries. Generate traffic to observe the state.
+h8re7a76	Use a valid host address
+8di5igmt	IP already in use
+q9seoj6r	{0} configuration updated.
+z4mr7wsa	Media
+cf6zpts9	Enabled
+ixi60eia	Disabled
+virnd78k	Passive port: the jumper only passes the signal through. Configure the pairs on the Infrastructure tab; IP addresses and VLANs belong to the connected devices.
+q15ipdhg	This port does not take IP addresses on this screen. Configure serial or console on the Hardware / PoE tab.
+au3b0aog	Interface enabled (no shutdown)
+iqee8hhx	Configure addresses on interface
+s8htyhdf	; this NIC belongs to the group.
+cpq7yt21	IPv4 addressing
+u6fj1hvz	Automatic (DHCP)
+vzfm1md5	IPv4 address
+w3nmiyiv	CIDR prefix
+pbauzgaf	Create the VLANs in the terminal before forwarding traffic.
+clqz5xsl	Speed
+hn7mdrzy	Transceiver module
+yom0qhpq	No module
+njx17zgn	Media:
+lq6r8wvu	STP cost
+7dxhf7fa	Edge port (PortFast)
+mq87u7e3	Apply to simulation
+4iqj9vn5	Enter the ACL prefixes.
+nhuloxx4	Enter IPv6/PREFIX.
+jydj7jto	Static IPv6 addresses
+yfx9y4o5	Obtain address and gateway via SLAAC
+dixc2wbg	Send Router Advertisements
+aedfpmtb	RA prefixes
+s7pjpqmw	RA interval (ms)
+2ltw6097	/64 prefixes: SLAAC with a valid lifetime of 60 s and a preferred lifetime of 30 s. A gateway with zero lifetime is withdrawn.
+3fh9azep	One rule per line: permit|deny any|echo-request|echo-reply|ndp|error SOURCE/PREFIX DESTINATION/PREFIX. An empty list permits everything; a configured list has an implicit deny. NDP also goes through the ACL.
+rlm8k8n0	Inbound IPv6 ACL
+o0mg9tfy	Outbound IPv6 ACL
+n1yjf4mp	Apply IPv6
+2n49hrcq	Disable IPv6
+l5sjn44r	IPv6 uses ICMPv6/NDP, DAD, multicast, and SLAAC on the simulated network. Link-local requires an interface; VRF and VLAN limit the scope. TCP/HTTP, UDP, and DHCPv6 use this same forwarding and neighbor discovery.
+qxtk8efj	IPv6 forwarding
+0obnmr0j	Create an SVI or a routed port to enable the switch's IPv6 stack.
+c8hprr4f	Addresses and gateways
+dr3pe4rh	Default table
+a0fn2pnf	IPv6 destination
+uyfhompp	IPv6 packet size (bytes)
+b8iojg3n	Ping routing table
+nbi9js02	Send IPv6 ping
+f1evzui4	Static IPv6 routes
+p48ij0ky	Enter network/prefix and interface.
+4dtl6v4g	IPv6 network/prefix
+er87c5ks	Exit interface
+ff2imd0k	IPv6 next hop
+r5vbuqyp	fe80::1 or :: (directly connected)
+ljvmd533	Add IPv6 route
+a3vr6ll5	NDP neighbors (
+mfz3hqj9	tasks
+ldcpl578	Changes not yet evaluated
+6wcevlya	Lab complete
+6rn6f4eh	Evaluation unavailable.
+c107xwwh	Validate lab
+9py7bwzz	LACP negotiates members using control frames. Active initiates; passive responds. At least one side must be active. The per-flow hash selects a member; a failure redistributes the flows among the remaining members.
+nb2rqjbh	Group
+jhh57s61	Members / state
+uv1h6ykf	· minimum
+0fnapfou	No LACP received
+hhriz70a	Edit group
+hzkfjqha	Create group
+zv6zt90l	EtherChannel number
+00utsdyw	LACP mode
+74cb6ngp	Minimum members
+k8n6zjqh	Physical interfaces in the group
+dvecf9r9	Members need the same speed, full duplex, and no IP stack or policy configuration. Configure VLAN/trunk or IPv4 on the Port-channel interface from the Ports tab. To diagnose a failure, shut down a physical member and advance the simulation.
+50h4mmxf	Apply EtherChannel
+e85kgbxb	Subinterfaces carry VLANs over 802.1Q. SVIs connect the IP stack to the switch VLAN. VRFs isolate routes and traffic, even with overlapping addresses.
+rd8lu30x	Inter-VLAN routing (ip routing)
+od3zkdd3	Loopback index
+3sjv3kbz	Create /32 loopback
+0o1jb3s3	Configure the /32 IPv4 address on the Ports tab and advertise return routes over both paths. Use the loopback as the VTEP underlay.
+or3sivyw	IPv4 pending
+j7b747yp	Create interface
+j3uem5m7	Physical port
+yxbrfzek	Interface VLAN
+fnbx1vne	Create logical interface
+gmttyuxl	On the Ports tab, configure the IPv4 address and state of the new interface. The trunk must allow the matching VLAN.
+zgiqdd6x	VRF tables
+tw4malue	VRF name
+xiziwbtl	Create VRF
+miuodfay	Remove VRF
+c3s5uf19	Table
+j3b8cby2	Untagged
+yg7vvdvp	VRF for {0}
+chwjakab	Static routes per VRF:
+4smi05l8	. Test with
+2qnsdwae	or select the VRF in the TCP panel. Dynamic protocols, DHCP, and NAT still use the default table.
+1pbnbq5y	Device count
+8x72bfhl	Active link
+afk9rtf6	VLAN membership
+vveqi8yt	DHCP lease
+x9mio5qq	HTTP response
+6wgzx0hs	DNS response
+l616ujmk	Installed route
+xoovwtyl	Remote device
+bzg8kdud	My network challenge
+ysh1p38w	Configure the topology to meet the objectives.
+tk6zvwus	Two PCs powered on
+ai70cnni	Use the device catalog.
+u9aqapty	Custom challenge
+zo0lxl29	Define objectives and check the network with new traffic. The saved definition also stores the initial topology so the practice can be restarted.
+uvk8omtq	Loading challenge…
+s0pmwseb	Edit objectives
+sorl8c9z	Challenge name
+x1v5yz1q	Objective
+xzg9e4cn	Objective description
+vgbdjlpo	Check
+yr03mzsz	Check {0}{1}
+2xlrb65i	Hint
+9z5hb8eq	Remove objective
+sgc7jts9	JSON definition
+0mn19gzg	objective-{0}
+et9iqpiv	New objective
+fka9a2ff	Add objective
+zv4t25gg	Import / edit JSON
+y271tjkw	Back to form
+67iwbg0c	Save challenge and initial state
+ezzcngvm	Score:
+o2fhk547	· Changes not yet evaluated
+w5y52zw3	Check objectives
+m2wu8582	Reset challenge topology
+703dswh1	Resetting restores devices and configurations to the initial state. Editing the objectives starts a new evaluation and resets this challenge's points to zero.
+l5i08lu1	Interactive tutorial
+4vj4on6g	Networking tutorial
+roxkc3k1	Close tutorial
+pmmcyvue	Tutorial complete! You built a LAN, verified ARP/ICMP, and sent data over TCP. 100 points.
+w41kww8q	Step
+0qz9r8r2	Hide hint
+occqnly4	Show hint
+bnq5h21i	Open step panel
+vh4mb1pn	Check step
+cp8jai3i	Loading steps…
+1d8hiu1f	Networking concepts
+rdjsndlk	All concepts are available for reference in free mode.
+sceg4dfk	Concepts involved in {0}.
+hwnsgbxn	your lab
+kn1nif6o	Networking concept
+104x1ywe	Example
+ina0gzit	How to observe it in the lab
+2uwjzrd8	In this simulator
+r4992lfq	Cables, ports, and transceivers
+aul1okuw	A connection requires ports that are up and compatible media at both ends. Copper, fiber, and SFP/QSFP modules have distance and speed limits. Having an IP address does not fix a physical failure.
+kdae8hcf	A cable can be connected while the link stays down because a port is disabled or the modules do not match.
+93ux68mg	Open the connection and compare media, speed, and distance.
+lyzri7ld	Disable a port, test traffic, and watch the link-down events.
+1qmspgld	Length and media affect propagation and compatibility. Latency, jitter, and loss show the model's result or a scenario condition; they are not measurements of the computer's real network.
+4jq219pz	Ethernet and the MAC table
+wt7jtbq9	Ethernet delivers frames within the local network. The switch learns the source MAC address and the port the frame arrived on. When it knows the destination, it forwards out that port; when it does not, it floods the frame out the eligible ports in the VLAN.
+z8ujcssb	During the first traffic between two computers, the switch may not yet know which port the recipient is on.
+kqcmruyp	Send a ping and check the switch's MAC table.
+v6yq72j8	Repeat the traffic and compare the ports that transmitted frames.
+cfzi2n1h	The MAC table is learned from the simulation traffic; it is not filled in from a ready-made result.
+p8ce4k1k	IPv4, mask, and subnet
+2ft3b1xa	The address identifies an interface. The mask separates the network portion from the host portion. Before sending, the device compares the destination network with its own: a local destination is reached directly; any other requires a route, usually through the gateway.
+metsxlhr	192.168.10.10/24 and 192.168.10.20/24 are on the same network. To reach 192.168.20.10, the first host needs a gateway or a matching route.
+hpularoc	Compare IP, prefix, and gateway on the host ports.
+hp0ywj0n	Change the mask and see how the forwarding decision changes.
+h0bo1r0k	Addresses and routes belong to the lab; the simulator does not use the computer's real network.
+qhwwe4ck	ARP: from IPv4 to MAC
+mblwz0dv	To transmit an IPv4 packet over Ethernet, the next hop's MAC address must be known. ARP asks the local network who owns that IP. The reply populates a temporary table. For remote destinations, the gateway's MAC is resolved, not the remote host's.
+jc2798cn	A PC sending to another subnet asks for the MAC address of the router connected to its LAN.
+fjh5p30j	Send the first ping and open the ARP events that precede the ICMP ones.
+gngw2x10	Compare the host's ARP table with the route's next-hop IP.
+6jyi2kng	Requests, replies, waits, and timeouts travel over the same links as the rest of the traffic.

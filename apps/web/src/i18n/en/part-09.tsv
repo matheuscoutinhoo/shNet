@@ -1,0 +1,421 @@
+me64rmo6	Shows IP, MAC, gateway, and DNS for local interfaces.
+35vegnaw	Sets the IPv4 address of an interface on this host.
+he1std02	Sets where to send traffic destined for other networks.
+und2y8hs	Enables or disables a local interface.
+vzs3v6d0	Requests an address from the network's DHCP server.
+7af8gwu5	Enters configuration mode. Use end to return.
+h2thr17b	Selects a port; subsequent changes apply to it.
+suhnzkf7	Sets the IPv4 address of the selected interface, if it supports IP.
+pdrpesdr	Disables or enables the selected interface.
+xnx8ro8q	Shows ports, addresses, and administrative status.
+and27l8k	Shows which MAC addresses were resolved for IPv4 next hops.
+i0ak4o1c	Tests round-trip IP connectivity.
+pxl6w7mh	Discovers the routers along the path to a destination.
+um259yti	Queries DNS to resolve a name to an IP address.
+4oyqncu1	Shows known routes to other networks.
+a33ttra6	Lists the VLANs created on this device's network bridge.
+2jbj3s53	Creates a VLAN on this device's network bridge (configuration mode).
+t4p9whqt	Assigns the selected port to a VLAN.
+u14nt8g3	Shows the port on which the network bridge learned each MAC address.
+df48hkui	Shows which ports forward or block to prevent loops.
+zmwcq9s2	Shows links aggregated by LACP.
+pth7y5zd	Starts configuring the OSPF routing protocol.
+0bsc07a8	Shows OSPF neighbors and the state of communication between routers.
+f3xe0xgw	Shows routes learned through RIP.
+qppl5dfk	Shows BGP route-exchange sessions.
+d48ks317	Shows which device is serving the virtual gateway.
+c01771wk	Shows the HA channel, pending replicas, and rejected firewall/NAT state.
+ajxpfp7p	Shows SSID, channel, authentication, and radio status.
+r3d5of0j	Detects networks that this client's radio can hear.
+ddylif0c	Configures the client to associate with an advertised network. Modes: open, wpa2-psk, or wpa3-sae. Then advance the simulation.
+bjvjtgc3	Configures the access point's advertisement and security (configuration mode).
+hxyht92l	Lists networks and signals that the radio can detect.
+sikmneys	Lists the clients associated with this access point.
+b0gjmxjh	Shows the controller's managed APs and WLAN profiles.
+brpjq7rj	Shows this AP's CAPWAP connection to the controller.
+og7c0nsd	Shows this device's EAP enterprise authentication role.
+q4ve82ql	Shows the connections between APs in the same mesh network.
+fyffix90	Shows IDS/IPS rules, alerts, and drops.
+6dgd1i5e	Shows the address ranges offered by this server.
+9ys6jdod	Shows the address and lease time received as a DHCP client.
+rwb2xg7j	Shows the names published by this DNS server.
+zq4acq84	Publishes an IPv4 record on the DNS server (configuration mode).
+tkdp50xz	Enables responses from the configured DNS server.
+tz1wgu9o	Selects or creates a DHCP pool. Configure network, range, default-router, dns-server, and lease in this mode.
+gaskbfv8	Enables DHCP server leases after the pool is configured.
+95irqwtq	Enables an HTTP service on this server (configuration mode).
+sxz7xq9d	Lists the TCP services this device provides.
+mzgui7fm	Requests a page and tracks the TCP connection.
+miguz25b	Shows the phone number, calls, and telephony status.
+9fko25s5	Configures this phone (configuration mode). See the fields and examples in the Applications panel.
+3w68lxwr	Starts a call on the configured phone so you can observe signaling and media.
+99p1le0c	Shows the printer queue and resources.
+85f674wo	Sets the printer's service, speed, and paper (configuration mode).
+k9taxh5c	Shows MQTT server clients and messages.
+397kw80o	Enables the MQTT message server (configuration mode).
+3xpr73n4	Connects this client to a reachable MQTT broker.
+84rfuecl	mqtt subscribe TOPIC
+kcvmo35s	Subscribes to a topic after connecting, to receive published messages.
+209lmyvy	mqtt subscribe sensors/temperature
+gvqizwne	mqtt publish TOPIC DATA
+g6s2q8ot	Publishes data to the broker of this client's MQTT connection.
+xzoewskl	mqtt publish sensors/temperature 24
+j4xjjxua	print IP PAGES TEXT
+r1jcc0oc	Sends a print job to a printer with an active service.
+ssjxm1id	print 192.168.10.50 1 Test page
+klfolvx2	Shows proxy or load balancer destinations and requests.
+y7f0rxpt	Shows access configuration, authentication, and authorization.
+v7arl1zy	Shows the remote management services modeled on this device.
+3nxbupa6	Shows time sources and synchronization status.
+891dik59	Sets whether this device serves time over NTP and its advertised accuracy (configuration mode).
+wx3889r1	Shows this device's database tables, records, and counters, without revealing the key.
+emmbkriv	Configures the lab database over HTTP/TCP (configuration mode). It does not represent a PostgreSQL server.
+po5ynv8d	database configure {"enabled":true,"port":8080,"key":"lab-key"}
+jg3gq7kt	Sends a query to the database over the network. The key must match the one configured on the server.
+bl03cbbz	database query {"target":"192.168.10.20","port":8080,"key":"lab-key","query":"SELECT * FROM sensors LIMIT 10"}
+2a0rtzdh	Discovers the leader through the configured replicas and sends a query exactly once. A write timeout has an indeterminate outcome.
+2m1cvujq	database cluster query {"query":"SELECT * FROM sensors LIMIT 10"}
+awensrw9	Shows the discovery profile and results, without revealing the key.
+i3b8wfy5	Shows the applied configuration; credentials are hidden.
+jdixl0jc	Select a pool with ip dhcp pool NAME.
+9bq1qv8s	DHCP service requires a server or router.
+35ly0u9e	Limit of {0} DHCP pools per device.
+21ljujku	Use lease DAYS(0-365) [HOURS(0-23)] [MINUTES(0-59)] or lease infinite.
+co45h2ck	The DHCP lease must be between 8 seconds and 365 days.
+d6vp5xkv	Interface does not exist.
+5nkbe8l5	DHCP HA disabled.
+h4plty1k	DHCP standby server not found.
+p16jewej	Enter the DHCP server's IPv4 address.
+1etx8qjd	The existing pool uses a different relay, prefix, or interface. Edit it in the DHCP panel.
+73snw6nz	Enter the reservation's MAC and IPv4 address.
+rf1ya68p	No relay configured
+y5ipf10d	DHCP started. Advance the simulation to process the UDP messages.
+4rte4fkc	The end address must be greater than or equal to the start address.
+shl26vsg	Limit of 64 global DHCP exclusions.
+ab3qcqlr	Enter the DNS domain.
+6rw9x4c6	No pools configured
+jqcvmuzl	No leases
+e7i81xyh	DNS query queued [{0}]. Advance the simulation.
+ng0ydlch	No records
+zadi5gnu	No queries
+6dzq2pps	Select firewall mode zones first.
+v6av9d10	Zone interface does not exist.
+u2bcskwl	Trusted-interface mode; no explicit zones.
+olvk0dhx	QoS not configured.
+2yai3if1	Interface does not exist. Check ipconfig /all.
+uupsz8yj	This address is not configured on this interface.
+mxuusawe	Interface does not exist. Check ip link show.
+nrdv53ac	Interface does not exist or does not support IP addressing.
+ztemtkv7	DHCP request started. Advance the simulation and check ipconfig /all.
+qwhjbpsb	DHCP address released.
+2eynulti	Network is not advertised by an active AP. Check wifi scan.
+371awrm9	Radio configured. Advance the simulation to observe association and authentication.
+d0letyom	{0}, wildcard bits {1}
+7hvzdp78	IPv6 prefix must be between 0 and 128.
+tmtiktsh	Delegation interface does not exist.
+x4lxdi1r	DHCPv6 interface does not exist.
+fq46t5rz	DHCPv6 not configured.
+6alo9292	IPv6 routing requires a router/L3 switch.
+3bshlt7i	IPv6 forwarding {0}
+spwj7rmj	enabled.
+tyrc2j8b	disabled.
+emzsueuq	Interface not found.
+e2divaau	IPv6 not configured
+qzzptpxz	No NDP neighbors
+zgahoa1b	No IPv6 routes
+flbp7k7t	No IPv6 probes
+s8vhonls	Interface is not in a group.
+cg8auszp	Select a Port-channel.
+9vns6ogh	Group does not exist.
+1q4lptx3	No EtherChannels
+uvidgcxy	L3 routing {0}
+0nv871bu	enabled.
+bn0i1rju	disabled.
+8vt83m96	dot1q requires a subinterface and a valid VLAN.
+mzsjnxl9	Use a physical switch port.
+pntdsqzy	VRF does not exist.
+a4aaycl1	Network is not aligned with the prefix.
+h9ojfp75	Route limit reached.
+agfyselm	No VRFs
+434xz61s	HTTP queued [{0}].
+vyga4y2b	SNMP [{0}] queued. Advance the simulation.
+zgj88gko	Configure logging host first.
+5xxifr17	Message [{0}] queued.
+fq36j678	1000Base{0}X SFP
+ambyvb3w	No routes
+yern3vrl	Configure ip ospf area on this interface.
+5k9oqf85	OSPF not configured.
+0odvunf3	OSPF {0}, router ID {1} {2} Full adjacencies, {3} LSAs, {4} routes, {5} SPF runs.
+cse5i8ti	inactive
+1c48ncmv	Configure an ip nat outside interface on the global subnet.
+2h0s589a	ACL does not exist.
+4evdrhns	NAT requires a router.
+tdket76b	No ACLs
+lus2z8ij	Select an interface
+w77m7547	This command does not apply to {0}. Type help to list this device's commands.
+8pevis86	Command not available in this mode. Use enable / configure terminal.
+t9r2weip	Unrecognized command. Type help.
+n293pxyw	Configure ip rip enable on this interface.
+t0mqh74c	RIP not configured.
+j427b11y	RIPv2 {0} · update 30s ±5s · timeout 180s · garbage 120s NETWORK VIA METRIC EXPIRES(s)
+1wba8wyq	HA sync disabled; VRRP does not replicate sessions.
+oojpdlt3	HA peer not found.
+3f7f5frh	Spanning tree disabled
+j3o5uagk	TX={0} B RX={1} B retransmissions={2}
+4rlbq7qk	In-flight={0} B CWND={1} B SSTHRESH={2} B RTO={3} ms RTT={4} ms
+cn2k6z5h	TCP interface does not exist.
+ke6mh19m	TCP [{0}] queued. Advance the simulation.
+p0c60eic	TCP [{0}] echo queued. Advance the simulation.
+n4cfiv4z	TCP [{0}] HTTP GET queued. Advance the simulation.
+wwt5jdup	No TCP services.
+oenr52c0	Firewall interface does not exist.
+zok20d57	% Invalid input
+4osskpo6	AAA: configuration requires a network login with privilege 15.
+9271ukm6	AAA: command not authorized by the server policy.
+zahnmdx1	Command applied: {0}
+l5u8bew1	Invalid value: {0}
+xyod4y61	Invalid command
+ox9y4zyk	Tunnel does not exist.
+znph6czc	Configure the VRRP group before tracking.
+pcliu7ei	Configure the VRRP group before accepting services on the VIP.
+ldez8ybd	Configure vrrp VRID ip VIP on this interface.
+ctipnzra	Use no vrrp VRID to remove the group.
+d738pgyn	Enter the new value without no.
+tco2kaur	VRRP not configured.
+dpr2875n	VNI does not exist.
+uxwvi4x5	Configure the radio SSID before changing its conditions.
+662ahtug	Wireless not configured
+songlih1	{0} SSID={1} {2} band={3} channel={4} {5}
+q7ogkoeg	! Obstruction preserved from the scenario
+571ecreu	Nonexistent or duplicate device in the proposal: {0}
+n8ixdi82	Proposal contains no changes.
+tcp83e5v	Nonexistent or duplicate interface: {0}/{1}
+ex1kzzw6	Disable DHCP before editing the address: {0}
+jbvuhyod	Interface has no changes.
+g909g6dr	Configuration proposal applied to {0} device(s).
+43wpjigc	[process]
+jmypd5yc	Device not found
+u9r5kj6j	Limit of {0} devices
+337lf7i8	An additional NIC requires an Ethernet host with a free slot.
+tn4gezza	No MAC address available to install the NIC.
+ffo0jye9	Additional Ethernet NIC
+vw0sikml	{0} installed.
+xbnrl318	Only additional NICs can be removed.
+izlsviua	Loopback requires a router/switch and an index between 0 and 999.
+0ijnxgiw	Limit of 48 interfaces.
+7g3fzq24	{0} created.
+lbbpne46	Only logical interfaces/tunnels can be removed.
+6a8dn43e	Disconnect the NIC and remove its addresses, protocols, and group memberships before removing it.
+2b56ewuc	Remove protocol/policy references before deleting the interface.
+n1nl3oc5	Interface {0} removed.
+3q5p1i4r	Invalid VRF or device name.
+zdrxasnt	VRF is still referenced by interfaces, routes, or traffic.
+3j6k8tre	Limit of 32 VRFs.
+0t1w2ftu	removed.
+vq07cur2	configured.
+0rx1yyss	VRF requires a routed interface.
+sgeqgg80	Remove the IPv6 routes before changing the VRF.
+hw4d3j2k	Remove incompatible protocols before assigning the VRF.
+u8c4mc5b	{0} assigned to table {1}.
+3u3rgk41	Cable limit reached
+6gc6fowu	Cable connected: {0}
+lvzefud9	Cable installed; physical link down: {0}
+431aks8p	QoS: link removed.
+34zodxt5	{0} administratively {1}
+g3a9cex6	DHCP pool {0} configured.
+1p9h8j61	DHCP relay destinations updated.
+htv7f2r7	Wait for the ARP check in progress to finish.
+wktxohai	STP requires a switch.
+bposi8wn	Invalid STP cost.
+euuhymmz	DNS record {0} {1} configured.
+m0r9tcsl	DNS service not configured.
+mtobjgdk	DNS record removed: {0}.
+by2id777	DNS service requires a server or router.
+hx3ob579	TCP/53 is already in use by another service.
+z90csb08	DNS service {0}
+qrkb8i9v	Interface DNS servers updated.
+d0vwtosz	DHCP service {0}
+w2ri43rq	DHCP pool not found.
+b0ui9a4p	DHCP pool {0} removed.
+jw8ozekj	SQL queries require network authentication.
+xzo51liy	ACL {0} updated.
+ykglj08i	Invalid HTTP host.
+jxlnz301	Invalid HTTP path.
+flrf3voo	Invalid ACL or interface.
+1pflslgm	ACL {0} on {1}: {2}.
+5xrffa4n	Remove the ACL from the interfaces before deleting it.
+byxchyzl	Console carries only UART commands.
+mrruqjwz	STP: EtherChannel blocked.
+dm20nygs	EtherChannel MTU exceeded.
+8es0ix12	Bond MTU exceeded.
+8wwy3kyj	Logical interface is down.
+3rhrvt2n	Logical interface MTU exceeded.
+cwsvxnih	SVI has no operational port in the VLAN.
+oblqaf68	Wi-Fi: no authorized association, or radio out of range or on the wrong channel.
+l5pnwsk9	Interface has no operational link.
+n43nds7q	Ethernet hop limit reached: possible L2 loop. Review the links and the STP/RSTP state.
+3sq4smra	STP: egress port is not forwarding data.
+7o3hgyg9	Frame exceeds the egress interface MTU.
+y7pxu5vl	Frame transmitted on {0}.
+noy7itnp	Radio loss due to SNR/interference.
+3tjade31	Loss configured on the cable.
+6ylyhoiv	Device memory exhausted.
+xbn1x7su	No route matches {0} and there is no valid gateway/default route.
+khc4ux9m	Longest prefix match /{0} via {1} on {2}.
+l9rb6cnq	IPv4 DF: MTU {0} exceeded; ICMP Fragmentation Needed.
+lvzab9yd	Configure an SVI to use the switch's IP stack.
+xxx37yb6	Invalid TTL
+bv9f62dy	IPv4 size must be between 28 and 65535 bytes.
+046bvv88	Configure an IPv4 address on the source interface
+oz1zrvma	Too many pending probes
+44hkc4zw	ICMP Echo Request to {0}; TTL {1}.
+3zisc3kq	Local destination: delivered to the device's own IPv4 stack.
+9kgxr7vr	IPv6: no Echo Reply within 30 s of virtual time.
+y78cm6es	No Echo Reply within 30 s of virtual time. Check the earlier drops.
+2a5v3hqb	Link went down before the frame arrived.
+on6d9dus	MTU exceeded on receive.
+hcjz3rlf	Console does not forward IP frames.
+pa0wjtwd	Invalid HDLC FCS.
+6iosr56e	HDLC received on a non-serial interface.
+stw4a1te	Frame received on {0}.
+220i8pqo	Bond: ingress on the standby NIC.
+a0c2fvsk	LACP: member not synchronized.
+b3pznb3h	Routed endpoint does not accept 802.1Q frames; use an access port/native VLAN.
+vyp1kszi	Logical interface MTU exceeded on receive.
+yklhvvil	Ingress logical interface is down.
+cmfoo047	Invalid virtual time.
+zs1e2bwp	Invalid event budget.
+de67ls8s	Invalid time budget.
+jf2e8p74	Simulation budget exhausted before the requested time.
+tv8g73xl	Simulation budget exhausted; check the network for loops.
+i94hrvz6	Pending event limit reached. Stop the traffic and check the topology for loops.
+i04pp5sx	Invalid Worker budget.
+5mycnuag	Capture contains invalid frames or timestamps.
+t9ptt786	Capture exceeds the 2 MiB limit.
+n550ivpm	Duplicate {0}
+74u7fvyq	device ID
+z0bxjk6j	cable ID
+5jj2tdwj	Invalid device profile.
+p6j61p0l	Inconsistent DHCP probing, address, or timer.
+6arzvmba	DHCP probe outside the probing state.
+0isikq6w	DHCP lease outside its validity period.
+cyf5ztfz	DHCP lease without an expiration timer.
+rqxg796d	DHCP lease without a T1 timer.
+rdy0tcrz	DHCP lease without a T2 timer.
+89f9eb0a	DHCP client without a retransmission timer.
+zalfbk3a	DHCP binding without a valid expiration timer.
+qjepyr7f	interface ID
+qh2gxvf6	Table references a nonexistent interface
+p8fbw2j0	Invalid self-referencing link
+rw1wglpi	Port connected twice
+oxwobiiw	event order
+enl4011l	probe ID
+vpiprrlo	Probe without a source
+gspgu22o	Invalid clock or queue order
+viwietzy	Delivery does not match the cable
+stb643pu	DHCP timer without a server.
+bhdbv6ox	DNS timer without a query.
+7lkiriug	STP timer without an active switch.
+ysm2mdxo	Timer without a NAT translation.
+2my8t3n0	Timeout without a probe
+b0y03mcy	Advance 2 seconds and identify the leader in the Database panel. From SQL-CLIENT, send CREATE TABLE sensors (id, value) to that leader's individual IP (10.90.0.11/12/13), port 8080, key database-key. INSERT and SELECT respond only after majority confirmation. Power off the leader, advance 2 seconds, and query the new leader: the committed data persists. Isolate only the old leader's two dedicated cables to study a partition: it may keep its local role, but it does not report success without a majority. SELECT also requires fresh confirmation. A write timeout has an indeterminate outcome; query before retrying. There is no automatic address or TCP failover. Automatic compaction; up to 256 retained entries, 128 uncommitted entries, and 512 KiB per checkpoint. Removing a member/group disables the databases while preserving their local data.
+yumyau4m	There are legacy optical ports that do not belong to this profile. Review the cabling and replace the device with the current catalog profile.
+82cgerul	The number of network ports differs from the current profile ({0}). The old ports and connections were preserved for review.
+1u4820lj	This smartphone keeps an Ethernet port from the old model. The current profile uses only the Wi-Fi radio.
+p8zoicpw	The old automatic name identifies this device as a switch. Use Rename to identify its role as an AP or WLAN controller.
+vkuj7bqn	A WLC with this profile has no local radio. The radios belong to the managed APs.
+d4luttix	Computer
+yj2vifs3	IPv4 host with ARP, ICMP, and gateway.
+moakpsnh	Learns MAC addresses and forwards frames per VLAN.
+5ce16jua	Router
+90v0sjbf	Connects subnets using longest prefix match.
+j88j6yj9	IPv4 endpoint for testing connectivity.
+ca2wb3qi	PoE: power granted.
+b3iggtr9	PoE: power removed or insufficient budget.
+if7e26vy	PSE requires distinct RJ45 ports.
+zto7kdw0	Power draw exceeds the PD's PoE class.
+hk7sp913	PoE: PSE/PD and power budget applied.
+rcltjkm6	Interface limit reached.
+xw7v0xgu	Port {0} added.
+fc8x6j1s	Console has no cable/power or an incompatible baud rate.
+2y64k6md	Inconsistent PoE power state.
+xsw1awa7	Invalid PoE budget/ports.
+bnewu3oj	Invalid serial/console port.
+343aj62z	Invalid console session.
+g9go0663	{0} infrastructure configured.
+s8fz40fz	Capacity, memory, and thermal model configured.
+k8mfm0rb	UPS: power available.
+90b6ft6n	UPS: battery depleted, overload, or output off.
+g8amwp06	Patch panel: port without a jumper, or hop limit reached.
+g3a537yx	Rack: invalid device, mounting, or height.
+p7i03w89	Rack: overlapping units.
+5bchvdk6	Patch panel: incompatible jumper or duplicate port.
+5wc6mje3	UPS: invalid capacity/clock.
+p3x6uhsi	UPS: load does not exist, is duplicated on the source, or is incompatible with the UPS.
+sicn3w47	Metrics: invalid clock.
+ood8oslm	Industrial control
+46jvnu6p	16-bit registers; Modbus functions 03/06/16 in the educational model.
+txpnpjm4	Industrial operations
+x7t82ucj	Client for Modbus supervision and operations; configure the plant flows.
+s51gv25u	Data over the network
+jp3e0lub	Tables and limited SQL queries over HTTP/TCP, with an access key.
+rdxea9y2	Physical mounting
+5w09p44c	Rack units, mounting, and ventilation affect temperature.
+s9yl8roy	Physical structure
+sgpl6vls	Patch panel
+apwv230h	24 ports with transparent jumpers; does not learn MAC addresses or change VLANs.
+x3juz7qc	Power feed
+zoaa4c1y	Battery, power rating, efficiency, recharging, and loads connected to the device.
+rlvp14rq	Centralized CAPWAP
+xsjk5js4	Configure IPv4 on the underlay and the WLAN profiles before enabling.
+bk75jiu8	WLAN control / L2 bridge
+83jraty9	AP with radio and mesh neighbors; configure identity, root, and key.
+e7dz1wo1	L2 / 802.11 radio
+y3el6iyc	Intrusion detection
+hta8ktvu	Signature/rate-based inspection with alerts.
+rl0uvfi7	Intrusion prevention
+16kelayu	Signature/rate-based inspection with blocking.
+cphy0x8w	HTTP forwarding over two TCP connections; allowed destinations.
+s4ry8gx4	HTTP load balancer
+hq6ul2gh	Round-robin/least-connections, HTTP health checks, and failover.
+ocz9g43z	MQTT 3.1.1, topics, wildcards, retained messages, and keepalive.
+3gp7l0es	Endpoints
+eztz9jqx	IPv4/IPv6, ARP/NDP, and application traffic.
+napgdhtc	Wi-Fi client
+otjy5crp	Ethernet host and Wi-Fi radio.
+twa61bfz	IP endpoint over radio; no telephony applications.
+07nos2wb	IP printer
+wpx6tiw6	IP endpoint
+w37c5lnv	IPP/HTTP, page spooling, status queries, cancellation, and paper.
+fgofdkj8	IP phone
+efnuzg2g	SIP/SDP calls and RTP/PCMU audio.
+36a5coyj	IoT device
+saotmlr1	MQTT client: sensors, topics, subscriptions, and retained messages.
+2xw7wtmw	Ethernet bridge
+n0qdzib6	Inter-VLAN routing
+6b401kpy	Switching and IP routing; configure routed ports or SVIs.
+z4qhdmdz	Access switch
+ziwvxx0p	Access
+56g5eb45	24 Ethernet ports and 2 SFP uplinks.
+siar2v99	Distribution switch
+vpinkbuw	L3 distribution
+j8i2jnsu	24 10G ports and 4 QSFP uplinks; VLANs, routes, and aggregation.
+p42wqn49	Core switch
+5dxhgcmk	8 40G QSFP ports; MTU and capacity affect transmission.
+dgmr9rnn	L2 forwarding with resource metrics; electrical tolerance not modeled.
+bss00hc4	IP routing
+i9kp8dhf	Connected and static routes, OSPF, RIP, BGP, and VRF.
+k5d997yl	Edge router
+kqtukdx5	IP edge
+uibp8j42	Routing, NAT, ACLs, and network policies.
+rba3jzpv	Branch router
+jt4bcnbc	Routes, services, and connectivity to headquarters.
+ilbedp0x	Virtual router
+xfr36gsf	Virtual routing
+8bmxkax7	Same IP forwarding as the simulation engine, with no external hypervisor.
+wupwjj99	Radio bridge
+lre5p58z	SSID, association, educational WPA2/WPA3, and radio.
+lcofdgys	SLA-based selection
+2pjzlkza	Per-application policies and tunnels; configure underlay and peers.
+is6cqlm9	Policy distribution
+sgki0izn	Publishes policies to sites over authenticated UDP in the model.

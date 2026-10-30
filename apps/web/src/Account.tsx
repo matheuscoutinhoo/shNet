@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { UserRound, Monitor, KeyRound, Trash2, LogOut, Save } from 'lucide-react';
 import { api, type User } from './api';
 import { Modal } from './components/Modal';
+import { formatLocale } from './i18n';
 
 interface Session {
   id: string;
@@ -113,7 +114,7 @@ export function Account({
                 <div>
                   <strong>{session.is_current ? 'Esta sessão' : 'Outra sessão'}</strong>
                   <p>{session.user_agent || 'Cliente não identificado'}</p>
-                  <small>Iniciada em {new Date(session.created_at).toLocaleString('pt-BR')}</small>
+                  <small>Iniciada em {new Date(session.created_at).toLocaleString(formatLocale())}</small>
                 </div>
                 <button
                   className="icon-button"

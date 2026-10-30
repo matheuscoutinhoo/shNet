@@ -1,0 +1,396 @@
+vez7saqu	Configure redundant destinations and scopes; validate lease continuity, renewal, and rebinding.
+kb192hdg	Replicate the scope (with non-overlapping ranges) on another destination server to keep granting new leases after a failure.
+tg5h1huw	On at least one destination server, create a pool whose network contains the giaddr; separate pools must use non-overlapping ranges.
+9zvwshu8	{0}: VNI {1} uses static flooding/learning; RT limits control-plane import only.
+70uzp1sq	Use peerPolicy evpn to require imported IMET members in the data plane; also validate isolation by VNI/VRF/ACL.
+g1fblzih	VNI {0}: RT {1}/{2} mismatch.
+kq3tk1i8	Check import/export and the flooding policy. An empty RIB does not prove isolation in static mode.
+9ab22ja6	{0}: VTEP bound to physical interface {1}.
+gkxuylmm	Use a /32 loopback and return routes over independent operational paths.
+4jr8ljlw	{0}: rule {1} permits {2} → {3}.
+c8tsgy2f	Review guest access to sensitive zones. A zone-wide permit may include MES and PLC; validate the destinations with negative scenarios.
+wp4gplsh	{0}: application inspection uses IPv4 only; transit zones cover IPv4/IPv6.
+9w9tb28n	Configure equivalent IPv6 ACLs/zones or reject the use case that depends on IPv6 application inspection.
+fnspw3ar	{0}: Hello/Dead {1}/{2} s vs {3}/{4} s; the adjacency does not form.
+75qfuzxf	{0}: OSPF areas {1}/{2} on the same segment; the adjacency does not form.
+sre592p1	Place both interfaces in the same area.
+1p467sw5	{0}: network types {1}/{2}; the adjacency may form, but SPF discards the link.
+gv7qek1o	Use the same ip ospf network on both ends.
+evz748xv	{0}: IP MTU {1}/{2} on the OSPF segment; the adjacency gets stuck in EXSTART/EXCHANGE.
+5lak3626	Match the MTU of the interfaces on the segment.
+lo8kv7fn	{0}: network {1} has no exact route in the routing table; the prefix is not advertised.
+84to3nsm	BGP only advertises a network with an identical route (connected, static, or IGP). Create the exact route or adjust the network mask.
+5a3gccgc	{0}: NAT rules without an {1} interface; nothing is translated.
+jngyk99b	Mark the LAN interface with ip nat inside and the outgoing interface with ip nat outside.
+o6vtpznz	{0} and {1} translate the same inside network without shared NAT state; replies returning through the other router are dropped.
+miij0xxg	Ensure traffic exits and returns through the same router (routes/HSRP priority), or configure an HA pair with state replication.
+e29f1kqf	{0} L3 switch(es) forward IP; stateful transit firewalling requires a router in the current model.
+q6vpdrwd	Use ACLs on the switch or a dedicated firewall profile for stateful inspection.
+zfbfl1ei	Duplicate IPv4 address in context {0}.
+wtywuvn0	The addresses share the Ethernet domain inferred from the configured links/VLANs/VNIs; resolve the conflict.
+sfvpggds	Pools {0}/{1}: overlapping ranges in the same domain.
+28pmgn3v	Use distinct ranges or implement authoritative lease replication before enabling both servers.
+n91jgwgz	Link {0}: reference to a nonexistent interface.
+jpp6ybzf	Reconnect the link to valid interfaces.
+9iaerda9	Link {0}: native VLANs {1}/{2} differ.
+q67rh68g	Match the native VLANs on both ends.
+ctsqi4x9	{0}: one end is trunk and the other is access; only the native/access VLAN passes.
+j02r8ytk	Configure switchport mode trunk on both ends (uplink) or access on both (user port).
+7dfws0eq	{0}: access ports in VLANs {1}/{2} merge two broadcast domains.
+pqwqzeb0	Use the same VLAN on both ends or a trunk; IOS CDP would report a native VLAN mismatch.
+cxpn3p5z	{0}: VLANs allowed on only one end — {1}: {2}; {3}: {4}.
+kmisooas	These VLANs are not carried over the trunk; align switchport trunk allowed vlan if they are needed.
+i29p43t9	Create the VLAN (vlan N); in IOS, an access port in a nonexistent VLAN is inactive.
+r3cvn4ot	{0}: duplex {1}/{2}; expect late collisions and loss under load.
+frtu2u2t	Use the same duplex setting (or autonegotiation) on both ends.
+88s1y26n	{0}: IP MTU {1}/{2}; OSPF gets stuck in EXSTART/EXCHANGE and large packets are dropped.
+u20rrj6w	Match the MTU (or ip mtu) on both ends.
+2gueejzb	Link {0}: enabled but physically down.
+ryudcq6s	Check power, interface, media, and distance.
+6nksjvx6	{0}: only enabled instance of {1}.
+g6kv2rmk	Check dependents, state/data, and the redundancy strategy; duplicating the device is not enough.
+rb2zh2ub	Physical RF positions not configured on all radios.
+14ltgowx	Configure all pairs in meters; incomplete pairs still use the diagram coordinates.
+p9nilayf	{0} additional findings exceeded the review limit.
+h0l0xlzk	Split the topology or fix the existing findings before completing the review.
+o34r6q8p	AAA attribute exceeds 253 octets.
+on39c85w	Invalid RADIUS header.
+32j8cqrc	Invalid TACACS+ length/sequence.
+9xqpsdlr	Invalid TACACS+ header.
+6obh0h7i	Invalid CHAP START.
+7gzkidgd	Invalid CHAP identifier.
+abrvqwql	Invalid TACACS+ arguments.
+dl992xgz	Invalid TACACS+ REQUEST.
+p5cjcb76	Truncated TACACS+ argument.
+sfftsdru	TACACS+ REQUEST with trailing bytes.
+kfifpo7l	Invalid authorization REPLY.
+q6rvtggd	Truncated REPLY.
+phu56a48	REPLY with trailing bytes.
+sxiuc0pk	Invalid AAA server.
+96ryfmsx	Invalid AAA client server.
+ieudu1ye	Duplicate AAA query.
+yhojl6pb	Invalid AAA query/authorization.
+o8xge2l5	Invalid AAA timer.
+vuy3fgsi	Network login without AAA authorization.
+99k62jat	Invalid 802.1X port/supplicant.
+ixjf9en5	Invalid 802.1X timer.
+84dan1rf	Orphaned AAA/802.1X timer.
+lc78mjaj	AAA server missing.
+is1lf965	Invalid AAA command policy.
+cx5uegzf	AAA requires a server/router/switch, unique users, and an available TCP/49.
+wj8jv1ca	Network AAA server configured (RADIUS/1812 and TACACS+/49).
+1a1culno	AAA server must be unicast.
+crq9iihn	Network AAA client configured.
+cibdkypu	authorized
+b9wfq1ws	rejected
+e4nylor3	RADIUS: no route in the underlay.
+vqr6ir4b	Access-Request {0} to {1}; attempt {2}.
+iqb7hrra	AAA query limit reached.
+qtqf23bf	RADIUS: invalid service, NAS, or authenticator.
+vb4vqg89	RADIUS: identifier reused with a different request.
+ommfsj4h	RADIUS: response without a matching query/authenticator.
+ux9j643c	Configure a network AAA client.
+5mrvh0pz	Network login already pending.
+x98matdw	Login requires IPv4/a route and a powered-on device.
+75o9wgsr	Duplicate ACL sequence.
+dyck8c3u	ACL network not aligned to the prefix.
+fpaidhbe	Limit of 32 ACLs per device.
+ljkvq6kl	ACL {0} {1} on {2}: {3}; {4} {5} -> {6}.
+3mt2en8f	rule {0} {1}
+i49catp8	implicit deny
+1ug4jc73	Duplicate ACL name.
+23k4olil	ACL rules out of order.
+rwxfsin7	Interface references an invalid ACL.
+abcxfv8w	Ambiguous HTTP framing.
+fmgvmj0l	HTTP body exceeds the limit.
+byftf2es	HTTP data after the message.
+4pfd63dv	GET only.
+j42u06nf	Use an http://IPv4/ or http://[IPv6]/ URL.
+nbk8l33o	Destination not in the proxy allow list.
+mpobh7q0	No healthy backend.
+5crafxh3	Proxy points to its own listener.
+wi9n21e5	Request limit reached.
+an7fwmiv	Backend has no route or connection.
+e4xqrdgf	Invalid HTTP response from the backend.
+14skolli	HTTP {0} received from {1}:{2}.
+sjqyoee2	health check
+d3ou4o87	IPP requires POST /ipp/print.
+wtdsifc1	IPP Print-Job {0}: {1} page(s).
+gakta1zw	Invalid print job.
+bj3ihtha	ipp://{0}/ipp/print
+ewalckan	POST /ipp/print HTTP/1.1 Host: {0} Content-Type: application/ipp Content-Length: {1} Connection: close {2}
+hjzq0429	Port in use by another TCP service.
+6g030kx5	Backends and allowed destinations require a unicast network address.
+7sxqct60	Duplicate allowed destination.
+42mbs8vr	Load balancer requires backends.
+n5sn5ziu	Duplicate backend.
+2oexqqvz	Backend points to the load balancer itself.
+0eq2murq	Duplicate MQTT users.
+iil3wf1a	Connect the IoT device to the MQTT broker.
+oey6b5kw	PUBLISH does not accept wildcards.
+eefxty08	MQTT: supported QoS is 0 or 1.
+8gk8cz05	MQTT: limit of 64 pending publications.
+g2zlh82u	MQTT: invalid connection, filter, or limit.
+xge0eahc	MQTT client has no session.
+k0k8en1z	MQTT message incompatible with the client.
+37fim7o4	Broker powered off.
+8l2ek5w2	MQTT requires CONNECT before data.
+qm73bb2f	Invalid MQTT filter/limit.
+6uz3zljy	Invalid MQTT topic.
+78sayxsy	MQTT retained message limit reached.
+6t8a4o4m	MQTT message incompatible with the broker.
+fgvxlzf3	Application: {0}
+m6mfyzii	invalid data
+h6vu5orn	Backend did not respond in time.
+wiph7gaf	IPP Job {0} completed.
+g27a0ijw	MQTT QoS 1 without PUBACK: {0}
+bn1aoz30	Service without a matching timer.
+u7z8cp09	Service without a TCP listener.
+p94rpct8	Proxy without matching connections.
+pzb4ux13	Invalid IPP spool.
+jclfuvb9	Duplicate MQTT state.
+hua2nbt8	Invalid MQTT session.
+wk7udoqi	IoT device without an MQTT connection.
+fydz6kvt	Orphaned application timer.
+cfi5m0mv	ARP cache miss for {0}: broadcast, attempt {1}/3.
+5t5or6gc	Serial interface has no peer.
+qfsckzvm	ARP queue full.
+0inhs112	ARP requires a unicast IPv4 address on the interface and on the next hop.
+1mm2zv2j	ARP timed out: {0} did not reply in the broadcast domain; {1} packet(s) dropped.
+sgaxv3d4	{0} → {1} cached for 60 s of virtual time.
+d4t80wmw	The requested IP belongs to this interface. Unicast reply.
+ipc9oakq	Inconsistent ARP resolution, pending packet, or timer.
+j6fs3biq	ARP timer without a matching resolution.
+g4bfygdf	BGP message exceeds 4,096 octets.
+rxyadnzi	Invalid BGP marker.
+d5sq91ca	Invalid BGP header.
+nzbu60zi	Non-canonical BGP network.
+91ceavmr	Invalid BGP IPv4 prefix.
+qamnsx38	Non-canonical host bits in NLRI.
+a348xlwo	BGP length does not match the frame.
+nmph2rxb	Invalid BGP OPEN.
+5b5keebk	Unsupported OPEN parameter.
+51stih8x	Invalid AS4 capability.
+jf7yb7gv	Invalid MP capability.
+emcm2uej	The binary session requires a consistent AS4 capability.
+rpqnioxx	Duplicate BGP attribute or invalid flags.
+hi4w559f	Unrecognized well-known BGP attribute.
+c9fsqpbm	UPDATE without valid mandatory attributes.
+bxfl5z8p	Only AS_SEQUENCE is supported.
+dlxz8hci	Invalid numeric BGP attribute.
+ty7q4sav	Invalid RR attribute.
+946wkze4	BGP requires a router and a unicast Router ID.
+1ct3utdn	TCP/179 is in use by another service.
+o9nktuxv	Misaligned BGP network or duplicate configuration.
+tkaa8yvn	Invalid BGP neighbor; a route reflector client requires iBGP.
+nc610nkb	Duplicate BGP filter sequence.
+mlnk6x9m	BGP filter has an invalid prefix or range.
+zdhidgqq	Invalid BGP peer references.
+nswokmeg	Inconsistent BGP timer.
+orgko0ni	BGP disabled but session/routes remain.
+d6njv0fr	Invalid BGP clock.
+os1srd7v	Inconsistent BGP session.
+6dtmkili	Invalid BGP Adj-RIB-In.
+6ieadfw1	BGP routes differ from the local selection.
+m8mp6fni	Orphaned BGP timer.
+vu8gsndy	, {0} advertisements, {1} withdrawals
+mcr6bw7o	BGP installed {0} via {1}, distance {2}.
+onjg6h67	Configuration changed
+01h4dir7	enabled
+apr9re6i	Power, interface, or TCP unavailable
+p0qgzx0y	TCP transport closed
+87y20l5a	Hold timer expired
+xtxg21o4	Update source unavailable.
+elt7o2p8	Invalid OPEN: ASN, Router ID, or repeated OPEN
+hqsp85aa	Message before a valid OPEN
+e1twv9p6	KEEPALIVE in unexpected state
+z0tkfqks	UPDATE before Established
+mhrxssgm	UPDATE with invalid prefix, NEXT_HOP, or AS_PATH
+0jv2uvcf	EVPN not negotiated in OPEN
+2bt2w76q	{0} from {1}: AS/reflection loop or inbound filter.
+tt84swpe	BGP prefix limit exceeded
+n71ywkdl	Message too long
+nxmia489	Invalid BGP framing or message
+0pojuf38	BGP framing limit exceeded
+z9lvmkmh	Timeout must be at least three probe intervals.
+4isilpu5	Active/backup bond requires a host, group 1..64, two to eight NICs, and a participating primary.
+808tpre9	NICs must be free of DHCP/IPv6/policies; only the primary's static IPv4 address can be moved.
+aoviayui	Bond MTU exceeds that of a member NIC.
+iuhjfss6	No MAC address available for the bond.
+tgci309d	{0}: active/backup, {1} NICs; primary {2}.
+t2fpl3u1	ICMPv6
+j7a1sgfn	na
+2zhki6o1	active NIC {0}
+ai54y2lr	no path available
+e2t9pi0u	Bond: no active path.
+ut49wj7t	ARP probe reply through the bond's physical NIC.
+wzieal0v	Bond does not exist.
+gxkzdvvk	Remove addresses, services, and policies before dissolving the bond.
+48wtrv35	Bond dissolved; NICs available.
+mu6uvnwk	NIC/bond incompatible with the profile.
+8qeml0pk	Incompatible additional NIC.
+le8s6rc4	Invalid/duplicate bond.
+lbdxdqrj	Incompatible bond member.
+bppyk0ie	Inconsistent bond state.
+16aoag4f	Inconsistent bond timer.
+864semyl	Orphaned bond timer.
+02qaag4x	CAPWAP requires a routed/SVI underlay with IPv4.
+j8uwoklz	A central WLC requires a switch with an SVI or routed port.
+tupmq7qy	WLC profiles require distinct names and the AP role.
+54mpa1n2	CAPWAP WLC configured.
+1ipzmuoi	WTP requires a configured AP.
+oj7b706h	CAPWAP WTP: waiting for controller.
+fi8thvow	CAPWAP: invalid ciphertext/replay.
+nb3dqc5e	WLC has no virtual ports available.
+neok83jr	Centralized WTP
+pprmtpno	WLC VLAN limit reached.
+71apru9x	Unauthorized WTP/source.
+wf0msu3x	CAPWAP: invalid PSK proof.
+6qje8dan	JOIN without key share/nonce.
+fpr5nj7k	WLC: session limit reached.
+7i8nnwoc	CAPWAP without a matching session/tuple.
+drgkm5bq	WLAN profile not found.
+tjer1xto	CAPWAP data requires UDP/5247.
+7zqw8sid	CAPWAP: invalid state transition.
+tl04f4se	CAPWAP controller/tuple mismatch.
+b1nel2mb	CAPWAP: controller without PSK proof.
+ag8tej8i	CAPWAP RUN: radio and data channel active.
+ct85ebyc	CAPWAP: response incompatible with the current state.
+i17cbbrj	Invalid CAPWAP.
+5a4nrept	CAPWAP data payload not allowed.
+d0r7g142	WTP has no CAPWAP data channel.
+wmg7hk7u	WLC: WTP/data channel unavailable.
+ezdtxgc4	CAPWAP: WTP {0} timed out.
+lp6nv2l3	CAPWAP without a timer.
+zl01k29r	Duplicate WLC/session.
+hx62vs8l	Invalid WLC session.
+v7day297	WTP without a valid radio/keys or clock.
+2c8q6odl	Orphaned CAPWAP timer.
+r3yockeo	Replicas require unique unicast addresses with no local scope.
+pkfhw5xf	SQL discovery at {0}: {1}
+c6wnfetj	connection failure
+rmswwamg	No replica confirmed leader authority. Query not sent.
+e1hx2i4n	SQL client powered off.
+0ne8cido	Up to eight concurrent automatic queries per client.
+hkjt7mny	Invalid HTTP response.
+u5dgwqu4	Outcome unknown; the change will not be retried automatically.
+dpbogvcg	Query rejected by the server.
+prujahly	Credentials rejected during discovery; query not sent.
+5sryqn9g	Failed to send query; outcome unknown, no automatic retry.
+5elcqa8l	Invalid response; outcome unknown, no automatic retry.
+lvwwgj6h	Connection lost or timed out; outcome unknown, no automatic retry.
+xbbfb448	SQL client has no state.
+c8tiv08b	Invalid SQL client timer or capacity.
+8x5hg9tr	Inconsistent SQL discovery request.
+nixm42gg	Configure a quorum group before binding the database.
+dcxqvekn	Bind replicas that are powered on and synchronized, with empty databases and the same port/key.
+5h0cgli3	SQL database bound to the quorum; replies require majority confirmation.
+kx9edwfn	This server is not the database leader.
+32o91ath	Replicated database limit reached; query not proposed.
+dofib5e5	No confirmed leader authority.
+xd9ovihc	Pending request limit reached.
+kthch2x3	Operation covered by a checkpoint; outcome unknown.
+98cpzq2x	Leadership changed during discovery.
+z9ohklze	No majority confirmation; outcome unknown. Query the leader before retrying a change.
+tq23sq50	Group removed; outcome unknown.
+et6e78xz	SQL history requires the replicated database adapter.
+e6lhs8cx	Replicated database: invalid identity or applied index.
+lvr4wqt7	Replicated database: incompatible membership.
+91rggobl	Replicated database: started after SQL operations.
+7x2ksuyq	Replicated database: data does not match the committed history.
+9jtk3mvr	Replicated database: duplicate pending responses.
+hnpyygev	Replicated database: inconsistent pending operation.
+tstpe934	SQL values: single-quoted text, number, boolean, or NULL.
+b53wo247	Missing value.
+u4v855nl	Duplicate table or table/column limit reached.
+o5k98myv	Table does not exist.
+y5wwvoyk	Invalid columns/values or table full.
+r5yqb1nf	Use CREATE TABLE, INSERT, SELECT, UPDATE, or DELETE following the documented grammar.
+g3f4luuf	Invalid WHERE clause.
+ol00red6	SELECT: nonexistent column or LIMIT outside 1..100.
+3cutu0k2	Response exceeds 10,000 bytes; select fewer columns/rows.
+b7rgnoeu	Invalid SET clause.
+g0xa8015	Replicated database: port and key remain fixed until the group is removed.
+nf1opqin	Database unavailable.
+0t088z2x	A replicated database requires queries over the network and majority confirmation.
+rk4eark6	Use POST /query with application/json.
+rcuhvsf0	Invalid access key.
+wp60nxu0	Stale discovery authority; query not proposed.
+3mfrknnm	Invalid query.
+x8katdc4	Database: duplicate listener or table.
+kjm94x8z	Database: invalid columns/rows.
+opr7ub0w	DHCP {0}: {1}, attempt {2}{3}
+clexo22r	; unicast renewal to {0}.
+dc7c9wlm	DHCP requires a routed endpoint interface.
+2bjd03rk	A DHCP pool interface must keep a static IPv4 address.
+intnxbwu	The DHCP relay interface must keep a static IPv4 address.
+b32snjx0	T1: renewing {0} with server {1}.
+clque9zh	DHCP is not enabled on this interface.
+etes79dj	Releasing lease {0} back to the server.
+znklgfoj	DHCP offer contains options incompatible with the subnet.
+1pdpbp42	Repeated DHCP NAK: restart limit reached. Review the server configuration.
+p7m06jfk	Address declined; configuration removed and new discovery in 4 s of virtual time.
+ks6hc9dq	DHCP ACK does not match the requested address or contains invalid options.
+pkg4eb27	DHCP ACK arrived after the lease expired.
+3gcbn3dv	Lease applied: {0}/{1}; gateway {2}; expires in {3} ms of virtual time.
+zgq5rbeq	No DHCP response after four attempts. Check the service, pool, VLAN, and connectivity.
+bpks39vu	T2: server did not confirm the renewal; broadcasting DHCP Request.
+43a8vpdh	Lease for {0} expired: IPv4, gateway, and DNS removed before a new discovery.
+843hoie9	ARP probe {0}/3 for {1}.
+csbvbz68	Conflict detected by ARP; DECLINE to {0}.
+adlxtrdp	The DHCP service requires a server or router.
+lu0hoogh	The pool requires a routed interface with a static IPv4 address.
+1nhhnh8h	The DHCP server interface must use a unicast host IPv4 address.
+cxd16hqc	The DHCP network must be aligned to the prefix.
+kc3z3vk9	Additional relays require a primary giaddr, unique addresses, and the same remote subnet.
+dakhkbw6	The local pool requires a host IPv4 address and cannot share the interface with a relay.
+4eahmgic	The relay must be a host on the remote network, different from the server interface's network.
+ukcctox0	The local pool requires the same prefix and network as the server interface.
+7ll1582g	Use unicast host addresses within the pool subnet.
+sfmz8wmz	The range must contain between 1 and 2,048 addresses.
+xnaczif0	DNS must use unicast IPv4 addresses.
+3fu8sf0h	Duplicate DHCP exclusion.
+b6dqelod	Duplicate DHCP reservation: each MAC and address must be unique in the pool.
+72mtf16z	A DHCP reservation must be within the range and cannot be excluded or an infrastructure address.
+yofrdnoa	First configure a static IPv4 interface with a prefix between /1 and /30.
+e3pkweu9	Invalid DHCP pool.
+emv0uq6t	DHCP pools cannot have overlapping ranges.
+u4vnh0vd	MAC reserved in another pool of the same DHCP network.
+faramqlc	DHCP relay requires IP routing and a routed interface with a static IPv4 address.
+k4vdjqko	Use either a local DHCP server or a relay on this interface.
+jfled6lh	Relay destinations must be unique unicast IPv4 addresses of other devices.
+sdmk7gtw	DHCP interface without client state.
+btv0z7f7	DHCP client not on a dynamic routed interface.
+ex0w22m3	Incompatible DHCP state and lease.
+2exmloex	DHCP Request without a selected offer.
+5yy9ki9j	A DHCP client without a lease cannot keep an IPv4 configuration.
+aopziqoj	Invalid DHCP lease address, server, or gateway.
+x9i63leg	The interface configuration differs from the DHCP lease.
+97axev4t	Invalid global DHCP exclusion.
+5641po28	Duplicate global DHCP exclusion.
+f72z7akh	Invalid pending DHCP pool.
+utczkie8	Local DHCP server and relay on the same interface.
+72wtybz9	Duplicate DHCP pool name.
+3i83j7u4	Overlapping DHCP pools.
+14dicj8q	Binding outside the DHCP pool.
+tl7kqoda	Duplicate DHCP binding.
+pngqi7bt	Invalid DHCP quarantine.
+67smch2m	DHCP pair removed; service on the former standby disabled.
+6bg9s5vz	DHCP HA requires two distinct servers/routers.
+cx5v2zo5	Configure DHCP pools with the same names and policies on both members.
+yfujp35g	DHCP HA requires a dedicated physical RJ45 port with no address or group.
+ipf58nen	Exclude the physical addresses of both DHCP servers from the pools.
+1xvfdqu2	Remove the existing DHCP pair before reconfiguring.
+g1830ll3	The standby must start with no leases or quarantines of its own.
+6oc03u9k	Connect the dedicated ports with a direct cable.
+s70b7cjv	DHCP active/standby with {0}; administrative promotion powers off the former active peer.
+xo9i88jz	DHCP: limit of 128 replies awaiting the replica; the client must retry.
+w2lve76f	DHCP: {0}, revision {1}.
+2hsmtyf5	DHCP: reply held; replica not confirmed within 5 s.
+iif9ds60	DHCP: replica confirmed, revision {0}.
+j4i7oime	Promotion requires a powered-on, enabled DHCP standby.
+x9d8tnuw	The standby has not received the current revision; recover and synchronize the pair before promotion.
+qu46p1uo	Could not power off the former active peer.
+v2m6xua5	DHCP promoted; {0} powered off by administrative fencing. Running without a second copy until resynchronized.
+0craf728	Invalid DHCP pair, role, or revision.
+tayvqb3y	DHCP pair requires exactly one synchronization timer.

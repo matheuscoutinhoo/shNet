@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from 'rea
 import { createPortal } from 'react-dom';
 import { ExternalLink, Maximize2, Minimize2, Plus, TerminalSquare, X } from 'lucide-react';
 import type { LabController } from './useLab';
+import { observeDocument, tr } from '../i18n';
 
 const Terminal = lazy(() => import('./Terminal').then((m) => ({ default: m.Terminal })));
 type DockMode = 'docked' | 'maximized' | 'popout';
@@ -19,7 +20,7 @@ function usePopout(active: boolean, title: string, onClosed: () => void) {
       latest.current.onClosed();
       return;
     }
-    w.document.title = latest.current.title;
+    w.document.title = tr(latest.current.title);
     w.document.head.replaceChildren(
       ...[...document.querySelectorAll('style, link[rel="stylesheet"]')].map((node) => node.cloneNode(true))
     );
@@ -27,10 +28,12 @@ function usePopout(active: boolean, title: string, onClosed: () => void) {
       w.document.documentElement.setAttribute(attribute.name, attribute.value);
     w.document.body.className = 'terminal-popout';
     w.document.body.replaceChildren();
+    const stopTranslating = observeDocument(w.document.body);
     const closed = () => latest.current.onClosed();
     w.addEventListener('pagehide', closed);
     setPopup(w);
     return () => {
+      stopTranslating();
       w.removeEventListener('pagehide', closed);
       w.close();
       setPopup(null);
@@ -72,6 +75,8 @@ export function TerminalDock({
       className={'terminal-dock ' + mode}
       aria-label="Terminais"
       onKeyDown={(event) => {
+        // Delete/Backspace act on the dock (closing a tab), never on the selected canvas devices.
+        if (event.key === 'Delete' || event.key === 'Backspace') event.stopPropagation();
         // Ctrl+PageUp/PageDown switch tabs, as in terminal emulators.
         if (!event.ctrlKey || !['PageUp', 'PageDown'].includes(event.key) || !current) return;
         event.preventDefault();
@@ -79,22 +84,32 @@ export function TerminalDock({
         onActivate(live[(index + live.length) % live.length]);
       }}
     >
-      <div className="terminal-dock-bar" role="tablist" aria-label="Sessões de terminal">
+      <div className="terminal-dock-bar">
         <TerminalSquare size={15} aria-hidden />
-        {live.map((id) => (
-          <span key={id} className={'terminal-tab' + (id === current ? ' active' : '')}>
-            <button role="tab" aria-selected={id === current} onClick={() => onActivate(id)}>
-              {hostname(id)}
-            </button>
-            <button
-              className="terminal-tab-close"
-              aria-label={'Fechar terminal de ' + hostname(id)}
-              onClick={() => onCloseTab(id)}
-            >
-              <X size={12} />
-            </button>
-          </span>
-        ))}
+        <div className="terminal-tabs" role="tablist" aria-label="Sessões de terminal">
+          {live.map((id) => (
+            <span key={id} className={'terminal-tab' + (id === current ? ' active' : '')}>
+              <button
+                role="tab"
+                aria-selected={id === current}
+                aria-keyshortcuts="Delete"
+                title={hostname(id) + ' · Delete fecha a aba'}
+                onClick={() => onActivate(id)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Delete') return;
+                  event.preventDefault();
+                  onCloseTab(id);
+                }}
+              >
+                {hostname(id)}
+              </button>
+              {/* Mouse shortcut; keyboard and assistive technology close a tab with Delete. */}
+              <span className="terminal-tab-close" aria-hidden onClick={() => onCloseTab(id)}>
+                <X size={12} />
+              </span>
+            </span>
+          ))}
+        </div>
         <label className="terminal-dock-add" title="Abrir outro terminal">
           <Plus size={14} aria-hidden />
           <select

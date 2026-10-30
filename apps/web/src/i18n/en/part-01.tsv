@@ -1,0 +1,618 @@
+r6m0hc24	Could not complete the action.
+llt8kfcn	Account and security
+xrjme4mk	Account settings
+6zbwt7x8	Profile
+cl8ffxtu	Sessions
+dvdlryx0	Password
+9vhfh53m	Delete account
+a69k28sh	Profile updated.
+3wg44dgj	Display name
+k2ayh13x	Account email
+anjukbvg	Save profile
+sg29oxgd	This session
+b6wy1agm	Other session
+qcff3qsp	Unidentified client
+6njz3f0n	Started on
+mhj5fv78	End session
+jxk3mq4n	End this session
+smjwsf91	End other session
+eted50da	Other sessions ended.
+ygbxa2uc	End other sessions
+kyt7eno5	Current password
+as87huem	New password
+vol0zxez	Changing your password ends all sessions.
+740o3oct	Change password
+lexpkis9	Deleting your account permanently removes your labs and snapshots.
+r3z52rni	Confirm your password
+h5r68lq5	I understand that this action cannot be undone
+p8d649mv	Delete my account
+ki02utv7	Created
+byughykm	Saved
+50uhcqff	Favorited
+r2kpwcg5	Removed from favorites
+m05mk95y	Deleted
+96c66su6	Version saved
+mghuldlc	Activity history
+9rdtzuyf	Creation, changes and access to your labs.
+dmqmxu5b	Version
+1uos28t4	Open lab
+mxe43t2w	No activity recorded yet.
+8cszpweg	Load more activity
+01ltgbgg	Loading history…
+3ztprk0f	Could not reach the server within 30 seconds. Your work can be recovered from the local draft.
+0i2x838u	The server returned an incomplete response. Try again; your changes remain local.
+g4u9ecr9	Could not complete the action (HTTP {0}).
+9hxq22cx	The server returned an unexpected format. Try again.
+3zdve9ia	Network topologies.
+qcbndx4b	Devices and protocols.
+zp6gtkcl	Configure devices and watch the traffic
+s1eyrgp1	between the devices in your lab.
+616vus2t	Traffic simulation between devices.
+0cofm7pt	shLab · Network simulation
+1uwtsbth	Lab access
+75s8y0og	Sign in to shLab
+14kbd14d	Create account
+b6oyeoiq	Recover access
+a8jjosa2	Confirm your email.
+7poe77dk	Choose a new password.
+fksr5g1k	Sign in to access your labs.
+x42lvz2r	Enter your details to create an account.
+lrbnrz01	We'll send you a secure link to reset your password.
+cf7xzd8w	Confirm below to activate your shLab account.
+a91vrqtk	Use at least 12 characters to protect your account.
+f9lcqqio	Your name
+8sx1zzuz	you@example.org
+zrqc7nl3	Your password
+b5sfxwxd	At least 12 characters
+3jw3b3ee	Forgot your password?
+qvguxfc6	Please wait…
+vkcb3z0m	Send recovery link
+p9bp99wk	Verify email
+29onmgom	Save new password
+fw3pzotk	Don't have an account yet?
+e8sqt4v2	Resend verification email
+25czuv0l	Back to sign-in
+fx2y3gba	Your labs are private.
+o2vqusdl	Services
+o0n8ia5w	Routing
+qmpf1nzb	Security
+hne0czvq	Redundancy
+1qlyqvzc	Virtualization
+p81zr2py	Automation
+c8x6i8iz	Open learning path
+pdypxjyy	Use template
+3fsljiu2	Enabled
+v6aryqxf	EVPN ARP suppression
+d0ptxav2	Time (ms)
+hnqnwlal	Action label
+oym3l82d	Proposed configuration
+wynvdbme	Expected value
+4g24qcx4	Expected result
+crn2vjqj	Maximum loss (%)
+jd32z1y2	Maximum latency (ms)
+13cie5wq	Require final success
+vcwibjnj	Blocking evidence
+p3kni3z0	Restore availability
+iz20jae3	Service
+5gpysnhc	Service port
+p216zkpf	IPv6 scope
+5t94srd1	Transaction
+kx0qrmw3	Unit
+840o1iqi	Function
+8s8fa2j2	Quantity
+mavsgoif	Values
+lnk1frbo	Expected registers
+dq4frd34	Expected bits
+ysy8vadi	New lease
+h334oxly	Expected address
+p90p3i7d	Expected server
+o0wopy1h	Expected answers
+hms91hea	Clear cache
+2vhvwma4	Community
+0bhks0a2	OIDs
+qmkif7af	Maximum offset (ms)
+79tdt3dr	Severity
+p5fp2p30	Text
+98apu92e	Interface enabled
+9b0okc4f	Access VLAN
+94zwdgfq	Allowed VLANs
+gwny8rgb	Routes
+ygevqcq6	Next hop
+dh0uma5j	Description
+kom57k4s	Receiver
+bc494him	Filter
+8us8ihwm	Topic
+9jxzaffy	Content
+4gzff5em	Retain message
+t1nnzu49	Port
+z1g3lkpc	Device
+lkha8vfg	Name
+0okxlqkh	Type
+5sinv4fj	Key
+3b0mucjh	Username
+fi0d5n1x	Users
+jncjkapp	Clients
+o0y48jf2	Protocol
+3abdg032	Rules
+2ygq0o8q	Mode
+o7xbej2q	Priority
+h1jxksgn	Network
+r14jqev9	Prefix
+vbx9iw6d	Source
+xvpu6o3a	Destination
+epddy8jd	Destination port
+k7gkgzvm	Action
+59vynh8s	Packet threshold
+ponsh1g8	Window (ms)
+4nkymrb2	SYN only
+9sejvrb1	Signature
+cuysrs6h	Allowed destinations
+flm83diq	Backend servers
+0uar68c0	Address
+sb9xv4y2	Transport interface
+owiax4gp	WLAN profiles
+gme3pb8g	Root
+tkd5hdfp	Maximum distance (m)
+vfg5spin	Mesh ID
+k6a99kxf	Areas
+19aeoyxm	External routes
+ncvavtx8	Cost
+93zbq8d1	Metric
+rde9b1au	Addresses
+r3ahz71o	Start
+bmmworvi	DNS servers
+ngtfaxgq	Valid lifetime (ms)
+fqk7tar5	Preferred lifetime (ms)
+1jm6fc0g	T1 renewal (ms)
+huma81ko	Delegation interface
+62osoec1	Request address
+6ntda50d	Request prefix
+mjp4saay	Validation
+7zdfeqf2	Trust anchors
+4u676cxt	Zones
+u9j2y92e	EDNS buffer
+q0347x6y	PoE load
+fb923062	Power budget (W)
+cwzos3fd	Power draw (W)
+dp9hntp1	Default
+36vwdr0w	Required
+ccbl5umc	Class
+vkqly58e	Ports
+ageretmt	Response
+vnr36iu8	Algorithm
+aypy4f4z	Health check interval (ms)
+xpf4cwtr	Interval (ms)
+pjih77dl	Inbound rules
+4x8af64a	Outbound rules
+cz5ra4f3	Allowed APs
+v5isnmap	Reauthentication (ms)
+jl98wcui	Number
+st7t5e4i	SIP port
+a5mrb35e	RTP port
+k7wlb0cd	Auto-answer
+lup13vvc	Paper
+om5yuft6	Pages per minute
+das22odr	Identifier
+p5tlbkdk	Protocols
+67u528f1	Privilege
+xqtal7bd	Datastore
+e3ru0xra	Operation
+6hec0drg	Steps
+7an8ii7n	Certificate
+shpbxgef	Certificate authority
+ktm57ku6	Method
+1ij1x0m3	Trusted CA
+ymly9y9r	Channel
+jsi5ccpk	Band
+cd2tfx7q	Transmit power
+4hfvrwln	Width
+9b087q8a	Private key
+o1tieysf	Deeply nested structure: use the advanced editor.
+w3xu7mww	: value removed
+gql8rofk	Set
+djjujsun	Clear
+jb77nqyd	Ambient noise (dBm)
+2by7bslf	Radio obstruction
+hpbqrsqg	Preserved lab condition
+x1a06xv4	Format
+ssc305b2	Format {0}
+fomnmds2	Fields
+fnf12ai1	Remove
+aiqz143h	Add
+8jx6mqt4	Select
+u195xked	Invalid JSON. Open the advanced editor to fix it.
+2zdlvvvm	Review:
+pnrljxpu	Advanced JSON editor ·
+qmayu7e2	Close
+jgl2xhod	PERSONAL AREA
+a7wnevh3	Main navigation
+woyx8zvg	My labs
+4j8rtjjm	Templates and learning paths
+iqf8xuf5	Sign out
+qft76jz8	Personal area
+5tbqq38e	Labs
+dv1jukb8	Private
+iziohfkz	Saved labs and recent activity.
+krzj1u06	Reference topologies and guided exercises.
+mm22yoka	New lab
+2mj2yg85	Devices
+g8yqnach	Completed
+74bwbryo	Learning paths: {0} · Challenges: {1} · Tutorial: {2}
+59a2pvyf	Points
+wv2dji6l	Lab list
+tlpwwhss	Saved labs
+4f5lunpu	Lab filters
+9rjhaq77	Search labs
+u9qpz0zf	Search labs…
+pbvyhz0a	All modes
+o17bs08a	Free-form
+xw3jupt1	Guided
+rjtqjx6l	Challenge
+u6dqkowy	Progress
+k3j4ji95	All statuses
+twe6e8z3	In progress
+bxxhrrts	Sort by
+jcv7h6p2	Recently updated
+ztkmpc0r	Favorites
+hck0c50a	Clear filters
+jk7y5ejg	Loading labs…
+z8ieaa7v	{0} of {1} labs
+sx6gk2cz	No labs match the filters.
+1e4d77vk	Show all labs
+tr0xmhll	Remove from favorites
+cch8qckw	Add lab to favorites
+4gmzibzv	GUIDED LAB
+mshq4lva	FREE-FORM LAB
+jyebwfa5	devices
+aq85bgfc	Revision
+3qechf8n	· Completed
+9mdfiv3q	Free-form mode
+ydzbs8rj	Not graded
+h1tgwmmz	Delete {0}
+7t83q0s2	Delete lab
+1li0i97t	Create lab
+aqbnrkku	Blank topology
+tcx75bwk	Template and learning path filters
+vmb4emzz	Search templates and learning paths
+dogl7gky	Search by name, protocol or description…
+rzjarzv3	Learning paths
+xs8nasg6	Topic
+joyy875l	All topics
+tzwv2qjt	Learning path level
+lqq2tnnd	All levels
+mfbn7hym	Beginner
+afee4q87	Intermediate
+vpm93i0a	Advanced
+96aoexjw	learning paths
+ze88z1q2	No templates or learning paths match the filters.
+yc8ycjuj	Show the full catalog
+lvnd5s2j	Available templates
+hhk84lch	Topologies with configured devices and protocols.
+5xp1h400	Available learning paths
+frdr0vqg	Exercises with objectives and task grading.
+olcu9lfb	Network simulation
+kms5b4bt	Lab name
+qlfey75b	Lab mode
+6qcz5rwt	Learning path
+5ueybor9	Canvas background
+jq98v9nq	Light
+j9u0c72m	Gray
+nml49niq	Dark
+gfy2tt7f	Create and open lab
+zwg2qppm	Delete lab?
+torpr7xo	The lab
+062nerdz	and its saved versions will be deleted.
+0waoul7o	Cancel
+l5ve0t7l	Local drafts
+a5rc3pm2	Recover or export work from this user and browser, including from deleted labs. Discarding frees up local quota.
+45oxyt7z	No local drafts available.
+3mtk7vfn	· revision
+ww6v0d48	{0} (recovered)
+a3tled5x	Recover into new lab
+epnyorkw	{0}-draft
+8x0irhzg	Export draft
+djw80pye	Discard draft
+jflrxgui	Could not sign out. Check your connection and try again.
+a86c4olv	Opening lab…
+sc1ssvxb	Your session has expired. Please sign in again.
+p4qrng4c	Dismiss notice
+jr8h4qdm	network123
+twml4bnv	802.1X blocks data on the wired port until EAPOL and RADIUS/UDP1812 authorize the MAC. TACACS+ uses TCP/49 for CHAP, command authorization and session accounting. Configure commands on the user; ["*"] permits all commands allowed by the privilege level. For PEAP/TLS enterprise Wi-Fi, use the EAP configuration in the enterprise features tab. Credentials belong to the lab.
+l1i2dp7v	Configure
+ojaqpx5s	RADIUS / TACACS+ server
+x9eycv8t	AAA client / terminal
+rhht8m3a	802.1X controlled port
+ykocmpf2	AAA JSON configuration
+65i3t4mq	Apply AAA
+dfj59lld	The wired port uses CHAP challenge/response and octet-encoded RADIUS. Enterprise PEAP/TLS is in the EAP configuration; TACACS+ uses separate authorization and body obfuscation. A VLAN returned by RADIUS must exist on the switch. The enforceCli option requires privilege 15 for configuration from the terminal.
+fg6gekbq	State
+npu9e4a3	Network username
+ci2i710q	Network password
+g3szv647	Authenticate to the network
+85brrgqg	not authorized
+5jp7wrys	Request
+u0ud706d	Protocol / user
+xecgxygb	Result
+6vagxr2i	Server:
+rxaob1kw	rejected;
+i7mepuzg	AAA records.
+faxpv1z5	Device network features
+uzqrnsi1	Network feature
+5uruqk36	EAP TLS / PEAP server
+p9iurv8p	RADIUS authenticator AP
+9c1cxn2w	EAP TLS / PEAP client
+euxj94s5	AP mesh
+irtf3t15	Managed AP · WTP
+flrl1zwc	RADIUS server for EAP TLS/PEAP: authorize the AP with the shared key and configure users and the server identity. The example authority belongs to the lab.
+7rh630f8	The AP authenticates the client against a RADIUS server reachable over the IPv4 underlay. Use a WPA2-Enterprise SSID; the client must trust the server's authority.
+20ttexo4	The client uses a certificate with EAP-TLS or a password with PEAP. Configure the WPA2-Enterprise SSID and the trusted authority of the RADIUS server.
+1nc66u6d	The controller manages APs via CAPWAP. Configure IPv4 on the underlay, WLAN profiles and the key shared with the APs. Transport uses UDP/5246 for control and /5247 for data.
+brpobob7	This managed AP needs an IPv4 route to the controller and a matching WLAN profile and key. The controller delivers the configuration after CAPWAP discovery and join.
+yox6m7wk	APs in the same mesh use a common identity, key and channel. Mark the AP with the wired uplink as root. Priority selects the root, and the metric determines the path between neighbors.
+w15ukbza	IDS monitors signatures and rates and raises alerts. IPS can drop traffic that matches the rules. In this model, inspection acts on the device's forwarding path.
+l08a6dmf	Advanced network configuration
+hp6e3j6w	Apply network feature
+f50zudzl	waiting
+2fw7kchz	EAP authorized
+8r5dwdr6	· rejected
+93bfmjhp	· sessions
+cyw2oipr	· profile
+0xvmsd7q	· received records
+lidcfksy	· root
+uliamjw9	no path
+tnr2ufty	· path
+spt6p65l	IDS / IPS alerts
+2c8sbpfi	· drops
+3xs2b5n0	blocked
+uuhokppf	alert
+5h8biwos	Device applications
+q1rdcj0p	SIP/RTP phone
+s8e6t6ws	HTTP proxy / load balancer
+qdzn8wed	IPP printer
+4c13t1d5	Service configuration
+dmlbelm5	Apply service
+y7c91cwg	HTTP backends
+66nsc2w7	· checked at
+x2hxwvh2	Requests:
+evmlbq61	completed.
+ivtlv1vk	For a load balancer, use kind: load-balancer, port: 80 and backends. For a proxy, allowedNetworks contains the allowed destination IPs.
+zp2t40wx	SIP calls
+35hhfbgl	Remote phone IPv4
+qbbqg22x	Call phone
+l54b1v8n	sent /
+j1xby8ox	received
+22hzv19g	Hang up
+92izio21	Network printing
+4bjqqu4c	Printer IPv4/IPv6
+al3etxpw	Document name
+82u6hxq3	Pages
+57mol90t	Send IPP print job
+7qpxxc81	Paper available:
+f024ch90	pages
+2kdqpauv	IoT client · MQTT 3.1.1
+6b24cvuy	Connect IoT
+b9137g5h	MQTT username
+coslypnx	MQTT password
+7t2erbqj	disconnected
+b2snypi5	MQTT subscription filter
+5bzlrdoy	room/+/temperature
+cu8z9g3w	Subscribe to topic
+4qhv4a1s	MQTT topic
+27cb27o8	Sensor value
+d4qme40r	Retain last value
+g44x21f7	Delivery guarantee
+ziuj23ye	QoS 0 — no acknowledgment
+aouedyak	QoS 1 — PUBACK and retransmission
+oekmbr8i	Subscriptions use QoS 0. Authentication does not encrypt the transport; TLS, QoS 2 and persistent sessions are not yet available in this model.
+bitqd39g	Publish reading
+ff47mhvr	BGP network must use NETWORK/PREFIX.
+9d4ssh20	Invalid BGP neighbor option: {0}
+mqd7tvxv	Filter: IP in|out SEQ permit|deny CIDR [ge N] [le N].
+fg675ezk	Filter requires a configured neighbor.
+a5dqh8qj	Routing between autonomous systems
+v6pirhdk	BGP exchanges OPEN, KEEPALIVE and UPDATE over TCP/179. AS_PATH prevents loops; LOCAL_PREF and filters define the policy. NEXT_HOP needs a route in the underlay. Advance the events to negotiate and observe withdrawals. Applying resets the sessions.
+l9kegbxx	Enable BGP
+6jr1vk47	BGP advertised networks
+ph5snuqf	The prefix must exist in the router's routing table as a connected, static or IGP route.
+41gyr6em	BGP neighbors
+b2gu86at	One per line: IP remote-AS. Options: passive, next-hop-self, rr-client, local-pref=N, med=N, prepend=N.
+ahylmlho	BGP prefix filters
+ffylbhw9	First matching rule by sequence wins. A configured filter has an implicit deny; without rules, valid prefixes are permitted.
+u6n3ljkt	Apply BGP
+xwu97khd	BGP sessions
+uuzkrbn7	Neighbor / AS
+qkehjc1q	BGP paths
+0c73vgh7	NEXT_HOP / origin
+cog71sic	> marks the installed path. iBGP uses distance 200; eBGP, 20. Route reflectors use ORIGINATOR_ID/CLUSTER_LIST to prevent loops.
+fyxyp4w4	An active/backup bond keeps one address and one active NIC across paths through different switches. The ARP monitor detects uplink failure up to the chosen local target. Without a monitor, selection checks only the NIC carrier.
+4h8588fw	Install Ethernet NIC
+wlxm5762	· additional NIC
+r1o8w67g	active
+7x8sudou	Configure IPv4/DHCP in the Ports tab and IPv6 in the IPv6 tab.
+7fibw9qz	Last ARP reply
+hln3iwyy	· primary
+8xktkfmk	no link
+gj1klhsm	ARP target unreachable
+itldo9hg	active
+kys72v6n	Configure IPv4
+m0hd6k3k	Edit
+tettrpcg	Edit bond
+hm1cd9k3	Create bond
+9ym6t8kw	Bond number
+7ynqsep6	Primary NIC
+9cpg723w	Member NICs
+eo8fve8t	ARP target in the local domain (optional)
+i0o58rxx	ARP interval (ms)
+jixrwaxr	Select two to eight NICs. The primary NIC's static IPv4 address moves to the bond. Configure DHCP and IPv6 on the bond interface; member NICs have no addresses of their own. The timeout must cover at least three probes.
+p8k4je22	Apply bond
+m1akyr4a	Cancel editing
+7fsa1ei4	Management: NTP, syslog and SNMP
+li7mnm0v	Management loopback advertised in OSPF
+tiz0xtzh	Standard access VLANs
+w11ev084	Bulk configuration
+q7whpaty	Applies the same block of commands, in global configuration mode, to multiple routers and switches. Each device is atomic: if a line fails, nothing is applied to it and the line is flagged. Use
+wt7sn0r3	or columns from the variable table. Everything becomes a single undo step.
+v4m66pvi	Target devices
+6a3kmnwd	Filter by name or site
+tal3us78	e.g., HQ or CORE
+0qhxbqlm	Select
+w05bmy7n	visible
+3p2numee	router
+fdclvtb0	selected
+18do3lqa	Configuration template
+4c5q95se	Preset template
+13uwvknj	Choose…
+vd0afr44	Commands
+5hbgi31u	Variable table (optional; first row with the hostname column)
+ka9g17jg	Preview for
+1yesmhco	Apply to
+ck4hkili	devices
+pkziiwe1	Bulk configuration results
+wxdn0wa9	of
+pe09uzup	devices configured.
+0yt0j6si	Applied
+avgilwnf	Not applied
+3dweajct	{0} lines
+urcwmu27	Line {0} “{1}”:
+3d33qhvk	Binary simulation capture
+eih3lctl	frames retained in storage independent of the visual history. Start:
+m363ft1u	ms of virtual time. Ethernet/VLAN, ARP, IPv4/IPv6, TCP, UDP, ICMP/NDP, DNS/EDNS, DHCPv4/v6 and relay, syslog RFC 5424, RIP, RADIUS, Modbus TCP, VXLAN and BGP/EVPN have codecs.
+79gimb6s	Capture truncated:
+6a1uudj6	old frames dropped due to the limit of 10,000 frames or 2 MiB.
+howadb88	Also capture control traffic from now on
+tbew0l8n	Start new capture
+o3rkndxn	Capture link
+u7w3j28f	All links
+u2bchd99	exportable frames ·
+0hm9sfk7	omitted.
+8g57flgy	Reasons for omission
+sry2xv67	Protocols without a binary format, TCP applications with teaching-oriented framing, the model's DNSSEC and fragments carrying the simulator envelope are omitted.
+8hb333fo	Download PCAP
+wnkq12mx	Clone cell or rack
+ofazkhov	Review the new addresses, VLANs and objects. The simulation is paused; applying creates a change that can be undone.
+9ksmwvd9	new objects ·
+7fo5wabe	remapped addresses ·
+jtjk925t	Clone
+o7kstu9s	Showing 200 addresses; the exported review contains all of them.
+p61dfwa5	Review objects and VLANs
+w6oaybal	{0}-clone-review
+xh6adooe	Export review
+xmjwkus0	The lab changed during the review. Close and prepare the clone again.
+nl2hyssg	Apply clone
+2yphtrhx	Select devices, a grouped cell or a rack.
+quhsdx5d	The clone exceeds 2,000 devices.
+f9hwkzlp	No free IPv4 block to preserve the selection's prefixes.
+lu9odv3b	No free IPv6 prefix for the clone.
+9rwqknw8	No free VLAN for the clone.
+mduumqwd	No free VNI for the clone.
+a94cjw9m	No free route target for the clone.
+2tcghgri	Clones start without a startup-config. Review the configuration and use copy running-config startup-config before reloading.
+ilsqk839	Cloned replicated databases start empty; an isolated replica stays disabled.
+5dd9oku4	A partial quorum group was not copied; select all members to create an independent group.
+nfixysyb	Radios and mesh start disabled to prevent automatic association with the original cell.
+mu9fu6p3	Overlays and tunnels start disabled; review the peers and route targets before enabling them.
+od7vfpof	External cables were not copied; connect the new uplinks after the review.
+o9soi3gu	The clone exceeds the 16 MiB persistence limit. Reduce the selection or the capture before preparing again.
+7yp1c16r	DHCP (new lease)
+vr1dh22g	Anchored comment
+9y5nlj5d	Device or link
+uqfkifcj	Comment anchor
+zropl15j	Comment
+id1c2838	The comment follows its anchor when the anchor is moved and is removed when the anchor is deleted.
+qq4lgs04	Add comment
+mvhfyr7k	There is no startup-config yet. Use
+gekaivqa	to save; until then, all configuration is lost on a reload.
+0b42rc9b	No changes since the last write memory.
+4ynkrrv0	lines differ. “+” exists only in the running-config; “−” only in the startup-config (equivalent to
+vkq14jf5	Configuration differences
+bkoon123	Unsaved changes (running × startup)
+p29quzew	Provide a list of 1 to 2,000 changes.
+u71jcsiq	Invalid change.
+6lpdge9u	Unknown fields in the legacy configuration.
+6omkr89r	Device not found: {0}
+7n031ziy	Duplicate {0} configuration on {1}
+bnqedjzx	Interface not found: {0}/{1}
+uczfjjsc	Duplicate interface; combine its fields into a single change: {0}/{1}
+7ayezs3y	Review an imported topology or prepare batch changes. The app validates the proposal before allowing it to be applied; you can undo the change.
+roa5p7w7	Compare topology file
+q3cqg0km	File exceeds 16 MiB.
+toc1qmcg	Batch configuration
+m733fhx2	Prepare changes
+fc3jgz54	objects with changed configuration ·
+axouvmz9	review warnings. Traffic and counters are not included in the diff.
+qaqouyyq	The batch applies only the reviewed fields to the current state. The simulation was paused for the review.
+3ae5nlft	Importing restores the entire topology, including the clock, queues and capture from the file.
+y218mqwp	The configuration changed during the review. Prepare the proposal again.
+64z2ygxc	Apply proposal
+9lce63p1	UTP Cat6 · straight-through
+ijjtsdrt	Single-mode fiber · SFP
+5dowltq7	Multimode fiber · SFP/QSFP
+w1v0354j	DAC · SFP/QSFP (up to 7 m)
+a4uwmexh	portA
+3sjca8bm	Connect interfaces
+3dqjgft9	Choose both ports and a physically compatible medium.
+2l408yle	Device A
+i9od5flq	(in use)
+zp5ueele	Device B
+6k7kki6w	Cable type
+rlxr3dpo	Distance (meters)
+59t9sech	Serial requires DCE/DTE interfaces and up to 50 m. The DCE clock sets the transmission rate.
+7t5szjy0	Console requires compatible UART ports, the same baud rate and up to 15 m.
+t18rpocb	DAC requires DAC modules, matching sockets and a distance of up to 7 m.
+mq53odtt	Fiber requires compatible transceivers at both ends. Catalog SFP ports come with single-mode modules.
+8dvrpzva	RJ45 · up to 100 m in the model. Ports use conceptual Auto-MDIX, accepting straight-through or crossover cables.
+c7lavf62	Connect devices
+iozfdfy8	Wireless link
+ybvo0o70	Distance
+nw0u75t2	Interference
+6n09cnhz	dB · Loss
+4lr71503	Base latency
+dwz1emvr	The link is created by the radio. Position, channel, transmit power and obstacles determine its parameters.
+k0d6iy3a	Interrupt wireless link
+23fsrkzh	Restore wireless link
+5gar95i1	Connection properties
+6t0w77v5	Connection metrics
+wjamp0pb	Physical state
+s1g2es6n	Operational
+g8ptfu6p	Not operational
+c5xiktfb	Cable propagation
+2pfykwd1	Scenario jitter
+zbmco71c	Scenario loss
+5zps7luh	Length contributes to propagation time. Media, modules and speeds must be compatible. Delivery also depends on frame size, queues and processing.
+quqbr08y	This lab contains a transport condition defined by the scenario.
+kcdspj6l	Connection not found.
+xz24g5ik	Connection active
+pqabwnd0	Cable length (meters)
+jcgvn1p2	Apply
+xnuliqvu	Remove cable
+4m38yjbk	SQL database replication
+d8x0vnon	· applied
+zs6gbt42	queries awaiting majority
+y49molb3	Reads and writes respond only after majority confirmation. Use the leader's individual IP; new connections can use discovery with explicit replicas and cluster. There is no TCP migration or automatic VIP on this server.
+sd7jgs3u	History is compacted automatically, with up to 256 retained entries and 512 KiB of materialized data. A timeout has an indeterminate result; query the leader before retrying a write. Removing a member/group disables the databases while preserving local data.
+8rol9h10	Enable empty databases with the same port and key on all members. Wait for quorum synchronization before binding the group.
+czjni82q	Bind databases to quorum
+hvok6kot	Database over HTTP/TCP
+kcw757hg	Lab service: CREATE TABLE, INSERT, SELECT, UPDATE and DELETE. Maximum of 16 tables, 16 columns and 256 rows per table. Does not use the PostgreSQL protocol.
+23tn1lv1	Enable database
+ew7kiuv6	HTTP port
+12o2dqws	Database key
+vl9irm73	Apply database
+69b3v75r	SQL examples
+mkwny4uy	CREATE TABLE sensors (id, value) INSERT INTO sensors (id, value) VALUES (1, 23.5) SELECT * FROM sensors WHERE id = 1 LIMIT 10 UPDATE sensors SET value = 24 WHERE id = 1 DELETE FROM sensors WHERE id = 1
+t8o2ceob	queries accepted ·
+zt4ggngb	rejected
+4rbfu3rq	rows ·
+9czu07tv	Queries with discovery
+ja3qe0vf	Discovering leader
+0xjyhizc	Awaiting query response
+76uqs3sr	Completed
+87z729dm	Rejected
+quphcp09	Indeterminate result
+wjncl3zo	Observed authority: term
+eijri74z	, index
+qu4gazck	Network query
+wxhe8wj2	Discover leader automatically
+2z32b4ba	IPv4/IPv6 replicas
+9ru5fd1o	Expected cluster
+cc5gljbd	Each replica is queried over the network. The SQL query is sent once to the confirmed leader. If the response is lost, check the result before retrying a write.

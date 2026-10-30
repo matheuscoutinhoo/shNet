@@ -25,6 +25,7 @@ export type { BondMonitor } from './protocols/bond-model';
 export { defaultDhcpPool, dhcpPoolStats } from './protocols/dhcp-config';
 export * from './templates';
 export * from './labs';
+export * from './exam-topics';
 export * from './canvas';
 export * from './inspection';
 

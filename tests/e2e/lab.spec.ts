@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect, type Page } from '@playwright/test';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
+import { Translator } from '../../apps/web/src/i18n/text';
+import { loadTranslations, patternCatalog, PT_WORDS } from '../../scripts/i18n-strings';
 import { resolve } from 'node:path';
 import {
   decodePcap,
@@ -5349,6 +5351,13 @@ test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais e
   };
   await type('show ip bgp summary');
   await expect(dock.locator('.xterm-rows')).toContainText('10.0.12.1');
+  expect((await new AxeBuilder({ page }).include('.terminal-dock').analyze()).violations).toEqual([]);
+  // Delete closes the focused tab (keyboard alternative to the mouse-only close icon).
+  await dock.getByRole('tab', { name: 'BR-R2' }).focus();
+  await page.keyboard.press('Delete');
+  await expect(dock.getByRole('tab')).toHaveCount(1);
+  // The key closed the tab only; the device selected on the canvas is still there.
+  await expect(page.locator('.network-device')).toHaveCount(4);
   await dock.getByRole('button', { name: 'Maximizar terminais' }).click();
   await expect(dock).toHaveClass(/maximized/);
   await dock.getByRole('button', { name: 'Restaurar terminais' }).click();
@@ -5370,6 +5379,7 @@ test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais e
   await bulk.getByLabel(/BR-R2/).check();
   await bulk.getByLabel('Comandos').fill('ntp server 10.0.0.{{index}}');
   await expect(bulk.locator('pre')).toHaveText('ntp server 10.0.0.1');
+  expect((await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations).toEqual([]);
   await bulk.getByRole('button', { name: 'Aplicar em 2 equipamentos' }).click();
   await expect(bulk.getByRole('status')).toHaveText('2 de 2 equipamentos configurados.');
   await bulk.getByRole('button', { name: 'Fechar', exact: true }).click();
@@ -5378,5 +5388,104 @@ test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais e
   await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
   await inspector.getByText('Alterações não salvas (running × startup)').click();
   await expect(inspector.locator('.config-changes')).toContainText('Ainda não há startup-config');
+  expect(errors).toEqual([]);
+});
+
+test('Idioma: interface, canvas, terminal e eventos em inglês; volta ao português sem recarregar', async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const translator = new Translator(loadTranslations(), patternCatalog(), PT_WORDS);
+  const en = (pt: string) => translator.translate(pt) ?? pt;
+  await page.goto('/');
+  await registerAndLogin(page, 'english-' + Date.now() + '@example.test');
+  const language = page.getByLabel('Idioma / Language');
+  await language.first().selectOption('en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { name: en('Meus laboratórios'), exact: true })).toBeVisible();
+  await page.getByRole('button', { name: en('Novo laboratório'), exact: true }).click();
+  await page.getByLabel(en('Nome do laboratório')).fill('English lab');
+  await page.getByRole('button', { name: en('Criar e abrir laboratório') }).click();
+  const e = new SimulationEngine();
+  const sw = e.addFactoryProfile('switch-l2', { x: 100, y: 100 }),
+    router = e.addFactoryProfile('router', { x: 500, y: 100 });
+  e.device(sw.id).hostname = 'SW-EN';
+  e.device(router.id).hostname = 'R-EN';
+  e.setDevicePower(sw.id, true);
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'english.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(e.snapshot())),
+  });
+  const node = (name: string) =>
+    page.locator('.network-device').filter({ has: page.getByText(name, { exact: true }) });
+  await expect(node('R-EN').locator('.node-type')).toHaveText(en('Roteador'));
+  await expect(page.getByRole('button', { name: en('Salvar'), exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: en('O que aconteceu?') })).toBeVisible();
+
+  // Terminal output (outside the DOM translator) is translated line by line; IOS keeps its "%".
+  await node('SW-EN').click({ button: 'right' });
+  await page.getByRole('menuitem', { name: en('Abrir terminal') }).click();
+  const dock = page.getByRole('region', { name: en('Terminais') });
+  const type = async (text: string) => {
+    await dock.locator('.xterm-helper-textarea').focus();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+  };
+  await expect(dock.locator('.xterm-rows')).toContainText(en('Digite help para ver os comandos disponíveis.'));
+  for (const line of ['enable', 'configure terminal', 'vlan 5000', 'router ospf 1']) await type(line);
+  const rows = dock.locator('.xterm-rows');
+  await expect(rows).toContainText('% ' + en('VLAN deve estar entre 1 e 4094'));
+  const pattern = en('Este comando não se aplica a Switch L2. Digite help para os comandos deste equipamento.');
+  expect(pattern).toMatch(/Switch L2/);
+  await expect(rows).toContainText(pattern.slice(0, 40));
+
+  // Back to Portuguese without reloading: rendered text is restored in place.
+  await language.first().selectOption('pt');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
+  await expect(node('R-EN').locator('.node-type')).toHaveText('Roteador');
+  await expect(page.getByRole('button', { name: 'Salvar', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Terminais' })).toBeVisible();
+
+  // The choice persists and English loads before the first render.
+  await language.first().selectOption('en');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { name: en('Meus laboratórios'), exact: true })).toBeVisible();
+  await page.getByLabel('Idioma / Language').first().selectOption('pt');
+  await expect(page.getByRole('heading', { name: 'Meus laboratórios', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('Certificações: filtro CCNA, tópicos nos cards e mapa de estudo abre a trilha', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await registerAndLogin(page, 'exam-map-' + Date.now() + '@example.test');
+  await page.getByRole('button', { name: 'Templates', exact: true }).click();
+  await page.getByLabel('Certificação').selectOption('ccna');
+  const ospf = page.locator('.catalog-card').filter({ hasText: 'Rotas que se adaptam' });
+  await expect(ospf.locator('.exam-chip', { hasText: 'CCNA 3.4' })).toHaveAttribute(
+    'title',
+    'CCNA 3.4 — Configure and verify single area OSPFv2'
+  );
+  // Only CCNA topics are shown while the CCNA filter is active.
+  await expect(ospf.locator('.exam-chip', { hasText: 'ENCOR' })).toHaveCount(0);
+  await expect(page.locator('.catalog-card').filter({ hasText: 'Quorum, eleição e dados replicados' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Mapa de estudo CCNA/CCNP', exact: true }).click();
+  const map = page.getByRole('dialog', { name: 'Mapa de estudo CCNA/CCNP' });
+  await expect(map.getByRole('tab', { name: /CCNA 200-301 v1\.1/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(map.getByRole('status')).toHaveText(/^\d+ de 53 tópicos com template ou trilha\.$/);
+  expect((await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations).toEqual([]);
+  const row = map.getByRole('row').filter({ has: page.getByRole('rowheader', { name: '3.4', exact: true }) });
+  await expect(row).toContainText('Configure and verify single area OSPFv2');
+  await map.getByRole('tab', { name: /CCNP ENARSI/ }).click();
+  await expect(map.getByRole('status')).toHaveText(/^\d+ de 25 tópicos com template ou trilha\.$/);
+  await map.getByRole('tab', { name: /CCNA 200-301/ }).click();
+  await row.getByRole('button', { name: 'Adjacência e caminho OSPF', exact: true }).click();
+  const create = page.getByRole('dialog', { name: 'Criar laboratório' });
+  await expect(create).toContainText('Reative OSPF no último roteador');
   expect(errors).toEqual([]);
 });

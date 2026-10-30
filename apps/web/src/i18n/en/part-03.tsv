@@ -1,0 +1,244 @@
+59pk905o	STP prevents loops in a switched network with redundant links. It keeps some paths from forwarding data and allows recovery after a failure.
+bulu0al9	Observe the root and the ports before disabling a link; compare the new topology and connectivity.
+jr68f5vx	Root bridge
+p8h5c002	Switch elected as the reference for the tree. The lowest bridge ID wins.
+d40t7lq8	Cost / role
+i5um5any	Cost determines the paths to the root; the port role defines how the port participates.
+432vux4m	Marks an edge port connected to a host; it should not be applied indiscriminately between switches.
+g30m8von	OSPF exchanges link information and calculates paths based on the topology. Neighbors must agree on communication parameters and area to form an adjacency.
+f13esrep	Check interfaces, area, and timers. Look at neighbors and the link-state database before looking for learned routes.
+c71pir1z	The router's identifier within the protocol; it is not necessarily the IP address of the outgoing interface.
+j6276kcg	Area / cost
+91t3wh2e	Areas organize the topology; cost contributes to path selection.
+20nv59ku	Hello maintains contact; dead sets how long to wait without messages before considering the neighbor lost.
+kw4471ug	RIP advertises distances to networks. The metric is the hop count; 16 means the destination is unreachable.
+qakpxqqw	Enable the participating interfaces and observe advertisements, learning, and expiration after a failure.
+upxhl7lt	Number of hops to the destination, with a limit of 15 reachable hops.
+paryimz7	Advertises a route as unreachable back to the neighbor it was learned from, to reduce loops.
+2tpnyhyv	VRRP provides a virtual gateway served by one of the routers in the group. If the active router stops advertising, another member can take over.
+07m1j1wz	Configure the hosts to use the virtual IP and compare which router responds before and after a failure.
+dkutyg4a	VRID identifies the group; VIP is the virtual address used by the hosts.
+gnmy2y4h	Priority / preempt
+6hswnuub	Priority is used in the election. Preempt allows a router to reclaim the active role when appropriate.
+htrdgub7	Lowers the priority when a tracked resource fails, so that a gateway without a usable exit path is not kept active.
+3ofb891o	BGP exchanges routes between peers, usually in different autonomous systems. Path selection considers attributes and policies, not just the shortest distance.
+1j7cw8oa	Check TCP/179 connectivity and the neighbor's ASN. Look at the session before investigating advertisements and filters.
+5b73dye2	ASN identifies the autonomous system; AS_PATH records the systems the route has traversed.
+f9l3dqk6	Next-hop address required to use a received route.
+x3nelsht	Attributes used by policy to compare paths.
+2iet7hyi	An ACL permits or blocks traffic based on rules. NAT translates addresses; a stateful firewall tracks connections and can permit return traffic.
+wfc7t8nb	Look at the rule that matches the packet, its counters, and the resulting translation or session. A rule with no matches did not change that traffic.
+dzd85356	Sequence / action
+18bs1rbj	The order defines which rule is evaluated first; permit allows and deny blocks.
+dlwy1m17	They identify the sides of the NAT translation, not a universal trust level.
+5y17ona6	Hits / session
+83fh05qe	Hits count matches. A session records the state that can allow return traffic.
+sm74aepe	Management queries state, logs events, and synchronizes time. These protocols depend on IP connectivity and the correct credentials.
+56vsdxbf	Compare the client's request with the response or the log entry on the server; an enabled service does not prove that the destination is reachable.
+pvi5sbdr	Queries management objects identified by OID.
+xqjzoxjp	Sends log messages with a severity level; lower numbers indicate higher urgency.
+x9hof2sh	NTP / telemetry
+uam0o9xw	NTP synchronizes clocks. Telemetry sends measurements to collectors.
+q2uboke2	The logs show this device's decisions and events in the lab's virtual time. A sent message does not prove that it was received or that the operation completed.
+bccztuso	Compare sending, receipt, reply, and final result. Open the event to understand the decision and the packet's path.
+5jaq9prd	Virtual time
+m2qyyyah	Advances with the simulation; it is not the computer's clock.
+9z5prcra	Type / reason
+kjtgtmnu	Type classifies the event; reason describes the specific decision observed.
+60wu19yj	An IP phone uses the network to signal calls and carry audio. The address, server or recipient, and telephony ports must be correct; powering on the phone does not start a call.
+f4itpkpj	A network printer receives jobs through an IP service and processes them in a queue. Address, active service, paper, and print capacity affect the result.
+ad0unpn5	An IoT device sends or receives data from an application, for example over MQTT. It is a network client; it does not replace the switch, the router, or the message broker.
+mrt1r0q6	This server provides a time reference over NTP. Clients must reach it and receive replies to synchronize their clocks.
+cytnri74	The RADIUS server receives authentication and authorization requests from client devices. Configure who can query it, the shared secret, and the permitted identities before testing access.
+nphcpeaf	The TACACS+ server can authenticate administrators, authorize commands, and log actions. A client device must reach it and share the trust configuration.
+4nbc3by1	This server receives log messages from other devices. Configure the service, and set the destination address on the senders; compare the source, severity, and content of the received messages.
+fsjz15hy	This device can collect or answer management queries. The OID identifies the requested information; address, service, and credentials allow the query.
+5qankbeo	This server provides management access through the protocols modeled in the lab. Configure transport, service, and authentication; a reachable session is required before querying or changing data.
+dujn8cll	This server answers HTTP requests when the service is enabled. Client and server need two-way IP connectivity and access to the configured port.
+l1vajgh9	The proxy receives client requests and forwards them to the permitted destination. It depends on connectivity with both the client and the destination server.
+cr46i5va	The load balancer receives requests and chooses a destination server based on the algorithm and availability. The response depends on a reachable, enabled backend.
+j80fsidp	The MQTT broker relays messages by topic. A client publishes; other clients receive the messages if they have a matching subscription.
+l421ctjy	This device inspects forwarded traffic and logs alerts according to the configured rules. An alert reports a match; it does not mean the packet was blocked.
+7ots7jrj	This device can block forwarded traffic according to inspection rules. Blocking depends on IPS mode and a rule with a drop action.
+bzmdq5mi	The WLAN controller manages APs via CAPWAP over an IP network. This profile has no local radio; the Wi-Fi network is advertised by the managed APs.
+092i4ila	This AP can serve Wi-Fi clients and use other APs as a wireless path to a wired uplink. The mesh network requires a compatible identity, key, channel, and root.
+j37mk19c	A rack organizes devices in physical positions. It does not learn MAC addresses, has no IP address, and does not forward packets.
+llv4z02t	A patch panel interconnects ports passively. Configure the physical pairs: it does not learn MAC addresses or perform routing.
+jbqfpqe9	A UPS powers the connected loads and can keep them running on battery when the main power feed fails. It is not an application server.
+b92u7mdm	The access point advertises a Wi-Fi network and connects its clients to the local network. Association, authentication, and IP addressing are separate steps; a beacon only advertises the network.
+brisvoic	The switch learns MAC addresses and forwards frames between ports in the same VLAN. Each VLAN separates broadcast traffic. {0}
+aa35l96v	This profile can also route between networks when IP interfaces and routing are configured.
+x2hjapxz	To reach another network, hosts need a router or an L3-capable switch.
+gzdwqg2n	This device forwards packets between networks according to its routes. It chooses the most specific prefix; active cables, addresses, and a return path are still required.
+chag4l50	This device is a communication endpoint. It needs an active interface and an IP address; it uses a gateway to reach other networks. The MAC address identifies the local interface, while the IP address identifies its participation in the network.
+h36fhby6	Check the available interfaces and services before starting communication.
+w5hv6dxz	The AP uses the IP network to find and negotiate with the WLAN controller; the RUN state indicates an operational session in the model.
+s11x2tpn	APs use wireless links between each other. The root provides the uplink to the wired network; neighbors need compatible identity, key, and radio settings.
+brc3hk54	IDS logs rule matches. IPS can also drop traffic; check the mode, rule action, and counters.
+kfqlasvo	Client, authenticator, and server verify identity. Configure credentials, certificates, and trust according to the method; check authorization before testing data traffic.
+fjumgd2o	This panel configures {0}. Enabling a feature does not prove that its negotiations and dependencies already work.
+fxo7j5en	Telephony
+vlkli5m5	Signaling sets up and tears down calls; media carries the audio. Check the number, destination, port, and call state.
+nstq515n	Printing
+6zbjvqft	Jobs enter a queue. An active service, paper, and capacity affect printing and how long it takes.
+r2h99bd8	A proxy forwards requests to permitted destinations; a load balancer chooses an available backend. Both connections must work.
+orp3g2y0	The broker receives messages published to topics. Connected clients receive messages from the topics they subscribe to.
+01eqw2eb	Service clients
+s779h2p6	This device can request pages, send print jobs, and publish messages; that does not make it the server for those services.
+45y448vq	Configure the services or clients available on this device and track the request, response, and operation status. IP, port, and a return path are prerequisites.
+k78i2a7s	Search devices
+rqgiskig	Search devices…
+jr02mm7v	Drag onto the canvas or click to add.
+h5a9jgw0	No devices found.
+j7hvjnef	Network advertisement (beacon)
+nbxomesy	Authentication request
+4hrkypmx	Authentication response
+8qom32bh	Association request
+f2fvwwvp	Association response
+kldhwmxh	Initial SAE authentication exchange
+iexiencc	SAE confirmation
+vm4dnwp5	Access authorized
+vrsh7yog	Access rejected
+yplnhv9a	Deauthentication
+8xwnn7rj	Presence check
+ik3yd15m	EAP enterprise authentication message
+24w679th	Key negotiation — step 1
+3ti6hf7r	Key negotiation — step 2
+1sn4mbid	Key negotiation — step 3
+otv1tl91	Key negotiation — step 4
+sehn1ucl	Neighbor solicitation: looks up or verifies a local IPv6 interface
+dbjercwp	Neighbor advertisement: reports the presence and MAC address of an IPv6 interface
+2i87gf3n	Router solicitation: requests network configuration information
+f76rbrc1	Router advertisement: reports presence, prefixes, and their lifetimes
+t2505in0	Echo request to test IPv6 connectivity
+g2a79zy5	Reply to the IPv6 connectivity test
+6nltrmir	Notice: destination unreachable
+lqd2t9cm	Notice: hop limit exceeded
+7k0odwfo	Notice: packet larger than the path MTU
+7455awpr	TCP segment carried over IPv6
+u2pzpckm	UDP datagram carried over IPv6
+d2rdsyl0	message sent
+46dw8dy9	message received
+ohy40ikl	frame flooded to eligible ports
+wqv3dhjf	request started
+q5ifj8rz	response recorded
+vryc1iy5	query started
+x6sptaek	answer processed
+p6dw5740	traffic permitted by the rule
+pnfmq9c9	address translated
+6i3tmb8z	lifetime expired
+piz2f22j	state recorded
+wc17kr2r	state changed
+vw4wr9d8	cycle executed
+s21itdli	sample received
+auvh36wt	path selected
+syapb2cw	information updated
+3vdzq27t	information installed
+z20lhxcc	information removed
+nzvqdgmi	advertisement withdrawn
+iftxsfw3	information advertised
+q5wrsdfe	frame encapsulated
+1xu5fhhq	frame decapsulated
+6axvtq0q	packet queued
+h70wsd0d	packet dequeued for servicing
+uxbfdtqx	class of service marked
+jk2hz6q2	label added
+leywgt8e	label replaced
+xa8inxzl	label removed
+izdmskf5	client looks for a server
+awrpo0xm	server offers a configuration
+i1bic5k0	server confirms the lease
+rub5vovd	client releases the lease
+8t5ln37e	client reports an address conflict
+3xnw7klw	address checked before leasing
+8efc5j53	client tries to renew the lease
+3dvcj2lg	client looks for a server to keep the lease
+crb7v9j1	lease applied
+ubcpjuti	reply sent
+6eet4vey	fragments reassembled
+stzvtq1a	packet split into fragments
+pcpuaouw	answer found in the cache
+c4imllz9	query retried over TCP after truncation
+ijwj22sq	log message queued for sending
+fg9c8fkl	log message filtered
+69id91qi	port or connection enabled
+kbyxmivt	port or connection disabled
+e3wcg6or	The AP and the client exchange messages to discover the network, associate, and authenticate access.
+qhb5pb3q	Check the SSID, signal, and security. After association, verify the IP configuration.
+c8218hzp	Local network
+r9pkrefs	Frames use MAC addresses to reach interfaces on the local link. The switch learns which port each MAC address appears on.
+zy8lj8dj	Compare the destination MAC, VLAN, MAC address table, and ARP reply.
+dg08tqmp	IPv6 and neighbors
+97tp2n9f	NDP discovers neighbors and routers on the IPv6 link. A configured address still needs a usable path.
+rdmvynef	Check the IPv6 address, prefix, neighbor, and next hop.
+n44sg6e1	DHCP configuration
+z6s58wk7	The client requests an IP configuration; the server offers an address and confirms a lease for a limited time.
+aabmd01h	Compare the request, offer, acknowledgment, and lease. Check the pool, gateway, and DNS.
+hrokzrqo	DNS maps names to records, such as IP addresses. A query depends on connectivity with the server and can use the cache.
+i78vmmux	Compare the queried name, record type, answer, and cache validity.
+9lnfc0lr	TCP connection
+mi5pxdul	TCP establishes a connection, numbers the bytes, and acknowledges their receipt. Sending a segment does not prove that the application received the data.
+jsp2rskm	Compare SYN, ACK acknowledgments, sequence, window, and connection state on both ends.
+1va0zop3	IP communication
+46c5j0wp	The device chooses a route to the destination. Each hop needs a usable link, and the reply needs a return path.
+7c34x2np	Check addresses, routes, ARP or NDP, and the recorded reason; compare what was sent with the reply.
+85h3p1oc	STP loop prevention
+78lg0eej	Switches exchange BPDUs to elect a root and block redundant paths that would cause loops.
+00xvfu3o	Compare the root, cost, and port roles. A port blocked by STP can still have an active cable.
+psa7lyd5	Link aggregation
+ml09xtmw	LACP negotiates which compatible ports can join the same logical link.
+70lzy0rp	Check the group, partners, active/passive mode, and selected members on both ends.
+gp208358	Route learning and selection
+v0zc8lwr	Routers advertise and compare paths. Having a neighbor does not guarantee that the desired route was advertised or installed.
+gfzhfk98	Check neighbors, advertisements, and the routing table, including the return path.
+w0t65v7e	Process cycle and supervision
+jwbhkq9h	The PLC updates the process during its cycle. HMI, SCADA, and MES receive values over Modbus; the last value may be stale after communication failures.
+amg8vh5j	Compare level, setpoint, actuator, alarm state, last reception, and read timeout.
+74rtgymj	Active/backup NICs
+59xed6n1	One NIC forwards the group's data. Carrier and, when configured, ARP probes determine the eligible paths.
+0fli39hy	Check the active NIC, probe responses, ARP target, and switch or uplink failures.
+2bgwhrq8	One member serves the virtual IP; advertisements and priorities determine which device takes on that role.
+sj0hcfqq	Check the virtual IP on the hosts and each router's role before and after a failure.
+cvomc04r	Traffic policy
+g8fbg69h	ACLs and firewalls evaluate rules; NAT translates addresses. The result depends on the matching rule and, where applicable, the connection state.
+utwxybrc	Compare the rule, counters, translation, and session. An inspection alert by itself does not prove that traffic was blocked.
+rl93g24t	Identity and access
+34ehtk5u	Authentication verifies identity; authorization defines the permitted access. 802.1X can block data access on the port until authorization.
+ojbasegs	Compare the request, response, credentials, and port authorization state.
+1o3r75ii	ARP answered by the VTEP
+ev3lpp0j	The VTEP replied with a MAC/IP binding received via EVPN, without flooding that request into the overlay. This is not a health response from the remote VM.
+qjy4t43g	Check the VNI, route target, IMET member, binding origin, and the data flow to the VM.
+24l68o1q	Virtual or managed path
+hqiafe4i	Encapsulation and control create paths over the transport network. The endpoints must reach each other before offering that path.
+x2z5bzvl	Check the transport network, the endpoint identities, and the state of the virtual path.
+5m97av5w	Traffic handling
+55wtfgga	QoS classifies packets and schedules their servicing. Queues and limits can delay or drop traffic when there is contention.
+gqocgqyo	Compare class, queue, marking, and counters during competing traffic.
+shqh8ghx	Management
+dxtoq57m	Requests, logs, and measurements depend on IP connectivity, an enabled service, and matching credentials.
+o5ndi2z4	Compare the request and response, the service destination, and the logs produced.
+anwy017s	Application service
+h4iu9eeo	The client uses a network service. The operation depends on the IP path, the port, and the application configuration.
+d7zcthjc	Compare the request, response, service state, and its counters.
+cnphre2x	Device status
+5gd0lini	Power, ports, media, and configuration determine whether the device can communicate.
+fcxh5clq	Check power, the port's administrative and operational state, and cable compatibility.
+9h9b1dej	Lab event
+dz3m6htx	This entry describes a change or a decision made by the simulation. Check the reason to identify the observed condition.
+svpie721	Compare the previous and following entries from the same device.
+bo2kk6td	Recorded on this device: {0}.
+rv90xm7q	Wi-Fi message
+zl67vjbe	The network “{0}” was {1}. A beacon indicates that the network exists; it does not confirm association, authentication, or internet access.
+rfpj1wb8	detected on this interface
+qtryzmzw	advertised by the access point
+rg05h2t6	An access step for the network “{0}” was recorded. {1} A single message does not confirm that all steps have completed.
+elgqkdna	The ping received a reply
+i3t7znom	The ICMP reply completed the round-trip test to this destination. This verifies IP connectivity, but it does not prove that an HTTP, DNS, or other service is available.
+bchhn8tj	The device learned a MAC address
+z9cu3slv	The frame's source address was associated with the ingress port and the VLAN. The switch can use this entry to forward subsequent frames destined for that MAC address.
+cbpi1woz	The ARP table was updated
+rzwo8ewz	The device recorded an IPv4-to-MAC mapping on the local link. This mapping allows a frame to be addressed to the next hop, but it does not guarantee the complete path to the destination.
+8j2mz359	The client received a DHCP lease
+m5wj6i3h	The client applied the configuration acknowledged by the server. The address is valid for a limited time; the gateway and DNS must still be reachable to perform their functions.
+8t3by4nm	TCP retransmitted unacknowledged data
+3a9718nx	The sender did not receive the expected acknowledgment in time and retransmitted the segment. The cause may be loss, delay, or a lost ACK; this entry alone does not distinguish between these causes.

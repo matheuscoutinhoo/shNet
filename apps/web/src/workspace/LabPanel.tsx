@@ -3,6 +3,7 @@ import { CheckCircle2, Circle, Play, Trophy } from 'lucide-react';
 import { labs, describeLabTasks, type LabEvaluation } from '@shlab/engine';
 import { api, type Project } from '../api';
 import { Modal } from '../components/Modal';
+import { ExamChips } from '../components/ExamChips';
 import type { LabController } from './useLab';
 interface Progress {
   revision: number;
@@ -38,6 +39,9 @@ export function LabPanel({
         <span>{project.mode === 'challenge' ? 'Desafio' : 'Guiado'}</span>
       </div>
       <p>{definition.objective}</p>
+      <p className="lab-exam-topics">
+        Tópicos de prova: <ExamChips id={definition.id} limit={8} />
+      </p>
       <ol className="lab-task-list">
         {(progress?.result.tasks ?? initial).map((task) => (
           <li key={task.id} className={task.passed ? 'passed' : ''}>

@@ -1,6 +1,9 @@
 import { useId, useState, type TextareaHTMLAttributes } from 'react';
 import { z } from 'zod';
 import { radioObstructions, type Device, type SimulationEngine } from '@shlab/engine';
+import { tr, useLocale } from '../i18n';
+/** Keeps acronyms (ARP, EVPN) when a label is used mid-sentence. */
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 type Choice = { value: string; label: string };
 export function configChoices(engine: SimulationEngine, device: Device) {
   const ports = device.interfaces.map((p) => ({ value: p.id, label: p.name }));
@@ -238,7 +241,7 @@ function Field({
           <>
             <p>{label}: valor removido</p>
             <button type="button" className="button small" onClick={() => change(seed(inner, key))}>
-              Definir {label.toLowerCase()}
+              Definir {lowerFirst(label)}
             </button>
           </>
         ) : (
@@ -253,7 +256,7 @@ function Field({
               depth={depth + 1}
             />
             <button type="button" className="button small" onClick={() => change(null)}>
-              Limpar {label.toLowerCase()}
+              Limpar {lowerFirst(label)}
             </button>
           </>
         )}
@@ -355,7 +358,7 @@ function Field({
               type="button"
               onClick={() => change(list.filter((_, n) => n !== i))}
             >
-              Remover {label.toLowerCase()} {i + 1}
+              Remover {lowerFirst(label)} {i + 1}
             </button>
           </div>
         ))}
@@ -370,7 +373,7 @@ function Field({
             ])
           }
         >
-          Adicionar {label.toLowerCase()}
+          Adicionar {lowerFirst(label)}
         </button>
       </fieldset>
     );
@@ -393,7 +396,7 @@ function Field({
                   className="button small"
                   onClick={() => change({ ...object, [k]: seed(child, k) })}
                 >
-                  Adicionar {title(k).toLowerCase()}
+                  Adicionar {lowerFirst(title(k))}
                 </button>
               ) : (
                 <>
@@ -410,7 +413,7 @@ function Field({
                     <button
                       type="button"
                       className="config-remove"
-                      aria-label={`Omitir ${title(k).toLowerCase()}`}
+                      aria-label={`Omitir ${lowerFirst(title(k))}`}
                       onClick={() => {
                         const copy = { ...object };
                         delete copy[k];
@@ -514,6 +517,8 @@ export function ConfigEditor({
   structuredOnly = false,
   ...props
 }: Props) {
+  // The visible label drops the JSON suffix, so it is translated before trimming.
+  useLocale();
   const [local, setLocal] = useState(defaultValue),
     [advanced, setAdvanced] = useState(false),
     id = useId(),
@@ -537,7 +542,7 @@ export function ConfigEditor({
           value={parsed}
           schema={schema}
           path="config"
-          label={label.replace(/\s*\(?JSON\)?$/i, '')}
+          label={tr(label).replace(/\s*\(?JSON\)?$/i, '')}
           change={(v) => update(JSON.stringify(v, null, 2))}
           choices={choices}
         />

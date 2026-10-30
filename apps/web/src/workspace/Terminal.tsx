@@ -18,6 +18,18 @@ import {
 } from './terminalState';
 import '@xterm/xterm/css/xterm.css';
 import { coloredTerminalCommand, coloredTerminalInput, coloredTerminalOutput } from './terminalColors';
+import { getLocale, tr } from '../i18n';
+/** Output in the interface language; IOS error lines keep their "% " prefix. */
+function localized(text: string) {
+  if (getLocale() !== 'en') return text;
+  return text
+    .split('\n')
+    .map((line) => {
+      const error = /^(\s*%\s?)(.+)$/.exec(line);
+      return error ? error[1] + tr(error[2]) : tr(line);
+    })
+    .join('\n');
+}
 export function Terminal({
   lab,
   deviceId,
@@ -112,7 +124,7 @@ export function Terminal({
       drain();
     };
     const result = (text: string) => {
-      const output = coloredTerminalOutput(text) + '\r\n';
+      const output = coloredTerminalOutput(localized(text)) + '\r\n';
       appendTerminalOutput(state, output);
       state.prompt = cli.prompt;
       redraw(output);
@@ -125,8 +137,11 @@ export function Terminal({
           cli.identity.family +
           ' · ' +
           cli.identity.name +
-          ' · Terminal simulado\x1b[0m\r\n' +
-          'Digite help para ver os comandos disponíveis.\r\n\r\n'
+          ' · ' +
+          tr('Terminal simulado') +
+          '\x1b[0m\r\n' +
+          tr('Digite help para ver os comandos disponíveis.') +
+          '\r\n\r\n'
       );
       state.initialized = true;
     }
@@ -150,7 +165,8 @@ export function Terminal({
       const output = labRef.current.change(() => cli.execute(input), dialog, true, true);
       const changed = !!cli.lastMark;
       if (undoStep && cli.lastMark) labRef.current.remember(cli.lastMark);
-      if (output) appendTerminalOutput(state, coloredTerminalOutput(output) + '\r\n');
+      const shown = output && localized(output);
+      if (shown) appendTerminalOutput(state, coloredTerminalOutput(shown) + '\r\n');
       if (output?.startsWith('DNS [')) {
         const query = labRef.current.engine.device(deviceId).dnsQueries?.at(-1);
         if (query && query.status !== 'pending' && output.includes(query.id)) state.seen.add(query.id);
@@ -158,7 +174,7 @@ export function Terminal({
       state.historyIndex = cli.history.length;
       state.prompt = cli.prompt;
       write(
-        '\r\n' + (output ? coloredTerminalOutput(output) + '\r\n' : '') + coloredTerminalInput(state.prompt)
+        '\r\n' + (shown ? coloredTerminalOutput(shown) + '\r\n' : '') + coloredTerminalInput(state.prompt)
       );
       return changed;
     };
@@ -205,7 +221,7 @@ export function Terminal({
         return;
       }
       if (data === '?' && !cli.secretInput) {
-        write('\r\n' + cli.help(state.line) + '\r\n' + coloredTerminalInput(cli.prompt, state.line));
+        write('\r\n' + localized(cli.help(state.line)) + '\r\n' + coloredTerminalInput(cli.prompt, state.line));
         return;
       }
       if (data === '\x1a') {

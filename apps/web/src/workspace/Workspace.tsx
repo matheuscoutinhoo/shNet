@@ -7,6 +7,8 @@ import type { DeviceAction } from './DeviceActions';
 import { labs } from '@shlab/engine';
 import { duplicateDevice } from './duplicateDevice';
 import { ProjectRecovery } from './ProjectRecovery';
+import { LanguageSwitch } from '../i18n/LanguageSwitch';
+import { formatLocale } from '../i18n';
 
 import { useCallback, useEffect, useRef, useState, lazy } from 'react';
 import type { Connection } from '@xyflow/react';
@@ -360,6 +362,7 @@ export function Workspace({
           <button className="icon-button" title="Ajuda" aria-label="Ajuda" onClick={() => setHelp(true)}>
             <HelpCircle size={20} />
           </button>
+          <LanguageSwitch className="compact" />
           <span className="avatar">{user.name.slice(0, 2).toUpperCase()}</span>
         </div>
       </header>
@@ -1362,7 +1365,7 @@ function Snapshots({
             <span>
               <FileJson size={18} />
               <strong>{v.label}</strong>
-              <small>{new Date(v.created_at).toLocaleString('pt-BR')}</small>
+              <small>{new Date(v.created_at).toLocaleString(formatLocale())}</small>
             </span>
             <button
               className="button small"

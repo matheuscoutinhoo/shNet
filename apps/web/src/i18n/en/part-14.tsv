@@ -1,0 +1,327 @@
+9qccnvr1	Underlay has no route/carrier to {0}.
+78jilqdp	{0} {1} via underlay {2}.
+1zneglms	underlay unavailable.
+w67n04uy	IKE SA expired; rekeying with new DH/SPI.
+t7wirpy7	dead timer expired with no response from peer.
+qar6gh1t	authenticating peer via underlay.
+hvdqab8e	Tunnel has no authenticated association.
+556ugdng	L3 tunnel accepts IPv4/IPv6 only.
+nkt3n3ei	Tunnel MTU exceeded; no fragmentation.
+rw7av985	ESP: unauthorized SA/traffic selector.
+fnuz1bkb	Tunnel peer/channel/proof rejected.
+l6tuifca	{0} {1} from {2}.
+37j2vpld	IKE_AUTH complete; ESP Child SA and selectors installed.
+h0k0gvnv	Tunnel replay rejected.
+y0isgbci	Invalid tunnel inner payload.
+kifp4ido	UDP port {0} has no active service.
+xd0adqqi	DNS datagram rejected: invalid source, destination, UDP ports or TTL.
+g39jei74	DHCP datagram rejected: mismatched UDP ports, source or TTL.
+fxmlwtf7	UDP IPv6 exceeds MTU; reduce the datagram size.
+abqpefq2	UDP/546 and /547 are reserved for DHCPv6.
+lzd1gmvw	UDP IPv6 service limit reached.
+un0kju9m	UDP IPv6 service configured.
+hnaplicw	UDP IPv6 requires a unicast destination and a powered-on source.
+frm2pkeu	Link-local UDP IPv6 requires an interface.
+8blaaxfh	Configure IPv6/route and wait for DAD.
+vvl3kuyj	DNS IPv6: invalid port or service.
+tnhsdswg	UDP IPv6: {0} characters received.
+0xp627v1	SIP and RTP require different ports.
+7bo56pnr	SIP/RTP phone configured.
+y482yfcl	Enable the phone and enter a unicast IPv4 address.
+fodlrw1v	Phone has no route/address.
+33iou1fx	Call limit reached.
+gh2jvc6h	RTP has no matching call, tuple or sequence.
+qeetdev5	RTP PCMU: packet {0}; call {1}.
+e1qvprg2	SIP has no matching dialog/CSeq.
+7v8bsy8k	SDP must use the signaling source address.
+sx2f2wnu	SIP: call timed out.
+c1lzk509	Invalid phone ports.
+v3qpfjhi	Invalid SIP dialog.
+8bsqy5w1	Call has no matching timer.
+gvltrmik	Orphaned SIP timer.
+1dpnernk	Tracking requires an interface, route or service.
+b04ru93n	Tracking service port requires the HTTP service.
+pn5lnht4	VRRP requires a router or server with an IP stack.
+0od2t37l	VRRP requires a routed interface with static IPv4 /1 to /30.
+zv3dlqit	VIP must be a host address in the subnet; priority 255 is reserved for the address owner.
+3eiq4ykd	Duplicate VRRP group or virtual IP.
+gpnen9pj	VRRP VIP conflicts with a NAT global address.
+ceb6e58y	VIP owner cannot decrement priority via tracking.
+2ylq3co6	Invalid or duplicate VRRP tracking.
+2hg5l47j	VRID {0}: advertisement priority {1}.
+wiac1xkm	VRRP {0}; {1} groups.
+c8aks6ay	VRID {0}: configured priority {1}, effective {2}.
+ze7pjs4d	Invalid VRRP advertisement: mismatched TTL, source, VIP or MAC.
+llkzodry	VRID {0}: {1}, priority {2}{3}.
+vk8kg0dh	, interval differs from local
+h27nhgrr	Inconsistent VRRP state or timer.
+28e5zbzd	VRRP timer has no matching group.
+sourt0jf	Interface has no VNI.
+nvvir74h	ARP suppression requires EVPN with peerPolicy evpn.
+h20zx95d	VXLAN requires a switch/VTEP, a routed IPv4 underlay and one VNI per VLAN.
+a9x25hz3	VNI {0} ↔ VLAN {1} configured.
+p2iyzj8k	VXLAN: underlay unavailable or link-local PDU not carried.
+z523vc47	VXLAN: invalid MTU/inner tag.
+sxlosr05	VXLAN has no VTEPs for replication.
+xs2tord2	VXLAN: no underlay route to {0}.
+n69eynrq	VXLAN: underlay MTU too small for encapsulation.
+6cuxdkns	VXLAN: unauthorized VNI/peer/underlay.
+360lk6q6	Invalid VXLAN payload/MTU/tag.
+zhyl3n9z	VNI {0} received from {1}; local VLAN {2}.
+af4ucoyy	Invalid pending VXLAN payload.
+aoqfda5e	Invalid VXLAN state/interface.
+tt4ls8xu	Missing wireless key association.
+8kcdqcor	Missing wireless ciphertext.
+wgrl0ssc	Mismatched wireless key/association.
+zqrnh3aj	Wireless replay rejected.
+azgmu2fy	Mismatched wireless MSDU.
+3adst6f3	No obstruction
+jkgc456n	Drywall
+4bgdz6ek	Brick wall
+psglr3d1	Concrete wall
+0v5nq63d	Secure SSID requires an 8–63 character key; channel must match the band.
+yoefcl5m	Invalid wireless configuration.
+e3jzj0d8	Wi-Fi PDU requires a negotiation token.
+cqnsjg1x	Wi-Fi PDU requires a nonce.
+g1ovp5vs	Key PDU requires proof.
+0ybvxui2	AP requires a switch; client requires a PC/server.
+gkksqg02	The device's wireless role cannot be changed.
+nrtjyucg	Educational wireless radio
+k76qi8s5	Wireless {0} configured: {1} / channel {2}.
+idxhks0m	Radio disabled.
+vcynya8k	AP disabled.
+743w0a0e	AP active.
+ylo0cl56	Radio available: scanning for SSID.
+b6s8tp9v	Association lost: channel, signal or beacons unavailable.
+2k3yp6xe	802.11 authentication with {0}.
+zclxzgq7	Retrying association.
+5a47pyyz	Wi-Fi negotiation timed out.
+7vwje8dy	802.11 {0} from {1}.
+wpsday02	SAE: credential confirmation rejected.
+ztscvdrr	Client associated: {0}.
+q8w62xp2	Invalid wireless credential for {0}.
+fl2j40ww	Client authorized: {0}.
+fsol6n3z	Authentication rejected by the AP.
+szk0a404	Wireless key or negotiation rejected.
+kdbc25xl	802.11 authentication accepted; requesting association.
+pmzazxbw	Client associated with SSID {0}.
+zrlgx8f8	Association accepted; starting {0} key exchange.
+631wrpuc	Client authorized on SSID {0}.
+sxc1w2p5	Radio has no wireless configuration.
+d3520jjy	Invalid wireless role/interface.
+9rlrd2og	Inconsistent wireless timer.
+qfusdyxn	Inconsistent wireless neighbors.
+mnljledq	Incompatible wireless state.
+pzp7rvb2	Invalid wireless anti-replay window.
+s4a3v5zb	Wireless association has no AP.
+6jtjl2zq	Invalid radio link.
+p69jy3on	Orphaned wireless timer.
+w4d1xsyp	Advance 2 seconds to elect the leader. In the Database tab, follow the quorum lab and propose a write on the leader. A commit requires a response from a majority over the model's actual cables. Disconnect both of the leader's cables: it may still consider itself the leader, but it cannot commit new writes. The two remaining replicas elect another leader. Reconnect the cables to reconcile the uncommitted history. The committed local copy is historical; it does not certify a current read. This study store is independent of the SQL database and the other services. Committed prefixes are compacted automatically; up to 256 retained entries, 128 uncommitted entries and 512 KiB per checkpoint, with no membership changes. The consensus channel has no vendor PCAP codec.
+ysy5w72e	Redundant application
+uwx1fq6y	Simulated ERP
+4fhs8hmx	{0} available
+l0kok2w9	Invalid UPS.
+tq92ia9i	{0}, routed DC and WAN A/B. Each endpoint has an active/backup bond and A/B power feeds. Access, core, FW, WAN and DC-GW are independent per side; RSTP/LACP, VIPs and port tracking, firewall with a replica. Preset failures happen in the simulated network. DNS/HTTP serve equivalent configured content, logs stay local and service sessions are not replicated. DHCP replicates leases with acknowledgment; its promotion still requires administrative fencing. The endpoint/PLC/WAN or DC server itself is still a single instance; losing both paths interrupts the service. This model does not add EVPN/ECMP or service quorum.
+w4klq17c	Factory, eight VLANs and three PLC/HMI/SCADA cells
+v9p2nqdx	Enterprise campus, five VLANs
+45ellwfe	HTTP on services VIP
+mfwqbs2u	DNS on services VIP
+0vduvbxq	HTTP on the WAN
+qc4l2u8p	NTP on services VIP
+tq1y1sch	Syslog on services VIP
+g8p6ht67	Integrated availability
+33kx6ra4	Guest isolated from services
+6l20dcej	SCADA reads PLC on another VLAN
+1co0qqo8	Integrated HA — baseline
+i1dij9vz	Integrated HA — loss of {0}
+q7okl85f	Integrated HA — loss of rack A
+vx8oqi4o	Integrated HA — uplink failure without carrier loss on host
+38l47sh6	Integrated HA — loss and recovery of core A
+wrac68hy	Assertion target not found: {0}
+4i111uu9	IPv6 interface not found in VRF: {0}
+3n7br14i	DHCP interface not found: {0}
+r1rq36o4	Invalid MQTT filter.
+x1i5vp03	Link not found: {0}
+uegxte90	Port not found: {0}
+8xr7qjem	Power feed fault requires a UPS.
+i5rziwxa	Missing service: {0}/{1}
+xgk0sjuz	DHCP did not start.
+cjv2pwnn	No adapter for protocol: {0}
+lts9ba21	DNS {0}: mismatched or missing response
+xaa9mf0w	DHCP lease mismatch
+tkrauzq4	SNMP {0}: mismatched or missing response
+ki41jzel	NTP offset out of tolerance
+zqmfbpcv	MQTT session replaced
+x7pz9rd3	MQTT disconnected or refused
+61z93va5	Incomplete actions.
+6eofnu7a	Checkpoint evidence mismatch.
+nlxd8qui	Sample belongs to a different simulation epoch.
+geaotyqc	Assertion summary mismatch.
+wd8bf2wq	Report incomplete or inconsistent with the definition.
+kkoocky9	Flow summary does not match the samples.
+vxe7t9of	Faults and recovery differ from the definition.
+cc30sehb	Limit of 180 samples per scenario; increase the interval.
+rhkqkypl	Fault outside the scenario duration.
+d9wt44gz	Assertion outside the duration or duplicate name.
+ex2teo9a	Action outside the scenario duration.
+ubx8zlfv	Configure requires changes; other actions must not include changes.
+9oz5nq1z	Duplicate proposal or limit of four exceeded.
+er004fdv	Rollback requires a prior configure.
+b0qsibfd	Duplicate checkpoint or limit of four exceeded.
+4zusaqf8	Restore requires a prior checkpoint.
+dxjky99e	IPv6/VRF/scope are available for ICMP, HTTP and Modbus; this service adapter uses IPv4 in the default table.
+jq06joxr	Interface scope applies only to IPv6.
+mri4w415	Link-local IPv6 destination requires scope.
+cfvxsanz	Flow {0} requires only its own parameters.
+hda0yma3	DHCP/MQTT/NTP require an interval greater than or equal to the deadline to avoid state overlap.
+mg8hi0hy	MQTT publish requires a topic without wildcards and a payload.
+z078elrg	MQTT reception requires receiver and filter on a publish operation.
+7njrtmcn	Modbus flow requires a modbus request.
+savfqw4j	Modbus parameters set on another protocol.
+b6hzg6gm	Expected registers require a read with the same quantity.
+qzfeyc8v	Expected bits require a 01/02 read with the same quantity.
+ty73k30r	Port fault requires port; service fault requires service. servicePort applies only to HTTP.
+x4atov9u	DHCP/MQTT/NTP flows must have unique sources and receivers in the scenario.
+2ayno01j	Flow names must be unique.
+9gbq51pr	Source not found: {0}
+sjq44zvg	Stateful flows share the same device by name/ID.
+mdov3z13	Deadline exceeded
+3gr5hs91	Modbus response mismatch
+c0k32xjr	No response before deadline
+go1u9lek	Configuration rollbacks exceed 8 MiB. Split the scenario run.
+vj85q04x	Checkpoints exceed 32 MiB. Reduce the capture or split the scenario run.
+0g62cpyp	Attempt interrupted by checkpoint restore.
+yd1svfad	Invalid IPv4
+psehaiwc	Redundant HTTP service
+t3wzum6i	VIP 192.0.2.1, VRRP accept mode and DNS/HTTP tracking. Services have the same configured content on both instances. A/B NICs and power feeds on all three endpoints. The client monitors carrier; the servers probe the client via ARP. The presets measure new requests, not continuity of the same sessions. VRRP does not replicate data/leases/sessions; a service unavailable on both instances or an advertisement partition can interrupt service. NTP and syslog are configured, but received logs stay on each instance.
+vno4f0iu	Availability event
+hhg4l3ul	HA services — baseline
+68n3kmc1	HA services — loss of instance A
+ial3pdkd	HA services — {0} outage
+zd829nqv	HA services — loss of access/rack {0}
+p2hnwvnc	FW-A/FW-B replicate sessions and NAT/PAT over the dedicated p2 cable; if that channel is lost, continuity is not guaranteed.
+4gs55q1r	Enterprise HTTP with EAP-TLS
+a6j6b5qw	HTTP over IPv6 after DHCPv6.
+uzv8tiwy	Advance through DAD/DHCPv6 and the RAs. On PC-DHCP6, generate HTTP/TCP or UDP traffic to 2001:db8:2::10. Inspect CWND/RTO and the NUD states. DHCPv6 does not provide a gateway: the RA installs the default route.
+xuhsoc5e	HTTP over the remotely configured network.
+abx66ogb	Authorized
+w5rx6ej7	HTTP after 802.1X authorization.
+xy59mufy	HTTP over the VXLAN overlay
+gq40srnp	HTTP traversed MPLS labels
+ljvm8bw1	HTTP shares the QoS queue
+xowe2avb	HTTP over the {0} overlay
+to2c18ui	HTTP traversed the radio and the AP bridge.
+4f6jvlf9	2.4 GHz radio, channel 1, SSID Campus, key Wireless-123. Step through the events to observe beacon, association and key1–key4. Open Wireless on NOTEBOOK and TCP/HTTP to query 192.168.50.20. A different channel, a wrong key or a long distance prevents communication. An additional AP on an overlapping channel increases interference. The encryption is conceptual.
+2uod4act	Start the simulation to complete DAD and SLAAC. In the IPv6 tab, copy the address of PC-V6-B and ping it from PC-V6-A. A Hop Limit of 1 reveals R-IPV6. Reduce the outbound MTU to 1280 and send 1400 bytes to observe Packet Too Big. RA and NDP use multicast on the local link.
+lu3x0mzz	HTTP over the LACP EtherChannel
+8m5xeopj	Advance to negotiate LACP and converge RSTP. SW-A in active mode initiates the exchange; SW-B in passive mode responds. STP sees Port-channel1 as a single link. Shut down Gi0/1 on SW-A and repeat ping/HTTP over the remaining Gi0/2. Configure min-links 2 to suspend the group if only one member remains.
+g6bnzjlp	Shut down Gi0/2 or disconnect its cable on R-PRIMARY. The effective priority drops from 150 to 70, below the 100 of R-BACKUP. Advance the simulation and repeat ping/HTTP. R-PRIMARY stays powered on. When the uplink recovers, preempt returns the role to the primary.
+injzah8v	Response from VRF {0}
+u3dd0iu5	Inter-VLAN HTTP via {0}
+kjsuoe5q	Response forwarded via BGP.
+6wnjbq3t	R-01/02/03 belong to AS 65001/65002/65003. Advance to establish BGP over TCP/179. R-01 prefers AS_PATH 65003; shutdown on Gi0/2 forces the path via 65002 65003. Adjust LOCAL_PREF to apply policy, inspect OPEN/UPDATE and validate ping/HTTP. A 9 s hold time is chosen for the lab; engine default: 90 s.
+a9gl6eeq	HTTP via the VRRP gateway
+z0pad762	The virtual gateways are 192.168.10.1 and 192.168.20.1. R-PRIMARY starts as ACTIVE (150); R-BACKUP stays BACKUP (100). Run ping/HTTP from PC-01 to WEB-01, power off R-PRIMARY and advance 4 s. Repeat the traffic and check the virtual MAC in ARP. When R-PRIMARY is powered back on, preempt returns the role to the primary. Backup static routes only cover an administrative shutdown of a single port. NAT/firewall sessions are not replicated.
+9jzl9bxz	{0}: service available per policy.
+ax62m5rc	PC-01 can access HTTP on the WAN (192.168.20.10) and in the DMZ (192.168.30.10). WAN-CLIENT can access only HTTP/80 in the DMZ; ping and echo/7 are blocked, as are connections to the LAN. On PC-01, traceroute 192.168.20.10 shows the TTL error traversing PAT and the firewall. Inspect the ICMP quoted headers and change rules in Policies.
+rw3hj7b0	Central services reached using the DHCP lease.
+tdgyjpa7	Advance the simulation: R-EDGE-01 forwards the broadcasts to DHCP-CENTRAL with giaddr 192.168.10.1. PC-01 receives the .60 reservation; PC-02 receives .50. Open DHCP to edit the relay and reservations. T1 renewal and release travel as routed unicast. On PC-01: ping central.lab or http get 192.168.20.10. Remove the helper-address and watch discovery fail.
+4jwbj7ie	On PC-01, open Management: run SNMP GET 1.3.6.1.2.1.1.5.0 against server 192.168.20.10, community public. GETNEXT walks the MIB. Send a syslog message and inspect the records on SERVER-01. Shutdown/no shutdown on an R-EDGE-01 interface generates events sent to the collector; ACLs, loss and routing affect delivery.
+oz9trrjc	Response forwarded via RIP routes.
+axhjtgzm	Advance the simulation and check show ip rip or the RIP panel. R-01 learns 192.168.20.0/24 over the direct link, metric 2 (a connected network costs 1). Shut down Gi0/2 on R-01 and watch the switchover to R-02, metric 3. Without advertisements, routes expire after 180 virtual seconds.
+5k89fzx2	Response forwarded via OSPF routes.
+ubjn4kk5	Advance the simulation until the OSPF panels show Full. On R-01, show ip route shows network 192.168.20.0/24 via R-02 (cost 21). Shut down Gi0/1 on R-01 and observe the direct path with cost 31. On PC-01: ping 192.168.20.10 or http get 192.168.20.10.
+t6jj8u9l	Hello from the simulated network!
+zguqjjp2	On PC-01, open TCP / HTTP and send an HTTP GET to 192.168.20.10. Step through the events to observe the handshake, PAT, firewall, response and FIN. In the CLI: http get 192.168.20.10. Disable HTTP on the server to observe RST.
+ryzagidm	The destination has no route to the internal network. Configure NAT and validate the outbound and return translation.
+p9m3iz5b	Objective: PC-01 must reach SERVER-01. Investigate interfaces and tables. Fix the fault and validate with ping.
+bwmygvdn	Not enough space to arrange while preserving groups. Rearrange the groups before trying again.
+x2tpnbb0	L3 switches
+uo08etcx	Area {0} · {1}
+36w8azj8	Area {0} · no adjacency
+57rijc8a	Area 0 (backbone)
+3hpyp5m0	Area {0}
+cjs90r4z	iBGP
+lg163xmm	eBGP
+dapfgghm	No sites found. Use names like SITE-DEVICE (e.g., HQ-CORE-1).
+ypk8e8e6	Limit of {0} annotations/regions: {1} sites need more space on the canvas.
+bwym9jxb	Group not found.
+zwn7pq5x	Invalid hexadecimal octets.
+5gwjhrtm	Truncated binary packet.
+m7ldkemq	DHCP: legacy/opaque transaction or out of uint32 range; capture omitted.
+fohpicbz	DHCP: chaddr must be unicast.
+5epnxvg4	DHCP: renewal with ciaddr different from the requested address.
+rqpdcjku	DHCP: renewal/rebinding must not contain Server Identifier.
+wa8bantn	DHCP: DISCOVER requires a zero ciaddr.
+juwtdop6	DHCP: RELEASE requires ciaddr.
+q91qq7oo	DHCP: DECLINE requires a zero ciaddr.
+9cw3ofle	DHCP: a fractional lease in seconds has no exact binary representation.
+fhbpuzbb	DHCP: datagram size cannot fit the header and options.
+ea06p4z9	DHCP: missing END option.
+0pfaagz7	DHCP exceeds the IPv4 UDP payload.
+hkxlykje	DHCP: invalid BOOTP/Ethernet header or magic cookie.
+77w1afrs	DHCP: invalid length for option {0}.
+0396dxi8	DHCP: invalid option overload.
+yk714hk8	DHCP: message type missing or outside the supported subset.
+kv3mdt91	DHCP: BOOTP op is incompatible with the message type.
+ocm398d9	DHCP: invalid IPv4 list, option {0}.
+zfdip6u5	DHCP: non-contiguous mask.
+w7zc0am3	Duplicate DHCPv6 option.
+f492nxah	DHCPv6 exceeds size/depth limit.
+i8xqulnc	Relay requires Relay Message and Interface-Id.
+67ekyxxx	Inconsistent relay types.
+7n4mudj1	Missing client DUID.
+m4t2mkqf	Different IAIDs are not supported in this model.
+9hbe280i	Truncated DHCPv6 DNS option.
+jgzzrwvy	Unsupported DHCPv6 status.
+lcjutg5e	The model's DNSSEC does not use RFC canonicalization for export.
+p181di47	ICMP: legacy quote without original header; capture omitted.
+l0xtmmle	ICMP: invalid quoted header.
+9hkchk1m	ICMP: only echo can be quoted in this profile.
+vpyv1ovt	ICMP without quoted packet.
+9cp9bmk4	IPv4 exceeds length.
+ro3v85wp	Jumbograms not supported.
+jbajxvi5	ICMPv6 without quoted packet.
+yn10hraf	Ethernet/VXLAN encapsulation limit reached.
+uqouuq9y	Educational envelope or link without an interoperable Ethernet codec.
+j4gacafg	DHCP: UDP ports are incompatible with the message type.
+lr8e8bom	Syslog: destination port is not UDP/514.
+wx5apghx	Syslog: legacy/inconsistent size; capture omitted without content padding.
+v8e8dcrs	VXLAN: legacy size without padding; historical capture is not interoperable.
+mnie274b	UDP payload {0} has no binary codec.
+uu5wy2e8	IP protocol {0} has no binary codec.
+hc3s5fl3	Frame has no supported payload.
+a6itmmzk	Frame exceeds limit.
+9a7c0wyp	ARP is not Ethernet/IPv4.
+f2w0scnv	Invalid IPv4 header.
+xqia4w8x	Invalid IPv4 checksum.
+dju8w0kj	Invalid IPv6 version.
+a70r154f	EtherType has no decoder.
+w5a62isy	Invalid TCP data offset.
+yvhk2y3g	Invalid TCP checksum.
+e1q708ni	Invalid TCP option.
+8l4r51d4	TCP option outside the header.
+5nxd2o2m	Invalid TCP option length.
+kq1m4tgt	Inconsistent UDP length.
+z9xebf0v	Invalid UDP checksum.
+fipknkd5	DHCP: UDP ports are incompatible with the BOOTP op.
+gjv1s63l	Invalid VXLAN header.
+5x62tc6u	Invalid ICMP checksum.
+9wacr000	Next Header/protocol has no decoder.
+tx4wrbka	Legacy Modbus uses hex/newline; capture preserved without invented conversion.
+44tawoyv	Legacy BGP uses JSON/newline; capture preserved without invented conversion.
+6r4u6iux	TCP application missing from retained state.
+f8wvqm0u	TCP application {0} uses educational framing.
+bivtlv47	Codec unavailable.
+uadtphbt	PCAP exceeds 100 MiB.
+0ebs11um	PCAP requires microsecond resolution.
+t4vn4cyc	PCAP requires version 2.4 and Ethernet.
+mh99kpmd	Invalid PCAP snaplen.
+pw4us4jz	PCAP record truncated or out of bounds.
+bb5wtvz5	Syslog: invalid Unicode; capture omitted without replacing characters.
+1guk14j4	Syslog: invalid UDP length.
+aecfgf4b	Syslog: truncated header.
+675z5yg4	Syslog: invalid ASCII header.
+1nnifk8g	Syslog: invalid PRI or version.
+bj4zpu80	Syslog: UTC timestamp/structured-data outside the implemented profile.
+hiiuuv7b	Syslog: header field exceeds the limit.

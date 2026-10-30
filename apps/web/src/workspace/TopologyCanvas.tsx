@@ -260,7 +260,7 @@ function DeviceView({ data, selected }: NodeProps<DeviceNode>) {
         <DeviceIcon profile={presentation?.id} type={d.type} />
         <div>
           <span className="node-type">
-            {presentation?.name.toLocaleUpperCase('pt-BR') ??
+            {presentation?.name ??
               (d.wireless?.role === 'ap'
                 ? 'ACCESS POINT'
                 : d.type === 'switch'
