@@ -1,0 +1,9 @@
+{
+  "wallElapsed": 17326,
+  "speed": 5,
+  "virtualStart": 6000,
+  "virtualEnd": 6008.493,
+  "probeStatus": "pending",
+  "source": "SCADA",
+  "target": "10.20.40.10"
+}

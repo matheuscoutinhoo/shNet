@@ -16,12 +16,25 @@ export function registerRipCommands(registry: CommandRegistry) {
   });
   registry.register({
     pattern: /^(router rip|service rip|no service rip)$/i,
+    syntax: ['router rip', 'service rip', 'no service rip'],
     modes: CONFIG_MODES,
-    run: (match, engine, device) => {
+    run: (match, engine, device, context) => {
       engine.configureRip(device.id, {
         ...config(device),
         enabled: !match[1].toLowerCase().startsWith('no '),
       });
+      if (match[1].toLowerCase() === 'router rip') {
+        context.mode = 'router';
+        context.router = 'rip';
+      }
+    },
+  });
+  registry.register({
+    pattern: /^version (\d+)$/i,
+    syntax: 'version <version>',
+    modes: ['router'],
+    run: (m, _e, _d, c) => {
+      if (c.router !== 'rip' || m[1] !== '2') throw new Error('This RIP model supports version 2.');
     },
   });
   registry.register({

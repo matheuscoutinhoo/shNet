@@ -16,7 +16,15 @@ export function terminalIdentity(d: Device) {
           : d.type === 'server'
             ? 'ServiceShell'
             : 'HostShell';
-  return { name, family, host: c.endpoint };
+  return {
+    name,
+    family: d.operatingSystem
+      ? 'IOS XE 17.12 · shLab core subset'
+      : c.routingProtocols || c.switching
+        ? 'IOS/IOS XE · shLab core subset'
+        : family,
+    host: c.endpoint,
+  };
 }
 
 /** The same capability contract drives device menus, help and actual execution. */
@@ -24,6 +32,29 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   const c = deviceCapabilities(d);
   if (!c.active) return /^(help|\?|show interfaces)$/i.test(input);
   const line = input.toLowerCase().replace(/^no /, '');
+  if (/^(?:class-map|policy-map|service-policy|show policy-map)\b/.test(line))
+    return (c.routing || c.switching) && !c.endpoint;
+  if (
+    /^(?:archive|ip sla|track|show (?:track|ip sla|inventory|environment|ip cef)|clock timezone)\b/.test(line)
+  )
+    return (c.routing || c.switching) && !c.endpoint;
+  if (/^(?:bfd|ip ospf bfd|show bfd)\b/.test(line)) return c.routingProtocols;
+  if (/^(?:udld|show udld)\b/.test(line)) return c.switching || c.routingProtocols;
+  if (/^(?:ip prefix-list|route-map|show (?:ip prefix-list|route-map))\b/.test(line))
+    return c.routingProtocols;
+  if (
+    /^(?:ip arp inspection|ip verify source|ip source binding|authentication port-control|show port-security)\b/.test(
+      line
+    )
+  )
+    return c.switching;
+  if (/^(?:write\b|copy\b|erase startup-config\b|reload$|show startup-config$)/.test(line))
+    return (c.routing || c.switching) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');
+  if (/^enable (?:secret|algorithm-type)\b/.test(line)) return (c.routing || c.switching) && !c.endpoint;
+  if (/^(?:standby|show standby)\b/.test(line)) return c.routingProtocols;
+  if (/^(?:cdp|lldp|show (?:cdp|lldp))\b/.test(line))
+    return (c.routing || c.switching) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');
+  if (/^ip access-list /.test(line)) return c.routing || c.switching;
   if (/^(ipconfig|ip (addr|address|link|route) (show|add|del|set)|route print|arp -a|hostname$)/.test(line))
     return c.endpoint;
   if (/^wifi /.test(line)) return c.wireless && c.endpoint;
@@ -38,7 +69,7 @@ export function commandSupported(d: Device, input: string, context: Context): bo
       line
     )
   )
-    return d.type === 'router' && c.routingProtocols;
+    return c.routingProtocols;
   if (/^(router bgp|bgp |neighbor |service bgp|show ip bgp)/.test(line)) return c.routingProtocols;
   if (/^ip routing/.test(line)) return c.routing || (c.switching && !d.profile);
   if (/^(ipv6 unicast-routing|ipv6 nd prefix)/.test(line)) return c.routing;
@@ -77,6 +108,7 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^phone (call|hangup)/.test(line)) return c.applicationKinds.includes('phone');
   if (/^(mqtt |print |http proxy )/.test(line)) return c.clientApplications;
   if (/^database query /.test(line)) return c.database || c.clientApplications;
+  if (/^database (client|cluster) /.test(line)) return c.database || c.clientApplications;
   if (/^(database configure|database ha)/.test(line)) return c.databaseServer;
   if (/^show database/.test(line)) return c.database;
   if (/^hardware add serial/.test(line)) return c.serial;
@@ -90,7 +122,7 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^ip dhcp snooping|^show ip dhcp snooping/.test(line)) return c.switching;
   if (/^ip helper-address|^show ip dhcp relay/.test(line)) return c.routing;
   if (
-    /^(ip dhcp (pool|conflict-detection|ha)|service dhcp|show ip dhcp (pool|binding|ha)|dhcp6 server)/.test(
+    /^(ip dhcp (pool|conflict-detection|ha|excluded-address)|service dhcp|show ip dhcp (pool|binding|ha)|dhcp6 server)/.test(
       line
     ) ||
     context.mode === 'dhcp'
@@ -471,6 +503,17 @@ export function deviceCommandHelp(d: Device, context: Context): HelpEntry[] {
         'Envia uma consulta ao banco pela rede. A chave deve corresponder à configurada no servidor.',
       example:
         'database query {"target":"192.168.10.20","port":8080,"key":"chave-do-lab","query":"SELECT * FROM sensores LIMIT 10"}',
+    },
+    {
+      command: 'database cluster query JSON',
+      description:
+        'Descobre o líder pelas réplicas configuradas e envia uma consulta uma única vez. Timeout de alteração tem resultado indeterminado.',
+      example: 'database cluster query {"query":"SELECT * FROM sensores LIMIT 10"}',
+    },
+    {
+      command: 'show database client',
+      description: 'Mostra perfil de descoberta e resultados, sem exibir a chave.',
+      example: 'show database client',
     },
     {
       command: 'show running-config',

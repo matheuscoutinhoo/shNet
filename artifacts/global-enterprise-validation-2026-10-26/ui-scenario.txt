@@ -1,0 +1,128 @@
+Validação de redes e cenários
+Verificar topologia
+Cenários e SLA
+Capacidades do modelo
+PLC / HMI
+Configuração e revisão
+
+Execute em uma cópia isolada da topologia. Compare baseline e falhas; tempos e SLAs são virtuais. Até 180 amostras por cenário. Os ensaios guardam a revisão e a topologia de origem no laboratório. O baseline conserva fluxos e SLAs e remove falhas, ações agendadas e verificações dependentes das intervenções.
+
+Carregar cenário
+Selecione um cenário
+Salvo: Six-region applications and guest isolation
+Formato dos cenários
+Editar por formulário
+Definição do cenário
+Salvar cenário no laboratório
+Executar cenário
+Executar baseline
+Exportar definição
+Six-region applications and guest isolation · revisão 5 · Salvo
+
+Cenário · 10/26/2026, 9:20:12 PM · SHA-256: 93ae95ec52cd62801d191d3537d1c1b6717f8c7497545e3588ed0e413f14afcd
+
+Origem e versão do motor
+
+Execução no cliente · Métricas recalculadas pela API. O hash identifica a origem; não atesta execução autoritativa.
+
+Verificar no servidor
+Exportar ensaio
+Exportar topologia de origem
+Excluir ensaio
+
+12 amostras sem sucesso. Recuperação observada com tentativas a cada 3000 ms; a resposta utiliza seu timestamp virtual. Percentis e jitter usam respostas bem-sucedidas.
+
+NYC guest isolation · 0 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: NYC-GUEST, NYC-ACCESS-A, NYC-CORE-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+1.583 ms · NYC-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.1.20.10 -> 10.1.10.80.
+
+1000.521 ms · NYC-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.1.20.10 -> 10.1.10.80.
+
+SAO guest isolation · 0 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: SAO-GUEST, SAO-ACCESS-A, SAO-CORE-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+1.593 ms · SAO-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.2.20.10 -> 10.1.10.80.
+
+1000.521 ms · SAO-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.2.20.10 -> 10.1.10.80.
+
+LON guest isolation · 0 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: LON-GUEST, LON-ACCESS-A, LON-CORE-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+1.593 ms · LON-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.3.20.10 -> 10.1.10.80.
+
+1000.521 ms · LON-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.3.20.10 -> 10.1.10.80.
+
+FRA guest isolation · 0 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: FRA-GUEST, FRA-ACCESS-A, FRA-CORE-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+1.593 ms · FRA-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.4.20.10 -> 10.1.10.80.
+
+1000.521 ms · FRA-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.4.20.10 -> 10.1.10.80.
+
+SIN guest isolation · 0 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: SIN-GUEST, SIN-ACCESS-A, SIN-CORE-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+1.593 ms · SIN-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.5.20.10 -> 10.1.10.80.
+
+1000.521 ms · SIN-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.5.20.10 -> 10.1.10.80.
+
+SYD guest isolation · 0 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: SYD-GUEST, SYD-ACCESS-A, SYD-CORE-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+1.593 ms · SYD-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.6.20.10 -> 10.1.10.80.
+
+1000.521 ms · SYD-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.6.20.10 -> 10.1.10.80.
+
+NYC guest isolation · 3000 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: NYC-GUEST, NYC-ACCESS-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+0.541 ms · NYC-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.1.20.10 -> 10.1.10.80.
+
+1000.521 ms · NYC-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.1.20.10 -> 10.1.10.80.
+
+SAO guest isolation · 3000 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: SAO-GUEST, SAO-ACCESS-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+0.541 ms · SAO-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.2.20.10 -> 10.1.10.80.
+
+1000.521 ms · SAO-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.2.20.10 -> 10.1.10.80.
+
+LON guest isolation · 3000 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: LON-GUEST, LON-ACCESS-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+0.541 ms · LON-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.3.20.10 -> 10.1.10.80.
+
+1000.521 ms · LON-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.3.20.10 -> 10.1.10.80.
+
+FRA guest isolation · 3000 ms: Deadline sem resposta · Bloqueio por política · Equipamentos observados: FRA-GUEST, FRA-ACCESS-A
+Sequência de eventos de transporte
+· Evidência limitada pela retenção; consulte a origem e repita com captura adequada.
+
+0.541 ms · FRA-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.4.20.10 -> 10.1.10.80.
+
+1000.521 ms · FRA-CORE-A: ACL GUEST-IN in em Vlan20: regra 10 deny; TCP 10.4.20.10 -> 10.1.10.80.
+
+Exportar resultados
+Cenário / fluxo	Resultado	Perda	p95 / p99	Jitter p95
+Six-region applications and guest isolation / NYC corporate ERP	Aprovado	0.0%	8.38 / 8.38 ms	2.09 ms
+Six-region applications and guest isolation / SAO corporate ERP	Aprovado	0.0%	477.95 / 477.95 ms	131.57 ms
+Six-region applications and guest isolation / LON corporate ERP	Aprovado	0.0%	370.62 / 370.62 ms	124.24 ms
+Six-region applications and guest isolation / FRA corporate ERP	Aprovado	0.0%	385.63 / 385.63 ms	119.25 ms
+Six-region applications and guest isolation / SIN corporate ERP	Aprovado	0.0%	747.95 / 747.95 ms	221.57 ms
+Six-region applications and guest isolation / SYD corporate ERP	Aprovado	0.0%	927.95 / 927.95 ms	281.57 ms
+Six-region applications and guest isolation / NYC guest isolation	Aprovado	100.0%	— / — ms	— ms
+Six-region applications and guest isolation / SAO guest isolation	Aprovado	100.0%	— / — ms	— ms
+Six-region applications and guest isolation / LON guest isolation	Aprovado	100.0%	— / — ms	— ms
+Six-region applications and guest isolation / FRA guest isolation	Aprovado	100.0%	— / — ms	— ms
+Six-region applications and guest isolation / SIN guest isolation	Aprovado	100.0%	— / — ms	— ms
+Six-region applications and guest isolation / SYD guest isolation	Aprovado	100.0%	— / — ms	— ms

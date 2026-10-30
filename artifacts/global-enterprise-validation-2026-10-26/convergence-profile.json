@@ -1,0 +1,264 @@
+[
+  {
+    "wallMs": 103,
+    "clock": 0.270418,
+    "processed": 65,
+    "queued": 991,
+    "firstActions": [
+      {
+        "at": 0.270418,
+        "kind": "deliver"
+      },
+      {
+        "at": 0.270418,
+        "kind": "deliver"
+      },
+      {
+        "at": 0.270418,
+        "kind": "deliver"
+      },
+      {
+        "at": 0.270418,
+        "kind": "deliver"
+      },
+      {
+        "at": 0.270418,
+        "kind": "deliver"
+      }
+    ],
+    "eventTypes": {
+      "BPDU_SENT": 187,
+      "FRAME_SENT": 429,
+      "STP_PORT_CHANGED": 123,
+      "CONFIG_CHANGED": 530,
+      "LINK_UP": 76,
+      "OSPF_LSA": 74,
+      "OSPF_HELLO": 74,
+      "FRAME_RECEIVED": 1,
+      "BPDU_RECEIVED": 1,
+      "STP_ROOT_CHANGED": 1,
+      "STP_TOPOLOGY_CHANGED": 1,
+      "HSRP_STATE_CHANGED": 3
+    }
+  },
+  {
+    "wallMs": 5030,
+    "clock": 721.5819259999989,
+    "processed": 7058,
+    "queued": 828,
+    "firstActions": [
+      {
+        "at": 721.5826319999992,
+        "kind": "deliver"
+      },
+      {
+        "at": 721.5827279999992,
+        "kind": "deliver"
+      },
+      {
+        "at": 721.5919259999989,
+        "kind": "deliver"
+      },
+      {
+        "at": 721.5926319999992,
+        "kind": "deliver"
+      },
+      {
+        "at": 721.5927279999992,
+        "kind": "deliver"
+      }
+    ],
+    "eventTypes": {
+      "FRAME_SENT": 340,
+      "FRAME_RECEIVED": 299,
+      "OSPF_RECEIVED": 299,
+      "OSPF_SENT": 339,
+      "OSPF_LSA": 146,
+      "OSPF_NEIGHBOR_CHANGED": 1,
+      "ROUTE_ADDED": 54,
+      "OSPF_SPF": 20,
+      "ROUTE_REMOVED": 2
+    }
+  },
+  {
+    "wallMs": 10091,
+    "clock": 1125.643848,
+    "processed": 10846,
+    "queued": 589,
+    "firstActions": [
+      {
+        "at": 1125.653848,
+        "kind": "deliver"
+      },
+      {
+        "at": 1125.653848,
+        "kind": "deliver"
+      },
+      {
+        "at": 1125.663848,
+        "kind": "deliver"
+      },
+      {
+        "at": 1125.7130459999996,
+        "kind": "deliver"
+      },
+      {
+        "at": 1125.7138479999999,
+        "kind": "deliver"
+      }
+    ],
+    "eventTypes": {
+      "OSPF_RECEIVED": 323,
+      "FRAME_RECEIVED": 322,
+      "OSPF_SENT": 319,
+      "FRAME_SENT": 319,
+      "OSPF_LSA": 131,
+      "ROUTE_ADDED": 43,
+      "OSPF_SPF": 43
+    }
+  },
+  {
+    "wallMs": 15041,
+    "clock": 10000.549156000003,
+    "processed": 14762,
+    "queued": 391,
+    "firstActions": [
+      {
+        "at": 10000.550156000003,
+        "kind": "deliver"
+      },
+      {
+        "at": 10000.550156000003,
+        "kind": "hsrp-tick"
+      },
+      {
+        "at": 10000.550156000003,
+        "kind": "hsrp-tick"
+      },
+      {
+        "at": 10000.550156000003,
+        "kind": "hsrp-tick"
+      },
+      {
+        "at": 10000.550156000003,
+        "kind": "hsrp-tick"
+      }
+    ],
+    "eventTypes": {
+      "BPDU_SENT": 188,
+      "FRAME_SENT": 445,
+      "FRAME_RECEIVED": 487,
+      "BPDU_RECEIVED": 60,
+      "FRAME_FLOODED": 121,
+      "MAC_LEARNED": 43,
+      "ACL_PERMIT": 13,
+      "PACKET_DROPPED": 107,
+      "HSRP_STATE_CHANGED": 36
+    }
+  },
+  {
+    "wallMs": 20066,
+    "clock": 31002.38916599989,
+    "processed": 22140,
+    "queued": 1629,
+    "firstActions": [
+      {
+        "at": 31002.38916599989,
+        "kind": "deliver"
+      },
+      {
+        "at": 31002.391427999853,
+        "kind": "deliver"
+      },
+      {
+        "at": 31002.391427999853,
+        "kind": "deliver"
+      },
+      {
+        "at": 31002.391427999853,
+        "kind": "deliver"
+      },
+      {
+        "at": 31002.391427999853,
+        "kind": "deliver"
+      }
+    ],
+    "eventTypes": {
+      "FRAME_SENT": 544,
+      "FRAME_RECEIVED": 356,
+      "MAC_LEARNED": 274,
+      "FRAME_FLOODED": 274,
+      "ACL_PERMIT": 52
+    }
+  },
+  {
+    "wallMs": 25088,
+    "clock": 31005.03510799943,
+    "processed": 28486,
+    "queued": 4988,
+    "firstActions": [
+      {
+        "at": 31005.03510799943,
+        "kind": "deliver"
+      },
+      {
+        "at": 31005.03510799943,
+        "kind": "deliver"
+      },
+      {
+        "at": 31005.03510799943,
+        "kind": "deliver"
+      },
+      {
+        "at": 31005.035845999468,
+        "kind": "deliver"
+      },
+      {
+        "at": 31005.035845999468,
+        "kind": "deliver"
+      }
+    ],
+    "eventTypes": {
+      "FRAME_FLOODED": 270,
+      "FRAME_SENT": 571,
+      "FRAME_RECEIVED": 353,
+      "MAC_LEARNED": 269,
+      "ACL_PERMIT": 37
+    }
+  },
+  {
+    "wallMs": 30016,
+    "clock": 31007.77916599903,
+    "processed": 35075,
+    "queued": 8360,
+    "firstActions": [
+      {
+        "at": 31007.77916599903,
+        "kind": "deliver"
+      },
+      {
+        "at": 31007.77916599903,
+        "kind": "deliver"
+      },
+      {
+        "at": 31007.78142799899,
+        "kind": "deliver"
+      },
+      {
+        "at": 31007.78142799899,
+        "kind": "deliver"
+      },
+      {
+        "at": 31007.78142799899,
+        "kind": "deliver"
+      }
+    ],
+    "eventTypes": {
+      "FRAME_FLOODED": 275,
+      "FRAME_SENT": 546,
+      "FRAME_RECEIVED": 372,
+      "MAC_LEARNED": 274,
+      "ACL_PERMIT": 33
+    }
+  }
+]

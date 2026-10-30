@@ -3,6 +3,7 @@ import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface, Frame, Action } from '../model';
 import { dot1xConfigSchema, supplicantConfigSchema, type Eapol, type AaaQuery } from './aaa-model';
 import { eapProof, startRadius } from './aaa';
+import {chapChallenge} from './aaa-codec';
 import { interfaceOperational } from './layer3';
 import { isUnicast } from './dhcp-config';
 const destination = '01:80:c2:00:00:03';
@@ -102,7 +103,8 @@ export function configureSupplicant(e: SimulationEngine, d: Device, p: NetworkIn
   e.emit('CONFIG_CHANGED', d.id, 'Supplicant 802.1X de rede configurado.', { port: p.id });
 }
 function send(e: SimulationEngine, d: Device, p: NetworkInterface, m: Eapol, dst = destination) {
-  e.sendFrame(d.id, p.id, { src: p.mac, dst, etherType: 'EAPOL', eapol: m, hops: 1 });
+  const identifier=m.type==='start'||m.type==='logoff'?undefined:m.identifier??Number.parseInt(chapChallenge(m.type==='challenge'?m.challenge:p.dot1x?.challenge??p.supplicant?.challenge??m.session).slice(0,2),16);
+  e.sendFrame(d.id, p.id, { src: p.mac, dst, etherType: 'EAPOL', eapol: {...m,...(identifier!==undefined?{identifier}:{})}, hops: 1 });
   e.emit('DOT1X_SENT', d.id, 'EAPOL ' + m.type + '.', { port: p.id });
 }
 function begin(e: SimulationEngine, d: Device, p: NetworkInterface, mac: string) {
@@ -120,7 +122,7 @@ export function receiveEapol(e: SimulationEngine, d: Device, p: NetworkInterface
     return;
   e.emit('DOT1X_RECEIVED', d.id, 'EAPOL ' + m.type + '.', { port: p.id, frame });
   const a = p.dot1x;
-  if (a?.enabled) {
+  if (a?.enabled && d.dot1xSystemAuthControl!==false && (!p.authenticationControl||p.authenticationControl==='auto')) {
     if (m.type === 'start') {
       if (a.phase === 'unauthorized' || e.state.clock - a.lastAt >= 5000) begin(e, d, p, frame.src);
       return;
@@ -162,7 +164,7 @@ export function receiveEapol(e: SimulationEngine, d: Device, p: NetworkInterface
     s.phase = 'authenticating';
     s.lastAt = e.state.clock;
     delete s.challenge;
-    send(e, d, p, { type: 'identity-response', session: m.session, username: s.username }, frame.src);
+    send(e, d, p, { type: 'identity-response', session: m.session, username: s.username,identifier:m.identifier }, frame.src);
   } else if ('session' in m && m.session === s.session && frame.src === s.authenticator) {
     if (m.type === 'challenge') {
       s.challenge = m.challenge;
@@ -176,6 +178,7 @@ export function receiveEapol(e: SimulationEngine, d: Device, p: NetworkInterface
           session: m.session,
           username: s.username,
           proof: eapProof(s.username, s.password, m.challenge),
+          identifier:m.identifier,
         },
         frame.src
       );
@@ -195,7 +198,7 @@ export function completeDot1x(e: SimulationEngine, d: Device, q: AaaQuery) {
     interfaceOperational(e.state, d, p) &&
     (!q.vlan || d.vlans.some((v) => v.id === q.vlan));
   const mac = a.mac!,
-    session = a.session!;
+    session = a.session!,identifier=Number.parseInt(chapChallenge(a.challenge??a.session!).slice(0,2),16);
   if (accepted) {
     a.phase = 'authorized';
     a.expiresAt = Math.min(q.expiresAt!, e.state.clock + a.reauthMs);
@@ -203,7 +206,7 @@ export function completeDot1x(e: SimulationEngine, d: Device, q: AaaQuery) {
     p.accessVlan = q.vlan ?? a.baseVlan;
     d.macTable = d.macTable.filter((m) => m.port !== p.id);
   } else reset(e, d, p);
-  send(e, d, p, { type: accepted ? 'success' : 'failure', session }, mac);
+  send(e, d, p, { type: accepted ? 'success' : 'failure', session,identifier }, mac);
   e.emit(
     'DOT1X_STATE',
     d.id,
@@ -221,9 +224,10 @@ export function permitDot1x(
   direction: 'in' | 'out'
 ) {
   const a = p.dot1x;
-  if (!a?.enabled || frame.eapol || frame.bpdu || frame.lacp) return true;
+  if (frame.eapol || frame.bpdu || frame.lacp || frame.udld || d.dot1xSystemAuthControl===false || p.authenticationControl==='force-authorized') return true;
+  if(!a?.enabled&&p.authenticationControl!=='force-unauthorized')return true;
   const permitted =
-    a.phase === 'authorized' &&
+    p.authenticationControl!=='force-unauthorized'&&!!a&&a.phase === 'authorized' &&
     a.expiresAt! > e.state.clock &&
     (direction === 'in'
       ? frame.src === a.mac

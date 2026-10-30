@@ -2,7 +2,7 @@ import { lsaChecksum, ospfAreaType } from './ospf-security';
 import { ripRoutes } from './rip';
 import type { SimulationEngine } from '../core/engine';
 import type { Device } from '../model';
-import { subnet } from './ipv4';
+import { subnet, sameSubnet, resolveRoute } from './ipv4';
 import { OSPF, lsaKey, type DynamicRoute, type OspfLsa } from './ospf-model';
 import { bestOspfRoutes, ospfSpf, ospfRouterPaths } from './ospf-spf';
 import { floodOspf } from './ospf-wire';
@@ -72,6 +72,9 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
     const routerLsa: Extract<OspfLsa, { type: 'router' }> = {
       ...base(area),
       type: 'router',
+      flags:
+        (areas.includes(0) && areas.length > 1 ? 1 : 0) |
+        (state.externalRoutes.length || state.defaultOriginate ? 2 : 0),
       id: state.routerId,
       links: [],
       prefixes: [],
@@ -87,7 +90,7 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
           ? port.ip
           : state.neighbors.find((entry) => entry.port === port.id && entry.routerId === runtime.dr)?.ip;
       if (!config.passive && config.networkType === 'broadcast' && neighbors.length && dr) {
-        routerLsa.links.push({ kind: 'network', id: dr, cost: config.cost });
+        routerLsa.links.push({ kind: 'network', id: dr, data: port.ip, cost: config.cost });
         if (runtime.dr === state.routerId) {
           const networkLsa: OspfLsa = {
             ...base(area),
@@ -104,7 +107,7 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
         routerLsa.prefixes.push({ network, prefix: port.prefix, cost: config.cost });
         if (!config.passive)
           for (const neighbor of neighbors)
-            routerLsa.links.push({ kind: 'router', id: neighbor.routerId, cost: config.cost });
+            routerLsa.links.push({ kind: 'router', id: neighbor.routerId, data: port.ip, cost: config.cost });
       }
     }
     routerLsa.links = [
@@ -135,6 +138,21 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
           state.ports.some((t) => t.port === p.id && t.operational)
       )
   );
+  if (state.defaultOriginate) {
+    const route = resolveRoute({ ...device, ospf: undefined }, '0.0.0.0', undefined, engine.state);
+    if (state.defaultOriginate.always || route?.prefix === 0) {
+      const prior = eligible.findIndex((r) => r.prefix === 0);
+      if (prior >= 0) eligible.splice(prior, 1);
+      eligible.push({
+        network: '0.0.0.0',
+        prefix: 0,
+        cost: state.defaultOriginate.cost,
+        metricType: state.defaultOriginate.metricType,
+        tag: 0,
+        forwardingAddress: '0.0.0.0',
+      });
+    }
+  }
   for (const area of areas)
     if (ospfAreaType(device, area) !== 'stub')
       for (const r of eligible) {
@@ -223,7 +241,7 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
   const calculated = areas
     .flatMap((area) => ospfSpf(device, area))
     .filter((route) => !abr || route.area === 0 || route.pathType !== 'inter');
-  const routes = bestOspfRoutes(calculated);
+  const routes = bestOspfRoutes(calculated, state.maximumPaths);
   if (abr) {
     const local: DynamicRoute[] = state.interfaces.flatMap((config) => {
       const port = device.interfaces.find((entry) => entry.id === config.port)!;
@@ -254,7 +272,25 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
             (area !== 0 || route.pathType === 'intra')
         )
       );
+      const summarized = new Map<string, DynamicRoute>();
       for (const route of candidates) {
+        const range = state.summaryRanges
+          .filter(
+            (r) =>
+              r.area === route.area &&
+              r.area !== area &&
+              r.prefix <= route.prefix &&
+              sameSubnet(route.network, r.network, r.prefix)
+          )
+          .sort((a, b) => b.prefix - a.prefix)[0];
+        const candidate = range
+          ? { ...route, network: range.network, prefix: range.prefix, metric: range.cost ?? route.metric }
+          : route;
+        const key = candidate.network + '/' + candidate.prefix,
+          old = summarized.get(key);
+        if (!old || old.metric < candidate.metric) summarized.set(key, candidate);
+      }
+      for (const route of summarized.values()) {
         // Never summarize a prefix that is present inside the destination area.
         if (
           local.some(

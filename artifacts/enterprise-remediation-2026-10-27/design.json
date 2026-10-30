@@ -1,0 +1,405 @@
+{
+  "sites": [
+    {
+      "code": "NYC",
+      "city": "New York",
+      "area": 1,
+      "prefix": "10.1.0.0/16",
+      "devices": [
+        {
+          "hostname": "NYC-WAN-A",
+          "profile": "router",
+          "id": "device-64"
+        },
+        {
+          "hostname": "NYC-WAN-B",
+          "profile": "router",
+          "id": "device-68"
+        },
+        {
+          "hostname": "NYC-CORE-A",
+          "profile": "distribution",
+          "id": "device-72"
+        },
+        {
+          "hostname": "NYC-CORE-B",
+          "profile": "distribution",
+          "id": "device-76"
+        },
+        {
+          "hostname": "NYC-ACCESS-A",
+          "profile": "access",
+          "id": "device-80"
+        },
+        {
+          "hostname": "NYC-ACCESS-B",
+          "profile": "access",
+          "id": "device-84"
+        },
+        {
+          "hostname": "NYC-USER",
+          "profile": "desktop",
+          "id": "device-3828"
+        },
+        {
+          "hostname": "NYC-GUEST",
+          "profile": "desktop",
+          "id": "device-3864"
+        },
+        {
+          "hostname": "NYC-ADMIN",
+          "profile": "desktop",
+          "id": "device-3903"
+        },
+        {
+          "hostname": "NYC-DHCP",
+          "profile": "desktop",
+          "id": "device-3939"
+        },
+        {
+          "hostname": "NYC-APP",
+          "profile": "web",
+          "id": "device-3978"
+        }
+      ]
+    },
+    {
+      "code": "SAO",
+      "city": "Sao Paulo",
+      "area": 2,
+      "prefix": "10.2.0.0/16",
+      "devices": [
+        {
+          "hostname": "SAO-WAN-A",
+          "profile": "router",
+          "id": "device-4025"
+        },
+        {
+          "hostname": "SAO-WAN-B",
+          "profile": "router",
+          "id": "device-4029"
+        },
+        {
+          "hostname": "SAO-CORE-A",
+          "profile": "distribution",
+          "id": "device-4033"
+        },
+        {
+          "hostname": "SAO-CORE-B",
+          "profile": "distribution",
+          "id": "device-4037"
+        },
+        {
+          "hostname": "SAO-ACCESS-A",
+          "profile": "access",
+          "id": "device-4041"
+        },
+        {
+          "hostname": "SAO-ACCESS-B",
+          "profile": "access",
+          "id": "device-4045"
+        },
+        {
+          "hostname": "SAO-USER",
+          "profile": "desktop",
+          "id": "device-7789"
+        },
+        {
+          "hostname": "SAO-GUEST",
+          "profile": "desktop",
+          "id": "device-7825"
+        },
+        {
+          "hostname": "SAO-ADMIN",
+          "profile": "desktop",
+          "id": "device-7864"
+        },
+        {
+          "hostname": "SAO-DHCP",
+          "profile": "desktop",
+          "id": "device-7900"
+        },
+        {
+          "hostname": "SAO-APP",
+          "profile": "web",
+          "id": "device-7939"
+        }
+      ]
+    },
+    {
+      "code": "LON",
+      "city": "London",
+      "area": 3,
+      "prefix": "10.3.0.0/16",
+      "devices": [
+        {
+          "hostname": "LON-WAN-A",
+          "profile": "router",
+          "id": "device-7986"
+        },
+        {
+          "hostname": "LON-WAN-B",
+          "profile": "router",
+          "id": "device-7990"
+        },
+        {
+          "hostname": "LON-CORE-A",
+          "profile": "distribution",
+          "id": "device-7994"
+        },
+        {
+          "hostname": "LON-CORE-B",
+          "profile": "distribution",
+          "id": "device-7998"
+        },
+        {
+          "hostname": "LON-ACCESS-A",
+          "profile": "access",
+          "id": "device-8002"
+        },
+        {
+          "hostname": "LON-ACCESS-B",
+          "profile": "access",
+          "id": "device-8006"
+        },
+        {
+          "hostname": "LON-USER",
+          "profile": "desktop",
+          "id": "device-11750"
+        },
+        {
+          "hostname": "LON-GUEST",
+          "profile": "desktop",
+          "id": "device-11786"
+        },
+        {
+          "hostname": "LON-ADMIN",
+          "profile": "desktop",
+          "id": "device-11825"
+        },
+        {
+          "hostname": "LON-DHCP",
+          "profile": "desktop",
+          "id": "device-11861"
+        },
+        {
+          "hostname": "LON-APP",
+          "profile": "web",
+          "id": "device-11900"
+        }
+      ]
+    },
+    {
+      "code": "FRA",
+      "city": "Frankfurt",
+      "area": 4,
+      "prefix": "10.4.0.0/16",
+      "devices": [
+        {
+          "hostname": "FRA-WAN-A",
+          "profile": "router",
+          "id": "device-11947"
+        },
+        {
+          "hostname": "FRA-WAN-B",
+          "profile": "router",
+          "id": "device-11951"
+        },
+        {
+          "hostname": "FRA-CORE-A",
+          "profile": "distribution",
+          "id": "device-11955"
+        },
+        {
+          "hostname": "FRA-CORE-B",
+          "profile": "distribution",
+          "id": "device-11959"
+        },
+        {
+          "hostname": "FRA-ACCESS-A",
+          "profile": "access",
+          "id": "device-11963"
+        },
+        {
+          "hostname": "FRA-ACCESS-B",
+          "profile": "access",
+          "id": "device-11967"
+        },
+        {
+          "hostname": "FRA-USER",
+          "profile": "desktop",
+          "id": "device-15711"
+        },
+        {
+          "hostname": "FRA-GUEST",
+          "profile": "desktop",
+          "id": "device-15747"
+        },
+        {
+          "hostname": "FRA-ADMIN",
+          "profile": "desktop",
+          "id": "device-15786"
+        },
+        {
+          "hostname": "FRA-DHCP",
+          "profile": "desktop",
+          "id": "device-15822"
+        },
+        {
+          "hostname": "FRA-APP",
+          "profile": "web",
+          "id": "device-15861"
+        }
+      ]
+    },
+    {
+      "code": "SIN",
+      "city": "Singapore",
+      "area": 5,
+      "prefix": "10.5.0.0/16",
+      "devices": [
+        {
+          "hostname": "SIN-WAN-A",
+          "profile": "router",
+          "id": "device-15908"
+        },
+        {
+          "hostname": "SIN-WAN-B",
+          "profile": "router",
+          "id": "device-15912"
+        },
+        {
+          "hostname": "SIN-CORE-A",
+          "profile": "distribution",
+          "id": "device-15916"
+        },
+        {
+          "hostname": "SIN-CORE-B",
+          "profile": "distribution",
+          "id": "device-15920"
+        },
+        {
+          "hostname": "SIN-ACCESS-A",
+          "profile": "access",
+          "id": "device-15924"
+        },
+        {
+          "hostname": "SIN-ACCESS-B",
+          "profile": "access",
+          "id": "device-15928"
+        },
+        {
+          "hostname": "SIN-USER",
+          "profile": "desktop",
+          "id": "device-19672"
+        },
+        {
+          "hostname": "SIN-GUEST",
+          "profile": "desktop",
+          "id": "device-19708"
+        },
+        {
+          "hostname": "SIN-ADMIN",
+          "profile": "desktop",
+          "id": "device-19747"
+        },
+        {
+          "hostname": "SIN-DHCP",
+          "profile": "desktop",
+          "id": "device-19783"
+        },
+        {
+          "hostname": "SIN-APP",
+          "profile": "web",
+          "id": "device-19822"
+        }
+      ]
+    },
+    {
+      "code": "SYD",
+      "city": "Sydney",
+      "area": 6,
+      "prefix": "10.6.0.0/16",
+      "devices": [
+        {
+          "hostname": "SYD-WAN-A",
+          "profile": "router",
+          "id": "device-19869"
+        },
+        {
+          "hostname": "SYD-WAN-B",
+          "profile": "router",
+          "id": "device-19873"
+        },
+        {
+          "hostname": "SYD-CORE-A",
+          "profile": "distribution",
+          "id": "device-19877"
+        },
+        {
+          "hostname": "SYD-CORE-B",
+          "profile": "distribution",
+          "id": "device-19881"
+        },
+        {
+          "hostname": "SYD-ACCESS-A",
+          "profile": "access",
+          "id": "device-19885"
+        },
+        {
+          "hostname": "SYD-ACCESS-B",
+          "profile": "access",
+          "id": "device-19889"
+        },
+        {
+          "hostname": "SYD-USER",
+          "profile": "desktop",
+          "id": "device-23633"
+        },
+        {
+          "hostname": "SYD-GUEST",
+          "profile": "desktop",
+          "id": "device-23669"
+        },
+        {
+          "hostname": "SYD-ADMIN",
+          "profile": "desktop",
+          "id": "device-23708"
+        },
+        {
+          "hostname": "SYD-DHCP",
+          "profile": "desktop",
+          "id": "device-23744"
+        },
+        {
+          "hostname": "SYD-APP",
+          "profile": "web",
+          "id": "device-23783"
+        }
+      ]
+    }
+  ],
+  "shared": [
+    {
+      "hostname": "GLOBAL-DNS",
+      "id": "device-23829"
+    },
+    {
+      "hostname": "GLOBAL-DHCP",
+      "id": "device-23876"
+    },
+    {
+      "hostname": "GLOBAL-NTP",
+      "id": "device-23927"
+    },
+    {
+      "hostname": "GLOBAL-SYSLOG",
+      "id": "device-23981"
+    }
+  ],
+  "devices": 72,
+  "links": 101,
+  "wan": "Two abstract routed private-IP providers, OSPF area 0; not MPLS/SD-WAN emulation",
+  "addressing": "RFC1918 site /16, VLAN10 corporate,20 guest,99 management; HSRPv2 .1; core .2/.3",
+  "latency": "Illustrative one-way provider access latency 20-140ms, +10ms backup; link cable distance is local handoff only."
+}

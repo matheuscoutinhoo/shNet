@@ -50,7 +50,7 @@ describe('catálogo, mídia e análise', () => {
     expect(linkOperational(e.state, link)).toBe(true);
     const cli = new TerminalSession(e, a.id);
     for (const c of ['enable', 'conf t', 'interface Fo0/25', 'speed 100000'])
-      expect(cli.execute(c)).toBe('OK');
+      expect(cli.execute(c)).toBe('');
     expect(a.interfaces[24].speed).toBe(100000);
     const s = e.addProfile('switch-l2');
     s.interfaces[8].transceiver = 'dac';

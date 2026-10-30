@@ -1,0 +1,235 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\coding\\netlab\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "artifacts/cisco-implementation-2026-10-26/playwright.config.ts",
+      "--grep",
+      "Cisco CLI:|TCP: HTTP|cadastro → LAN do zero|Automação: NETCONF"
+    ],
+    "configFile": "C:\\coding\\netlab\\artifacts\\cisco-implementation-2026-10-26\\playwright.config.ts",
+    "rootDir": "C:/coding/netlab/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/coding/netlab/.data/cisco-implementation-2026-10-26/browser-serial-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "sistema-claro",
+        "name": "sistema-claro",
+        "testDir": "C:/coding/netlab/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "browser-serial.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "node --import tsx artifacts/cisco-implementation-2026-10-26/browser-server.ts",
+      "cwd": "../..",
+      "url": "http://127.0.0.1:5194/api/health",
+      "timeout": 60000,
+      "reuseExistingServer": false,
+      "env": {
+        "API_PORT": "3094",
+        "WEB_PORT": "5194"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "lab.spec.ts",
+      "file": "lab.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Cisco CLI: edição, ajuda, senha oculta e startup sobrevivem à restauração",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7587,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T23:23:27.299Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-72f7bda005e0077d31e5",
+          "file": "lab.spec.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 28788,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T23:23:35.408Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-ef0c92248f7b959315bd",
+          "file": "lab.spec.ts",
+          "line": 2702,
+          "column": 1
+        },
+        {
+          "title": "cadastro → LAN do zero → ping → save/reload → redes roteadas → falha/recuperação",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 17125,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T23:24:04.210Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-7d97be568bdf35c2ea27",
+          "file": "lab.spec.ts",
+          "line": 3474,
+          "column": 1
+        },
+        {
+          "title": "Automação: NETCONF, RESTCONF, telemetria, NTP e persistência mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "sistema-claro",
+              "projectName": "sistema-claro",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 72457,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-26T23:24:21.350Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d60a0d352cedb73bd581-f283a8eb31cee583de19",
+          "file": "lab.spec.ts",
+          "line": 4476,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-26T23:23:19.474Z",
+    "duration": 136735.464,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

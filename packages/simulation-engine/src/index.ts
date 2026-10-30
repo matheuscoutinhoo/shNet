@@ -26,6 +26,9 @@ export * from './canvas';
 export * from './inspection';
 
 export { vrrpConfigGroups } from './protocols/vrrp';
+export { hsrpConfig } from './protocols/hsrp';
+export { discoveryConfig } from './protocols/discovery';
+export { redactNetworkSecrets } from './cli/aaa';
 export { stateSyncStatus, stateSyncCompatible, stateSyncPending } from './protocols/state-sync';
 export { dhcpHaStatus, dhcpHaCompatible } from './protocols/dhcp-ha';
 export { quorumCommittedView, quorumBase, quorumLastIndex, quorumEntryAt } from './protocols/quorum';

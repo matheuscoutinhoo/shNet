@@ -1,0 +1,200 @@
+[
+    {
+        "ordinal":  1,
+        "line":  22,
+        "title":  "SQL com quorum: cliente gráfico, confirmação e restauração do projeto",
+        "duration":  "55.4s"
+    },
+    {
+        "ordinal":  2,
+        "line":  123,
+        "title":  "Quorum: gravação por maioria, persistência e painel mobile",
+        "duration":  "33.9s"
+    },
+    {
+        "ordinal":  3,
+        "line":  292,
+        "title":  "Aprendizado: finder centraliza equipamento presente e terminais respeitam o perfil",
+        "duration":  "15.4s"
+    },
+    {
+        "ordinal":  4,
+        "line":  395,
+        "title":  "Categorias e terminal: capacidades, troca de filtro e texto sem cortes em desktop/mobile",
+        "duration":  "22.1s"
+    },
+    {
+        "ordinal":  5,
+        "line":  515,
+        "title":  "Painel inferior: expansão por mouse, teclado e toque, limites responsivos e rolagem",
+        "duration":  "20.5s"
+    },
+    {
+        "ordinal":  6,
+        "line":  619,
+        "title":  "Painel inferior: eventos e tráfego acompanham a seleção e preservam a visão da rede",
+        "duration":  "22.7s"
+    },
+    {
+        "ordinal":  7,
+        "line":  707,
+        "title":  "Aprendizado: beacon explicado, campos com significado e camadas Wi-Fi corretas",
+        "duration":  "15.6s"
+    },
+    {
+        "ordinal":  8,
+        "line":  778,
+        "title":  "Aparência: plataforma sempre escura, independente do sistema e de preferências antigas",
+        "duration":  "5.2s"
+    },
+    {
+        "ordinal":  9,
+        "line":  809,
+        "title":  "Aparência: armazenamento indisponível não interfere no tema escuro",
+        "duration":  "3.0s"
+    },
+    {
+        "ordinal":  10,
+        "line":  832,
+        "title":  "Aparência: plataforma e canvas independentes, conta, modais e mobile",
+        "duration":  "53.7s"
+    },
+    {
+        "ordinal":  11,
+        "line":  915,
+        "title":  "Canvas: fluxo real e destaques com movimento no-preference",
+        "duration":  "31.2s"
+    },
+    {
+        "ordinal":  12,
+        "line":  915,
+        "title":  "Canvas: fluxo real e destaques com movimento reduce",
+        "duration":  "19.4s"
+    },
+    {
+        "ordinal":  13,
+        "line":  1050,
+        "title":  "Workspace: inicialização manual e terminal preservado por dispositivo",
+        "duration":  "27.0s"
+    },
+    {
+        "ordinal":  14,
+        "line":  1173,
+        "title":  "Conexões: métricas calculadas, compatibilidade física e obstrução do rádio",
+        "duration":  "27.1s"
+    },
+    {
+        "ordinal":  15,
+        "line":  1252,
+        "title":  "Catálogo completo: todas as abas dos 47 perfis renderizam sem falhas",
+        "duration":  "3.3m"
+    },
+    {
+        "ordinal":  16,
+        "line":  1291,
+        "title":  "Resiliência: falha ao salvar, recuperação, importação inválida e menus durante simulação",
+        "duration":  "12.5s"
+    },
+    {
+        "ordinal":  17,
+        "line":  1357,
+        "title":  "Resiliência: sair informa falha de rede e permite encerrar a sessão ao tentar novamente",
+        "duration":  "4.3s"
+    },
+    {
+        "ordinal":  18,
+        "line":  1373,
+        "title":  "Equipamentos: detalhes responsivos, expansão pela esquerda e opções específicas",
+        "duration":  "14.5s"
+    },
+    {
+        "ordinal":  19,
+        "line":  1483,
+        "title":  "Canvas: categorias recolhíveis, ações com botão direito e dicas por laboratório",
+        "duration":  "30.9s"
+    },
+    {
+        "ordinal":  20,
+        "line":  1674,
+        "title":  "Dashboard: navegação, filtros, favoritos, histórico e controles em desktop e mobile",
+        "duration":  "12.5s"
+    },
+    {
+        "ordinal":  21,
+        "line":  1802,
+        "title":  "VPN e SD-WAN: configuração, controller, failover HTTP, PDU e persistência mobile",
+        "duration":  "1.6m"
+    },
+    {
+        "ordinal":  22,
+        "line":  1897,
+        "title":  "MPLS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+        "duration":  "30.7s"
+    },
+    {
+        "ordinal":  23,
+        "line":  1897,
+        "title":  "QoS: configuração, encaminhamento HTTP, inspeção e save/load mobile",
+        "duration":  "27.5s"
+    },
+    {
+        "ordinal":  24,
+        "line":  1985,
+        "title":  "AAA: 802.1X, RADIUS, VLAN, TACACS+, HTTP e persistência mobile",
+        "duration":  "42.5s"
+    },
+    {
+        "ordinal":  25,
+        "line":  2048,
+        "title":  "Inspeção de aplicação: Host HTTP bloqueado e permitido, regras e persistência mobile",
+        "duration":  "37.2s"
+    },
+    {
+        "ordinal":  26,
+        "line":  2103,
+        "title":  "VXLAN/EVPN: VNI, BGP MAC/IP, HTTP, encapsulamento e persistência mobile",
+        "duration":  "1.3m"
+    },
+    {
+        "ordinal":  1,
+        "line":  2162,
+        "title":  "DHCP relay: pool remoto, reserva, pacotes, ping, release e persistência mobile",
+        "duration":  "40.7s"
+    },
+    {
+        "ordinal":  2,
+        "line":  2259,
+        "title":  "RIP: configuração, vetores, expiração exibida e persistência mobile",
+        "duration":  "23.3s"
+    },
+    {
+        "ordinal":  3,
+        "line":  2312,
+        "title":  "OSPF: convergência, falha, inspector e persistência",
+        "duration":  "1.2m"
+    },
+    {
+        "ordinal":  4,
+        "line":  2363,
+        "title":  "gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobile",
+        "duration":  "26.7s"
+    },
+    {
+        "ordinal":  5,
+        "line":  2438,
+        "title":  "zonas: regras por serviço, bloqueio, HTTP, PAT/ICMP citado e persistência desktop/mobile",
+        "duration":  "49.9s"
+    },
+    {
+        "ordinal":  6,
+        "line":  2530,
+        "title":  "firewall: UDP, ICMP, bloqueio de entrada e sessões persistidas desktop/mobile",
+        "duration":  "26.5s"
+    },
+    {
+        "ordinal":  7,
+        "line":  2606,
+        "title":  "TCP: HTTP, echo, firewall, packet inspector e save/reload desktop/mobile",
+        "duration":  "59.5s"
+    }
+]

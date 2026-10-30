@@ -1,0 +1,69 @@
+INSPECIONAR EQUIPAMENTO
+PC-ERP
+NL Computador
+Resumo
+Portas
+Terminal
+Tabelas
+802.1X / AAA
+IPv6
+Hardware / PoE
+Recursos físicos
+Aplicações
+DHCP
+DNS
+TCP / HTTP
+Gerenciamento
+Logs
+Configuração e estado de PC-ERP
+
+TCP entrega um fluxo ordenado de bytes e retransmite dados não confirmados. HTTP usa esse fluxo para enviar pedidos e respostas de páginas.
+
+Como ler os campos e testar
+
+Conecte, envie dados e acompanhe SYN, ACK e FIN na timeline. Use Próximo evento ou Reproduzir para avançar.
+
+Opções para novas conexões
+SACK · confirmação seletiva
+ECN · congestionamento sem perda
+Timestamps · RTT e PAWS
+PMTUD · descoberta da MTU
+MSS anunciado (bytes)
+Aplicar opções TCP
+Serviços TCP
+Serviço
+Echo
+Porta do serviço
+
+Este host pode atender Echo TCP: devolve os bytes recebidos ao remetente. Ele não oferece um servidor HTTP neste perfil.
+
+Salvar serviço
+Gerar tráfego
+Operação TCP
+HTTP GET
+Echo TCP
+Abrir conexão
+Destino TCP IPv4/IPv6
+Porta de destino TCP
+Host HTTP (opcional)
+Caminho HTTP
+Iniciar tráfego TCP
+Conexões 1
+Destino / porta	Estado	TX / RX
+10.20.20.10:80
+tcp-13604 · padrão
+	TIME-WAIT	56 / 126 B
+tcp-13604 · TIME-WAIT
+
+10.20.10.10:49152 → 10.20.20.10:80
+
+SEQ 870656058 · ACK 888576128 · Janela remota 16328 B · Retransmissões 0
+
+Em voo 0 B · CWND 1130 B · SSTHRESH 16384 B · RTO 1000 ms · RTT 51.98 ms · Fora de ordem 0
+
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 27
+Connection: close
+
+MES-DMZ - serviço de teste

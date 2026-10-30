@@ -17,6 +17,9 @@ export const routeEntrySchema = z
     prefix: z.number().int().min(0).max(32),
     nextHop: ipv4Schema,
     metric: z.number().int().min(0).max(65535),
+    distance: z.number().int().min(1).max(255).optional(),
+    track:z.number().int().min(1).max(1000).optional(),
+    port: idSchema.optional(),
     vrf: z
       .string()
       .regex(/^[a-zA-Z0-9_-]{1,32}$/)

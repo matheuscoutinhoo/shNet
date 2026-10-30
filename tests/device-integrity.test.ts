@@ -156,8 +156,12 @@ describe('Integridade dos perfis de equipamentos', () => {
     expect(deviceCapabilities(e.addProfile('dns')).dhcpServer).toBe(false);
     expect(deviceCapabilities(e.addProfile('dhcp')).dnsServer).toBe(false);
     expect(inspectorTabIds(e.addProfile('switch-l3'))).toContain('bgp');
-    // The engine currently supports OSPF/RIP/VRRP only on routers: do not offer unusable forms.
-    expect(inspectorTabIds(e.addProfile('switch-l3'))).not.toContain('ospf');
+    // Multilayer switches expose the routing protocols implemented by their stack.
+    const multilayer = e.addProfile('switch-l3');
+    expect(inspectorTabIds(multilayer)).toContain('ospf');
+    expect(inspectorTabIds(multilayer)).toContain('rip');
+    expect(inspectorTabIds(sw)).not.toContain('ospf');
+    expect(inspectorTabIds(sw)).not.toContain('rip');
   });
 
   it('equipamentos passivos não oferecem energia nem configurações de host', () => {

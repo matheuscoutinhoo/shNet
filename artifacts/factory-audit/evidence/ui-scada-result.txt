@@ -1,0 +1,655 @@
+Fábrica — Auditoria de rede industrial
+shLab
+Laboratório privado
+·
+Salvo
+Salvar
+AU
+Conectar
+Simulação
+Tempo real
+0.25×
+0.5×
+1×
+2×
+5×
+87 na fila
+Enviar ping
+Desafio
+Tutorial
+EQUIPAMENTOS
+47
+
+Arraste para o canvas ou clique para adicionar.
+
+Dispositivos finais
+6
+Computador
+Host
+Notebook
+Cliente Wi-Fi
+Smartphone
+Cliente Wi-Fi
+Impressora IP
+Endpoint IP
+Telefone IP
+Endpoint IP
+Dispositivo IoT
+Endpoint IP
+Switches
+6
+Switch L2
+Bridge Ethernet
+Switch L3
+Roteamento inter-VLAN
+Switch de acesso
+Acesso
+Switch de distribuição
+Distribuição L3
+Switch de core
+Core L3
+Switch industrial
+Bridge Ethernet
+Roteadores
+6
+Roteador
+Roteamento IP
+Roteador de borda
+Borda IP
+Roteador de filial
+Filial
+Roteador virtual
+Roteamento virtual
+ISP
+Underlay IP
+NAT Gateway
+Tradução IP
+Wireless
+3
+Wireless Controller
+CAPWAP centralizado
+Mesh AP
+Mesh
+Access point
+Bridge com rádio
+Segurança
+5
+IDS
+Detecção de intrusão
+IPS
+Prevenção de intrusão
+Firewall
+Inspeção stateful
+Firewall de aplicação
+Inspeção HTTP/DNS
+VPN Gateway
+Encapsulamento IP
+Servidores e serviços
+15
+Banco de dados
+Dados pela rede
+Proxy HTTP
+Proxy
+Balanceador HTTP
+Balanceamento
+Broker MQTT
+IoT
+Servidor
+Endpoint de serviços
+DNS Server
+Resolução de nomes
+DHCP Server
+Concessões IP
+NTP Server
+Sincronização de relógio
+AAA Server
+Autenticação de rede
+RADIUS Server
+Autenticação de rede
+TACACS+ Server
+Autorização de terminal
+Web Server
+Aplicação HTTP
+Syslog Server
+Coleta de eventos
+SNMP Manager
+Monitoramento
+Servidor de automação
+Gerenciamento remoto
+SD-WAN
+3
+SD-WAN Edge
+Seleção por SLA
+SD-WAN Controller
+Distribuição de políticas
+SD-WAN Gateway
+Gateway de overlay
+Infraestrutura
+3
+Rack
+Montagem física
+Patch panel
+Passagem passiva
+UPS
+Alimentação
+CONEXÕES
+Cabo de rede
+Cobre ou fibra óptica
+Configuração e tráfego
+
+Use o terminal para configurar os equipamentos e consulte os eventos da simulação.
+
+Guia rápido
+Simulação local
+Todas as VLANs
+VLAN 1
+VLAN 10
+VLAN 20
+VLAN 30
+VLAN 40
+VLAN 50
+VLAN 60
+VLAN 70
+VLAN 99
+Gi0/1 ↔ Gi0/23
+Gi0/1 ↔ Gi0/24 · STP discarding
+Gi0/2 ↔ Gi0/23
+Gi0/2 ↔ Gi0/24 · STP discarding
+Gi0/3 ↔ Gi0/23
+Gi0/3 ↔ Gi0/24 · STP discarding
+Gi0/4 ↔ Gi0/7
+Gi0/4 ↔ Gi0/8 · STP discarding
+Gi0/5 ↔ Gi0/7
+Gi0/5 ↔ Gi0/8 · STP discarding
+Gi0/6 ↔ Gi0/23
+Gi0/6 ↔ Gi0/24 · STP discarding
+Gi0/7 ↔ Gi0/23
+Gi0/7 ↔ Gi0/24 · STP discarding
+Gi0/8 ↔ Gi0/23
+Gi0/8 ↔ Gi0/24 · STP discarding
+Gi0/21 ↔ Gi0/21
+Gi0/1 ↔ Gi0/20
+Gi0/1 ↔ Gi0/20
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Gi0/1 ↔ Gi0/1
+Wlan0 ↔ Wlan0
+Eth0 ↔ Gi0/1
+Eth0 ↔ Gi0/2
+Eth0 ↔ Gi0/3
+Gi0/2 ↔ Gi0/1
+Gi0/2 ↔ Gi0/2
+Gi0/1 ↔ Gi0/3
+Gi0/2 ↔ Eth0
+TI CORPORATIVA · VLAN 10 · 10.20.10.0/24
+DMZ / SERVIÇOS · VLAN 20 · 10.20.20.0/24
+SUPERVISÃO OT · VLAN 30 · 10.20.30.0/24
+CÉLULA A · VLAN 40 · 10.20.40.0/24
+CÉLULA B · VLAN 50 · 10.20.50.0/24
+CFTV · VLAN 60 · 10.20.60.0/24
+WI-FI VISITANTES · VLAN 70 · 10.20.70.0/24
+GERENCIAMENTO · VLAN 99 · 10.20.99.0/24
+FÁBRICA · 8 VLANs · RSTP + VRRP
+PLC: endpoint TCP/502 echo (sem Modbus)
+SCADA/MES/NVR: HTTP de teste
+WAN: simulada, sem Internet real
+SWITCH DE DISTRIBUIÇÃO
+DIST-A
+NL Switch de distribuição
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+Fo0/25
+Fo0/26
+Fo0/27
+Fo0/28
+SWITCH DE DISTRIBUIÇÃO
+DIST-B
+NL Switch de distribuição
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+Fo0/25
+Fo0/26
+Fo0/27
+Fo0/28
+FIREWALL
+FW-A
+172.20.0.2
+1
+2
+3
+4
+5
+6
+FIREWALL
+FW-B
+172.20.0.3
+1
+2
+3
+4
+5
+6
+SWITCH DE ACESSO
+SW-TI
+NL Switch de acesso
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+SWITCH DE ACESSO
+SW-DMZ
+NL Switch de acesso
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+SWITCH DE ACESSO
+SW-SCADA
+NL Switch de acesso
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+SWITCH INDUSTRIAL
+SW-A
+NL Switch industrial
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+SWITCH INDUSTRIAL
+SW-B
+NL Switch industrial
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+SWITCH DE ACESSO
+SW-CCTV
+NL Switch de acesso
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+SWITCH DE ACESSO
+SW-WIFI
+NL Switch de acesso
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+SWITCH DE ACESSO
+SW-MGMT
+NL Switch de acesso
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+COMPUTADOR
+PC-ERP
+10.20.10.10
+Eth0
+COMPUTADOR
+PC-FINANCEIRO
+10.20.10.11
+Eth0
+IMPRESSORA IP
+IMP-EXPEDICAO
+10.20.10.20
+Eth0
+WEB SERVER
+MES-DMZ
+10.20.20.10
+Eth0
+Eth1
+DNS SERVER
+DNS-DMZ
+10.20.20.53
+Eth0
+Eth1
+DHCP SERVER
+DHCP-DMZ
+10.20.20.67
+Eth0
+Eth1
+SERVIDOR
+SCADA
+10.20.30.10
+Eth0
+Eth1
+COMPUTADOR
+ENG-OT
+10.20.30.11
+Eth0
+BROKER MQTT
+BROKER-OT
+10.20.30.20
+Eth0
+Eth1
+SERVIDOR
+PLC-A
+10.20.40.10
+Eth0
+Eth1
+COMPUTADOR
+HMI-A
+10.20.40.11
+Eth0
+DISPOSITIVO IOT
+SENSOR-A
+10.20.40.20
+Eth0
+SERVIDOR
+PLC-B
+10.20.50.10
+Eth0
+Eth1
+COMPUTADOR
+HMI-B
+10.20.50.11
+Eth0
+DISPOSITIVO IOT
+SENSOR-B
+10.20.50.20
+Eth0
+SERVIDOR
+NVR
+10.20.60.10
+Eth0
+Eth1
+DISPOSITIVO IOT
+CAM-01
+10.20.60.11
+Eth0
+DISPOSITIVO IOT
+CAM-02
+10.20.60.12
+Eth0
+ACCESS POINT
+AP-ARMAZEM
+NL Access point
+1
+2
+Wlan0
+NOTEBOOK
+NOTEBOOK-VISITANTE
+10.20.70.10
+Eth0
+Wlan0
+SYSLOG SERVER
+NMS-SYSLOG
+10.20.99.10
+Eth0
+Eth1
+NTP SERVER
+NTP-MGMT
+10.20.99.123
+Eth0
+Eth1
+COMPUTADOR
+ADMIN-REDE
+10.20.99.11
+Eth0
+ROTEADOR DE BORDA
+R-WAN-SIMULADA
+172.20.0.1
+1
+2
+3
+4
+5
+6
+WEB SERVER
+SUPORTE-EXTERNO
+198.51.100.10
+Eth0
+Eth1
+SWITCH L2
+SW-WAN
+NL Switch L2
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+React Flow
+38 dispositivos
+·
+46 conexões
+·
+6418.75 ms
+10.20.40.10
+Resposta em 60.55 ms
+Eventos
+1335
+Tráfego
+1
+Notas do laboratório
+TEMPO VIRTUAL 6418.754 ms
+Toda a rede
+Testes de ping iniciados na rede.
+Origem	Destino	TTL inicial	Resultado	Respondente	RTT
+SCADA	10.20.40.10	64	✓ Recebido	10.20.40.10	60.554 ms
+Clique para inspecionar
+·
+Botão direito para ações
+·
+Arraste para mover
+·
+Shift para selecionar
+·
+Ctrl+S para salvar
+Motor de rede
+·
+Simulação local
+·
+38/2000 dispositivos

@@ -5,6 +5,7 @@ import {
   addCanvasItem,
   bgpConfig,
   vrrpConfigGroups,
+  hsrpConfig,
   ipv6Config,
   ipNumber,
   ipString,
@@ -180,7 +181,12 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
   for (const n of new Set(
     originals.flatMap((d) => [
       ...d.vlans.map((v) => v.id),
-      ...d.interfaces.flatMap((p) => [p.accessVlan, p.nativeVlan, ...p.allowedVlans]),
+      ...d.interfaces.flatMap((p) => [
+        p.accessVlan,
+        p.nativeVlan,
+        ...(p.voiceVlan ? [p.voiceVlan] : []),
+        ...p.allowedVlans,
+      ]),
     ])
   )) {
     let free = 2;
@@ -237,6 +243,10 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         if (linkLocal6(a.ip) && macs.has(p.mac))
           linkLocals.set(a.ip, ipv6String(ipv6Number('fe80::') | interfaceId6(macs.get(p.mac)!)));
   const warnings = new Set<string>();
+  if (originals.some((d) => d.startupConfig))
+    warnings.add(
+      'Os clones começam sem startup-config. Revise a configuração e use copy running-config startup-config antes de reiniciar.'
+    );
   if (originals.some((d) => d.databaseHa))
     warnings.add('Bancos replicados clonados iniciam vazios; uma réplica isolada fica desabilitada.');
   if (originals.some((d) => d.quorum && !d.quorum.node.members.every((id) => mapping.has(id))))
@@ -250,7 +260,10 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         macs.get(value) ??
         linkLocals.get(value) ??
         address6(address(value))) as T;
-    if (typeof value === 'number' && ['vlan', 'accessVlan', 'nativeVlan', 'allowedVlans'].includes(key))
+    if (
+      typeof value === 'number' &&
+      ['vlan', 'accessVlan', 'nativeVlan', 'voiceVlan', 'allowedVlans', 'arpInspectionVlans'].includes(key)
+    )
       return (vlans.get(value) ?? value) as T;
     if (typeof value === 'number' && key === 'vni') return (vnis.get(value) ?? value) as T;
     if (Array.isArray(value)) return value.map((v) => remap(v, d, key)) as T;
@@ -269,6 +282,8 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
     if (copy.mesh) copy.mesh.enabled = false;
     copy.vlans = d.vlans.map((v) => ({ ...v, id: vlans.get(v.id)! }));
     copy.routes = remap(d.routes, d);
+    if (copy.monitoring) copy.monitoring = remap(copy.monitoring, d);
+    if (copy.routingPolicy) copy.routingPolicy = remap(copy.routingPolicy, d);
     if (d.gateway) copy.gateway = address(d.gateway);
     if (copy.hmiScan) {
       copy.hmiScan.target = address(copy.hmiScan.target);
@@ -289,6 +304,8 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         'channel',
         'stpEdge',
         'stpCost',
+        'voiceVlan',
+        'ospfAuthentication',
       ] as const)
         if (p[k] !== undefined && !(p.ipv4Mode === 'dhcp' && ['ip', 'prefix', 'gateway', 'dns'].includes(k)))
           Object.assign(q, { [k]: remap(p[k], d, k) });
@@ -298,6 +315,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
       if (q.logical) q.logical = remap(q.logical, d);
       if (q.tunnel) q.tunnel = remap(q.tunnel, d);
       if (q.qos) q.qos = remap(q.qos, d);
+      if (q.portSecurity) q.portSecurity = remap(q.portSecurity, d);
       if (q.bond?.monitor) q.bond.monitor.target = address(q.bond.monitor.target);
       if (p.ipv6) e.configureIpv6(copy.id, q.id, remap(ipv6Config(p), d));
       if (p.dhcp6) {
@@ -356,6 +374,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
       );
     if (d.dhcpServer) for (const pool of d.dhcpServer.pools) e.configureDhcpPool(copy.id, remap(pool, d));
     if (d.vrrp) e.configureVrrp(copy.id, { enabled: d.vrrp.enabled, groups: remap(vrrpConfigGroups(d), d) });
+    if (d.hsrp) e.configureHsrp(copy.id, { groups: remap(hsrpConfig(d), d) });
     if (d.bgp) e.configureBgp(copy.id, remap(bgpConfig(d), d));
     for (const [key, configure, schema] of [
       ['ospf', e.configureOspf.bind(e), configurationSchemas.ospf],
@@ -384,6 +403,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
     if (d.multiSpanningTree) {
       const c = {
         mode: d.multiSpanningTree.mode,
+        protocol: d.multiSpanningTree.protocol,
         region: d.multiSpanningTree.region,
         revision: d.multiSpanningTree.revision,
         priorities: d.multiSpanningTree.priorities,

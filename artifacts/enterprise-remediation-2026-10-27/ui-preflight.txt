@@ -1,0 +1,99 @@
+Validação de redes e cenários
+Verificar topologia
+Cenários e SLA
+Capacidades do modelo
+PLC / HMI
+Configuração e revisão
+
+0 erros · 49 avisos. A verificação estática não comprova disponibilidade ou bloqueio de tráfego.
+
+Exportar revisão
+INFO · WAN-PROVIDER-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · WAN-PROVIDER-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · WAN-PROVIDER-B: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · WAN-PROVIDER-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · NYC-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · NYC-CORE-A/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · NYC-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · NYC-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · NYC-CORE-B/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · NYC-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · NYC-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · NYC-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · NYC-USER: apenas um caminho físico de acesso.
+WARNING · NYC-GUEST: apenas um caminho físico de acesso.
+WARNING · NYC-ADMIN: apenas um caminho físico de acesso.
+WARNING · NYC-DHCP: apenas um caminho físico de acesso.
+WARNING · NYC-APP: apenas um caminho físico de acesso.
+INFO · SAO-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SAO-CORE-A/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · SAO-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · SAO-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SAO-CORE-B/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · SAO-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · SAO-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · SAO-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SAO-USER: apenas um caminho físico de acesso.
+WARNING · SAO-GUEST: apenas um caminho físico de acesso.
+WARNING · SAO-ADMIN: apenas um caminho físico de acesso.
+WARNING · SAO-DHCP: apenas um caminho físico de acesso.
+WARNING · SAO-APP: apenas um caminho físico de acesso.
+INFO · LON-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · LON-CORE-A/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · LON-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · LON-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · LON-CORE-B/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · LON-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · LON-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · LON-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · LON-USER: apenas um caminho físico de acesso.
+WARNING · LON-GUEST: apenas um caminho físico de acesso.
+WARNING · LON-ADMIN: apenas um caminho físico de acesso.
+WARNING · LON-DHCP: apenas um caminho físico de acesso.
+WARNING · LON-APP: apenas um caminho físico de acesso.
+INFO · FRA-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · FRA-CORE-A/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · FRA-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · FRA-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · FRA-CORE-B/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · FRA-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · FRA-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · FRA-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · FRA-USER: apenas um caminho físico de acesso.
+WARNING · FRA-GUEST: apenas um caminho físico de acesso.
+WARNING · FRA-ADMIN: apenas um caminho físico de acesso.
+WARNING · FRA-DHCP: apenas um caminho físico de acesso.
+WARNING · FRA-APP: apenas um caminho físico de acesso.
+INFO · SIN-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SIN-CORE-A/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · SIN-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · SIN-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SIN-CORE-B/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · SIN-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · SIN-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · SIN-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SIN-USER: apenas um caminho físico de acesso.
+WARNING · SIN-GUEST: apenas um caminho físico de acesso.
+WARNING · SIN-ADMIN: apenas um caminho físico de acesso.
+WARNING · SIN-DHCP: apenas um caminho físico de acesso.
+WARNING · SIN-APP: apenas um caminho físico de acesso.
+INFO · SYD-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SYD-CORE-A/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · SYD-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · SYD-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SYD-CORE-B/Vlan10: relay depende de 1 servidor(es) DHCP disponível(is) na configuração.
+INFO · SYD-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.
+INFO · SYD-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.
+INFO · SYD-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.
+WARNING · SYD-USER: apenas um caminho físico de acesso.
+WARNING · SYD-GUEST: apenas um caminho físico de acesso.
+WARNING · SYD-ADMIN: apenas um caminho físico de acesso.
+WARNING · SYD-DHCP: apenas um caminho físico de acesso.
+WARNING · SYD-APP: apenas um caminho físico de acesso.
+WARNING · GLOBAL-DNS: apenas um caminho físico de acesso.
+WARNING · GLOBAL-DHCP: apenas um caminho físico de acesso.
+WARNING · GLOBAL-NTP: apenas um caminho físico de acesso.
+WARNING · GLOBAL-SYSLOG: apenas um caminho físico de acesso.
+WARNING · GLOBAL-DNS: única instância habilitada de dnsServer.
+WARNING · GLOBAL-DHCP: única instância habilitada de dhcpServer.
+WARNING · GLOBAL-SYSLOG: única instância habilitada de syslogServer.

@@ -19,6 +19,7 @@ import { bgpNextHop, bgpPermits, exportedBgpPaths, installedBgpRoutes, validBgpP
 import { validateBgpConfig } from './bgp-validation';
 import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import { bgpByteString, bgpFrameLength, bgpOctets, decodeBgp, encodeBgp } from './bgp-codec';
+import { bfdPeerAvailable } from './bfd';
 
 export function bgpConfig(device: Device) {
   const state = device.bgp;
@@ -27,9 +28,11 @@ export function bgpConfig(device: Device) {
         enabled: state.enabled,
         asn: state.asn,
         routerId: state.routerId,
+        ...(state.autoRouterId !== undefined ? { autoRouterId: state.autoRouterId } : {}),
         holdMs: state.holdMs,
         networks: structuredClone(state.networks),
         neighbors: structuredClone(state.neighbors),
+        peerGroups: structuredClone(state.peerGroups),
       }
     : undefined;
 }
@@ -221,7 +224,20 @@ export function configureBgp(engine: SimulationEngine, device: Device, input: un
   );
 }
 export function canListenBgp(device: Device, ip: string) {
-  return device.bgp?.enabled && device.bgp.neighbors.some((neighbor) => neighbor.ip === ip);
+  return (
+    device.bgp?.enabled &&
+    device.bgp.neighbors.some((neighbor) => neighbor.ip === ip) &&
+    !device.bgp.peers.find((p) => p.ip === ip)?.maximumPrefixExceeded &&
+    (!device.bgp.neighbors.find((n) => n.ip === ip)?.bfd ||
+      bfdPeerAvailable(device, ip, device.bgp.neighbors.find((n) => n.ip === ip)?.bfdStrict))
+  );
+}
+export function bgpBfdDown(engine: SimulationEngine, device: Device, port: string, ip: string) {
+  const config = device.bgp?.neighbors.find((n) => n.ip === ip),
+    peer = device.bgp?.peers.find((p) => p.ip === ip);
+  if (!config?.bfd || !peer) return;
+  if (device.interfaces.some((p) => p.id === port && p.bfd?.sessions.some((s) => s.ip === ip)))
+    resetPeer(engine, device, peer, 'BFD Down');
 }
 function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer, connection: TcpConnection) {
   const desired = exportedBgpPaths(
@@ -281,6 +297,12 @@ export function handleBgpTick(engine: SimulationEngine, action: BgpTimer) {
   if (!state?.enabled || state.token !== action.token) return;
   for (const peer of state.peers) {
     const config = state.neighbors.find((neighbor) => neighbor.ip === peer.ip)!;
+    if (config.bfd && !bfdPeerAvailable(device, peer.ip, config.bfdStrict)) {
+      if (peer.state !== 'Idle' || connections(device, peer.ip).length)
+        resetPeer(engine, device, peer, 'BFD session unavailable');
+      continue;
+    }
+    if (peer.maximumPrefixExceeded) continue;
     if (!device.power) {
       if (peer.state !== 'Idle' || connections(device, peer.ip).length)
         resetPeer(engine, device, peer, 'Equipamento desligado');
@@ -473,6 +495,11 @@ function receiveMessage(
       peer: peer.ip,
       learnedAt: engine.state.clock,
     });
+    if (config.maximumPrefix && state.rib.filter((p) => p.peer === peer.ip).length > config.maximumPrefix) {
+      fail('Maximum-prefix limit exceeded', 6);
+      peer.maximumPrefixExceeded = true;
+      return;
+    }
   }
   state.rib.sort(
     (a, b) => bgpPrefixKey(a).localeCompare(bgpPrefixKey(b)) || ipNumber(a.peer) - ipNumber(b.peer)
@@ -480,6 +507,14 @@ function receiveMessage(
   peer.receivedAt = engine.state.clock;
   peer.holdAt = engine.state.clock + peer.holdMs!;
   synchronize(engine, device);
+}
+export function clearBgpPeers(engine: SimulationEngine, device: Device, ip?: string) {
+  for (const peer of device.bgp?.peers ?? []) {
+    if (ip && peer.ip !== ip) continue;
+    delete peer.maximumPrefixExceeded;
+    resetPeer(engine, device, peer, 'Cleared by operator', 6);
+    peer.retryAt = engine.state.clock;
+  }
 }
 export function receiveBgpApplication(engine: SimulationEngine, device: Device, connection: TcpConnection) {
   setup(connection);

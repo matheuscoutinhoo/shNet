@@ -224,14 +224,14 @@ describe('firewall de trânsito multiprotocolo', () => {
     expect(restored.device(router.id).firewall!.sessions[0].protocol).toBe('TCP');
     const cli = new TerminalSession(restored, router.id);
     for (const command of ['enable', 'configure terminal', 'service firewall'])
-      expect(cli.execute(command)).toBe('OK');
+      expect(cli.execute(command)).toBe('');
     expect(restored.device(router.id).firewall!.protocols).toEqual(['TCP']);
-    expect(cli.execute('firewall protocols udp icmp')).toBe('OK');
-    expect(cli.execute('show running-config')).toContain('firewall protocols udp icmp');
+    expect(cli.execute('firewall protocols udp icmp')).toBe('');
+    expect(cli.execute('do show running-config')).toContain('firewall protocols udp icmp');
     const before = restored.snapshot();
     expect(cli.execute('firewall protocols udp udp')).toMatch(/^%/);
     expect(restored.snapshot()).toEqual(before);
-    expect(cli.execute('show firewall')).toContain('UDP, ICMP');
+    expect(cli.execute('do show firewall')).toContain('UDP, ICMP');
     validateSnapshot(restored.snapshot());
   });
 });

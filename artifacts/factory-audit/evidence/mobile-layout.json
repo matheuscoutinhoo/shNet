@@ -1,0 +1,16 @@
+{
+  "canvas": {
+    "x": 0,
+    "y": 103,
+    "width": 390,
+    "height": 477
+  },
+  "bodyWidth": 390,
+  "viewport": 390,
+  "pingButton": {
+    "x": 263,
+    "y": 63.5,
+    "width": 102.09375,
+    "height": 32
+  }
+}

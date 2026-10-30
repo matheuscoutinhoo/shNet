@@ -1,6 +1,7 @@
 import type { Device } from '../model';
 import type { OspfLsa, OspfPacket } from './ospf-model';
 import { hmacHex } from './security-crypto';
+import { ospfMd5Digest } from '../wire/ospf-codec';
 function canonical(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
@@ -25,6 +26,7 @@ export function lsaChecksum(lsa: OspfLsa) {
   return b * 256 + a;
 }
 export function ospfAuthenticator(p: OspfPacket, key: string) {
+  if (p.authentication?.algorithm === 'md5') return ospfMd5Digest(p, key);
   const { authentication: _a, ...body } = p;
   return hmacHex(key, canonical(body) + '|' + p.authentication!.sequence);
 }

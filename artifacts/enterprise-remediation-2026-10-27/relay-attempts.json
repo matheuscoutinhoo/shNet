@@ -1,0 +1,50 @@
+[
+  {
+    "device": "NYC-CORE-A",
+    "response": "OK"
+  },
+  {
+    "device": "NYC-CORE-B",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-A",
+    "response": "OK"
+  },
+  {
+    "device": "SAO-CORE-B",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-A",
+    "response": "OK"
+  },
+  {
+    "device": "LON-CORE-B",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-A",
+    "response": "OK"
+  },
+  {
+    "device": "FRA-CORE-B",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-A",
+    "response": "OK"
+  },
+  {
+    "device": "SIN-CORE-B",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-A",
+    "response": "OK"
+  },
+  {
+    "device": "SYD-CORE-B",
+    "response": "OK"
+  }
+]

@@ -7,6 +7,8 @@ import {
   withStpInstance,
   stpInstances,
   mstRegion,
+  stpCommonTree,
+  stpCommonPort,
   instancePort,
   portCarriesVlan,
   stpVlanInstance,
@@ -63,6 +65,11 @@ function forgetInfo(engine: SimulationEngine, device: Device, port: NetworkInter
       (action.instance ?? 0) !== stpScope(device)
   );
   if (port.spanningTree) delete port.spanningTree.received;
+}
+function expireInfo(engine:SimulationEngine,device:Device,port:NetworkInterface){
+  const current=port.spanningTree;
+  if(current?.operational&&!port.stpEdge&&(port.stpGuard==='loop'||device.loopGuardDefault)&&['root','alternate'].includes(current.role))current.guardInconsistent='loop';
+  forgetInfo(engine,device,port);
 }
 
 function topologyChange(
@@ -182,9 +189,16 @@ function message(engine: SimulationEngine, device: Device, port: NetworkInterfac
       port.spanningTree!.role === 'designated' &&
       port.spanningTree!.state !== 'forwarding',
     agreement,
+    portState:port.spanningTree!.state,
     role: port.spanningTree!.role,
     ...(tree.changeId && tree.changeUntil > engine.state.clock ? { changeId: tree.changeId } : {}),
   };
+}
+function mstMessage(e:SimulationEngine,d:Device,p:NetworkInterface,b:Bpdu):Bpdu['mst']{
+ const c=d.multiSpanningTree;if(c?.mode!=='mstp')return;const tree=stpCommonTree(d)!,state=stpCommonPort(d,p)!,rootPort=d.interfaces.find(p=>p.id===tree.rootPort),received=rootPort&&stpCommonPort(d,rootPort)?.received,sameRegion=received?.bpdu.region===mstRegion(d),prior=sameRegion?received.bpdu.mst?.cist:undefined;
+ const flags=(s:NonNullable<NetworkInterface['spanningTree']>,t:NonNullable<Device['spanningTree']>,agree:boolean)=>({proposal:!agree&&s.role==='designated'&&s.state!=='forwarding'&&p.duplex==='full',agreement:agree,role:s.role,portState:s.state,change:!!t.changeId&&t.changeUntil>e.state.clock,...(t.changeId&&t.changeUntil>e.state.clock?{changeId:t.changeId}:{})});
+ const external=rootPort?(sameRegion?prior?.cost??0:tree.cost):0;
+ return {name:c.region,revision:c.revision,digest:JSON.parse(mstRegion(d)!)[2],cist:{root:tree.root,regionalRoot:prior?.regionalRoot??bridgeId({...d,spanningTree:tree}),cost:external,internalCost:Math.max(0,tree.cost-external),bridge:bridgeId({...d,spanningTree:tree}),portId:d.interfaces.indexOf(p)+1,age:Math.min(STP.maxAge,received?received.bpdu.age+e.state.clock-received.at+1000:0),remainingHops:prior?Math.max(1,prior.remainingHops-1):20,...flags(state,tree,stpScope(d)===0?b.agreement:!!state.agreed)},records:c.instances.flatMap(i=>{const s=stpScope(d)===i.id?p.spanningTree:p.spanningInstances?.find(x=>x.id===i.id)?.state,t=stpScope(d)===i.id?d.spanningTree!:i.tree;if(!s?.operational)return [];const rp=d.interfaces.find(p=>p.id===t.rootPort),previous=rp&&(stpScope(d)===i.id?rp.spanningTree:rp.spanningInstances?.find(x=>x.id===i.id)?.state)?.received?.bpdu.mst?.records.find(r=>r.instance===i.id);return [{instance:i.id,root:t.root,cost:t.cost,bridgePriority:t.priority,portPriority:128,remainingHops:previous?Math.max(1,previous.remainingHops-1):20,...flags(s,t,stpScope(d)===i.id?b.agreement:!!s.agreed)}];})};
 }
 
 function send(
@@ -196,6 +210,7 @@ function send(
 ) {
   if (!port.spanningTree?.operational) return;
   const bpdu = { ...message(engine, device, port, agreement), ...(changeId ? { changeId } : {}) };
+  if(bpdu.domain==='mstp')bpdu.mst=mstMessage(engine,device,port,bpdu);
   if (bpdu.age >= STP.maxAge) return;
   // Six BPDUs per one-second window, per instance/port. Coalesce deferred
   // announcements and construct them from current information at transmission.
@@ -255,7 +270,7 @@ function recompute(engine: SimulationEngine, device: Device) {
   for (const port of switchingPorts(device)) {
     const index = device.interfaces.indexOf(port);
     const received = port.spanningTree?.received;
-    if (!port.spanningTree?.operational || !received || received.expiresAt <= engine.state.clock) continue;
+    if (port.stpGuard==='root'||port.spanningTree?.guardInconsistent==='loop'||!port.spanningTree?.operational || !received || received.expiresAt <= engine.state.clock) continue;
     const candidate: PriorityVector = {
       root: received.bpdu.root,
       cost: Math.min(4294967295, received.bpdu.cost + portCost(port)),
@@ -293,6 +308,7 @@ function recompute(engine: SimulationEngine, device: Device) {
     const index = device.interfaces.indexOf(port);
     const current = port.spanningTree!;
     const previousRole = current.role;
+    if(current.guardInconsistent==='loop'&&port.stpGuard!=='loop'&&!device.loopGuardDefault)delete current.guardInconsistent;
     const received = current.received;
     let role: typeof current.role = !current.operational
       ? 'disabled'
@@ -309,7 +325,10 @@ function recompute(engine: SimulationEngine, device: Device) {
       };
       const remote = { ...received.bpdu, localPort: index + 1 };
       if (compareVector(local, remote) > 0) role = 'alternate';
+      if(port.stpGuard==='root'&&role==='alternate')current.guardInconsistent='root';else if(current.guardInconsistent==='root')delete current.guardInconsistent;
     }
+    else if(current.guardInconsistent==='root')delete current.guardInconsistent;
+    if(current.guardInconsistent==='loop'&&current.operational)role='alternate';
     current.role = role;
     if (role !== previousRole || (changedRoot && !port.stpEdge)) {
       changed = true;
@@ -341,11 +360,12 @@ function refreshDevice(engine: SimulationEngine, device: Device) {
     if (up !== current.operational) {
       changed = true;
       current.operational = up;
-      forgetInfo(engine, device, port);
+      if(!up)delete current.guardInconsistent;
+      expireInfo(engine, device, port);
       beginTransition(engine, device, port);
     }
     if (current.received && current.received.expiresAt <= engine.state.clock) {
-      forgetInfo(engine, device, port);
+      expireInfo(engine, device, port);
       changed = true;
     }
   }
@@ -433,6 +453,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
   )
     return;
   const current = port.spanningTree!;
+  if(current.guardInconsistent==='loop')delete current.guardInconsistent;
   engine.emit(
     'BPDU_RECEIVED',
     device.id,
@@ -557,7 +578,7 @@ function handleClassic(
   } else if (action.kind === 'stp-info-expire') {
     const port = device.interfaces.find((entry) => entry.id === action.port);
     if (port?.spanningTree?.received?.expiresAt !== action.expiresAt) return;
-    forgetInfo(engine, device, port);
+    expireInfo(engine, device, port);
     recompute(engine, device);
     advertise(engine, device);
   } else {
@@ -597,6 +618,7 @@ export function multiStpConfig(d: Device) {
   return c
     ? {
         mode: c.mode,
+        ...(c.protocol ? { protocol: c.protocol } : {}),
         region: c.region,
         revision: c.revision,
         priorities: structuredClone(c.priorities),
@@ -608,6 +630,43 @@ export function rebuildSpanningTree(e: SimulationEngine, d: Device) {
   const c = multiStpConfig(d);
   if (c) configureMultiSpanningTree(e, d, c);
   else if (d.spanningTree?.enabled) configureSpanningTree(e, d, d.spanningTree.mode, d.spanningTree.priority);
+}
+/** Catalyst IOS XE boots with Rapid PVST+ on every VLAN unless configured otherwise. */
+export function applyDefaultSpanningTree(e: SimulationEngine, d: Device) {
+  if (d.type !== 'switch' || d.spanningTree || d.multiSpanningTree) return;
+  configureMultiSpanningTree(e, d, { mode: 'pvst', protocol: 'rstp', mappings: [], priorities: [] });
+}
+/**
+ * PVST runs one tree per VLAN. Creating or deleting a VLAN adds or removes only that
+ * VLAN's tree, so the remaining VLANs keep their roles, states and timers (as on IOS).
+ */
+export function syncPvstInstances(e: SimulationEngine, d: Device) {
+  const c = d.multiSpanningTree;
+  if (c?.mode !== 'pvst' || !d.spanningTree?.enabled || stpScope(d)) return false;
+  const wanted = new Set(d.vlans.map((v) => v.id));
+  let changed = false;
+  for (const stale of c.instances.filter((i) => !wanted.has(i.id))) {
+    e.state.queue = e.state.queue.filter(
+      ({ action }) => !(isStpAction(action) && action.device === d.id && (action.instance ?? 0) === stale.id)
+    );
+    c.instances = c.instances.filter((i) => i.id !== stale.id);
+    for (const p of d.interfaces)
+      if (p.spanningInstances) p.spanningInstances = p.spanningInstances.filter((i) => i.id !== stale.id);
+    changed = true;
+  }
+  const missing = d.vlans.map((v) => v.id).filter((id) => !c.instances.some((i) => i.id === id));
+  if (c.instances.length + missing.length > 64)
+    throw new Error('Spanning tree instance limit exceeded: this model supports up to 64 PVST VLANs.');
+  for (const id of missing) {
+    invalidateProtocolIndex(e.state);
+    c.instances.push({ id, tree: structuredClone(d.spanningTree) });
+    withStpInstance(d, id, () =>
+      configureClassic(e, d, c.protocol ?? 'rstp', c.priorities.find((p) => p.instance === id)?.priority ?? 32768)
+    );
+    changed = true;
+  }
+  if (changed) invalidateSpanningRefresh(e.state);
+  return changed;
 }
 export function updateSpanningTreePort(
   e: SimulationEngine,
@@ -673,18 +732,24 @@ export function configureMultiSpanningTree(e: SimulationEngine, d: Device, input
     new Set(c.priorities.map((p) => p.instance)).size !== c.priorities.length ||
     new Set(c.mappings.map((m) => m.vlan)).size !== c.mappings.length ||
     c.mappings.some((m) => !d.vlans.some((v) => v.id === m.vlan)) ||
-    c.priorities.some((p) => p.instance !== 0 && !ids.includes(p.instance)) ||
+    // PVST keeps per-VLAN priorities for VLANs created later, like IOS running-config order.
+    (c.mode !== 'pvst' && c.priorities.some((p) => p.instance !== 0 && !ids.includes(p.instance))) ||
     (c.mode === 'pvst' && c.mappings.length)
   )
     throw new Error('Instâncias, prioridades ou mapeamento VLAN STP inválidos.');
   configureSpanningTree(e, d, 'off');
   d.multiSpanningTree = { ...c, instances: [] };
-  configureClassic(e, d, 'rstp', c.priorities.find((p) => p.instance === 0)?.priority ?? 32768);
+  configureClassic(e, d, c.protocol ?? 'rstp', c.priorities.find((p) => p.instance === 0)?.priority ?? 32768);
   // Allocate independent persisted trees before entering their election scope.
   for (const id of ids) d.multiSpanningTree!.instances.push({ id, tree: structuredClone(d.spanningTree!) });
   for (const id of ids)
     withStpInstance(d, id, () =>
-      configureClassic(e, d, 'rstp', c.priorities.find((p) => p.instance === id)?.priority ?? 32768)
+      configureClassic(
+        e,
+        d,
+        c.protocol ?? 'rstp',
+        c.priorities.find((p) => p.instance === id)?.priority ?? 32768
+      )
     );
   e.emit(
     'CONFIG_CHANGED',
@@ -694,7 +759,25 @@ export function configureMultiSpanningTree(e: SimulationEngine, d: Device, input
 }
 export function receiveBpdu(e: SimulationEngine, d: Device, p: NetworkInterface, f: Frame) {
   const b = f.bpdu;
+  if (b && p.bpduGuard && !p.errDisabled && p.adminUp) {
+    p.errDisabled = { reason: 'bpduguard', at: e.state.clock };
+    d.macTable = d.macTable.filter((entry) => entry.port !== p.id);
+    e.emit(
+      'LINK_DOWN',
+      d.id,
+      `${p.name}: BPDU Guard placed the interface in err-disabled. Use shutdown followed by no shutdown to recover.`,
+      { port: p.id, frame: f }
+    );
+    e.refreshSpanningTree();
+    return;
+  }
   if (!b || !d.spanningTree?.enabled) return;
+  if(b.mst){
+    const m=b.mst,region=JSON.stringify([m.name,m.revision,m.digest]),common=m.cist,boundary=d.multiSpanningTree?.mode!=='mstp'||region!==mstRegion(d);
+    if(d.multiSpanningTree?.mode==='mstp'&&p.mstBoundary!==boundary){p.mstBoundary=boundary;for(const id of stpInstances(d).filter(Boolean))withStpInstance(d,id,()=>refreshDevice(e,d));}
+    if(common.remainingHops>1)withStpInstance(d,0,()=>receiveClassic(e,d,p,{...f,bpdu:{mode:'rstp',root:common.root,cost:common.cost+common.internalCost,bridge:common.bridge,portId:common.portId,age:common.age,proposal:common.proposal,agreement:common.agreement,role:common.role,portState:common.portState,domain:'mstp',region,mst:m,...(common.change?{changeId:common.changeId??b.changeId??'mst-change-'+b.bridge.mac}:{} )}}));
+    if(!boundary)for(const record of m.records){if(record.remainingHops<=1||!d.multiSpanningTree?.instances.some(i=>i.id===record.instance))continue;withStpInstance(d,record.instance,()=>{if(p.spanningTree?.operational)receiveClassic(e,d,p,{...f,bpdu:{mode:'rstp',root:record.root,cost:record.cost,bridge:{priority:record.bridgePriority,mac:common.bridge.mac,instance:record.instance},portId:common.portId,age:common.age,proposal:record.proposal,agreement:record.agreement,role:record.role,portState:record.portState,domain:'mstp',region,instance:record.instance,mst:m,...(record.change?{changeId:record.changeId??b.changeId??'mst-change-'+b.bridge.mac}:{} )}});});}return;
+  }
   if (!b.instance) {
     if (d.multiSpanningTree?.mode === 'mstp') {
       const boundary = b.domain !== 'mstp' || b.region !== mstRegion(d);

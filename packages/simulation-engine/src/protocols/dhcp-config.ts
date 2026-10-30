@@ -1,5 +1,13 @@
-import { dhcpPoolSchema, ipv4Schema, type Device, type DhcpPool, type NetworkInterface } from '../model';
+import {
+  dhcpPoolSchema,
+  ipv4Schema,
+  type Device,
+  type DhcpPendingPool,
+  type DhcpPool,
+  type NetworkInterface,
+} from '../model';
 import { ipNumber, ipString, sameSubnet, subnet } from './ipv4';
+import { routingEnabled } from './layer3';
 
 export function isUnicast(ip: string) {
   const first = ipNumber(ip) >>> 24;
@@ -9,6 +17,13 @@ export function isUnicast(ip: string) {
 export function poolContains(pool: DhcpPool, address: string) {
   const number = ipNumber(address);
   return number >= ipNumber(pool.start) && number <= ipNumber(pool.end);
+}
+/** IOS global "ip dhcp excluded-address" applies to every pool on the server. */
+export function globallyExcluded(device: Device, address: string) {
+  const number = ipNumber(address);
+  return (device.dhcpServer?.excludedRanges ?? []).some(
+    (range) => number >= ipNumber(range.start) && number <= ipNumber(range.end)
+  );
 }
 
 export function sameDhcpScope(a: DhcpPool, b: DhcpPool) {
@@ -24,6 +39,7 @@ export function availablePoolAddress(device: Device, pool: DhcpPool, address: st
     address !== pool.relayAddress &&
     !(pool.relayAddresses ?? []).includes(address) &&
     !pool.excluded.includes(address) &&
+    !globallyExcluded(device, address) &&
     !device.interfaces.some((port) => port.ip === address) &&
     (!reserved || reserved.clientMac === clientMac?.toLowerCase()) &&
     (!own || own.address === address)
@@ -124,9 +140,139 @@ function overlapping(a: DhcpPool, b: DhcpPool) {
   return ipNumber(a.start) <= ipNumber(b.end) && ipNumber(b.start) <= ipNumber(a.end);
 }
 
+const routedStatic = (p: NetworkInterface) =>
+  p.mode === 'routed' &&
+  !!p.ip &&
+  p.prefix !== undefined &&
+  p.prefix >= 1 &&
+  p.prefix <= 30 &&
+  p.ipv4Mode !== 'dhcp' &&
+  isUnicast(p.ip) &&
+  ![subnet(p.ip, p.prefix).network, subnet(p.ip, p.prefix).broadcast].includes(p.ip);
+/** Where an IOS pool is served: the interface in its subnet, otherwise relayed requests to a routed interface. */
+function iosPoolBinding(device: Device, network: string, prefix: number) {
+  const local = device.interfaces.find(
+    (p) =>
+      routedStatic(p) && !p.dhcpRelay?.length && p.prefix === prefix && subnet(p.ip!, prefix).network === network
+  );
+  if (local) return { port: local.id };
+  const candidates = device.interfaces.filter((p) => routedStatic(p) && !sameSubnet(p.ip!, network, prefix));
+  const listener = candidates.find((p) => p.adminUp) ?? candidates[0];
+  return listener ? { port: listener.id, relay: true } : undefined;
+}
+export function iosPoolDeclaration(pool: DhcpPool | DhcpPendingPool): DhcpPendingPool {
+  const range =
+    pool.network !== undefined && pool.prefix !== undefined ? subnet(pool.network, pool.prefix) : undefined;
+  const defaultRange =
+    !range ||
+    (pool.start === range.first &&
+      pool.end === ipString(Math.min(ipNumber(range.last), ipNumber(range.first) + 2047)));
+  return {
+    name: pool.name,
+    ...(pool.network !== undefined ? { network: pool.network, prefix: pool.prefix } : {}),
+    ...(pool.start && pool.end && !defaultRange ? { start: pool.start, end: pool.end } : {}),
+    ...(pool.gateway ? { gateway: pool.gateway } : {}),
+    dns: [...pool.dns],
+    leaseMs: pool.leaseMs,
+    ...(pool.excluded?.length ? { excluded: [...pool.excluded] } : {}),
+    ...(pool.reservations?.length ? { reservations: structuredClone(pool.reservations) } : {}),
+    ...(pool.domainName ? { domainName: pool.domainName } : {}),
+  };
+}
+/** Default IOS-style range: every host of the network, capped at the simulator pool size. */
+export function iosPoolRange(network: string, prefix: number) {
+  const range = subnet(network, prefix);
+  return { start: range.first, end: ipString(Math.min(ipNumber(range.last), ipNumber(range.first) + 2047)) };
+}
+function buildIosPool(device: Device, pool: DhcpPool | DhcpPendingPool): { pool?: DhcpPool; error?: string } {
+  if (pool.network === undefined || pool.prefix === undefined) return {};
+  const range = subnet(pool.network, pool.prefix),
+    binding = iosPoolBinding(device, range.network, pool.prefix);
+  if (!binding) return {};
+  const current = 'port' in pool ? pool : undefined;
+  const relayAddress = binding.relay
+    ? current?.relayAddress && sameSubnet(current.relayAddress, range.network, pool.prefix)
+      ? current.relayAddress
+      : (pool.gateway ?? range.first)
+    : undefined;
+  if (current && current.port === binding.port && current.relayAddress === relayAddress) return { pool: current };
+  const declared = iosPoolDeclaration(pool);
+  try {
+    const next = dhcpPoolSchema.parse({
+      ...iosPoolRange(range.network, pool.prefix),
+      ...declared,
+      excluded: declared.excluded ?? [],
+      port: binding.port,
+      relayAddress,
+      ios: true,
+    });
+    validateDhcpPool(device, next);
+    return { pool: next };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Pool DHCP inválido.' };
+  }
+}
+/** Why a declared IOS pool cannot be served now; undefined when it binds or is only waiting for an interface. */
+export function iosPoolProblem(device: Device, entry: DhcpPendingPool) {
+  const built = buildIosPool(device, entry);
+  if (!built.pool) return built.error;
+  const others = (device.dhcpServer?.pools ?? []).filter((pool) => pool.name !== entry.name);
+  if (others.length >= 16) return 'Limite de 16 pools DHCP por equipamento.';
+  const clash = others.find((pool) => overlapping(pool, built.pool!));
+  return clash ? entry.network + '/' + entry.prefix + ' overlaps with pool: ' + clash.name : undefined;
+}
+/**
+ * IOS pools follow the interfaces: a pool binds to the interface in its subnet, otherwise it serves
+ * relayed requests whose giaddr is in the network. Pools that cannot be served yet stay pending.
+ */
+export function refreshDhcpPools(device: Device) {
+  const server = device.dhcpServer;
+  if (!server || (!server.pendingPools?.length && !server.pools.some((pool) => pool.ios))) return false;
+  const pools: DhcpPool[] = [],
+    pending: DhcpPendingPool[] = [];
+  for (const pool of server.pools) {
+    if (!pool.ios) {
+      pools.push(pool);
+      continue;
+    }
+    const bound = buildIosPool(device, pool).pool;
+    if (bound) pools.push(bound);
+    else pending.push(iosPoolDeclaration(pool));
+  }
+  for (const entry of server.pendingPools ?? []) {
+    const bound = pools.length < 16 ? buildIosPool(device, entry).pool : undefined;
+    if (bound && !pools.some((pool) => overlapping(pool, bound))) pools.push(bound);
+    else pending.push(entry);
+  }
+  const changed =
+    JSON.stringify(pools) !== JSON.stringify(server.pools) ||
+    JSON.stringify(pending) !== JSON.stringify(server.pendingPools ?? []);
+  if (!changed) return false;
+  const before = new Map(server.pools.map((pool) => [pool.name, pool]));
+  server.bindings = server.bindings.filter((binding) => {
+    const previous = before.get(binding.pool),
+      next = pools.find((pool) => pool.name === binding.pool);
+    return (
+      !!previous &&
+      !!next &&
+      previous.port === next.port &&
+      previous.relayAddress === next.relayAddress &&
+      sameDhcpScope(previous, next)
+    );
+  });
+  server.pools = pools;
+  if (pending.length) server.pendingPools = pending;
+  else delete server.pendingPools;
+  return true;
+}
+
 export function configureDhcpPool(device: Device, input: unknown): DhcpPool {
   const pool = dhcpPoolSchema.parse(input);
   validateDhcpPool(device, pool);
+  if (device.dhcpServer?.pendingPools?.some((entry) => entry.name === pool.name)) {
+    device.dhcpServer.pendingPools = device.dhcpServer.pendingPools.filter((entry) => entry.name !== pool.name);
+    if (!device.dhcpServer.pendingPools.length) delete device.dhcpServer.pendingPools;
+  }
   const others = device.dhcpServer?.pools.filter((entry) => entry.name !== pool.name) ?? [];
   if (others.length >= 16) throw new Error('Limite de 16 pools DHCP por equipamento.');
   if (others.some((entry) => overlapping(entry, pool)))
@@ -156,6 +302,8 @@ export function configureDhcpPool(device: Device, input: unknown): DhcpPool {
           binding.pool !== pool.name ||
           (!scopeChanged && availablePoolAddress(device, pool, binding.address, binding.clientMac))
       ) ?? [],
+    ...(device.dhcpServer?.pendingPools ? { pendingPools: device.dhcpServer.pendingPools } : {}),
+    ...(device.dhcpServer?.excludedRanges ? { excludedRanges: device.dhcpServer.excludedRanges } : {}),
   };
   return pool;
 }
@@ -164,7 +312,7 @@ export function configureDhcpRelay(device: Device, portId: string, input: unknow
   const addresses = ipv4Schema.array().max(8).parse(input);
   const port = device.interfaces.find((entry) => entry.id === portId);
   if (
-    device.type !== 'router' ||
+    !routingEnabled(device) ||
     !port?.ip ||
     port.prefix === undefined ||
     port.prefix < 1 ||
@@ -174,7 +322,7 @@ export function configureDhcpRelay(device: Device, portId: string, input: unknow
     port.mode !== 'routed' ||
     port.ipv4Mode === 'dhcp'
   )
-    throw new Error('DHCP relay requer interface routed de roteador com IPv4 estático.');
+    throw new Error('DHCP relay requer roteamento IP e interface routed com IPv4 estático.');
   if (
     addresses.length &&
     device.dhcpServer?.pools.some((pool) => !pool.relayAddress && pool.port === port.id)
@@ -199,6 +347,8 @@ export function dhcpPoolStats(device: Device, pool: DhcpPool, clock: number) {
       ...(pool.relayAddress ? [pool.relayAddress] : []),
     ].filter((address) => poolContains(pool, address))
   );
+  for (let n = ipNumber(pool.start); n <= ipNumber(pool.end); n++)
+    if (globallyExcluded(device, ipString(n))) excluded.add(ipString(n));
   const capacity = ipNumber(pool.end) - ipNumber(pool.start) + 1 - excluded.size;
   const active =
     device.dhcpServer?.bindings.filter(
@@ -273,6 +423,25 @@ export function validateDhcpDevice(device: Device, clock?: number) {
   if (!server) return;
   if (device.type !== 'server' && device.type !== 'router')
     throw new Error('Serviço DHCP requer servidor ou roteador.');
+  for (const range of server.excludedRanges ?? [])
+    if (!isUnicast(range.start) || !isUnicast(range.end) || ipNumber(range.start) > ipNumber(range.end))
+      throw new Error('Exclusão DHCP global inválida.');
+  if (
+    new Set((server.excludedRanges ?? []).map((range) => range.start + '-' + range.end)).size !==
+    (server.excludedRanges ?? []).length
+  )
+    throw new Error('Exclusão DHCP global duplicada.');
+  const declared = new Set<string>();
+  for (const entry of server.pendingPools ?? []) {
+    if (
+      declared.has(entry.name) ||
+      server.pools.some((pool) => pool.name === entry.name) ||
+      (entry.network === undefined) !== (entry.prefix === undefined) ||
+      (entry.network !== undefined && subnet(entry.network, entry.prefix!).network !== entry.network)
+    )
+      throw new Error('Pool DHCP pendente inválido.');
+    declared.add(entry.name);
+  }
   const names = new Set<string>(),
     addresses = new Set<string>(),
     clients = new Set<string>(),

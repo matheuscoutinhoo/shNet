@@ -19,11 +19,13 @@ export function formatSnmpQuery(query: SnmpQuery) {
 }
 export function registerManagementCommands(registry: CommandRegistry) {
   registry.register({
-    pattern: /^snmp-server community ([a-z0-9_-]+)$/i,
+    // IOS: "snmp-server community NAME [RO|RW] [acl]" defines a community and starts the agent.
+    pattern: /^snmp-server community ([a-z0-9_-]+)(?: (ro|rw))?(?: ([\w-]+))?$/i,
+    syntax: ['snmp-server community <name>', 'snmp-server community <name> RO', 'snmp-server community <name> RW'],
     modes: CONFIG_MODES,
     run: (match, engine, device) =>
       engine.configureSnmpAgent(device.id, {
-        enabled: device.snmpAgent?.enabled ?? false,
+        enabled: match[2] ? true : (device.snmpAgent?.enabled ?? false),
         community: match[1],
       }),
   });

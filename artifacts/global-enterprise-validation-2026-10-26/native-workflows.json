@@ -1,0 +1,2553 @@
+{
+  "total": 61,
+  "passed": 5,
+  "gaps": 56,
+  "rows": [
+    {
+      "id": "N01",
+      "category": "management",
+      "requirement": "Native SSH VTY configuration",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "line vty 0 4",
+          "response": "% Invalid input detected at: line"
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "category": "management",
+      "requirement": "Native local admin account",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "username netadmin privilege 15 secret Audit-Only-123!",
+          "response": "% Invalid input detected at: username"
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "category": "management",
+      "requirement": "Native domain name for SSH key generation",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip domain name corp.test",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "category": "management",
+      "requirement": "Native SSH version 2 configuration",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip ssh version 2",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "category": "management",
+      "requirement": "Native AAA enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "aaa new-model",
+          "response": "% Invalid input detected at: new-model"
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "category": "management",
+      "requirement": "Native RADIUS server submode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "radius server ISE-PRIMARY",
+          "response": "% Invalid input detected at: radius"
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "category": "management",
+      "requirement": "SNMPv3 authenticated/private management",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "snmp-server group NMS v3 priv",
+          "response": "% Invalid input detected at: group"
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "category": "management",
+      "requirement": "Standard NTP server command",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ntp server 10.1.99.123",
+          "response": "% Invalid input detected at: server"
+        }
+      ]
+    },
+    {
+      "id": "N09",
+      "category": "management",
+      "requirement": "Standard syslog target command",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "logging host 10.1.99.14",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "category": "management",
+      "requirement": "NETCONF native enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "netconf-yang",
+          "response": "% Invalid input detected at: netconf-yang"
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "category": "management",
+      "requirement": "Standard clock timezone",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "clock timezone UTC 0",
+          "response": "% Invalid input detected at: timezone"
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "category": "management",
+      "requirement": "Secure HTTP management",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip http secure-server",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "category": "management",
+      "requirement": "Configuration archive",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "archive",
+          "response": "% Invalid input detected at: archive"
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "category": "management",
+      "requirement": "Native IP SLA probe",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip sla 10",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N15",
+      "category": "management",
+      "requirement": "Native object tracking",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "track 10 ip sla 10 reachability",
+          "response": "% Invalid input detected at: track"
+        }
+      ]
+    },
+    {
+      "id": "N16",
+      "category": "routing",
+      "requirement": "OSPF passive-interface default",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "passive-interface default",
+          "response": "% Invalid input detected at: passive-interface"
+        }
+      ]
+    },
+    {
+      "id": "N17",
+      "category": "routing",
+      "requirement": "OSPF reference bandwidth",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "auto-cost reference-bandwidth 10000",
+          "response": "% Invalid input detected at: auto-cost"
+        }
+      ]
+    },
+    {
+      "id": "N18",
+      "category": "routing",
+      "requirement": "OSPF stub area",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "area 10 stub",
+          "response": "% Invalid input detected at: area"
+        }
+      ]
+    },
+    {
+      "id": "N19",
+      "category": "routing",
+      "requirement": "OSPF ABR summarization",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "area 10 range 10.10.0.0 255.255.0.0",
+          "response": "% Invalid input detected at: area"
+        }
+      ]
+    },
+    {
+      "id": "N20",
+      "category": "routing",
+      "requirement": "OSPF default origination",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "router-id 1.1.1.1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "default-information originate",
+          "response": "% Invalid input detected at: default-information"
+        }
+      ]
+    },
+    {
+      "id": "N21",
+      "category": "routing",
+      "requirement": "OSPF authentication",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip ospf authentication message-digest",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N22",
+      "category": "routing",
+      "requirement": "OSPFv3 process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospfv3 100",
+          "response": "% Invalid input detected at: ospfv3"
+        }
+      ]
+    },
+    {
+      "id": "N23",
+      "category": "routing",
+      "requirement": "EIGRP process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router eigrp 100",
+          "response": "% Invalid input detected at: eigrp"
+        }
+      ]
+    },
+    {
+      "id": "N24",
+      "category": "routing",
+      "requirement": "IS-IS process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router isis CORE",
+          "response": "% Invalid input detected at: isis"
+        }
+      ]
+    },
+    {
+      "id": "N25",
+      "category": "routing",
+      "requirement": "Native prefix-list policy",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip prefix-list CORP seq 10 permit 10.0.0.0/8 le 24",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N26",
+      "category": "routing",
+      "requirement": "Native route-map policy submode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "route-map WAN-OUT permit 10",
+          "response": "% Invalid input detected at: route-map"
+        }
+      ]
+    },
+    {
+      "id": "N27",
+      "category": "routing",
+      "requirement": "Native BGP peer group",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor WAN peer-group",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N28",
+      "category": "routing",
+      "requirement": "Native BGP maximum-prefix protection",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 remote-as 65002",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 maximum-prefix 100",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N29",
+      "category": "routing",
+      "requirement": "Native BGP authentication",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router bgp 65001",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 remote-as 65002",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-router)#",
+          "command": "neighbor 192.0.2.2 password AuditOnly",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N30",
+      "category": "routing",
+      "requirement": "Native BFD timer configuration",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "bfd interval 50 min_rx 50 multiplier 3",
+          "response": "% Invalid input detected at: bfd"
+        }
+      ]
+    },
+    {
+      "id": "N31",
+      "category": "segmentation",
+      "requirement": "VRF definition enters config-vrf mode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "vrf definition CORP",
+          "response": "OK"
+        }
+      ],
+      "observed": false
+    },
+    {
+      "id": "N32",
+      "category": "segmentation",
+      "requirement": "VRF-aware OSPF process",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "router ospf 100 vrf CORP",
+          "response": "% Invalid input detected at: vrf"
+        }
+      ]
+    },
+    {
+      "id": "N33",
+      "category": "segmentation",
+      "requirement": "Native MPLS LDP enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "mpls ip",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N34",
+      "category": "wan",
+      "requirement": "Native IKEv2 proposal",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "crypto ikev2 proposal CORP",
+          "response": "% Invalid input detected at: crypto"
+        }
+      ]
+    },
+    {
+      "id": "N35",
+      "category": "wan",
+      "requirement": "Native tunnel interface",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Tunnel0",
+          "response": "% Interface inexistente"
+        }
+      ]
+    },
+    {
+      "id": "N36",
+      "category": "wan",
+      "requirement": "Native PAT overload",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip nat inside source list 1 interface Gi0/2 overload",
+          "response": "% Invalid input detected at: list"
+        }
+      ]
+    },
+    {
+      "id": "N37",
+      "category": "switching",
+      "requirement": "Native LACP member configuration",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "channel-group 1 mode active",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N38",
+      "category": "switching",
+      "requirement": "Native Port-channel interface",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "channel-group 1 mode active",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Port-channel1",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N39",
+      "category": "switching",
+      "requirement": "Native MST region submode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree mst configuration",
+          "response": "% Invalid input detected at: mst"
+        }
+      ]
+    },
+    {
+      "id": "N40",
+      "category": "switching",
+      "requirement": "Root guard",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "spanning-tree guard root",
+          "response": "% Invalid input detected at: guard"
+        }
+      ]
+    },
+    {
+      "id": "N41",
+      "category": "switching",
+      "requirement": "Loop guard default",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree loopguard default",
+          "response": "% Invalid input detected at: loopguard"
+        }
+      ]
+    },
+    {
+      "id": "N42",
+      "category": "switching",
+      "requirement": "UDLD aggressive",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "udld port aggressive",
+          "response": "% Invalid input detected at: udld"
+        }
+      ]
+    },
+    {
+      "id": "N43",
+      "category": "security",
+      "requirement": "Native DHCP snooping enable",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "ip dhcp snooping",
+          "response": "% Incomplete command."
+        }
+      ]
+    },
+    {
+      "id": "N44",
+      "category": "security",
+      "requirement": "Native DAI VLAN protection",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "ip arp inspection vlan 10",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N45",
+      "category": "security",
+      "requirement": "Native port security",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport port-security",
+          "response": "% Invalid input detected at: port-security"
+        }
+      ]
+    },
+    {
+      "id": "N46",
+      "category": "security",
+      "requirement": "Native IP source guard",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "ip verify source",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N47",
+      "category": "security",
+      "requirement": "Native dot1x system control",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "dot1x system-auth-control",
+          "response": "% Invalid input detected at: dot1x"
+        }
+      ]
+    },
+    {
+      "id": "N48",
+      "category": "switching",
+      "requirement": "Native voice VLAN",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "vlan 30",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-vlan)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "switchport voice vlan 30",
+          "response": "% Invalid input detected at: voice"
+        }
+      ]
+    },
+    {
+      "id": "N49",
+      "category": "security",
+      "requirement": "Standard extended ACL TCP established qualifier",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "ip access-list extended RETURN",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-ext-nacl)#",
+          "command": "permit tcp any any established",
+          "response": "% Unsupported ACL qualifier: established"
+        }
+      ]
+    },
+    {
+      "id": "N50",
+      "category": "security",
+      "requirement": "Standard numbered extended ACL",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "access-list 101 permit tcp any any eq 443",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N51",
+      "category": "qos",
+      "requirement": "MQC class-map submode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "class-map match-any VOICE",
+          "response": "% Invalid input detected at: class-map"
+        }
+      ]
+    },
+    {
+      "id": "N52",
+      "category": "qos",
+      "requirement": "MQC policy-map submode",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "policy-map WAN-QOS",
+          "response": "% Invalid input detected at: policy-map"
+        }
+      ]
+    },
+    {
+      "id": "N53",
+      "category": "qos",
+      "requirement": "Native egress service-policy",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "service-policy output WAN-QOS",
+          "response": "% Invalid input detected at: service-policy"
+        }
+      ]
+    },
+    {
+      "id": "N54",
+      "category": "redundancy",
+      "requirement": "HSRP interface tracking",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip address 192.0.2.1 255.255.255.0",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 ip 192.0.2.254",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 track Gi0/2 30",
+          "response": "OK"
+        }
+      ]
+    },
+    {
+      "id": "N55",
+      "category": "redundancy",
+      "requirement": "HSRP authentication",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "ip address 192.0.2.1 255.255.255.0",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 ip 192.0.2.254",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config-if)#",
+          "command": "standby 10 authentication md5 key-string AuditOnly",
+          "response": "% Invalid input detected at: authentication"
+        }
+      ]
+    },
+    {
+      "id": "N56",
+      "category": "operations",
+      "requirement": "Standard show inventory",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show inventory",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N57",
+      "category": "operations",
+      "requirement": "Standard show environment",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show environment",
+          "response": "% Comando não reconhecido. Digite help."
+        }
+      ]
+    },
+    {
+      "id": "N58",
+      "category": "operations",
+      "requirement": "Standard show interfaces counters errors",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show interfaces counters errors",
+          "response": "% Interface inexistente"
+        }
+      ]
+    },
+    {
+      "id": "N59",
+      "category": "operations",
+      "requirement": "Standard show etherchannel summary",
+      "status": "pass",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "show etherchannel summary",
+          "response": "Nenhum EtherChannel"
+        }
+      ]
+    },
+    {
+      "id": "N60",
+      "category": "operations",
+      "requirement": "Standard show ip cef",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "R-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01(config)#",
+          "command": "end",
+          "response": "OK"
+        },
+        {
+          "prompt": "R-01#",
+          "command": "show ip cef",
+          "response": "% Invalid input detected at: cef"
+        }
+      ]
+    },
+    {
+      "id": "N61",
+      "category": "switching",
+      "requirement": "no switchport preserves globally configured Rapid PVST",
+      "status": "gap",
+      "transcript": [
+        {
+          "prompt": "SW-01>",
+          "command": "enable",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01#",
+          "command": "configure terminal",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "vlan 10",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-vlan)#",
+          "command": "exit",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "spanning-tree mode rapid-pvst",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config)#",
+          "command": "interface Gi0/1",
+          "response": "OK"
+        },
+        {
+          "prompt": "SW-01(config-if)#",
+          "command": "no switchport",
+          "response": "OK"
+        }
+      ],
+      "observed": false
+    }
+  ],
+  "ecmp": {
+    "expectedNextHops": 2,
+    "observedRoutes": [
+      {
+        "network": "10.100.0.0",
+        "prefix": 24,
+        "nextHop": "192.0.1.2",
+        "port": "p0",
+        "metric": 30,
+        "protocol": "OSPF",
+        "distance": 110,
+        "area": 0,
+        "pathType": "intra"
+      }
+    ],
+    "resolved": {
+      "port": {
+        "id": "p0",
+        "name": "Gi0/1",
+        "mac": "02:00:00:01:00:00",
+        "media": "rj45",
+        "adminUp": true,
+        "speed": 1000,
+        "duplex": "full",
+        "mtu": 1500,
+        "mode": "routed",
+        "accessVlan": 1,
+        "nativeVlan": 1,
+        "allowedVlans": [
+          1
+        ],
+        "description": "",
+        "rx": 22,
+        "tx": 22,
+        "errors": 0,
+        "ip": "192.0.1.1",
+        "prefix": 30
+      },
+      "nextHop": "192.0.1.2",
+      "prefix": 24
+    }
+  },
+  "ospfCapture": {
+    "packets": 0,
+    "excluded": [
+      {
+        "event": "event-63",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-66",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-72",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-75",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-81",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-84",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-90",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-93",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-101",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-108",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-115",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-122",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-129",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-136",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-143",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-150",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-156",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-161",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-168",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-173",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-180",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-185",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-192",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-197",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-204",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-209",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-216",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-221",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-228",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-233",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-240",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-245",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-259",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-262",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-268",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-271",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-281",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-284",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-290",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-293",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-303",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-306",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-312",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-315",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-321",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-324",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-330",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-333",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-339",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-344",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-349",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-354",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-359",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-364",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-369",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-374",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-379",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-384",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-389",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-394",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-399",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-404",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-409",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-414",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-419",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-424",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-429",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-432",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-438",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-441",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-447",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-450",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-456",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-459",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-465",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-470",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-475",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-480",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-485",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-488",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-494",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-497",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-503",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-506",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-512",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-515",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-521",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-524",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-530",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-533",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-539",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-542",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-548",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-551",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-557",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-562",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-567",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-570",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-576",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-579",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-585",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-588",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-594",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-597",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-603",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-608",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-617",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-622",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-627",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-630",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-636",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-639",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-649",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-652",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-660",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-663",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-671",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-676",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-681",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-684",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-690",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-693",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-699",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-704",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-709",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-712",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-720",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-723",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-736",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-739",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-745",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-748",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-754",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-757",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-763",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-766",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-772",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-777",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-786",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-789",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-795",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-798",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-804",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-809",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-814",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-817",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-825",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-828",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-836",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-839",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-845",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-848",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-854",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-857",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-865",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-868",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-893",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-896",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-901",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-904",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-913",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-916",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-922",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-925",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-939",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-944",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-949",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-952",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-958",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-961",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-981",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-984",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-989",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-992",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1001",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1006",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1015",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1018",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1024",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1027",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1045",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1050",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1059",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1062",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1068",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1071",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1077",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1082",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1091",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1096",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1107",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1110",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1115",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1118",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1129",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1132",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1137",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1140",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1153",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1158",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1167",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1172",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1185",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1190",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1207",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1212",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1225",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1230",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1289",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1292",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1296",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1299",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1303",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1306",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1310",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      },
+      {
+        "event": "event-1313",
+        "reason": "Protocolo IP OSPF sem codec binário."
+      }
+    ]
+  }
+}

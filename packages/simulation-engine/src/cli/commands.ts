@@ -16,7 +16,7 @@ import { registerVrrpCommands, vrrpRunningConfig } from './vrrp';
 import { registerStateSyncCommands, stateSyncRunningConfig } from './state-sync';
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort, type Mode } from './registry';
 import { ipv4Schema } from '../model';
-import { parsePrefix, resolveDefaultRoutes, subnet } from '../protocols/ipv4';
+import { parsePrefix, subnet, ipString, mask } from '../protocols/ipv4';
 import { dhcpRunningConfig, registerDhcpCommands } from './dhcp';
 import { dnsRunningConfig, registerDnsCommands } from './dns';
 import { registerStpCommands, stpRunningConfig } from './stp';
@@ -24,9 +24,21 @@ import { registerPolicyCommands, policyRunningConfig } from './policy';
 import { registerTcpCommands, tcpRunningConfig } from './tcp';
 import { registerOspfCommands, ospfRunningConfig } from './ospf';
 import { registerRipCommands, ripRunningConfig } from './rip';
-import { ripRoutes } from '../protocols/rip';
+import { interfaceOperational } from '../protocols/layer3';
+import { syncPvstInstances } from '../protocols/stp';
+import { hardwareSpeed } from '../links/physical';
 import { registerManagementCommands, managementRunningConfig } from './management';
 import { clearArpPending } from '../protocols/arp';
+import { interfaceName, showInterfaces, showInterfacesDescription, showInterfacesStatus, showRoutes } from './operational';
+import { saveStartup, reloadLosesChanges } from './startup';
+import { registerDiscoveryCommands, discoveryRunningConfig } from './discovery';
+import { registerHsrpCommands, hsrpRunningConfig } from './hsrp';
+import { registerLocalSecurityCommands } from './local-security';
+import { registerCampusCommands, campusRunningConfig } from './campus';
+import { registerIosOperations, iosSystemRunning } from './ios-operations';
+import { registerMonitoring, monitoringRunning } from './monitoring';
+import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
+import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -48,6 +60,14 @@ function vlanList(value: string) {
 export function makeRegistry() {
   const r = new CommandRegistry();
   registerHostCommands(r);
+  registerDiscoveryCommands(r);
+  registerHsrpCommands(r);
+  registerLocalSecurityCommands(r);
+  registerCampusCommands(r);
+  registerIosOperations(r);
+  registerMonitoring(r);
+  registerRoutingPolicy(r);
+  registerMqc(r);
   registerRemoteCommands(r);
   registerApplicationCommands(r);
   registerAaaCommands(r);
@@ -83,13 +103,25 @@ export function makeRegistry() {
   });
   r.register({
     pattern: /^enable$/i,
-    modes: all,
-    run: (_m, _e, _d, c) => {
+    modes: ['user', 'privileged'],
+    run: (_m, _e, d, c) => {
+      if (c.mode === 'user' && d.enableSecret) {
+        c.auth = { kind: 'enable', attempts: 0 };
+        return;
+      }
       c.mode = 'privileged';
     },
   });
   r.register({
+    pattern: /^disable$/i,
+    modes: ['privileged'],
+    run: (_m, _e, _d, c) => {
+      c.mode = 'user';
+    },
+  });
+  r.register({
     pattern: /^(configure terminal|conf t)$/i,
+    syntax: 'configure terminal',
     modes: privileged,
     run: (_m, _e, _d, c) => {
       c.mode = 'config';
@@ -97,7 +129,7 @@ export function makeRegistry() {
   });
   r.register({
     pattern: /^end$/i,
-    modes: all,
+    modes: config,
     run: (_m, _e, _d, c) => {
       c.mode = 'privileged';
     },
@@ -107,11 +139,17 @@ export function makeRegistry() {
     modes: all,
     run: (_m, _e, _d, c) => {
       c.mode =
-        c.mode === 'interface' || c.mode === 'vlan' || c.mode === 'dhcp'
-          ? 'config'
-          : c.mode === 'config'
-            ? 'privileged'
-            : 'user';
+        c.mode==='key-chain-key'?'key-chain':c.mode === 'policy-class'
+          ? 'policy-map'
+          : c.mode === 'address-family'
+            ? c.vrf
+              ? 'vrf'
+              : 'router'
+            : config.includes(c.mode) && c.mode !== 'config'
+              ? 'config'
+              : c.mode === 'config'
+                ? 'privileged'
+                : 'user';
     },
   });
   r.register({
@@ -122,10 +160,46 @@ export function makeRegistry() {
     },
   });
   r.register({
+    pattern: /^interface range (.+)$/i,
+    syntax: 'interface range <interfaces...>',
+    modes: config,
+    run: (m, _e, d, c) => {
+      const selected = new Set<string>();
+      for (const group of m[1].split(',')) {
+        const normalized = interfaceName(group.trim());
+        // The optional end prefix must start with a non-digit; otherwise "Gi0/1-20" splits 20 into 2+0.
+        const range = /^(.*?)(\d+)-(?:(\D.*?))?(\d+)$/.exec(normalized);
+        if (range) {
+          const first = Number(range[2]),
+            last = Number(range[4]);
+          if (
+            last < first ||
+            last - first > 48 ||
+            (range[3] && interfaceName(range[3]).toLowerCase() !== range[1].toLowerCase())
+          )
+            throw new Error('Invalid interface range');
+          for (let n = first; n <= last; n++) {
+            const p = d.interfaces.find((p) => p.name.toLowerCase() === (range[1] + n).toLowerCase());
+            if (!p) throw new Error('Interface inexistente: ' + range[1] + n);
+            selected.add(p.id);
+          }
+        } else {
+          const p = d.interfaces.find((p) => p.name.toLowerCase() === normalized.toLowerCase());
+          if (!p) throw new Error('Interface inexistente: ' + normalized);
+          selected.add(p.id);
+        }
+      }
+      c.port = [...selected][0];
+      c.ports = [...selected];
+      c.mode = 'interface';
+    },
+  });
+  r.register({
     pattern: /^interface\s+(.+)$/i,
+    syntax: 'interface <interface>',
     modes: config,
     run: (m, e, d, c) => {
-      const name = m[1].replace(/\s/g, '').replace(/^gigabitEthernet/i, 'Gi');
+      const name = interfaceName(m[1]);
       let p = d.interfaces.find((p) => p.name.toLowerCase() === name.toLowerCase());
       if (!p && /^Vlan\d+$/i.test(name)) p = e.addSvi(d.id, Number(name.slice(4)));
       if (!p && /^Loopback\d+$/i.test(name)) p = e.addLoopback(d.id, Number(name.slice(8)));
@@ -136,6 +210,7 @@ export function makeRegistry() {
       }
       if (!p) throw new Error('Interface inexistente');
       c.port = p.id;
+      delete c.ports;
       c.mode = 'interface';
     },
   });
@@ -147,17 +222,50 @@ export function makeRegistry() {
     },
   });
   r.register({
+    pattern: /^no description$/i,
+    syntax: 'no description',
+    modes: ['interface'],
+    run: (_m, _e, d, c) => {
+      currentPort(d, c).description = '';
+    },
+  });
+  r.register({
     pattern: /^description (.{1,160})$/i,
+    syntax: 'description <text...>',
     modes: ['interface'],
     run: (m, _e, d, c) => {
       currentPort(d, c).description = m[1];
     },
   });
   r.register({
-    pattern: /^speed (100|1000|10000|40000|100000)$/i,
+    pattern: /^duplex (full|half)$/i,
+    syntax: ['duplex full', 'duplex half'],
     modes: ['interface'],
     run: (m, _e, d, c) => {
-      currentPort(d, c).speed = Number(m[1]) as NetworkInterface['speed'];
+      currentPort(d, c).duplex = m[1].toLowerCase() as NetworkInterface['duplex'];
+    },
+  });
+  r.register({
+    pattern: /^(no )?speed(?: (auto|100|1000|10000|40000|100000))?$/i,
+    syntax: ['speed <mbps>', 'speed auto', 'no speed'],
+    modes: ['interface'],
+    run: (m, e, d, c) => {
+      const p = currentPort(d, c),
+        value = m[2]?.toLowerCase();
+      if (!m[1] && !value) throw new Error('Incomplete command.');
+      const hardware = hardwareSpeed(p);
+      if (m[1] || value === 'auto') {
+        delete p.speedAuto;
+        delete p.maxSpeed;
+        p.speed = hardware;
+      } else {
+        const speed = Number(value) as NetworkInterface['speed'];
+        p.speedAuto = false;
+        p.speed = speed;
+        if (p.media === 'rj45' && speed < hardware) p.maxSpeed = hardware;
+        else delete p.maxSpeed;
+      }
+      e.renegotiatePort(d.id, p.id);
     },
   });
   r.register({
@@ -172,6 +280,7 @@ export function makeRegistry() {
   });
   r.register({
     pattern: /^mtu (\d+)$/i,
+    syntax: 'mtu <bytes>',
     modes: ['interface'],
     run: (m, _e, d, c) => {
       const n = Number(m[1]);
@@ -181,6 +290,7 @@ export function makeRegistry() {
   });
   r.register({
     pattern: /^ip address ([\d.]+)(?:\/|\s+)([\d.]+)$/i,
+    syntax: ['ip address <address> <mask>', 'ip address <address/prefix>'],
     modes: ['interface'],
     run: (m, e, d, c) => {
       if (d.type === 'switch' && currentPort(d, c).mode !== 'routed')
@@ -220,7 +330,7 @@ export function makeRegistry() {
     pattern: /^ip default-gateway ([\d.]+)$/i,
     modes: config,
     run: (m, _e, d) => {
-      if (d.type === 'router' || d.type === 'switch')
+      if (d.type === 'router' || (d.type === 'switch' && d.ipRouting))
         throw new Error('Use ip route no roteador; gateway é configuração de host');
       d.gateway = ipv4Schema.parse(m[1]);
     },
@@ -235,12 +345,13 @@ export function makeRegistry() {
   r.register({
     pattern: /^vlan (\d+)$/i,
     modes: config,
-    run: (m, _e, d, c) => {
+    run: (m, e, d, c) => {
       if (d.type !== 'switch') throw new Error('VLANs são configuradas no switch');
       const id = vlanId(m[1]);
       if (!d.vlans.some((v) => v.id === id)) {
         if (d.vlans.length >= 256) throw new Error('Limite de VLANs');
         d.vlans.push({ id, name: 'VLAN' + id });
+        syncPvstInstances(e, d);
       }
       c.vlan = id;
       c.mode = 'vlan';
@@ -249,11 +360,12 @@ export function makeRegistry() {
   r.register({
     pattern: /^no vlan (\d+)$/i,
     modes: config,
-    run: (m, _e, d) => {
+    run: (m, e, d) => {
       const id = vlanId(m[1]);
       if (id === 1) throw new Error('VLAN 1 é reservada');
       d.vlans = d.vlans.filter((v) => v.id !== id);
       d.macTable = d.macTable.filter((v) => v.vlan !== id);
+      syncPvstInstances(e, d);
     },
   });
   r.register({
@@ -292,16 +404,43 @@ export function makeRegistry() {
     },
   });
   r.register({
-    pattern: /^switchport trunk allowed vlan ([\d,-]+)$/i,
+    pattern: /^switchport trunk allowed vlan (?:(add|remove|except) )?([\d,-]+|all|none)$/i,
+    syntax: [
+      'switchport trunk allowed vlan <vlans>',
+      'switchport trunk allowed vlan add <vlans>',
+      'switchport trunk allowed vlan remove <vlans>',
+      'switchport trunk allowed vlan except <vlans>',
+    ],
     modes: ['interface'],
     run: (m, _e, d, c) => {
       if (d.type !== 'switch') throw new Error('Comando exclusivo de switch');
-      currentPort(d, c).allowedVlans = vlanList(m[1]);
+      const p = currentPort(d, c),
+        list =
+          m[2].toLowerCase() === 'all'
+            ? Array.from({ length: 4094 }, (_, i) => i + 1)
+            : m[2].toLowerCase() === 'none'
+              ? []
+              : vlanList(m[2]);
+      p.allowedVlans =
+        m[1]?.toLowerCase() === 'add'
+          ? [...new Set([...p.allowedVlans, ...list])].sort((a, b) => a - b)
+          : m[1]?.toLowerCase() === 'remove'
+            ? p.allowedVlans.filter((v) => !list.includes(v))
+            : m[1]?.toLowerCase() === 'except'
+              ? Array.from({ length: 4094 }, (_, i) => i + 1).filter((v) => !list.includes(v))
+              : list;
       d.macTable = [];
     },
   });
   r.register({
-    pattern: /^(no )?ip route ([\d.]+)(?:\/|\s+)([\d.]+) ([\d.]+)$/i,
+    pattern: /^(no )?ip route ([\d.]+)(?:\/|\s+)([\d.]+) ([\d.]+)(?: (\d+))?(?: track (\d+))?$/i,
+    syntax: [
+      'ip route <network> <mask> <next-hop>',
+      'ip route <network> <mask> <next-hop> <distance>',
+      'ip route <cidr> <next-hop>',
+      'ip route <cidr> <next-hop> <distance>',
+      'no ip route <network> <mask> <next-hop>',
+    ],
     modes: config,
     run: (m, _e, d) => {
       if (!['router', 'switch'].includes(d.type))
@@ -316,33 +455,52 @@ export function makeRegistry() {
       );
       if (!m[1]) {
         if (d.routes.length >= 256) throw new Error('Limite de rotas');
-        d.routes.push({ network, prefix, nextHop, metric: 1 });
+        const distance = m[5] ? Number(m[5]) : undefined;
+        if (distance !== undefined && (distance < 1 || distance > 255))
+          throw new Error('Administrative distance must be between 1 and 255.');
+        d.routes.push({
+          network,
+          prefix,
+          nextHop,
+          metric: 1,
+          ...(distance !== undefined ? { distance } : {}),
+          ...(m[6] ? { track: Number(m[6]) } : {}),
+        });
       }
     },
   });
   r.register({
-    pattern: /^show (interfaces|ip interface brief)$/i,
+    pattern: /^show (interfaces|ip interface brief)(?: (.+))?$/i,
+    syntax: [
+      'show interfaces',
+      'show interfaces <interface>',
+      'show interfaces trunk',
+      'show interfaces status',
+      'show interfaces description',
+      'show ip interface brief',
+    ],
     modes: all,
-    run: (_m, e, d) =>
-      'Interface       IPv4                 Admin  Link  VLAN / Mode\n' +
-      d.interfaces
-        .map(
-          (p) =>
-            p.name.padEnd(16) +
-            (p.ip ? p.ip + '/' + p.prefix : 'unassigned').padEnd(21) +
-            (p.adminUp ? 'up' : 'down').padEnd(7) +
-            (e.state.links.some((l) => l.up && [l.a, l.b].some((a) => a.device === d.id && a.port === p.id))
-              ? 'cabled'
-              : 'none'
-            ).padEnd(6) +
-            p.accessVlan +
-            ' / ' +
-            p.mode
-        )
-        .join('\n'),
+    run: (m, e, d) => {
+      if (m[2]?.toLowerCase() === 'trunk')
+        return (
+          'Port           Status        Native vlan  Vlans allowed on trunk\n' +
+          d.interfaces
+            .filter((p) => p.mode === 'trunk')
+            .map(
+              (p) =>
+                `${p.name.padEnd(15)}${(interfaceOperational(e.state, d, p) ? 'trunking' : 'not-trunking').padEnd(14)}${p.nativeVlan}            ${p.allowedVlans.join(',')}`
+            )
+            .join('\n')
+        );
+      if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'status') return showInterfacesStatus(e, d);
+      if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'description')
+        return showInterfacesDescription(e, d);
+      return showInterfaces(e, d, m[1].toLowerCase() === 'ip interface brief', m[2]);
+    },
   });
   r.register({
     pattern: /^show vlan(?: brief)?$/i,
+    syntax: ['show vlan', 'show vlan brief'],
     modes: all,
     run: (_m, _e, d) => 'VLAN   NAME\n' + d.vlans.map((v) => String(v.id).padEnd(7) + v.name).join('\n'),
   });
@@ -380,43 +538,29 @@ export function makeRegistry() {
   });
   r.register({
     pattern: /^show ip route$/i,
+    syntax: 'show ip route',
     modes: all,
-    run: (_m, _e, d) =>
-      [
-        ...d.interfaces
-          .filter((i) => i.ip && !i.vrf)
-          .map(
-            (i) => 'C ' + subnet(i.ip!, i.prefix!).network + '/' + i.prefix + ' directly connected, ' + i.name
-          ),
-        ...d.routes.filter((r) => !r.vrf).map((r) => 'S ' + r.network + '/' + r.prefix + ' via ' + r.nextHop),
-        ...(d.ospf?.routes ?? []).map(
-          (r) =>
-            `O${r.pathType === 'inter' ? ' IA' : ''} ${r.network}/${r.prefix} [${r.distance}/${r.metric}] via ${r.nextHop}, ${d.interfaces.find((p) => p.id === r.port)?.name}`
-        ),
-        ...(d.bgp?.routes ?? []).map(
-          (route) =>
-            `B ${route.network}/${route.prefix} [${route.distance}/${route.metric}] via ${route.nextHop}, ${d.interfaces.find((port) => port.id === route.port)?.name}`
-        ),
-        ...ripRoutes(d).map(
-          (r) =>
-            `R ${r.network}/${r.prefix} [120/${r.metric}] via ${r.nextHop}, ${d.interfaces.find((p) => p.id === r.port)?.name}`
-        ),
-        ...resolveDefaultRoutes(d).map(
-          (route) =>
-            (route.port.ipv4Mode === 'dhcp' ? 'D' : 'S') +
-            ' 0.0.0.0/0 via ' +
-            route.nextHop +
-            ', ' +
-            route.port.name
-        ),
-      ].join('\n') || 'Nenhuma rota',
+    run: (_m, e, d) => showRoutes(e, d),
+  });
+  r.register({
+    pattern: /^show version$/i,
+    syntax: 'show version',
+    modes: all,
+    run: (_m, e, d) =>
+      `${terminalIdentity(d).family}\nshLab educational behavioral simulator; supported IOS/IOS XE command subset.\nVirtual hardware: ${terminalIdentity(d).name}\n${d.hostname} uptime: ${(Math.max(0, e.state.clock - (d.bootStartedAt ?? 0)) / 1000).toFixed(3)} simulated seconds\n${d.interfaces.length} network interfaces; no vendor firmware is executed.`,
   });
   r.register({
     pattern: /^show running-config$/i,
+    syntax: 'show running-config',
     modes: all,
     run: (_m, _e, d) =>
       [
         'hostname ' + d.hostname,
+        ...iosSystemRunning(d),
+        ...monitoringRunning(d),
+        ...routingPolicyRunning(d),
+        ...mqcDefinitions(d),
+        ...(d.enableSecret ? ['enable secret ' + d.enableSecret[1] + ' ' + d.enableSecret] : []),
         ...layer3RunningConfig(d),
         ...lacpRunningConfig(d),
         ...ipv6RunningConfig(d),
@@ -425,41 +569,77 @@ export function makeRegistry() {
         ...forwardingRunningConfig(d),
         ...aaaRunningConfig(d),
         ...vxlanRunningConfig(d),
-        ...policyRunningConfig(d),
+        ...policyRunningConfig(d).filter((line) => !/^(?:no )?(?:ip nat|service nat)/.test(line)),
         ...stateSyncRunningConfig(_e.state, d),
-        ...d.vlans.flatMap((v) => ['vlan ' + v.id, ' name ' + v.name]),
+        ...(d.type === 'switch' ? d.vlans.flatMap((v) => ['vlan ' + v.id, ' name ' + v.name, 'exit']) : []),
         ...d.interfaces.flatMap((i) => [
           'interface ' + i.name,
+          ...(i.description ? [' description ' + i.description] : []),
+          // Loopbacks use a 9216-byte MTU by default; only explicit changes are configuration.
+          ...(i.mtu !== (i.loopback ? 9216 : 1500) ? [' mtu ' + i.mtu] : []),
+          ...(i.duplex === 'half' && !i.logical && !i.loopback ? [' duplex half'] : []),
           ...(i.logical?.kind === 'subinterface' ? [' encapsulation dot1q ' + i.logical.vlan] : []),
           ...(d.type === 'switch' && !i.logical && i.mode === 'routed' ? [' no switchport'] : []),
           ...(i.vrf ? [' vrf forwarding ' + i.vrf] : []),
           ' ' + (i.adminUp ? 'no shutdown' : 'shutdown'),
-          ' speed ' + i.speed,
+          ...(i.speedAuto === false && !i.logical && !i.loopback ? [' speed ' + i.speed] : []),
           ...(i.transceiver ? [' transceiver ' + i.transceiver] : []),
           ...(i.aclIn ? [' ip access-group ' + i.aclIn + ' in'] : []),
           ...(i.aclOut ? [' ip access-group ' + i.aclOut + ' out'] : []),
           ...(i.natRole ? [' ip nat ' + i.natRole] : []),
+          ...(i.udld ? [' udld port' + (i.udld.mode === 'aggressive' ? ' aggressive' : '')] : []),
+          ...(i.bfd
+            ? [
+                ` bfd interval ${i.bfd.intervalMs} min_rx ${i.bfd.minRxMs} multiplier ${i.bfd.multiplier}`,
+                ...(i.bfd.ospf ? [' ip ospf bfd'] : []),
+              ]
+            : []),
+          ...(i.ospfAuthentication?.key
+            ? [` ip ospf message-digest-key ${i.ospfAuthentication.keyId} md5 0 ${i.ospfAuthentication.key}`]
+            : []),
+          ...(i.ospfAuthentication?.enabled ? [' ip ospf authentication message-digest'] : []),
           ...(i.ipv4Mode === 'dhcp'
             ? [' ip address dhcp']
             : i.ip
-              ? [' ip address ' + i.ip + '/' + i.prefix]
+              ? [' ip address ' + i.ip + ' ' + ipString(mask(i.prefix!))]
               : []),
           ...(i.ipv4Mode !== 'dhcp' && i.dns?.length ? [' ip name-server ' + i.dns.join(' ')] : []),
           ...(i.stpEdge ? [' spanning-tree portfast'] : []),
+          ...(i.stpGuard ? [' spanning-tree guard ' + i.stpGuard] : []),
+          ...(i.bpduGuard !== undefined
+            ? [' spanning-tree bpduguard ' + (i.bpduGuard ? 'enable' : 'disable')]
+            : []),
           ...(i.stpCost ? [' spanning-tree cost ' + i.stpCost] : []),
           ...(d.type === 'switch' && !i.logical && i.mode !== 'routed'
             ? [
                 ' switchport mode ' + i.mode,
                 ' switchport access vlan ' + i.accessVlan,
                 ' switchport trunk native vlan ' + i.nativeVlan,
-                ' switchport trunk allowed vlan ' + i.allowedVlans.join(','),
+                ' switchport trunk allowed vlan ' +
+                  (i.allowedVlans.length ? i.allowedVlans.join(',') : 'none'),
               ]
             : []),
+          'exit',
         ]),
+        ...campusRunningConfig(d),
+        ...mqcAttachments(d),
+        ...(d.loopGuardDefault ? ['spanning-tree loopguard default'] : []),
         ...(d.gateway ? ['ip default-gateway ' + d.gateway] : []),
+        ...policyRunningConfig(d).filter((line) => /^(?:no )?(?:ip nat|service nat)/.test(line)),
         ...d.routes.map(
           (r) =>
-            'ip route ' + (r.vrf ? 'vrf ' + r.vrf + ' ' : '') + r.network + '/' + r.prefix + ' ' + r.nextHop
+            'ip route ' +
+            (r.vrf ? 'vrf ' + r.vrf + ' ' : '') +
+            r.network +
+            ' ' +
+            ipString(mask(r.prefix)) +
+            ' ' +
+            (r.port
+              ? d.interfaces.find((p) => p.id === r.port)!.name +
+                (r.nextHop === '0.0.0.0' ? '' : ' ' + r.nextHop)
+              : r.nextHop) +
+            (r.distance !== undefined ? ' ' + r.distance : '') +
+            (r.track ? ' track ' + r.track : '')
         ),
         ...dhcpRunningConfig(d),
         ...dnsRunningConfig(d),
@@ -481,6 +661,8 @@ export function makeRegistry() {
         ...remoteRunningConfig(d),
         ...managementRunningConfig(d),
         ...stpRunningConfig(d),
+        ...discoveryRunningConfig(d),
+        ...hsrpRunningConfig(d),
       ].join('\n'),
   });
   r.register({
@@ -502,9 +684,37 @@ export function makeRegistry() {
     },
   });
   r.register({
-    pattern: /^write memory$/i,
-    modes: privileged,
-    run: () => 'Configuração aplicada ao estado do laboratório. O workspace salva automaticamente.',
+    pattern: /^(write memory|copy (?:system:)?running-config (?:nvram:)?startup-config)$/i,
+    syntax: ['write memory', 'copy running-config startup-config'],
+    modes: ['privileged'],
+    run: (_m, e, d) => saveStartup(e, d, r),
+  });
+  r.register({
+    pattern: /^show startup-config$/i,
+    syntax: 'show startup-config',
+    modes: ['privileged'],
+    run: (_m, _e, d) => d.startupConfig?.commands.join('\n') ?? 'startup-config is not present',
+  });
+  r.register({
+    pattern: /^(erase startup-config|write erase)$/i,
+    syntax: ['erase startup-config', 'write erase'],
+    modes: ['privileged'],
+    run: (_m, _e, d) => {
+      delete d.startupConfig;
+      d.bootManaged = true;
+      d.booted = true;
+      return 'Erase of nvram: complete';
+    },
+  });
+  r.register({
+    pattern: /^reload$/i,
+    syntax: 'reload',
+    modes: ['privileged'],
+    run: (_m, e, d, c) => {
+      // The terminal asks "Save? [yes/no]" only when the reload would lose running-config changes.
+      c.confirm = { kind: reloadLosesChanges(e, d, r) ? 'save' : 'reload' };
+      return '';
+    },
   });
   return r;
 }

@@ -166,7 +166,7 @@ export function removeQuorumLab(e: SimulationEngine, d: Device) {
 }
 export function proposeQuorumLab(e: SimulationEngine, d: Device, command: QuorumCommand) {
   if (!d.power || !d.quorum) throw new Error('Servidor de quorum indisponível.');
-  if ((command.kind === 'database') !== !!d.databaseHa)
+  if (command.kind !== 'barrier' && (command.kind === 'database') !== !!d.databaseHa)
     throw new Error('Operação incompatível com o vínculo SQL deste grupo.');
   const result = proposeQuorum(d.quorum.node, command);
   install(e, d, result);

@@ -1,0 +1,3637 @@
+{
+  "clock": 87000,
+  "probes": [
+    {
+      "id": "probe-189273",
+      "device": "device-3828",
+      "target": "10.2.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 222.35099199980323,
+      "responder": "10.2.10.10"
+    },
+    {
+      "id": "probe-189282",
+      "device": "device-3828",
+      "target": "10.3.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 164.76719999987108,
+      "responder": "10.3.10.10"
+    },
+    {
+      "id": "probe-189286",
+      "device": "device-3828",
+      "target": "10.4.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 177.38227599978563,
+      "responder": "10.4.10.10"
+    },
+    {
+      "id": "probe-189290",
+      "device": "device-3828",
+      "target": "10.5.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 354.74591599988344,
+      "responder": "10.5.10.10"
+    },
+    {
+      "id": "probe-189294",
+      "device": "device-3828",
+      "target": "10.6.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 447.6218579997949,
+      "responder": "10.6.10.10"
+    },
+    {
+      "id": "probe-189298",
+      "device": "device-7789",
+      "target": "10.1.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 300.3102159998525,
+      "responder": "10.1.10.10"
+    },
+    {
+      "id": "probe-189307",
+      "device": "device-7789",
+      "target": "10.3.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 340.3202159998473,
+      "responder": "10.3.10.10"
+    },
+    {
+      "id": "probe-189311",
+      "device": "device-7789",
+      "target": "10.4.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 349.80848399984825,
+      "responder": "10.4.10.10"
+    },
+    {
+      "id": "probe-189315",
+      "device": "device-7789",
+      "target": "10.5.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 480.3402159998368,
+      "responder": "10.5.10.10"
+    },
+    {
+      "id": "probe-189319",
+      "device": "device-7789",
+      "target": "10.6.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 540.3502159998316,
+      "responder": "10.6.10.10"
+    },
+    {
+      "id": "probe-189323",
+      "device": "device-11750",
+      "target": "10.1.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 204.75719999987632,
+      "responder": "10.1.10.10"
+    },
+    {
+      "id": "probe-189332",
+      "device": "device-11750",
+      "target": "10.2.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 295.2889319998649,
+      "responder": "10.2.10.10"
+    },
+    {
+      "id": "probe-189336",
+      "device": "device-11750",
+      "target": "10.4.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 255.29893199985963,
+      "responder": "10.4.10.10"
+    },
+    {
+      "id": "probe-189340",
+      "device": "device-11750",
+      "target": "10.5.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 384.7871999998606,
+      "responder": "10.5.10.10"
+    },
+    {
+      "id": "probe-189344",
+      "device": "device-11750",
+      "target": "10.6.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 467.63185799978964,
+      "responder": "10.6.10.10"
+    },
+    {
+      "id": "probe-189348",
+      "device": "device-15711",
+      "target": "10.1.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 227.3622759997961,
+      "responder": "10.1.10.10"
+    },
+    {
+      "id": "probe-189357",
+      "device": "device-15711",
+      "target": "10.2.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 314.7671999998711,
+      "responder": "10.2.10.10"
+    },
+    {
+      "id": "probe-189361",
+      "device": "device-15711",
+      "target": "10.3.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 267.38227599978563,
+      "responder": "10.3.10.10"
+    },
+    {
+      "id": "probe-189365",
+      "device": "device-15711",
+      "target": "10.5.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 407.3922759997804,
+      "responder": "10.5.10.10"
+    },
+    {
+      "id": "probe-189369",
+      "device": "device-15711",
+      "target": "10.6.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 471.06934999984514,
+      "responder": "10.6.10.10"
+    },
+    {
+      "id": "probe-189373",
+      "device": "device-19672",
+      "target": "10.1.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 434.818483999843,
+      "responder": "10.1.10.10"
+    },
+    {
+      "id": "probe-189382",
+      "device": "device-19672",
+      "target": "10.2.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 525.3502159998316,
+      "responder": "10.2.10.10"
+    },
+    {
+      "id": "probe-189386",
+      "device": "device-19672",
+      "target": "10.3.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 474.83848399983253,
+      "responder": "10.3.10.10"
+    },
+    {
+      "id": "probe-189390",
+      "device": "device-19672",
+      "target": "10.4.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 485.3702159998211,
+      "responder": "10.4.10.10"
+    },
+    {
+      "id": "probe-189394",
+      "device": "device-19672",
+      "target": "10.6.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 675.3802159998158,
+      "responder": "10.6.10.10"
+    },
+    {
+      "id": "probe-189398",
+      "device": "device-23633",
+      "target": "10.1.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 525.0893499998347,
+      "responder": "10.1.10.10"
+    },
+    {
+      "id": "probe-189407",
+      "device": "device-23633",
+      "target": "10.2.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 615.0993499998294,
+      "responder": "10.2.10.10"
+    },
+    {
+      "id": "probe-189411",
+      "device": "device-23633",
+      "target": "10.3.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 565.1093499998242,
+      "responder": "10.3.10.10"
+    },
+    {
+      "id": "probe-189415",
+      "device": "device-23633",
+      "target": "10.4.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 575.119349999819,
+      "responder": "10.4.10.10"
+    },
+    {
+      "id": "probe-189419",
+      "device": "device-23633",
+      "target": "10.5.10.10",
+      "start": 81000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 705.1293499998137,
+      "responder": "10.5.10.10"
+    }
+  ],
+  "events": [
+    {
+      "id": "event-196466",
+      "time": 85000.59217199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:4c:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196468",
+      "time": 85000.593172,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c5:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196470",
+      "time": 85000.594172,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3e:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196472",
+      "time": 85000.595172,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b7:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196474",
+      "time": 85000.596172,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:30:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196481",
+      "time": 85000.60217199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:4c:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196483",
+      "time": 85000.60317199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c5:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196485",
+      "time": 85000.60417199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3e:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196487",
+      "time": 85000.605172,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b7:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196489",
+      "time": 85000.606172,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:30:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196491",
+      "time": 85000.607172,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a9:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.6.10.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-196539",
+      "time": 85000.62217199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:4c:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196541",
+      "time": 85000.62317199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c5:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196543",
+      "time": 85000.62417199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3e:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196545",
+      "time": 85000.62517199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b7:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196547",
+      "time": 85000.62617199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:30:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196554",
+      "time": 85000.63217199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:4c:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196556",
+      "time": 85000.63317199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c5:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196558",
+      "time": 85000.63417199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3e:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196560",
+      "time": 85000.63517199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b7:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196562",
+      "time": 85000.63617199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:30:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196564",
+      "time": 85000.63717199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a9:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.6.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196658",
+      "time": 85000.65217199996,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:4c:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196660",
+      "time": 85000.65317199996,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c5:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196662",
+      "time": 85000.65417199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3e:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196664",
+      "time": 85000.65517199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b7:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196666",
+      "time": 85000.65617199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:30:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196670",
+      "time": 85000.65717199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-19885",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a9:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.6.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196672",
+      "time": 85000.66217199995,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:4c:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196674",
+      "time": 85000.66317199996,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c5:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196676",
+      "time": 85000.66417199996,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3e:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196678",
+      "time": 85000.66517199996,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b7:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196680",
+      "time": 85000.66617199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:30:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196682",
+      "time": 85000.66717199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a9:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.6.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196883",
+      "time": 85000.87792599999,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:4d:a9:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.6.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196887",
+      "time": 85000.88292599996,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:00:4c:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196891",
+      "time": 85000.88392599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:0f:c5:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196895",
+      "time": 85000.88492599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:1f:3e:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196899",
+      "time": 85000.88592599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:2e:b7:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196903",
+      "time": 85000.88692599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:3e:30:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.20.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-196922",
+      "time": 85000.90492599996,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:1f:3e:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196926",
+      "time": 85000.90592599996,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:2e:b7:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-196930",
+      "time": 85000.90692599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:3e:30:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197013",
+      "time": 85000.93117199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:00:4c:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197017",
+      "time": 85000.93217199997,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:0f:c5:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.99.3",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "STANDBY",
+              "priority": 100,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197143",
+      "time": 85000.966172,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:4d:a5:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.6.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197152",
+      "time": 85000.97117199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:00:48:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197156",
+      "time": 85000.97217199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:0f:c1:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197160",
+      "time": 85000.97492599992,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:1f:3a:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197164",
+      "time": 85000.97592599993,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:2e:b3:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197168",
+      "time": 85000.97692599993,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:3e:2c:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197214",
+      "time": 85001.01117199998,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:00:48:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.1.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197218",
+      "time": 85001.01217199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:0f:c1:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.2.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197222",
+      "time": 85001.01317199999,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:1f:3a:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.3.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197226",
+      "time": 85001.014172,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:2e:b3:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.4.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197230",
+      "time": 85001.015172,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p20",
+      "frame": {
+        "src": "02:00:3e:2c:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 31,
+        "packet": {
+          "src": "10.5.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197292",
+      "time": 85001.16192599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:48:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197294",
+      "time": 85001.16292599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c1:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197297",
+      "time": 85001.17192599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:48:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197300",
+      "time": 85001.17292599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c1:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197313",
+      "time": 85001.18567999994,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3a:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197315",
+      "time": 85001.18667999994,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b3:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197317",
+      "time": 85001.18767999994,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:2c:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197319",
+      "time": 85001.18867999995,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a5:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.6.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197324",
+      "time": 85001.19567999993,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3a:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197327",
+      "time": 85001.19667999994,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b3:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197330",
+      "time": 85001.19767999994,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:2c:01:00",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.10.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 10,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.10.1"
+            }
+          }
+        },
+        "vlan": 10
+      }
+    },
+    {
+      "id": "event-197340",
+      "time": 85001.21192599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:48:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197342",
+      "time": 85001.21292599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c1:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197345",
+      "time": 85001.21567999992,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3a:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197348",
+      "time": 85001.21667999992,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b3:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197356",
+      "time": 85001.21767999993,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:2c:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197359",
+      "time": 85001.22192599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:48:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197362",
+      "time": 85001.22292599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c1:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197365",
+      "time": 85001.22567999992,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3a:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197368",
+      "time": 85001.22667999992,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b3:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197371",
+      "time": 85001.22692599999,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a5:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.6.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197373",
+      "time": 85001.22767999992,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:2c:01:01",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.20.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 20,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.20.1"
+            }
+          }
+        },
+        "vlan": 20
+      }
+    },
+    {
+      "id": "event-197378",
+      "time": 85001.26192599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-80",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:48:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197380",
+      "time": 85001.26292599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-4041",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c1:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197382",
+      "time": 85001.26392599999,
+      "type": "PACKET_DROPPED",
+      "device": "device-8002",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3a:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197384",
+      "time": 85001.26492599999,
+      "type": "PACKET_DROPPED",
+      "device": "device-11963",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b3:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197386",
+      "time": 85001.265926,
+      "type": "PACKET_DROPPED",
+      "device": "device-15924",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:2c:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197390",
+      "time": 85001.266926,
+      "type": "PACKET_DROPPED",
+      "device": "device-19885",
+      "reason": "Nenhuma porta de saída encaminha esta VLAN.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a5:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.6.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197392",
+      "time": 85001.27192599997,
+      "type": "PACKET_DROPPED",
+      "device": "device-84",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:00:48:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.1.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.1.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197394",
+      "time": 85001.27292599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-4045",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:0f:c1:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.2.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.2.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197396",
+      "time": 85001.27392599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-8006",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:1f:3a:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.3.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.3.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197398",
+      "time": 85001.27492599998,
+      "type": "PACKET_DROPPED",
+      "device": "device-11967",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:2e:b3:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.4.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.4.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197400",
+      "time": 85001.27592599999,
+      "type": "PACKET_DROPPED",
+      "device": "device-15928",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:3e:2c:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.5.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.5.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    },
+    {
+      "id": "event-197402",
+      "time": 85001.27692599999,
+      "type": "PACKET_DROPPED",
+      "device": "device-19889",
+      "reason": "STP: porta de entrada em discarding; frame de dados bloqueado.",
+      "port": "p21",
+      "frame": {
+        "src": "02:00:4d:a5:01:02",
+        "dst": "01:00:5e:00:00:66",
+        "etherType": "IPv4",
+        "hops": 30,
+        "packet": {
+          "src": "10.6.99.2",
+          "dst": "224.0.0.102",
+          "ttl": 1,
+          "protocol": "UDP",
+          "sourcePort": 1985,
+          "destinationPort": 1985,
+          "bytes": 70,
+          "payload": {
+            "protocol": "HSRP",
+            "message": {
+              "version": 2,
+              "group": 99,
+              "opcode": "hello",
+              "state": "ACTIVE",
+              "priority": 120,
+              "helloMs": 3000,
+              "holdMs": 10000,
+              "vip": "10.6.99.1"
+            }
+          }
+        },
+        "vlan": 99
+      }
+    }
+  ]
+}

@@ -103,8 +103,8 @@ describe('PVST e MSTP por instância', () => {
     const cli = new TerminalSession(e, switches[0].id);
     cli.execute('enable');
     cli.execute('configure terminal');
-    expect(cli.execute('show spanning-tree instance 10')).toContain('PVST / RSTP / instância 10');
-    expect(cli.execute('show spanning-tree instance 10')).toContain('forwarding');
+    expect(cli.execute('do show spanning-tree instance 10')).toContain('PVST / RSTP / instância 10');
+    expect(cli.execute('do show spanning-tree instance 10')).toContain('forwarding');
     const snapshot = e.snapshot();
     expect(
       cli.execute('spanning-tree configure {"mode":"mstp","mappings":[{"vlan":999,"instance":1}]}')

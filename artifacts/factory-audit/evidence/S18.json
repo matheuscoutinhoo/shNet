@@ -1,0 +1,145 @@
+{
+  "result": {
+    "id": "S18",
+    "label": "Persistência com ping pendente",
+    "wallMs": 458,
+    "detail": {
+      "id": "probe-11754",
+      "device": "device-1837",
+      "target": "10.20.40.10",
+      "start": 6000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 60.553941000011946,
+      "responder": "10.20.40.10"
+    }
+  },
+  "events": [
+    {
+      "id": "event-11755",
+      "time": 6000,
+      "type": "PACKET_SENT",
+      "device": "device-1837",
+      "reason": "ICMP Echo Request para 10.20.40.10; TTL 64."
+    },
+    {
+      "id": "event-11756",
+      "time": 6000,
+      "type": "ROUTE_SELECTED",
+      "device": "device-1837",
+      "reason": "Longest prefix match /0 via 10.20.30.1 em Eth0.",
+      "port": "p0"
+    },
+    {
+      "id": "event-11758",
+      "time": 6000,
+      "type": "ARP_REQUEST",
+      "device": "device-1837",
+      "reason": "Cache ARP sem 10.20.30.1: broadcast, tentativa 1/3.",
+      "port": "p0",
+      "frame": {
+        "src": "02:00:07:2d:00:00",
+        "dst": "ff:ff:ff:ff:ff:ff",
+        "etherType": "ARP",
+        "hops": 32,
+        "arp": {
+          "kind": "request",
+          "senderIp": "10.20.30.10",
+          "senderMac": "02:00:07:2d:00:00",
+          "targetIp": "10.20.30.1"
+        }
+      }
+    },
+    {
+      "id": "event-11759",
+      "time": 6000,
+      "type": "FRAME_SENT",
+      "device": "device-1837",
+      "reason": "Frame transmitido em Eth0.",
+      "port": "p0",
+      "peer": "device-158",
+      "link": "link-1839",
+      "frame": {
+        "src": "02:00:07:2d:00:00",
+        "dst": "ff:ff:ff:ff:ff:ff",
+        "etherType": "ARP",
+        "hops": 32,
+        "arp": {
+          "kind": "request",
+          "senderIp": "10.20.30.10",
+          "senderMac": "02:00:07:2d:00:00",
+          "targetIp": "10.20.30.1"
+        }
+      }
+    },
+    {
+      "id": "event-11763",
+      "time": 6000.001,
+      "type": "WIFI_SENT",
+      "device": "device-3209",
+      "reason": "802.11 beacon / Fabrica-Visitantes.",
+      "port": "wlan0",
+      "frame": {
+        "src": "02:00:0c:89:03:00",
+        "dst": "ff:ff:ff:ff:ff:ff",
+        "etherType": "802.11",
+        "wifi": {
+          "kind": "beacon",
+          "ssid": "Fabrica-Visitantes",
+          "security": "wpa2-psk"
+        },
+        "hops": 32
+      }
+    },
+    {
+      "id": "event-11764",
+      "time": 6000.001,
+      "type": "FRAME_SENT",
+      "device": "device-3209",
+      "reason": "Frame transmitido em Wlan0.",
+      "port": "wlan0",
+      "peer": "device-3351",
+      "link": "radio-3355",
+      "frame": {
+        "src": "02:00:0c:89:03:00",
+        "dst": "ff:ff:ff:ff:ff:ff",
+        "etherType": "802.11",
+        "wifi": {
+          "kind": "beacon",
+          "ssid": "Fabrica-Visitantes",
+          "security": "wpa2-psk"
+        },
+        "hops": 32
+      }
+    },
+    {
+      "id": "event-11765",
+      "time": 6000.001,
+      "type": "PACKET_DROPPED",
+      "device": "device-3209",
+      "reason": "Perda no rádio por SNR/interferência.",
+      "port": "wlan0",
+      "frame": {
+        "src": "02:00:0c:89:03:00",
+        "dst": "ff:ff:ff:ff:ff:ff",
+        "etherType": "802.11",
+        "wifi": {
+          "kind": "beacon",
+          "ssid": "Fabrica-Visitantes",
+          "security": "wpa2-psk"
+        },
+        "hops": 32
+      }
+    }
+  ],
+  "probes": [
+    {
+      "id": "probe-11754",
+      "device": "device-1837",
+      "target": "10.20.40.10",
+      "start": 6000,
+      "status": "pending",
+      "ttl": 64
+    }
+  ]
+}

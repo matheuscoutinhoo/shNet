@@ -1,0 +1,23 @@
+{
+  "contract": "2026.10.27.1",
+  "sourceHash": "2bed657fdbf2b43d0f246bb82f21093fc318425bd298fdb4274cd05e38d017db",
+  "startedAt": "2026-10-27T15:21:51.971Z",
+  "finishedAt": "2026-10-27T15:28:42.187Z",
+  "steps": [
+    {
+      "script": "artifacts/enterprise-remediation-2026-10-27/enterprise-audit.ts",
+      "exitCode": 0,
+      "wallMs": 111111
+    },
+    {
+      "script": "artifacts/enterprise-remediation-2026-10-27/enterprise-behavior.ts",
+      "exitCode": 0,
+      "wallMs": 296990
+    },
+    {
+      "script": "scripts/audit-native-enterprise.ts",
+      "exitCode": 0,
+      "wallMs": 1807
+    }
+  ]
+}

@@ -157,15 +157,28 @@ export function receiveDhcpServer(
   const message = packet.payload.message;
   const relayed = !!message.giaddr && message.giaddr !== DHCP.unspecifiedIp;
   const renewal = !relayed && packet.dst !== DHCP.broadcastIp && message.clientIp !== DHCP.unspecifiedIp;
-  let pools = server.pools.filter((pool) => {
+  // IOS pools answer on any local address (helper-address may target a loopback or another interface).
+  const localAddress = device.interfaces.find((entry) => entry.adminUp && entry.ip === packet.dst);
+  const listening = (pool: DhcpPool) => {
     const listener = device.interfaces.find((entry) => entry.id === pool.port);
-    if (!listener?.adminUp || !listener.ip || (packet.dst !== DHCP.broadcastIp && packet.dst !== listener.ip))
-      return false;
+    return (
+      !!listener?.adminUp &&
+      !!listener.ip &&
+      (packet.dst === DHCP.broadcastIp || packet.dst === listener.ip || (!!pool.ios && !!localAddress))
+    );
+  };
+  let pools = server.pools.filter((pool) => {
+    if (!listening(pool)) return false;
     if (relayed)
       return pool.relayAddress === message.giaddr || (pool.relayAddresses ?? []).includes(message.giaddr!);
     if (renewal) return sameSubnet(message.clientIp, pool.network, pool.prefix);
     return !pool.relayAddress && pool.port === port.id;
   });
+  // Like IOS and common DHCP servers, a relayed request is served by the pool whose network contains giaddr.
+  if (relayed && !pools.length)
+    pools = server.pools.filter(
+      (pool) => listening(pool) && !!pool.relayAddress && sameSubnet(message.giaddr!, pool.network, pool.prefix)
+    );
   const reservedPool = pools.find((pool) =>
     pool.reservations?.some((entry) => entry.clientMac === message.clientMac.toLowerCase())
   );
@@ -174,7 +187,10 @@ export function receiveDhcpServer(
     engine.drop(device, 'DHCP: nenhum pool corresponde ao giaddr, ciaddr ou interface de destino.', port.id);
     return;
   }
-  const sourcePort = device.interfaces.find((entry) => entry.id === pools[0].port)!;
+  const sourcePort =
+    pools[0].ios && localAddress && packet.dst !== DHCP.broadcastIp
+      ? localAddress
+      : device.interfaces.find((entry) => entry.id === pools[0].port)!;
   expireOldBindings(engine, device);
   const bindings = () => server.bindings.filter((entry) => pools.some((pool) => pool.name === entry.pool));
   const existing = bindings().find(

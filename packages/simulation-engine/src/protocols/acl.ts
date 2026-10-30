@@ -1,10 +1,8 @@
 import { aclSchema, type Device, type NetworkInterface, type Packet } from '../model';
 import type { SimulationEngine } from '../core/engine';
-import { sameSubnet, subnet } from './ipv4';
+import { ipNumber, sameSubnet, subnet } from './ipv4';
 
 export function configureAcl(device: Device, input: unknown) {
-  if (device.type === 'switch' && !device.interfaces.some((p) => p.mode === 'routed' && p.ip))
-    throw new Error('ACL IPv4 requer um equipamento com stack IP.');
   const acl = aclSchema.parse(input);
   if (new Set(acl.rules.map((rule) => rule.sequence)).size !== acl.rules.length)
     throw new Error('Sequência ACL duplicada.');
@@ -29,40 +27,40 @@ export function permitPacket(
   const name = direction === 'in' ? port.aclIn : port.aclOut;
   if (!name) return true;
   const acl = device.accessLists?.find((entry) => entry.name === name);
-  const rule = acl?.rules.find(
+  // IOS permits all traffic through an interface that references an undefined ACL.
+  if (!acl) return true;
+  const rule=matchingAclRule(device,name,packet);
+  if (rule) rule.hits++;
+  else if (acl) acl.implicitDrops++;
+  const permitted = rule?.action === 'permit';
+  const reason =
+    'ACL ' + name + ' ' + direction + ' em ' + port.name + ': ' +
+    (rule ? 'regra ' + rule.sequence + ' ' + rule.action : 'deny implícito') +
+    '; ' + packet.protocol + ' ' + packet.src + ' -> ' + packet.dst + '.';
+  engine.emit(permitted ? 'ACL_PERMIT' : 'ACL_DENY', device.id, reason, { port: port.id, packet });
+  if (!permitted) engine.drop(device, reason, port.id);
+  return permitted;
+}
+export function matchingAclRule(device:Device,name:string,packet:Packet){
+  return device.accessLists?.find(acl=>acl.name===name)?.rules.find(
     (entry) =>
       (entry.protocol === 'ip' || entry.protocol.toUpperCase() === packet.protocol) &&
-      sameSubnet(entry.source.network, packet.src, entry.source.prefix) &&
-      sameSubnet(entry.destination.network, packet.dst, entry.destination.prefix) &&
+      (entry.sourceWildcard
+        ? ((ipNumber(entry.source.network) ^ ipNumber(packet.src)) & ~ipNumber(entry.sourceWildcard)) === 0
+        : sameSubnet(entry.source.network, packet.src, entry.source.prefix)) &&
+      (entry.destinationWildcard
+        ? ((ipNumber(entry.destination.network) ^ ipNumber(packet.dst)) &
+            ~ipNumber(entry.destinationWildcard)) ===
+          0
+        : sameSubnet(entry.destination.network, packet.dst, entry.destination.prefix)) &&
       (entry.sourcePort === undefined ||
         ((packet.protocol === 'TCP' || packet.protocol === 'UDP') &&
           packet.sourcePort === entry.sourcePort)) &&
       (entry.destinationPort === undefined ||
         ((packet.protocol === 'TCP' || packet.protocol === 'UDP') &&
-          packet.destinationPort === entry.destinationPort))
+          packet.destinationPort === entry.destinationPort)) &&
+      (!entry.established||(packet.protocol==='TCP'&&packet.flags.some(f=>f==='ACK'||f==='RST')))
   );
-  if (rule) rule.hits++;
-  else if (acl) acl.implicitDrops++;
-  const permitted = rule?.action === 'permit';
-  const reason =
-    'ACL ' +
-    name +
-    ' ' +
-    direction +
-    ' em ' +
-    port.name +
-    ': ' +
-    (rule ? 'regra ' + rule.sequence + ' ' + rule.action : 'deny implícito') +
-    '; ' +
-    packet.protocol +
-    ' ' +
-    packet.src +
-    ' -> ' +
-    packet.dst +
-    '.';
-  engine.emit(permitted ? 'ACL_PERMIT' : 'ACL_DENY', device.id, reason, { port: port.id, packet });
-  if (!permitted) engine.drop(device, reason, port.id);
-  return permitted;
 }
 
 export function validateAcls(device: Device) {
@@ -75,6 +73,6 @@ export function validateAcls(device: Device) {
   }
   for (const port of device.interfaces)
     for (const name of [port.aclIn, port.aclOut])
-      if (name && (port.mode !== 'routed' || !lists.some((acl) => acl.name === name)))
-        throw new Error('Interface referencia ACL inválida.');
+      // A reference to an ACL that is not defined yet is valid IOS configuration.
+      if (name && port.mode !== 'routed') throw new Error('Interface referencia ACL inválida.');
 }

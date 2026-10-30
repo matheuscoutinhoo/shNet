@@ -1,7 +1,15 @@
 import { scenarioSchema } from './scenarios-model';
+import {
+  discoveryMessageSchema,
+  discoveryStateSchema,
+  discoveryTimerSchema,
+} from './protocols/discovery-model';
+import { hsrpStateSchema, hsrpMessageSchema, hsrpTimerSchema } from './protocols/hsrp-model';
+import { iosSecretSchema } from './protocols/local-security-model';
 import { routeEntrySchema } from './schemas';
 import { databaseStateSchema } from './protocols/database-model';
 import { databaseHaSchema } from './protocols/database-ha-model';
+import { databaseClientSchema } from './protocols/database-client-model';
 import { infrastructureConfigSchema, systemStateSchema } from './devices/infrastructure-model';
 import {
   eapServerStateSchema,
@@ -117,12 +125,20 @@ import {
   secureWifiSchema,
 } from './protocols/wireless-model';
 export * from './protocols/wireless-model';
-import { bgpStateSchema, bgpTimerSchema } from './protocols/bgp-model';
+import { bgpStateSchema, bgpTimerSchema, bgpConfigSchema } from './protocols/bgp-model';
 import { aggregateSchema, lacpPduSchema, lacpTimerSchema } from './protocols/lacp-model';
 import { bondStateSchema, bondTimerSchema } from './protocols/bond-model';
 export * from './protocols/lacp-model';
 export * from './protocols/bgp-model';
 import { z } from 'zod';
+import { iosSystemSchema } from './protocols/ios-system-model';
+import { monitoringSchema, monitoringTimerSchema } from './protocols/monitoring-model';
+import { udldStateSchema, udldMessageSchema, udldTimerSchema } from './protocols/udld-model';
+import { bfdStateSchema, bfdMessageSchema, bfdTimerSchema,bfdTemplatesSchema } from './protocols/bfd-model';
+import {keyChainsSchema} from './protocols/key-chain-model';
+import {mstBpduSchema} from './protocols/stp-wire-model';
+import { routingPolicySchema } from './protocols/routing-policy-model';
+import { mqcSchema } from './protocols/mqc-model';
 import { modbusConfigSchema } from './protocols/modbus-model';
 import {
   plcProcessStateSchema,
@@ -169,7 +185,8 @@ import { dhcpHaSchema } from './protocols/dhcp-ha-model';
 import { quorumLabSchema } from './protocols/quorum-lab-model';
 import { quorumMessageSchema } from './protocols/quorum';
 import { icmpErrorSchema } from './protocols/icmp-model';
-import { ospfPacketSchema, ospfStateSchema, ospfTimerSchema } from './protocols/ospf-model';
+import { ospfPacketSchema, ospfStateSchema, ospfTimerSchema, ospfConfigSchema } from './protocols/ospf-model';
+import { ripConfigSchema } from './protocols/rip-model';
 export * from './protocols/ospf-model';
 import { ripMessageSchema, ripStateSchema, ripTimerSchema } from './protocols/rip-model';
 export * from './protocols/rip-model';
@@ -223,20 +240,25 @@ export const aclRuleSchema = z
     protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp']),
     source: subnetSchema,
     destination: subnetSchema,
+    sourceWildcard: ipv4Schema.optional(),
+    destinationWildcard: ipv4Schema.optional(),
     sourcePort: z.number().int().min(1).max(65535).optional(),
     destinationPort: z.number().int().min(1).max(65535).optional(),
+    established: z.boolean().optional(),
     hits: z.number().int().nonnegative().default(0),
   })
   .strict()
   .refine(
     (rule) =>
-      ['udp', 'tcp'].includes(rule.protocol) ||
-      (rule.sourcePort === undefined && rule.destinationPort === undefined),
+      (!rule.established || rule.protocol === 'tcp') &&
+      (['udp', 'tcp'].includes(rule.protocol) ||
+        (rule.sourcePort === undefined && rule.destinationPort === undefined)),
     'Portas exigem protocolo UDP ou TCP.'
   );
 export const aclSchema = z
   .object({
     name: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
+    kind: z.enum(['standard', 'extended']).optional(),
     rules: z.array(aclRuleSchema).max(256),
     implicitDrops: z.number().int().nonnegative().default(0),
   })
@@ -276,6 +298,10 @@ export const natSchema = z
     hairpins: z.array(hairpinBindingSchema).max(256).optional(),
     statics: z.array(z.object({ inside: ipv4Schema, global: ipv4Schema, outside: id }).strict()).max(128),
     pools: z.array(natPoolSchema).max(8),
+    interfaceRules: z
+      .array(z.object({ name: z.string().max(32), acl: z.string().max(32), outside: id }).strict())
+      .max(8)
+      .optional(),
     bindings: z.array(natBindingSchema).max(1024).default([]),
   })
   .strict();
@@ -298,6 +324,8 @@ export const bpduSchema = z
     age: finite.min(0).max(20000),
     proposal: z.boolean(),
     agreement: z.boolean(),
+    portState:z.enum(['discarding','learning','forwarding']).optional(),
+    mst:mstBpduSchema.optional(),
     role: z.enum(['root', 'designated', 'alternate', 'disabled']).optional(),
     changeId: id.optional(),
     instance: z.number().int().min(0).max(4094).optional(),
@@ -310,6 +338,7 @@ export const spanningTreePortSchema = z
     role: z.enum(['root', 'designated', 'alternate', 'disabled']),
     state: z.enum(['discarding', 'learning', 'forwarding']),
     operational: z.boolean().optional(),
+    guardInconsistent: z.enum(['root', 'loop']).optional(),
     token: id.optional(),
     transitionAt: finite.nonnegative().optional(),
     proposed: z.boolean().optional(),
@@ -350,6 +379,7 @@ export const spanningTreeSchema = z
 export const multiSpanningTreeConfigSchema = z
   .object({
     mode: z.enum(['pvst', 'mstp']),
+    protocol: z.enum(['stp', 'rstp']).optional(),
     region: z.string().min(1).max(32).default('SHLAB'),
     revision: z.number().int().min(0).max(65535).default(0),
     priorities: z
@@ -471,6 +501,7 @@ const dhcpClientSchema = z
     probeAt: finite.nonnegative().optional(),
   })
   .strict();
+export const DHCP_MAX_LEASE_MS = 365 * 86400000;
 export const dhcpPoolSchema = z
   .object({
     name: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
@@ -481,7 +512,7 @@ export const dhcpPoolSchema = z
     end: ipv4Schema,
     gateway: ipv4Schema.optional(),
     dns: z.array(ipv4Schema).max(8),
-    leaseMs: z.number().int().min(8000).max(604800000),
+    leaseMs: z.number().int().min(8000).max(DHCP_MAX_LEASE_MS),
     excluded: z.array(ipv4Schema).max(256),
     relayAddress: ipv4Schema.optional(),
     relayAddresses: z.array(ipv4Schema).max(8).optional(),
@@ -491,8 +522,39 @@ export const dhcpPoolSchema = z
       )
       .max(128)
       .optional(),
+    // Declared with IOS "ip dhcp pool" + "network": bound to a matching interface or served by giaddr.
+    ios: z.literal(true).optional(),
+    domainName: z
+      .string()
+      .regex(/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$/)
+      .optional(),
   })
   .strict();
+// An IOS pool that cannot be bound yet (no network statement or no routed IPv4 interface).
+export const dhcpPendingPoolSchema = z
+  .object({
+    name: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
+    network: ipv4Schema.optional(),
+    prefix: z.number().int().min(1).max(30).optional(),
+    start: ipv4Schema.optional(),
+    end: ipv4Schema.optional(),
+    gateway: ipv4Schema.optional(),
+    dns: z.array(ipv4Schema).max(8),
+    leaseMs: z.number().int().min(8000).max(DHCP_MAX_LEASE_MS),
+    excluded: z.array(ipv4Schema).max(256).optional(),
+    reservations: z
+      .array(
+        z.object({ clientMac: mac.transform((value) => value.toLowerCase()), address: ipv4Schema }).strict()
+      )
+      .max(128)
+      .optional(),
+    domainName: z
+      .string()
+      .regex(/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$/)
+      .optional(),
+  })
+  .strict();
+export type DhcpPendingPool = z.infer<typeof dhcpPendingPoolSchema>;
 const dhcpBindingSchema = z
   .object({
     id,
@@ -512,6 +574,12 @@ const dhcpServerSchema = z
       .array(z.object({ address: ipv4Schema, expiresAt: finite.nonnegative() }).strict())
       .max(256)
       .optional(),
+    pendingPools: z.array(dhcpPendingPoolSchema).max(16).optional(),
+    // IOS global "ip dhcp excluded-address LOW [HIGH]" ranges, applied to every pool.
+    excludedRanges: z
+      .array(z.object({ start: ipv4Schema, end: ipv4Schema }).strict())
+      .max(64)
+      .optional(),
   })
   .strict();
 export const interfaceSchema = z
@@ -527,6 +595,12 @@ export const interfaceSchema = z
     transceiver: z.enum(['single-mode', 'multi-mode', 'dac']).optional(),
     adminUp: z.boolean(),
     speed: z.union([z.literal(100), z.literal(1000), z.literal(10000), z.literal(40000), z.literal(100000)]),
+    // Copper ports negotiate speed by default (IOS "speed auto"); false records a fixed "speed N".
+    speedAuto: z.boolean().optional(),
+    // Hardware maximum used for auto-negotiation; absent means the configured speed.
+    maxSpeed: z
+      .union([z.literal(100), z.literal(1000), z.literal(10000), z.literal(40000), z.literal(100000)])
+      .optional(),
     duplex: z.enum(['full', 'half']),
     mtu: z.number().int().min(576).max(9216),
     mode: z.enum(['access', 'trunk', 'routed']),
@@ -541,7 +615,11 @@ export const interfaceSchema = z
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),
+    ingressQos:qosStateSchema.optional(),
     dot1x: dot1xStateSchema.optional(),
+    authenticationControl: z.enum(['auto', 'force-authorized', 'force-unauthorized']).optional(),
+    udld: udldStateSchema.optional(),
+    bfd: bfdStateSchema.optional(),
     supplicant: supplicantStateSchema.optional(),
     channel: id.optional(),
     vrf: z
@@ -569,6 +647,48 @@ export const interfaceSchema = z
       .optional(),
     mstBoundary: z.boolean().optional(),
     stpEdge: z.boolean().optional(),
+    stpGuard: z.enum(['root', 'loop']).optional(),
+    voiceVlan: z.number().int().min(1).max(4094).optional(),
+    portSecurity: z
+      .object({
+        enabled: z.boolean(),
+        maximum: z.number().int().min(1).max(1024).default(1),
+        violation: z.enum(['shutdown', 'restrict', 'protect']).default('shutdown'),
+        sticky: z.boolean().default(false),
+        macs: z.array(mac).max(1024).default([]),
+        learned: z.array(mac).max(1024).default([]),
+        violations: z.number().int().nonnegative().default(0),
+      })
+      .strict()
+      .optional(),
+    ospfAuthentication: z
+      .object({
+        enabled: z.boolean(),
+        keyId: z.number().int().min(1).max(255).optional(),
+        key: z.string().min(1).max(16).optional(),
+      })
+      .strict()
+      .optional(),
+    // Interface OSPF commands are interface configuration in IOS and may precede "router ospf".
+    ospfSettings: z
+      .object({
+        cost: z.number().int().min(1).max(65535).optional(),
+        priority: z.number().int().min(0).max(255).optional(),
+        helloMs: z.number().int().min(1000).max(60000).multipleOf(1000).optional(),
+        deadMs: z.number().int().min(2000).max(240000).multipleOf(1000).optional(),
+        networkType: z.enum(['point-to-point', 'broadcast']).optional(),
+      })
+      .strict()
+      .optional(),
+    bpduGuard: z.boolean().optional(),
+    cdpEnabled: z.boolean().optional(),
+    hsrpVersion: z.union([z.literal(1), z.literal(2)]).optional(),
+    lldpTransmit: z.boolean().optional(),
+    lldpReceive: z.boolean().optional(),
+    errDisabled: z
+      .object({ reason: z.enum(['bpduguard', 'psecure-violation', 'udld']), at: finite.nonnegative() })
+      .strict()
+      .optional(),
     stpCost: z.number().int().min(1).max(200000000).optional(),
     description: z.string().max(160),
     aclIn: z.string().max(32).optional(),
@@ -598,7 +718,7 @@ const dhcpOptions = {
   server: ipv4Schema,
   gateway: ipv4Schema.optional(),
   dns: z.array(ipv4Schema).max(8),
-  leaseMs: z.number().int().min(8000).max(604800000),
+  leaseMs: z.number().int().min(8000).max(365 * 86400000),
 };
 export const dhcpMessageSchema = z.discriminatedUnion('type', [
   dhcpIdentity.extend({ type: z.literal('discover') }),
@@ -639,6 +759,8 @@ const udpPacketSchema = z
     sourcePort: z.number().int().min(1).max(65535),
     destinationPort: z.number().int().min(1).max(65535),
     payload: z.discriminatedUnion('protocol', [
+      z.object({ protocol: z.literal('HSRP'), message: hsrpMessageSchema }).strict(),
+      z.object({ protocol: z.literal('BFD'), message: bfdMessageSchema }).strict(),
       z.object({ protocol: z.literal('TELEMETRY'), message: telemetryMessageSchema }).strict(),
       z.object({ protocol: z.literal('NTP'), message: ntpMessageSchema }).strict(),
       z.object({ protocol: z.literal('RADIUS'), message: radiusMessageSchema }).strict(),
@@ -694,6 +816,7 @@ export const frameSchema = z
     src: mac,
     dst: mac,
     vlan: vlan.optional(),
+    pcp:z.number().int().min(0).max(7).optional(),
     etherType: z.enum([
       'ARP',
       'IPv4',
@@ -705,10 +828,15 @@ export const frameSchema = z
       'MPLS',
       'EAPOL',
       'MESH',
+      'CDP',
+      'LLDP',
+      'UDLD',
     ]),
     eapol: eapolSchema.optional(),
+    udld: udldMessageSchema.optional(),
     wan: wanHeaderSchema.optional(),
     meshHello: meshHelloSchema.optional(),
+    discovery: discoveryMessageSchema.optional(),
     wifi: wifiPduSchema.optional(),
     secure: secureWifiSchema.optional(),
     mpls: mplsPayloadSchema.optional(),
@@ -722,6 +850,7 @@ export const frameSchema = z
   })
   .strict()
   .refine((f) => {
+    if(f.pcp!==undefined&&f.vlan===undefined)return false;
     const payloads = [
       f.lacp,
       f.arp,
@@ -733,11 +862,16 @@ export const frameSchema = z
       f.secure,
       f.mpls,
       f.eapol,
+      f.udld,
       f.meshHello,
+      f.discovery,
     ].filter(Boolean);
     if (payloads.length !== 1) return false;
+    if (f.etherType === 'CDP' || f.etherType === 'LLDP')
+      return f.discovery?.protocol === f.etherType && f.vlan === undefined;
     if (f.etherType === 'MESH') return !!f.meshHello && f.vlan === undefined;
     if (f.etherType === 'EAPOL') return !!f.eapol && f.vlan === undefined;
+    if (f.etherType === 'UDLD') return !!f.udld && f.vlan === undefined;
     if (f.etherType === 'MPLS') return !!f.mpls;
     if (f.etherType === '802.11-secure') return !!f.secure && f.vlan === undefined;
     if (f.etherType === '802.11') return !!f.wifi && f.vlan === undefined;
@@ -747,6 +881,43 @@ export const frameSchema = z
     return f.etherType === 'ARP' ? !!f.arp : f.etherType === 'IPv6' ? !!f.ipv6 : !!f.packet || !!f.fragment;
   }, 'Payload incompatível com EtherType');
 export const routeSchema = routeEntrySchema;
+export const startupConfigurationSchema = z
+  .object({
+    version: z.literal(1),
+    interfaces: z
+      .array(
+        z.object(interfaceSchema.shape).pick({
+          id: true,
+          name: true,
+          mac: true,
+          media: true,
+          transceiver: true,
+          logical: true,
+          loopback: true,
+          installedNic: true,
+          serial: true,
+          console: true,
+        })
+      )
+      .min(1)
+      .max(48),
+    commands: z.array(z.string().max(65536)).max(4096),
+    protocols: z
+      .object({
+        ospf: ospfConfigSchema.optional(),
+        rip: ripConfigSchema.optional(),
+        bgp: bgpConfigSchema.optional(),
+        nat: natSchema.omit({ bindings: true, sipBindings: true, hairpins: true }).optional(),
+        accessLists: z.array(aclSchema).max(32).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (v) => v.commands.reduce((n, s) => n + s.length, 0) <= 1024 * 1024,
+    'Startup configuration exceeds 1 MiB.'
+  );
 export const deviceSchema = z
   .object({
     id,
@@ -756,6 +927,27 @@ export const deviceSchema = z
       .regex(/^[a-z0-9-]{1,40}$/)
       .optional(),
     hostname: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
+    startupConfig: startupConfigurationSchema.optional(),
+    discovery: discoveryStateSchema.optional(),
+    hsrp: hsrpStateSchema.optional(),
+    enableSecret: iosSecretSchema.optional(),
+    bootManaged: z.boolean().optional(),
+    booted: z.boolean().optional(),
+    bootStartedAt: finite.nonnegative().optional(),
+    loopGuardDefault: z.boolean().optional(),
+    iosSystem: iosSystemSchema.optional(),
+    monitoring: monitoringSchema.optional(),
+    dot1xSystemAuthControl: z.boolean().optional(),
+    routingPolicy: routingPolicySchema.optional(),
+    mqc: mqcSchema.optional(),
+    operatingSystem: z
+      .object({
+        family: z.literal('ios-xe'),
+        release: z.literal('17.12'),
+        subset: z.literal('shlab-core-v1'),
+      })
+      .strict()
+      .optional(),
     modbus: modbusConfigSchema.optional(),
     plcProcess: plcProcessStateSchema.optional(),
     hmiScan: hmiScanStateSchema.optional(),
@@ -771,6 +963,8 @@ export const deviceSchema = z
     telemetryCollector: collectorStateSchema.optional(),
     networkClock: clockConfigSchema.optional(),
     ntp: ntpStateSchema.optional(),
+    keyChains:keyChainsSchema.optional(),
+    bfdTemplates:bfdTemplatesSchema.optional(),
     remoteManagement: remoteStateSchema.optional(),
     remoteQueries: z.array(remoteQuerySchema).max(128).optional(),
     automationJobs: z.array(automationJobSchema).max(16).optional(),
@@ -806,6 +1000,8 @@ export const deviceSchema = z
       .optional(),
     interfaces: z.array(interfaceSchema).min(1).max(48),
     gateway: ipv4Schema.optional(),
+    // IOS global "ip name-server": resolver servers of a network device (up to six).
+    nameServers: z.array(ipv4Schema).min(1).max(6).optional(),
     dhcpServer: dhcpServerSchema.optional(),
     dhcpHa: dhcpHaSchema.optional(),
     quorum: quorumLabSchema.optional(),
@@ -833,6 +1029,7 @@ export const deviceSchema = z
     proxy: proxyStateSchema.optional(),
     database: databaseStateSchema.optional(),
     databaseHa: databaseHaSchema.optional(),
+    databaseClient: databaseClientSchema.optional(),
     printer: printerStateSchema.optional(),
     broker: brokerStateSchema.optional(),
     iot: iotStateSchema.optional(),
@@ -1040,6 +1237,7 @@ export const eventSchema = z
       'BGP_ROUTE_REJECTED',
       'BGP_SESSION_CLOSED',
       'VRRP_STATE_CHANGED',
+      'HSRP_STATE_CHANGED',
       'VRRP_TRACK_CHANGED',
       'LACP_SENT',
       'LACP_RECEIVED',
@@ -1101,6 +1299,8 @@ const dhcpHaTransferSchema = z
   })
   .strict();
 export const actionSchema = z.discriminatedUnion('kind', [
+  discoveryTimerSchema,
+  hsrpTimerSchema,
   fragmentExpireSchema,
   fragmentArpTimerSchema,
   hairpinTimerSchema,
@@ -1112,6 +1312,9 @@ export const actionSchema = z.discriminatedUnion('kind', [
   dhcp6TimerSchema,
   telemetryTimerSchema,
   ntpTimerSchema,
+  monitoringTimerSchema,
+  udldTimerSchema,
+  bfdTimerSchema,
   remoteTimerSchema,
   automationTimerSchema,
   inspectionTimerSchema,
@@ -1133,6 +1336,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('quorum-tick'), device: id, token: id }).strict(),
+  z.object({ kind: z.literal('database-client-tick'), device: id, token: id }).strict(),
   z
     .object({
       kind: z.literal('quorum-deliver'),
@@ -1304,6 +1508,24 @@ export const snapshotSchema = z
     canvasItems: z.array(canvasItemSchema).max(100).optional(),
   })
   .strict();
+/**
+ * Same contract with the event logs trusted: entries are only written by the engine's emitter, so
+ * revalidating thousands of immutable records after every local edit is skipped.
+ */
+export const snapshotTrustedLogsSchema = snapshotSchema.extend({
+  events: z.array(z.any()).max(1500),
+  diagnostics: z.array(z.any()).max(4000).optional(),
+  capture: z
+    .object({
+      frames: z.array(z.any()).max(10000),
+      dropped: z.number().int().nonnegative(),
+      includeControl: z.boolean(),
+      startedAt: finite.nonnegative(),
+      bytes: z.number().int().nonnegative().optional(),
+    })
+    .strict()
+    .optional(),
+});
 export type Device = z.infer<typeof deviceSchema>;
 export type BridgeId = z.infer<typeof bridgeIdSchema>;
 export type Bpdu = z.infer<typeof bpduSchema>;

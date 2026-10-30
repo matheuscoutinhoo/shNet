@@ -14,11 +14,22 @@ import { isUnicast } from './dhcp-config';
 import { isIcmpError } from './icmp';
 import { natIcmpInbound, natIcmpOutbound } from './nat-icmp';
 import { syncNat } from './state-sync';
+import { staticNatOutside, natPools } from './nat-selection';
+import { matchingAclRule } from './acl';
 
 export function validateNat(device: Device) {
   if (!device.nat) return;
   if (device.type !== 'router') throw new Error('NAT exige um roteador.');
   const nat = device.nat;
+  for (const rule of nat.interfaceRules ?? []) {
+    if (!device.interfaces.some((p) => p.id === rule.outside && p.mode === 'routed'))
+      throw new Error('PAT requires a routed outside interface.');
+  }
+  if (
+    new Set([...(nat.interfaceRules ?? []).map((r) => r.name), ...nat.pools.map((p) => p.name)]).size !==
+    (nat.interfaceRules?.length ?? 0) + nat.pools.length
+  )
+    throw new Error('Duplicate NAT rule name.');
   if (
     device.vrrp?.groups.some(
       (group) =>
@@ -50,7 +61,8 @@ export function validateNat(device: Device) {
     throw new Error('Mapeamento NAT estático duplicado.');
   for (const mapping of nat.statics) {
     if (!isUnicast(mapping.inside)) throw new Error('Endereço inside inválido.');
-    validGlobal(mapping.outside, mapping.global);
+    if (!isUnicast(mapping.global)) throw new Error('Endereço global inválido.');
+    if (mapping.outside !== '*') validGlobal(mapping.outside, mapping.global);
   }
   if (new Set(nat.pools.map((pool) => pool.name)).size !== nat.pools.length)
     throw new Error('Pool NAT duplicado.');
@@ -124,16 +136,32 @@ export function expireNat(engine: SimulationEngine, device: Device, id: string, 
   );
 }
 
+/** Interface PAT owns the current outside address; changing it invalidates old translations. */
+export function refreshInterfacePat(engine: SimulationEngine, device: Device) {
+  const n = device.nat;
+  if (!n?.interfaceRules?.length) return;
+  const names = new Set(n.interfaceRules.map((r) => r.name)),
+    pools = natPools(device);
+  for (const b of [...n.bindings])
+    if (names.has(b.pool) && !pools.some((p) => p.name === b.pool && b.global === p.start)) {
+      syncNat(engine, device, b, true);
+      n.bindings = n.bindings.filter((x) => x.id !== b.id);
+      engine.state.queue = engine.state.queue.filter(
+        (q) => q.action.kind !== 'nat-expire' || q.action.device !== device.id || q.action.binding !== b.id
+      );
+    }
+}
+
 export function natOwnsAddress(device: Device, port: NetworkInterface, address: string) {
   if (!device.nat?.enabled || port.natRole !== 'outside') return false;
   const groups = device.vrrp?.enabled ? device.vrrp.groups.filter((g) => g.port === port.id) : [];
   if (groups.length && !groups.some((g) => g.state === 'ACTIVE')) return false;
   return (
-    device.nat.statics.some((entry) => entry.outside === port.id && entry.global === address) ||
+    device.nat.statics.some((entry) => staticNatOutside(entry.outside, port) && entry.global === address) ||
     device.nat.bindings.some(
       (entry) =>
         entry.global === address &&
-        device.nat!.pools.some((pool) => pool.name === entry.pool && pool.outside === port.id)
+        natPools(device).some((pool) => pool.name === entry.pool && pool.outside === port.id)
     )
   );
 }
@@ -171,7 +199,9 @@ function translateOutbound(
   if (nat?.enabled && output.natRole === 'outside' && isIcmpError(packet))
     return natIcmpOutbound(engine, device, output, packet);
   if (!nat?.enabled || input?.natRole !== 'inside' || output.natRole !== 'outside') return packet;
-  const fixed = nat.statics.find((entry) => entry.inside === packet.src && entry.outside === output.id);
+  const fixed = nat.statics.find(
+    (entry) => entry.inside === packet.src && staticNatOutside(entry.outside, output)
+  );
   if (fixed) {
     engine.emit(
       'NAT_TRANSLATED',
@@ -181,9 +211,11 @@ function translateOutbound(
     );
     return { ...packet, src: fixed.global };
   }
-  const pool = nat.pools.find(
+  const pool = natPools(device).find(
     (entry) =>
-      entry.outside === output.id && sameSubnet(entry.source.network, packet.src, entry.source.prefix)
+      entry.outside === output.id &&
+      sameSubnet(entry.source.network, packet.src, entry.source.prefix) &&
+      (!entry.sourceAcl || matchingAclRule(device, entry.sourceAcl, packet)?.action === 'permit')
   );
   if (!pool) return packet;
   const token = packet.protocol !== 'ICMP' ? String(packet.sourcePort) : packet.probeId;
@@ -289,7 +321,9 @@ function translateInbound(
   const nat = device.nat;
   if (!nat?.enabled || port.natRole !== 'outside') return packet;
   if (isIcmpError(packet)) return natIcmpInbound(engine, device, port, packet);
-  const fixed = nat.statics.find((entry) => entry.outside === port.id && entry.global === packet.dst);
+  const fixed = nat.statics.find(
+    (entry) => staticNatOutside(entry.outside, port) && entry.global === packet.dst
+  );
   if (fixed) {
     engine.emit(
       'NAT_TRANSLATED',
@@ -304,7 +338,7 @@ function translateInbound(
     (entry) =>
       entry.global === packet.dst &&
       entry.expiresAt > engine.state.clock &&
-      nat.pools.some((pool) => pool.name === entry.pool && pool.outside === port.id) &&
+      natPools(device).some((pool) => pool.name === entry.pool && pool.outside === port.id) &&
       (entry.protocol === 'ip' ||
         (entry.protocol === packet.protocol &&
           entry.globalToken === token &&
@@ -340,7 +374,7 @@ export function validateNatSnapshot(snapshot: Snapshot) {
     validateNat(device);
     const ids = new Set<string>();
     for (const binding of device.nat?.bindings ?? []) {
-      const pool = device.nat!.pools.find((entry) => entry.name === binding.pool);
+      const pool = natPools(device).find((entry) => entry.name === binding.pool);
       if (
         !pool ||
         ids.has(binding.id) ||

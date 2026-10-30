@@ -103,7 +103,7 @@ describe('firewall classifica aplicações do tráfego real', () => {
       t.execute(
         'firewall application configure {"enabled":true,"defaultAction":"deny","rules":[{"sequence":1,"application":"dns","action":"permit","nameSuffix":"allowed.lab"}]}'
       )
-    ).toBe('OK');
+    ).toBe('');
     expect(
       t.execute(
         'firewall application configure {"enabled":true,"defaultAction":"deny","rules":[{"sequence":1,"application":"dns","action":"permit","host":"allowed.lab"}]}'

@@ -4,6 +4,33 @@ import { transportAddressSchema } from '../protocols/tcp-model';
 import { redactNetworkSecrets } from './aaa';
 export function registerApplicationCommands(r: CommandRegistry) {
   r.register({
+    pattern: /^database client configure (\{.+\})$/i,
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      e.configureDatabaseClient(d.id, JSON.parse(m[1]));
+    },
+  });
+  r.register({
+    pattern: /^show database client$/i,
+    modes: ALL_MODES,
+    run: (_m, _e, d) => redactNetworkSecrets(JSON.stringify(d.databaseClient ?? {}, null, 2)),
+  });
+  r.register({
+    pattern: /^database cluster query (\{.+\})$/i,
+    modes: ALL_MODES,
+    run: (m, e, d) => {
+      const input = z
+        .object({ query: z.string().min(1).max(2048), config: z.unknown().optional() })
+        .strict()
+        .parse(JSON.parse(m[1]));
+      return (
+        'Consulta com descoberta [' +
+        e.queryDatabaseCluster(d.id, input.query, input.config) +
+        ']. Avance a simulação.'
+      );
+    },
+  });
+  r.register({
     pattern: /^database ha quorum$/i,
     modes: CONFIG_MODES,
     run: (_m, e, d) => e.configureDatabaseHa(d.id),

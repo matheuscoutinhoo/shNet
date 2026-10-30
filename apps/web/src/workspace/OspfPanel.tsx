@@ -35,6 +35,9 @@ export function OspfPanel({ lab, device }: { lab: LabController; device: Device 
               {
                 enabled: state?.enabled ?? true,
                 routerId: state?.routerId ?? '1.1.1.1',
+                processId: state?.processId,
+                autoRouterId: state?.autoRouterId,
+                networks: state?.networks,
                 areas: state?.areas ?? [],
                 externalRoutes: state?.externalRoutes ?? [],
                 interfaces: state?.interfaces ?? [],
@@ -55,6 +58,9 @@ export function OspfPanel({ lab, device }: { lab: LabController; device: Device 
             lab.engine.configureOspf(device.id, {
               enabled: form.has('enabled'),
               routerId: String(form.get('routerId')),
+              processId: state?.processId,
+              autoRouterId: state?.autoRouterId && String(form.get('routerId')) === state.routerId,
+              networks: state?.networks,
               areas: state?.areas ?? [],
               externalRoutes: state?.externalRoutes ?? [],
               interfaces: device.interfaces
@@ -203,6 +209,9 @@ export function OspfPanel({ lab, device }: { lab: LabController; device: Device 
               {
                 enabled: state?.enabled ?? true,
                 routerId: state?.routerId ?? '1.1.1.1',
+                processId: state?.processId,
+                autoRouterId: state?.autoRouterId,
+                networks: state?.networks,
                 interfaces: state?.interfaces ?? [],
                 areas: state?.areas ?? [],
                 externalRoutes: state?.externalRoutes ?? [],

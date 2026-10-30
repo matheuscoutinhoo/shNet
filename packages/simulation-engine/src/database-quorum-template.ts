@@ -29,6 +29,12 @@ export function databaseQuorumTemplate() {
       );
   e.configureQuorumLab(members.map((d) => d.id));
   e.configureDatabaseHa(members[0].id);
+  e.configureDatabaseClient(client.id, {
+    cluster: members[0].databaseHa!.cluster,
+    targets: members.map((d) => d.interfaces[0].ip!),
+    port: 8080,
+    key: 'database-key',
+  });
   e.state.notes =
     'Avance 2 segundos e identifique o líder no painel Banco de dados. Pelo SQL-CLIENT, envie CREATE TABLE sensores (id, valor) ao IP individual desse líder (10.90.0.11/12/13), porta 8080, chave database-key. INSERT e SELECT só respondem após confirmação de maioria. Desligue o líder, avance 2 segundos e consulte o novo líder: os dados confirmados permanecem. Isole apenas os dois cabos dedicados do antigo líder para estudar partição: ele pode manter o papel local, mas não responde sucesso sem maioria. SELECT também exige confirmação nova. Timeout de gravação tem resultado indeterminado; consulte antes de repetir. Não há failover automático de endereço ou TCP. Compactação automática; até 256 entradas retidas, 128 não confirmadas e 512 KiB por checkpoint. Remover membro/grupo desabilita os bancos preservando seus dados locais.';
   return e.snapshot();

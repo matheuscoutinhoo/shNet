@@ -79,7 +79,7 @@ export const ntpConfigSchema = z
   .object({
     enabled: z.boolean(),
     servers: z.array(ipv4Schema).min(1).max(8),
-    intervalMs: z.number().int().min(5000).max(60000).default(10000),
+    intervalMs: z.number().int().min(5000).max(1024000).default(10000),
   })
   .strict();
 export const ntpStateSchema = ntpConfigSchema

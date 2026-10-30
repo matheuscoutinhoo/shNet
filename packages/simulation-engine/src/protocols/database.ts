@@ -3,7 +3,7 @@ import type { SimulationEngine } from '../core/engine';
 import type { Device, Snapshot, TcpConnection } from '../model';
 import { databaseConfigSchema } from './database-model';
 import { executeSql } from './database-sql';
-import { submitDatabaseHa } from './database-ha';
+import { submitDatabaseHa, submitDatabaseDiscovery } from './database-ha';
 import { configureTcpService } from './tcp-services';
 import { httpMessage, respondHttp } from './applications-http';
 import { openTcp } from './tcp';
@@ -42,8 +42,9 @@ export function receiveDatabase(e: SimulationEngine, d: Device, c: TcpConnection
     if (!request) return;
     c.httpHandled = true;
     if (
-      request.line !== 'POST /query HTTP/1.1' ||
-      !/^Content-Type: application\/json\s*$/im.test(request.header)
+      request.line !== 'GET /leader HTTP/1.1' &&
+      (request.line !== 'POST /query HTTP/1.1' ||
+        !/^Content-Type: application\/json\s*$/im.test(request.header))
     ) {
       respondHttp(e, d, c, '400 Bad Request', 'Use POST /query com application/json.');
       return;
@@ -52,6 +53,31 @@ export function receiveDatabase(e: SimulationEngine, d: Device, c: TcpConnection
     if (auth.length !== 1 || auth[0][1] !== d.database?.key) {
       if (d.database) d.database.rejected++;
       respondHttp(e, d, c, '401 Unauthorized', 'Chave de acesso inválida.');
+      return;
+    }
+    if (request.line === 'GET /leader HTTP/1.1') {
+      submitDatabaseDiscovery(e, d, c);
+      return;
+    }
+    const clusters = [...request.header.matchAll(/^X-ShLab-Cluster: ([^\r\n]+)\s*$/gim)],
+      terms = [...request.header.matchAll(/^X-ShLab-Term: (\d+)\s*$/gim)];
+    if (
+      (clusters.length || terms.length || /^X-ShLab-(Cluster|Term):/im.test(request.header)) &&
+      (clusters.length !== 1 ||
+        terms.length !== 1 ||
+        !d.databaseHa ||
+        clusters[0][1] !== d.databaseHa.cluster ||
+        Number(terms[0][1]) !== d.quorum?.node.term ||
+        d.quorum.node.role !== 'leader')
+    ) {
+      respondHttp(
+        e,
+        d,
+        c,
+        '409 Conflict',
+        JSON.stringify({ error: 'Autoridade de descoberta obsoleta; consulta não proposta.' }),
+        'application/json'
+      );
       return;
     }
     const { query } = z

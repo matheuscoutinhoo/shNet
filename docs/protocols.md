@@ -236,6 +236,8 @@ show running-config
 
 `spanning-tree mode stp` seleciona o modo clássico; `no spanning-tree` desabilita a árvore; `no spanning-tree cost` restaura o custo automático e `no spanning-tree portfast` remove a configuração edge. Snapshots com portas bloqueadas em forwarding, timers ausentes ou referências inconsistentes são rejeitados.
 
+Switches do catálogo seguem o padrão do Catalyst IOS XE: no primeiro boot e após reload sem configuração de STP, executam Rapid PVST+ em todas as VLANs (`spanning-tree mode rapid-pvst` no `show running-config`). Portas para hosts sem PortFast levam 2 × forward delay (30 s) até encaminhar. `no spanning-tree vlan 1-4094` desabilita a árvore e aparece na configuração; `spanning-tree vlan 1-4094` a reativa. PVST e MST são exibidos na forma IOS (`spanning-tree vlan N priority P`, `spanning-tree mst configuration`).
+
 ## UDP e DHCPv4
 
 UDP é um datagrama IPv4 tipado com portas de origem/destino e payload discriminado. Há DHCP nas portas 67/68 e DNS na porta 53. Não há socket real. Os codecs e a captura PCAP do subconjunto suportado estão no ADR-035.
@@ -244,11 +246,11 @@ DHCP usa Discover/Offer/Request/ACK, oferta reservada por 30 s virtuais, identif
 
 T1 ocorre em 50% do lease e tenta renovação unicast pela tabela de rotas, resolvendo o próximo salto por ARP. O servidor pode estar em outra sub-rede. T2 ocorre em 87,5% e usa broadcast. O cliente remove a configuração ao expirar e inicia nova descoberta. NAK reinicia a descoberta com atraso limitado; release devolve a concessão ao servidor. Há até quatro tentativas por fase, com backoff de 4/8/16/32 s, e limite de quatro reinícios por NAK.
 
-Limites: 16 pools e 2.048 bindings por servidor; cada intervalo contém até 2.048 endereços; leases entre 8 s e 7 dias virtuais. Há relay e reservas por MAC (descritos abaixo). DHCPv6 está disponível separadamente (ADR-029). Snooping, DECLINE e detecção de conflitos ARP foram acrescentados no ADR-030. INIT-REBOOT e autenticação DHCP permanecem ausentes; snooping exige portas confiáveis configuradas. A opção DNS alimenta o resolvedor descrito abaixo.
+Limites: 16 pools e 2.048 bindings por servidor; cada intervalo contém até 2.048 endereços; leases entre 8 s e 365 dias virtuais. Há relay e reservas por MAC (descritos abaixo). DHCPv6 está disponível separadamente (ADR-029). Snooping, DECLINE e detecção de conflitos ARP foram acrescentados no ADR-030. INIT-REBOOT e autenticação DHCP permanecem ausentes; snooping exige portas confiáveis configuradas. A opção DNS alimenta o resolvedor descrito abaixo.
 
 ### Relay e reservas por MAC
 
-O template **Um servidor, duas redes** tem um servidor central na rede 192.168.20.0/24 e clientes na rede 192.168.10.0/24. O roteador recebe Discover/Request em broadcast, preserva transação/MAC/ciaddr, preenche giaddr com o IPv4 da interface de entrada e hops=1, e envia UDP 67 → 67 aos servidores configurados. O servidor seleciona pools pelo giaddr exato e devolve Offer/ACK/NAK ao relay na porta 67. O relay aceita respostas apenas dos servidores configurados e entrega UDP 67 → 68 na interface de giaddr. Descoberta inicial e NAK usam broadcast; respostas T2 usam o MAC conhecido do cliente. T1 e RELEASE seguem unicast normal, sem preencher giaddr; o servidor seleciona a rede pelo ciaddr e pelo IPv4 de destino.
+O template **Um servidor, duas redes** tem um servidor central na rede 192.168.20.0/24 e clientes na rede 192.168.10.0/24. O roteador recebe Discover/Request em broadcast, preserva transação/MAC/ciaddr, preenche giaddr com o IPv4 da interface de entrada e hops=1, e envia UDP 67 → 67 aos servidores configurados. O servidor seleciona primeiro o pool cujo giaddr (relayAddress/relayAddresses) é exatamente o recebido; sem correspondência exata, usa o pool remoto cuja rede contém o giaddr, como o IOS e servidores DHCP comuns. Assim, os dois roteadores de um par HSRP/VRRP são atendidos pelo mesmo escopo. O servidor devolve Offer/ACK/NAK ao relay na porta 67. O relay aceita respostas apenas dos servidores configurados e entrega UDP 67 → 68 na interface de giaddr. Descoberta inicial e NAK usam broadcast; respostas T2 usam o MAC conhecido do cliente. T1 e RELEASE seguem unicast normal, sem preencher giaddr; o servidor seleciona a rede pelo ciaddr e pelo IPv4 de destino.
 
 Cada pool remoto possui uma interface IPv4 estática do servidor, que define seu identificador, e um relayAddress na rede dos clientes. Um pool local deve corresponder à rede da interface. A mesma interface do roteador não pode executar servidor local e relay. Até oito destinos por interface, sem repetição ou endereço do próprio roteador; os pacotes ainda dependem de rotas, Ethernet, MTU, ACL, perdas e firewall nos roteadores de trânsito. Sem Option 82, relays encadeados, codec BOOTP binário ou autenticação DHCP. NAT não reescreve giaddr/ciaddr; configure caminhos roteados e políticas adequadas.
 
@@ -278,24 +280,24 @@ show ip dhcp binding
 
 ### CLI do servidor
 
+O `ip dhcp pool NOME` sem `interface` segue o IOS: o pool é declarado e passa a atender quando existe uma interface IPv4 roteada cuja rede corresponde ao `network` (pool local) ou, caso contrário, atende pedidos encaminhados por relay cujo giaddr pertence à rede. Pools podem ser declarados antes das interfaces (ordem do `show running-config` do IOS) e ficam inativos até a interface existir; `show ip dhcp pool` indica pools inativos. Vários pools coexistem no mesmo roteador. `ip dhcp excluded-address BAIXO [ALTO]` é global e vale para todos os pools.
+
 ```text
 enable
 configure terminal
-interface Eth0
-ip address 192.168.50.2/24
-exit
-service dhcp
-ip dhcp pool LAN interface Eth0
-network 192.168.50.0/24
-range 192.168.50.10 192.168.50.20
-excluded-address 192.168.50.11
-lease 3600
+ip dhcp excluded-address 192.168.50.1 192.168.50.20
+ip dhcp pool LAN
+network 192.168.50.0 255.255.255.0
+default-router 192.168.50.1
+dns-server 192.168.50.2
+domain-name lab.local
+lease 0 8
 end
 show ip dhcp pool
 show ip dhcp binding
 ```
 
-No modo do pool, `default-router IPv4` e `dns-server IPv4...` definem opções; `no default-router`, `no dns-server` e `no excluded-address IPv4...` as removem. `lease` recebe segundos. `no service dhcp` interrompe respostas sem apagar leases dos clientes; estes dependem de seus timers. `no ip dhcp pool NAME` remove o pool.
+No modo do pool, `default-router IPv4`, `dns-server IPv4...` e `domain-name NOME` definem opções; `no default-router`, `no dns-server`, `no domain-name` e `no excluded-address IPv4...` as removem. `lease DIAS [HORAS [MINUTOS]]` segue o IOS (padrão: 1 dia), `lease infinite` usa o máximo do simulador (365 dias) e a extensão `lease seconds N` permite leases curtos de laboratório. As extensões `range INICIO FIM`, `excluded-address` no pool e `reservation MAC IPv4` continuam disponíveis. Em equipamentos do tipo servidor, o pool começa na rede da própria interface até que `network` o mova. `ip dhcp pool NOME interface IFACE` mantém o pool fixado a uma interface. `no service dhcp` interrompe respostas sem apagar leases dos clientes; estes dependem de seus timers. `no ip dhcp pool NAME` remove o pool.
 
 ### CLI do cliente
 

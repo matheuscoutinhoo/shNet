@@ -43,12 +43,12 @@ describe('RIPv2 pela rede simulada', () => {
       'ip rip enable',
       'no ip rip poison-reverse',
     ])
-      expect(cli.execute(cmd)).toBe('OK');
-    expect(cli.execute('show ip rip interface')).toContain('split horizon');
-    expect(cli.execute('show running-config')).toContain('no ip rip poison-reverse');
+      expect(cli.execute(cmd)).toBe('');
+    expect(cli.execute('do show ip rip interface')).toContain('split horizon');
+    expect(cli.execute('do show running-config')).toContain('no ip rip poison-reverse');
     engine.advanceTo(20000);
-    expect(cli.execute('show ip route')).toContain('[120/2]');
-    expect(cli.execute('no service rip')).toBe('OK');
+    expect(cli.execute('do show ip route')).toContain('[120/2]');
+    expect(cli.execute('no service rip')).toBe('');
     expect(ripRoutes(engine.device(router.id))).toEqual([]);
     validateSnapshot(engine.snapshot());
   });
@@ -108,7 +108,7 @@ describe('RIPv2 pela rede simulada', () => {
       'interface Gi0/1',
       'ip access-group BLOCK in',
     ])
-      expect(cli.execute(cmd)).toBe('OK');
+      expect(cli.execute(cmd)).toBe('');
     engine.advanceTo(210000);
     expect(ripRoutes(a)).toEqual([]);
     expect(a.rip!.table.find((entry) => entry.network === '192.168.20.0')?.metric).toBe(16);

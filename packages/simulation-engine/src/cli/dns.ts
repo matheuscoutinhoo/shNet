@@ -1,5 +1,5 @@
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort } from './registry';
-import { dnsNameSchema, type Device, type DnsQuery, type DnsQuestion } from '../model';
+import { dnsNameSchema, ipv4Schema, type Device, type DnsQuery, type DnsQuestion } from '../model';
 
 export function formatDnsQuery(query: DnsQuery) {
   return [
@@ -87,12 +87,34 @@ export function registerDnsCommands(registry: CommandRegistry) {
   registry.register({
     pattern: /^ip name-server ([\d. ]+)$/i,
     modes: ['interface'],
+    // Hosts keep per-interface resolvers; IOS devices use the global command below.
+    available: (device) => device.type !== 'router' && device.type !== 'switch',
     run: (match, engine, device, context) =>
       engine.setDnsServers(device.id, currentPort(device, context).id, match[1].trim().split(/\s+/)),
   });
   registry.register({
+    pattern: /^(no )?ip name-server(?: ([\d. ]+))?$/i,
+    syntax: ['ip name-server <address...>', 'no ip name-server'],
+    modes: CONFIG_MODES.filter((mode) => mode !== 'interface'),
+    available: (device) => device.type === 'router' || device.type === 'switch',
+    run: (match, _engine, device) => {
+      const listed = match[2]?.trim().split(/\s+/) ?? [];
+      if (!match[1] && !listed.length) throw new Error('% Incomplete command.');
+      const addresses = listed.map((address) => ipv4Schema.parse(address));
+      const next = match[1]
+        ? listed.length
+          ? (device.nameServers ?? []).filter((address) => !addresses.includes(address))
+          : []
+        : [...new Set([...(device.nameServers ?? []), ...addresses])];
+      if (next.length > 6) throw new Error('% A maximum of six name servers is supported.');
+      if (next.length) device.nameServers = next;
+      else delete device.nameServers;
+    },
+  });
+  registry.register({
     pattern: /^no ip name-server$/i,
     modes: ['interface'],
+    available: (device) => device.type !== 'router' && device.type !== 'switch',
     run: (_match, engine, device, context) =>
       engine.setDnsServers(device.id, currentPort(device, context).id, []),
   });
@@ -144,8 +166,10 @@ export function registerDnsCommands(registry: CommandRegistry) {
 }
 
 export function dnsRunningConfig(device: Device) {
-  if (!device.dnsServer) return [];
+  const resolver = device.nameServers?.length ? ['ip name-server ' + device.nameServers.join(' ')] : [];
+  if (!device.dnsServer) return resolver;
   return [
+    ...resolver,
     device.dnsServer.enabled ? 'service dns' : 'no service dns',
     ...device.dnsServer.records.map(
       (record) => 'dns record ' + record.name + ' ' + record.type + ' ' + record.value + ' ttl ' + record.ttl

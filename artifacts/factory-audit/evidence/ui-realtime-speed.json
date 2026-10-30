@@ -1,0 +1,8 @@
+{
+  "wallElapsedMs": 55847,
+  "speed": 5,
+  "mode": "realtime",
+  "clockStartApprox": 11000,
+  "clockEnd": "43 dispositivos\n·\n47 conexões\n·\n11418.34 ms",
+  "probe": "OSITIVO IOT\nSENSOR-B\n10.20.50.20\nSERVIDOR\nNVR\n10.20.60.10\nDISPOSITIVO IOT\nCAM-01\n10.20.60.11\nDISPOSITIVO IOT\nCAM-02\n10.20.60.12\nACCESS POINT\nAP-ARMAZEM\nNL Access point\nNOTEBOOK\nNOTEBOOK-VISITANTE\n10.20.70.10\nSYSLOG SERVER\nNMS-SYSLOG\n10.20.99.10\nNTP SERVER\nNTP-MGMT\n10.20.99.123\nCOMPUTADOR\nADMIN-REDE\n10.20.99.11\nROTEADOR DE BORDA\nR-WAN-SIMULADA\n172.20.0.1\nWEB SERVER\nSUPORTE-EXTERNO\n198.51.100.10\nSWITCH L2\nSW-WAN\nNL Switch L2\nRACK\nRACK-A\nNL Rack\nUPS\nUPS-A\nNL UPS\nRACK\nRACK-B\nNL Rack\nUPS\nUPS-B\nNL UPS\nPATCH PANEL\nPATCH-OT\nNL Patch panel\nReact Flow\n43 dispositivos\n·\n47 conexões\n·\n11418.34 ms\n10.20.40.10\nPacote em trânsito\nEventos\n251\nTráfego\n1\nNotas do laboratório\nTEMPO VIRTUAL 11418.344 ms\nToda a rede\nTestes de ping iniciados na rede.\nOrigem\tDestino\tTTL inicial\tResultado\tRespondente\tRTT\nSCADA\t10.20.40.10\t64\tAguardando…\t—\t—\nClique para inspecionar\n·\nBotão direito para ações\n·\nArraste para mover\n·\nShift para selecionar\n·\nCtrl+S para salvar\nMotor de rede\n·\nSimulação local\n·\n43/2000 dispositivos"
+}

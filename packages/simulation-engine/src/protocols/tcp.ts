@@ -1,9 +1,11 @@
 import { canListenBgp } from './bgp';
+import {authenticTcp} from './tcp-auth';
 import type { SimulationEngine } from '../core/engine';
 import type { Action, Device } from '../model';
 import { portNumberSchema } from '../schemas';
 import { resolveRoute } from './ipv4';
 import { acceptsVrrpAddress } from './vrrp';
+import { acceptsHsrpAddress } from './hsrp';
 import { interfaceUp, requireVrf } from './layer3';
 import {
   TCP,
@@ -54,7 +56,10 @@ function addConnection(
             request.state === 'pending' && (request.front === entry.id || request.upstream === entry.id)
         ) &&
         !device.dnsQueries?.some((query) => query.status === 'pending' && query.tcpConnection === entry.id) &&
-        !device.databaseHa?.pending.some((p) => p.connection === entry.id)
+        !device.databaseHa?.pending.some((p) => p.connection === entry.id) &&
+        !device.databaseClient?.requests.some(
+          (r) => (r.phase === 'discovering' || r.phase === 'querying') && r.connection === entry.id
+        )
     );
     if (old < 0) throw new Error('Limite de conexões TCP simultâneas.');
     device.tcpConnections.splice(old, 1);
@@ -135,7 +140,9 @@ export function openTcp(
   if (!source || !routedSource) throw new Error('Configure IP e uma rota para o destino TCP.');
   if (
     sourceOverride &&
-    (ipv6 || !acceptsVrrpAddress(engine.state, device, sourceOverride, vrf)) &&
+    (ipv6 ||
+      (!acceptsVrrpAddress(engine.state, device, sourceOverride, vrf) &&
+        !acceptsHsrpAddress(engine.state, device, sourceOverride, vrf))) &&
     !device.interfaces.some(
       (p) =>
         interfaceUp(device, p) &&
@@ -258,6 +265,7 @@ export function receiveTcp(
   vrf?: string,
   scope?: string
 ) {
+  if(!authenticTcp(device,packet)){engine.drop(device,'TCP MD5 authentication failed.');return;}
   engine.emit(
     'TCP_RECEIVED',
     device.id,

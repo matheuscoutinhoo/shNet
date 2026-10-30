@@ -20,6 +20,8 @@ import { receiveSnmp } from './snmp';
 import { receiveSyslog } from './syslog';
 import { relayDhcpReply, relayDhcpRequest } from './dhcp-relay';
 import { sendIcmpError } from './icmp';
+import { receiveHsrp } from './hsrp';
+import {receiveBfd} from './bfd';
 
 export function receiveUdp(
   engine: SimulationEngine,
@@ -28,6 +30,11 @@ export function receiveUdp(
   packet: UdpPacket,
   sourceMac: string
 ) {
+  if(packet.payload.protocol==='BFD'){receiveBfd(engine,device,port,packet);return;}
+  if (packet.payload.protocol === 'HSRP') {
+    receiveHsrp(engine, device, port, packet);
+    return;
+  }
   if (packet.payload.protocol === 'EAP-RADIUS') {
     receiveEnterpriseRadius(engine, device, packet);
     return;

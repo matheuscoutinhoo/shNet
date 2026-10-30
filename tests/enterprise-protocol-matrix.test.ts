@@ -123,9 +123,11 @@ run('P-DHCP-backup-pool', 'DHCP após failover com pool giaddr compatível', tru
   return Boolean(device(s, 'DHCP-PC').interfaces[0].dhcp?.lease);
 });
 run('P-PREFLIGHT-DHCP', 'Preflight detecta pool ausente para relay de backup', true, (s) => {
-  // The native template now fixes the historical omission. Reintroduce only
-  // the missing backup giaddr to exercise the negative case.
-  device(s, 'DHCP').dhcpServer!.pools[0].relayAddresses = [];
+  // Servers now select relayed pools by giaddr subnet (IOS behavior), so an empty relayAddresses list is
+  // no longer a missing scope. Remove the scope itself to exercise the negative case.
+  const server = device(s, 'DHCP').dhcpServer!;
+  server.bindings = [];
+  server.pools = [];
   return preflight(s.snapshot()).some((i) => i.code.includes('POOL') || i.code.includes('SCOPE'));
 });
 run('P-PREFLIGHT-RT', 'Preflight detecta route target divergente no mesmo VNI/peer', true, (s) => {

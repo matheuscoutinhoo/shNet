@@ -1,0 +1,143 @@
+{
+  "clients": [
+    {
+      "hostname": "NYC-DHCP",
+      "dhcp": {
+        "status": "bound",
+        "transactionId": "dhcp-256118",
+        "attempts": 0,
+        "lease": {
+          "id": "dhcp-lease-257166",
+          "address": "10.1.10.170",
+          "prefix": 24,
+          "server": "10.1.99.67",
+          "serverMac": "02:00:00:4c:01:00",
+          "gateway": "10.1.10.1",
+          "dns": [
+            "10.1.99.53"
+          ],
+          "acquiredAt": 81004.27588799979,
+          "renewAt": 1881004.2758879997,
+          "rebindAt": 3231004.2758879997,
+          "expiresAt": 3681004.2758879997
+        }
+      }
+    },
+    {
+      "hostname": "SAO-DHCP",
+      "dhcp": {
+        "status": "bound",
+        "transactionId": "dhcp-256123",
+        "attempts": 0,
+        "lease": {
+          "id": "dhcp-lease-257909",
+          "address": "10.2.10.170",
+          "prefix": 24,
+          "server": "10.1.99.67",
+          "serverMac": "02:00:0f:c5:01:00",
+          "gateway": "10.2.10.1",
+          "dns": [
+            "10.1.99.53"
+          ],
+          "acquiredAt": 81303.76675999977,
+          "renewAt": 1881303.7667599998,
+          "rebindAt": 3231303.7667599996,
+          "expiresAt": 3681303.7667599996
+        }
+      }
+    },
+    {
+      "hostname": "LON-DHCP",
+      "dhcp": {
+        "status": "bound",
+        "transactionId": "dhcp-256128",
+        "attempts": 0,
+        "lease": {
+          "id": "dhcp-lease-257754",
+          "address": "10.3.10.170",
+          "prefix": 24,
+          "server": "10.1.99.67",
+          "serverMac": "02:00:1f:3e:01:00",
+          "gateway": "10.3.10.1",
+          "dns": [
+            "10.1.99.53"
+          ],
+          "acquiredAt": 81244.30843199973,
+          "renewAt": 1881244.3084319998,
+          "rebindAt": 3231244.3084319998,
+          "expiresAt": 3681244.3084319998
+        }
+      }
+    },
+    {
+      "hostname": "FRA-DHCP",
+      "dhcp": {
+        "status": "bound",
+        "transactionId": "dhcp-256133",
+        "attempts": 0,
+        "lease": {
+          "id": "dhcp-lease-257797",
+          "address": "10.4.10.170",
+          "prefix": 24,
+          "server": "10.1.99.67",
+          "serverMac": "02:00:2e:b7:01:00",
+          "gateway": "10.4.10.1",
+          "dns": [
+            "10.1.99.53"
+          ],
+          "acquiredAt": 81249.31843199972,
+          "renewAt": 1881249.3184319998,
+          "rebindAt": 3231249.3184319995,
+          "expiresAt": 3681249.3184319995
+        }
+      }
+    },
+    {
+      "hostname": "SIN-DHCP",
+      "dhcp": {
+        "status": "bound",
+        "transactionId": "dhcp-256138",
+        "attempts": 0,
+        "lease": {
+          "id": "dhcp-lease-258116",
+          "address": "10.5.10.170",
+          "prefix": 24,
+          "server": "10.1.99.67",
+          "serverMac": "02:00:3e:30:01:00",
+          "gateway": "10.5.10.1",
+          "dns": [
+            "10.1.99.53"
+          ],
+          "acquiredAt": 81483.76675999977,
+          "renewAt": 1881483.7667599998,
+          "rebindAt": 3231483.7667599996,
+          "expiresAt": 3681483.7667599996
+        }
+      }
+    },
+    {
+      "hostname": "SYD-DHCP",
+      "dhcp": {
+        "status": "bound",
+        "transactionId": "dhcp-256143",
+        "attempts": 0,
+        "lease": {
+          "id": "dhcp-lease-258187",
+          "address": "10.6.10.170",
+          "prefix": 24,
+          "server": "10.1.99.67",
+          "serverMac": "02:00:4d:a9:01:00",
+          "gateway": "10.6.10.1",
+          "dns": [
+            "10.1.99.53"
+          ],
+          "acquiredAt": 81603.76675999977,
+          "renewAt": 1881603.7667599998,
+          "rebindAt": 3231603.7667599996,
+          "expiresAt": 3681603.7667599996
+        }
+      }
+    }
+  ],
+  "relays": []
+}

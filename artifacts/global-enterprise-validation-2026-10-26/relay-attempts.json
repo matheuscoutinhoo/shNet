@@ -1,0 +1,50 @@
+[
+  {
+    "device": "NYC-CORE-A",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "NYC-CORE-B",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "SAO-CORE-A",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "SAO-CORE-B",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "LON-CORE-A",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "LON-CORE-B",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "FRA-CORE-A",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "FRA-CORE-B",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "SIN-CORE-A",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "SIN-CORE-B",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "SYD-CORE-A",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  },
+  {
+    "device": "SYD-CORE-B",
+    "response": "% DHCP relay requer interface routed de roteador com IPv4 estático."
+  }
+]

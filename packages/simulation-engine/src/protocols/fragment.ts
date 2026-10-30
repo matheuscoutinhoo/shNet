@@ -15,16 +15,18 @@ import { interfaceUp, routingEnabled } from './layer3';
 import { receiveIp, resolveRoute } from './ipv4';
 import { quotePacket, sendIcmpError, sendIcmpQuoteError } from './icmp';
 import { permitPacket } from './acl';
+import {encodeEthernet} from '../wire/ethernet-codec';
 
 // Frames carry disjoint payload bytes. The simulator's typed transport envelope
 // uses a length-prefixed UTF-8 codec, with zero padding for simulated Echo data.
 function encode(p: Packet) {
+  try{const wire=encodeEthernet({src:'02:00:00:00:00:01',dst:'02:00:00:00:00:02',etherType:'IPv4',packet:p,hops:1}),size=new DataView(wire.buffer,wire.byteOffset).getUint16(16);if(size!==p.bytes)throw new Error('Modeled packet size differs from its wire representation.');return {data:[...wire.subarray(34,14+size)],encoding:'ipv4' as const,original:JSON.stringify(p)};}catch{/* Retain old educational envelopes with explicit PCAP exclusion. */}
   const json = new TextEncoder().encode(JSON.stringify(p));
   const data = new Uint8Array(Math.max(p.bytes - 20, json.length + 4));
   if (data.length > 65515) throw new Error('Datagrama IPv4 serializado excede 65535 bytes.');
   new DataView(data.buffer).setUint32(0, json.length);
   data.set(json, 4);
-  return [...data];
+  return {data:[...data]};
 }
 function split(f: IpFragment, mtu: number): IpFragment[] {
   const size = Math.floor((mtu - 20) / 8) * 8,
@@ -38,6 +40,7 @@ function split(f: IpFragment, mtu: number): IpFragment[] {
       data,
       bytes: 20 + data.length,
       first: at === 0 ? f.first : undefined,
+      original:at===0?f.original:undefined,
     });
   }
   return result;
@@ -52,7 +55,7 @@ export function fragmentFrame(e: SimulationEngine, d: Device, p: NetworkInterfac
     return true;
   }
   const identification = Number(e.id('datagram').split('-').at(-1)) % 65536;
-  const data = encode(packet),
+  const encoded = encode(packet),data=encoded.data,
     first = quotePacket(packet);
   const fragments = split(
     {
@@ -64,6 +67,7 @@ export function fragmentFrame(e: SimulationEngine, d: Device, p: NetworkInterfac
       offset: 0,
       more: false,
       data,
+      ...('encoding'in encoded?{encoding:encoded.encoding,original:encoded.original}:{}),
       bytes: 20 + data.length,
       ...(packet.dscp === undefined ? {} : { dscp: packet.dscp }),
       ...('traceId' in packet && packet.traceId ? { traceId: packet.traceId } : {}),
@@ -155,12 +159,13 @@ function reassemble(e: SimulationEngine, d: Device, p: NetworkInterface, f: IpFr
   if (r.fragments.at(-1)?.more) return;
   let packet: Packet;
   try {
-    const data = Uint8Array.from(r.fragments.flatMap((f) => f.data)),
-      size = new DataView(data.buffer).getUint32(0);
-    if (size < 1 || size > data.length - 4) throw Error('Envelope inválido.');
-    packet = packetSchema.parse(
-      JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(data.slice(4, 4 + size)))
-    );
+    const data = Uint8Array.from(r.fragments.flatMap((f) => f.data));
+    if(r.fragments[0].encoding==='ipv4'){
+      if(r.fragments.some(f=>f.encoding!=='ipv4')||!r.fragments[0].original)throw Error('Missing original typed datagram metadata.');
+      packet=packetSchema.parse(JSON.parse(r.fragments[0].original));const expected=encode(packet);if(!('encoding'in expected)||expected.data.length!==data.length||expected.data.some((b,i)=>b!==data[i]))throw Error('Reassembled wire payload does not match the typed datagram.');
+    }else{
+      if(r.fragments.some(f=>f.encoding!==undefined))throw Error('Mixed fragment encodings.');const size=new DataView(data.buffer).getUint32(0);if(size<1||size>data.length-4)throw Error('Envelope inválido.');packet=packetSchema.parse(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(data.slice(4,4+size))));
+    }
     if (
       packet.src !== f.src ||
       packet.dst !== f.dst ||

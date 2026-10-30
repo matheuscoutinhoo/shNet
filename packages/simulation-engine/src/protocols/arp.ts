@@ -13,8 +13,7 @@ import {
   type Snapshot,
 } from '../model';
 import type { SimulationEngine } from '../core/engine';
-import { activeVrrpGroup } from './vrrp';
-import { vrrpMac } from './vrrp-model';
+import { activeVirtualRouter } from './virtual-router';
 import { natOwnsAddress } from './nat';
 import { isUnicast } from './dhcp-config';
 import { observeDhcpArp } from './dhcp-client';
@@ -51,8 +50,8 @@ export function retainArpResolutions(engine: SimulationEngine, device: Device) {
 }
 
 function request(engine: SimulationEngine, device: Device, port: NetworkInterface, resolution: Resolution) {
-  const virtual = activeVrrpGroup(engine.state, device, port, resolution.sourceIp);
-  const sourceMac = virtual ? vrrpMac(virtual.vrid) : port.mac;
+  const virtual = activeVirtualRouter(engine.state, device, port, resolution.sourceIp);
+  const sourceMac = virtual?.mac ?? port.mac;
   const frame: Frame = {
     src: sourceMac,
     dst: BROADCAST,
@@ -110,9 +109,9 @@ export function sendWithArp(
     (row) => row.port === port.id && row.ip === nextHop && row.expires > engine.state.clock
   );
   if (entry) {
-    const virtual = activeVrrpGroup(engine.state, device, port, port.ip);
+    const virtual = activeVirtualRouter(engine.state, device, port, packet.src);
     engine.sendFrame(device.id, port.id, {
-      src: virtual && virtual.vip === port.ip ? vrrpMac(virtual.vrid) : port.mac,
+      src: virtual && virtual.vip === port.ip ? virtual.mac : port.mac,
       dst: entry.mac,
       etherType: mpls ? 'MPLS' : 'IPv4',
       ...(mpls ? { mpls } : { packet }),
@@ -187,10 +186,10 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
   const arp = frame.arp;
   if (!arp || arp.senderMac !== frame.src) return;
   if (observeDhcpArp(engine, device, port, frame)) return;
-  const virtual = activeVrrpGroup(engine.state, device, port, arp.targetIp);
-  const configuredVirtual = device.vrrp?.groups.some(
-    (group) => group.port === port.id && group.vip === arp.targetIp
-  );
+  const virtual = activeVirtualRouter(engine.state, device, port, arp.targetIp);
+  const configuredVirtual =
+    device.hsrp?.groups.some((g) => g.port === port.id && g.vip === arp.targetIp) ||
+    device.vrrp?.groups.some((group) => group.port === port.id && group.vip === arp.targetIp);
   // Gratuitous ARP announces ownership; replying during a handover would move
   // the virtual MAC back to the old active router's switch port.
   if (configuredVirtual && arp.kind === 'request' && arp.senderIp === arp.targetIp) return;
@@ -236,9 +235,9 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
   );
   if (arp.kind === 'request' && port.ip && !announcement) {
     const natVirtual = natOwnsAddress(device, port, arp.targetIp)
-      ? activeVrrpGroup(engine.state, device, port)
+      ? activeVirtualRouter(engine.state, device, port)
       : undefined;
-    const replyMac = virtual || natVirtual ? vrrpMac((virtual ?? natVirtual)!.vrid) : port.mac;
+    const replyMac = (virtual ?? natVirtual)?.mac ?? port.mac;
     const reply: Frame = {
       src: replyMac,
       dst: arp.senderMac,

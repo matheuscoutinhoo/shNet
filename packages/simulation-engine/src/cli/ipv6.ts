@@ -1,7 +1,8 @@
 import type { Device } from '../model';
 import { ipv6Config } from '../protocols/ipv6-control';
-import { network6, normalize6 } from '../protocols/ipv6-address';
+import { linkLocal6, network6, normalize6 } from '../protocols/ipv6-address';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { interfaceName } from './operational';
 function cidr(value: string) {
   const [ip, mask] = value.split('/'),
     prefix = Number(mask);
@@ -170,6 +171,52 @@ export function registerIpv6Commands(r: CommandRegistry) {
         hits: 0,
       });
       e.configureIpv6(d.id, p.id, config);
+    },
+  });
+  r.register({
+    // IOS forms: "ipv6 route PREFIX NEXT-HOP" and "ipv6 route PREFIX INTERFACE".
+    pattern: /^(no )?ipv6 route(?: vrf (\S+))? ([\da-f:.]+\/\d+) (\S+)(?: metric (\d+))?$/i,
+    syntax: ['ipv6 route <prefix> <next-hop>', 'ipv6 route <prefix> <interface>'],
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      const a = cidr(m[3]),
+        vrf = m[2];
+      let port: Device['interfaces'][number] | undefined, nextHop: string;
+      if (m[4].includes(':')) {
+        nextHop = normalize6(m[4]);
+        if (linkLocal6(nextHop)) throw new Error('% Interface has to be specified for a link-local nexthop');
+        port = d.interfaces.find(
+          (p) =>
+            p.vrf === vrf &&
+            p.ipv6?.addresses.some(
+              (x) =>
+                x.state !== 'duplicate' &&
+                x.onLink &&
+                x.prefix > 0 &&
+                !linkLocal6(x.ip) &&
+                network6(x.ip, x.prefix) === network6(nextHop, x.prefix)
+            )
+        );
+        if (!port)
+          throw new Error('% Next hop ' + nextHop + ' is not on a connected IPv6 subnet; specify the exit interface.');
+      } else {
+        const name = interfaceName(m[4]).toLowerCase();
+        port = d.interfaces.find((p) => p.name.toLowerCase() === name);
+        if (!port) throw new Error('Interface não encontrada.');
+        nextHop = '::';
+      }
+      e.configureRoute6(
+        d.id,
+        {
+          network: network6(a.ip, a.prefix),
+          prefix: a.prefix,
+          port: port.id,
+          nextHop,
+          metric: Number(m[5] ?? 1),
+          ...(vrf ? { vrf } : {}),
+        },
+        !!m[1]
+      );
     },
   });
   r.register({

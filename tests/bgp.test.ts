@@ -227,11 +227,11 @@ describe('BGP por sessões TCP reais do modelo', () => {
       'neighbor 10.0.12.2 prefix-filter in 10 permit 192.168.20.0/24',
       'bgp hold-time 12',
     ])
-      expect(cli.execute(command)).toBe('OK');
+      expect(cli.execute(command)).toBe('');
     engine.advanceTo(15000);
-    expect(cli.execute('show ip bgp summary')).toContain('Established');
-    expect(cli.execute('show running-config')).toContain('prefix-filter in 10 permit 192.168.20.0/24');
-    expect(cli.execute('show ip route')).toContain('B 192.168.20.0/24 [20/0] via 10.0.12.2');
+    expect(cli.execute('do show ip bgp summary')).toContain('Established');
+    expect(cli.execute('do show running-config')).toContain('prefix-filter in 10 permit 192.168.20.0/24');
+    expect(cli.execute('do show ip route')).toContain('B 192.168.20.0/24 [20/0] via 10.0.12.2');
     const before = engine.snapshot();
     expect(cli.execute('neighbor 10.0.12.2 route-reflector-client')).toMatch(/%/);
     expect(engine.snapshot()).toEqual(before);

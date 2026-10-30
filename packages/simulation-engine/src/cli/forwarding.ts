@@ -73,7 +73,7 @@ export function registerForwardingCommands(r: CommandRegistry) {
 export function forwardingRunningConfig(d: Device) {
   return [
     ...d.interfaces
-      .filter((p) => p.qos)
+      .filter((p) => p.qos&&!d.mqc?.attachments.some(a=>a.port===p.id))
       .flatMap((p) => ['interface ' + p.name, ' qos configure ' + JSON.stringify(qosConfig(p)), 'exit']),
     ...(d.mpls ? ['mpls configure ' + JSON.stringify(d.mpls)] : []),
   ];

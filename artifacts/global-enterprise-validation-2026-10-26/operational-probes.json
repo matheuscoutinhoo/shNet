@@ -1,0 +1,56 @@
+{
+  "uptime": {
+    "expected": "A newly booted/reloaded device has near-zero uptime despite the lab clock being 60s",
+    "bootUptime": "IOS XE 17.12 · shLab core subset\nshLab educational behavioral simulator; supported IOS/IOS XE command subset.\nVirtual hardware: Roteador\nR-01 uptime: 60.000 simulated seconds\n6 network interfaces; no vendor firmware is executed.",
+    "reloadUptime": "IOS XE 17.12 · shLab core subset\nshLab educational behavioral simulator; supported IOS/IOS XE command subset.\nVirtual hardware: Roteador\nRouter uptime: 60.000 simulated seconds\n6 network interfaces; no vendor firmware is executed."
+  },
+  "bgp": {
+    "before": {
+      "peers": [
+        {
+          "device": "R-01",
+          "states": [
+            "Established",
+            "Established"
+          ]
+        },
+        {
+          "device": "R-02",
+          "states": [
+            "Established",
+            "Established"
+          ]
+        },
+        {
+          "device": "R-03",
+          "states": [
+            "Established",
+            "Established"
+          ]
+        }
+      ],
+      "nextHop": "10.0.13.3"
+    },
+    "baseline": {
+      "id": "probe-1472",
+      "device": "device-4",
+      "target": "192.168.20.10",
+      "start": 15000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 20.006868000000395,
+      "responder": "192.168.20.10"
+    },
+    "afterFailureNextHop": "10.0.12.2",
+    "recovered": {
+      "id": "probe-1781",
+      "device": "device-4",
+      "target": "192.168.20.10",
+      "start": 23000,
+      "status": "success",
+      "ttl": 64,
+      "rtt": 16.006927999987965,
+      "responder": "192.168.20.10"
+    }
+  }
+}

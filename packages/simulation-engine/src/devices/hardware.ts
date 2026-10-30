@@ -65,6 +65,7 @@ export function refreshPower(e: SimulationEngine) {
   allocatePower(e.state);
   for (const d of e.state.devices)
     if (before.get(d.id) !== d.power) {
+      if (d.power) d.bootStartedAt = e.state.clock;
       e.emit(
         d.power ? 'LINK_UP' : 'LINK_DOWN',
         d.id,
@@ -171,6 +172,7 @@ export function consoleCommand(e: SimulationEngine, source: string, linkId: stri
     session.context = { ...stored.context };
     session.history = [...stored.history];
   }
+  const secretInput = session.secretInput;
   const output = session.execute(line),
     current = e.device(target.id),
     sessions = (current.consoleSessions ??= []);
@@ -180,13 +182,25 @@ export function consoleCommand(e: SimulationEngine, source: string, linkId: stri
   e.emit(
     'APPLICATION_DATA',
     current.id,
-    'Console UART: ' + session.prompt + ' ' + redactNetworkSecrets(line).slice(0, 100)
+    'Console UART: ' +
+      session.prompt +
+      ' ' +
+      (secretInput ? '[redacted]' : redactNetworkSecrets(line).slice(0, 100))
   );
-  return output;
+  return output || (session.secretInput ? session.prompt : '');
 }
 export function validateHardware(s: Snapshot) {
-  const copy = structuredClone(s);
-  allocatePower(copy);
+  // allocatePower only rewrites PoE state and device power, so the expected allocation is computed
+  // on shallow device copies instead of a clone of the whole snapshot.
+  const copy: Snapshot = {
+    ...s,
+    devices: s.devices.map((d) => ({
+      ...d,
+      ...(d.poeSupply ? { poeSupply: structuredClone(d.poeSupply) } : {}),
+      ...(d.poeDevice ? { poeDevice: { ...d.poeDevice } } : {}),
+    })),
+  };
+  if (s.devices.some((d) => d.poeSupply || d.poeDevice)) allocatePower(copy);
   for (const d of s.devices) {
     const expected = copy.devices.find((v) => v.id === d.id)!;
     if (

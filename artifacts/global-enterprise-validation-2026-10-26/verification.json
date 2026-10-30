@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-26",
+  "sourceHash": "a88f28765ef1cee6351eebaeb3917e17c2efdce413fbdc13be429f05d6222024",
+  "contract": "2026.10.26.1",
+  "sourceMatches": true,
+  "inventory": {
+    "devices": 72,
+    "links": 101,
+    "sites": 6
+  },
+  "mainAcceptance": {
+    "passed": 13,
+    "failed": 1,
+    "expectedFailure": "DHCP-01: multilayer-switch SVI relay rejected"
+  },
+  "nativeEnterpriseChecks": {
+    "total": 61,
+    "passed": 5,
+    "gaps": 56,
+    "note": "Selected advanced workflows; not a completeness percentage"
+  },
+  "browser": {
+    "passed": 1,
+    "unexpected": 0,
+    "pageErrors": [],
+    "projectApiFailures": [],
+    "scenarioFlows": 12,
+    "failedFlows": 0,
+    "serverReplay": "matched"
+  },
+  "additionalRegression": {
+    "passed": 76,
+    "failed": 0,
+    "skipped": 1
+  },
+  "startupSave": {
+    "accepted": 38,
+    "rejected": 0
+  },
+  "managementServices": {
+    "results": [
+      {
+        "device": "NYC-ADMIN",
+        "synchronized": true,
+        "offsetMs": -7.275957614183426e-12,
+        "receivedSyslog": true
+      },
+      {
+        "device": "SAO-ADMIN",
+        "synchronized": true,
+        "offsetMs": 7.275957614183426e-12,
+        "receivedSyslog": true
+      },
+      {
+        "device": "LON-ADMIN",
+        "synchronized": true,
+        "offsetMs": 0,
+        "receivedSyslog": true
+      },
+      {
+        "device": "FRA-ADMIN",
+        "synchronized": true,
+        "offsetMs": -3.637978807091713e-12,
+        "receivedSyslog": true
+      },
+      {
+        "device": "SIN-ADMIN",
+        "synchronized": true,
+        "offsetMs": 7.275957614183426e-12,
+        "receivedSyslog": true
+      },
+      {
+        "device": "SYD-ADMIN",
+        "synchronized": true,
+        "offsetMs": 0,
+        "receivedSyslog": true
+      }
+    ],
+    "messages": [
+      {
+        "device": "NYC-ADMIN",
+        "id": "syslog-177626"
+      },
+      {
+        "device": "SAO-ADMIN",
+        "id": "syslog-177634"
+      },
+      {
+        "device": "LON-ADMIN",
+        "id": "syslog-177642"
+      },
+      {
+        "device": "FRA-ADMIN",
+        "id": "syslog-177650"
+      },
+      {
+        "device": "SIN-ADMIN",
+        "id": "syslog-177658"
+      },
+      {
+        "device": "SYD-ADMIN",
+        "id": "syslog-177666"
+      }
+    ],
+    "passed": true
+  },
+  "topologySha256": "df2ee8d4cb1daf81a01544934bd156508b342aba902fabbe53c1967bef2c7663",
+  "limitations": [
+    "Original normal-order topology storms until the Rapid PVST workaround is applied",
+    "DHCP is still broken on the intended multilayer-switch relay design",
+    "No live Cisco hardware/image comparison; exact timing and existing-session preservation not established",
+    "Two initial browser failures were harness assumptions and are retained separately"
+  ]
+}

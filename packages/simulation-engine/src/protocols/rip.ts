@@ -136,7 +136,8 @@ function poison(engine: SimulationEngine, device: Device, route: RipRoute) {
 }
 export function configureRip(engine: SimulationEngine, device: Device, input: unknown) {
   const config = ripConfigSchema.parse(input);
-  if (device.type !== 'router') throw new Error('RIP exige roteador.');
+  if (device.type !== 'router' && !(device.type === 'switch' && device.ipRouting))
+    throw new Error('RIP exige roteamento L3.');
   if (
     config.interfaces.some(
       (c) =>

@@ -1,0 +1,641 @@
+[
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-1"
+    ],
+    "message": "WAN-PROVIDER-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-1"
+    ],
+    "message": "WAN-PROVIDER-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-5"
+    ],
+    "message": "WAN-PROVIDER-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-5"
+    ],
+    "message": "WAN-PROVIDER-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-72"
+    ],
+    "message": "NYC-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-72"
+    ],
+    "message": "NYC-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-76"
+    ],
+    "message": "NYC-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-76"
+    ],
+    "message": "NYC-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-80"
+    ],
+    "message": "NYC-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-84"
+    ],
+    "message": "NYC-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-2714"
+    ],
+    "message": "NYC-USER: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-2750"
+    ],
+    "message": "NYC-GUEST: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-2789"
+    ],
+    "message": "NYC-ADMIN: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-2864"
+    ],
+    "message": "NYC-APP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-2919"
+    ],
+    "message": "SAO-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-2919"
+    ],
+    "message": "SAO-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-2923"
+    ],
+    "message": "SAO-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-2923"
+    ],
+    "message": "SAO-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-2927"
+    ],
+    "message": "SAO-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-2931"
+    ],
+    "message": "SAO-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-5561"
+    ],
+    "message": "SAO-USER: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-5597"
+    ],
+    "message": "SAO-GUEST: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-5636"
+    ],
+    "message": "SAO-ADMIN: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-5711"
+    ],
+    "message": "SAO-APP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-5766"
+    ],
+    "message": "LON-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-5766"
+    ],
+    "message": "LON-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-5770"
+    ],
+    "message": "LON-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-5770"
+    ],
+    "message": "LON-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-5774"
+    ],
+    "message": "LON-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-5778"
+    ],
+    "message": "LON-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-8408"
+    ],
+    "message": "LON-USER: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-8444"
+    ],
+    "message": "LON-GUEST: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-8483"
+    ],
+    "message": "LON-ADMIN: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-8558"
+    ],
+    "message": "LON-APP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-8613"
+    ],
+    "message": "FRA-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-8613"
+    ],
+    "message": "FRA-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-8617"
+    ],
+    "message": "FRA-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-8617"
+    ],
+    "message": "FRA-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-8621"
+    ],
+    "message": "FRA-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-8625"
+    ],
+    "message": "FRA-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-11255"
+    ],
+    "message": "FRA-USER: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-11291"
+    ],
+    "message": "FRA-GUEST: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-11330"
+    ],
+    "message": "FRA-ADMIN: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-11405"
+    ],
+    "message": "FRA-APP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-11460"
+    ],
+    "message": "SIN-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-11460"
+    ],
+    "message": "SIN-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-11464"
+    ],
+    "message": "SIN-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-11464"
+    ],
+    "message": "SIN-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-11468"
+    ],
+    "message": "SIN-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-11472"
+    ],
+    "message": "SIN-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-14102"
+    ],
+    "message": "SIN-USER: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-14138"
+    ],
+    "message": "SIN-GUEST: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-14177"
+    ],
+    "message": "SIN-ADMIN: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-14252"
+    ],
+    "message": "SIN-APP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-14307"
+    ],
+    "message": "SYD-CORE-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-14307"
+    ],
+    "message": "SYD-CORE-A: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-14311"
+    ],
+    "message": "SYD-CORE-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "FIREWALL_CAPABILITY",
+    "severity": "info",
+    "devices": [
+      "device-14311"
+    ],
+    "message": "SYD-CORE-B: switch L3 encaminha IP; firewall stateful de trânsito requer roteador no modelo atual.",
+    "recommendation": "Use ACLs no switch ou um perfil firewall dedicado para inspeção stateful."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-14315"
+    ],
+    "message": "SYD-ACCESS-A: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SWITCH_FAILURE_DOMAIN",
+    "severity": "info",
+    "devices": [
+      "device-14319"
+    ],
+    "message": "SYD-ACCESS-B: múltiplos enlaces compartilham o mesmo equipamento.",
+    "recommendation": "Dois uplinks não protegem contra falha deste switch; teste a perda de equipamento e energia."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-16949"
+    ],
+    "message": "SYD-USER: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-16985"
+    ],
+    "message": "SYD-GUEST: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-17024"
+    ],
+    "message": "SYD-ADMIN: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-17099"
+    ],
+    "message": "SYD-APP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-17145"
+    ],
+    "message": "GLOBAL-DNS: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-17192"
+    ],
+    "message": "GLOBAL-DHCP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-17243"
+    ],
+    "message": "GLOBAL-NTP: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_ATTACHMENT",
+    "severity": "warning",
+    "devices": [
+      "device-17297"
+    ],
+    "message": "GLOBAL-SYSLOG: apenas um caminho físico de acesso.",
+    "recommendation": "Verifique se o SLA exige interface, switch e alimentação redundantes."
+  },
+  {
+    "code": "SINGLE_SERVICE",
+    "severity": "warning",
+    "devices": [
+      "device-17145"
+    ],
+    "message": "GLOBAL-DNS: única instância habilitada de dnsServer.",
+    "recommendation": "Verifique dependentes, estado/dados e estratégia de redundância; duplicar o dispositivo não basta."
+  },
+  {
+    "code": "SINGLE_SERVICE",
+    "severity": "warning",
+    "devices": [
+      "device-17192"
+    ],
+    "message": "GLOBAL-DHCP: única instância habilitada de dhcpServer.",
+    "recommendation": "Verifique dependentes, estado/dados e estratégia de redundância; duplicar o dispositivo não basta."
+  },
+  {
+    "code": "SINGLE_SERVICE",
+    "severity": "warning",
+    "devices": [
+      "device-17297"
+    ],
+    "message": "GLOBAL-SYSLOG: única instância habilitada de syslogServer.",
+    "recommendation": "Verifique dependentes, estado/dados e estratégia de redundância; duplicar o dispositivo não basta."
+  }
+]

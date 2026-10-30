@@ -5,8 +5,14 @@ import { installedBgpRoutes, validBgpPrefix } from './bgp-routing';
 
 export function validateBgpConfig(device: Device, config: BgpConfig) {
   if (
+    new Set(config.peerGroups?.map((g) => g.name)).size !== (config.peerGroups?.length ?? 0) ||
+    config.neighbors.some((n) => n.peerGroup && !config.peerGroups?.some((g) => g.name === n.peerGroup))
+  )
+    throw new Error('Invalid BGP peer-group association.');
+  if (
     (device.type !== 'router' && !(device.type === 'switch' && device.ipRouting)) ||
-    !isUnicast(config.routerId)
+    (!isUnicast(config.routerId) &&
+      !(config.autoRouterId && !config.enabled && config.routerId === '0.0.0.0'))
   )
     throw new Error('BGP exige roteador e Router ID unicast.');
   if (device.tcpServices?.some((service) => service.port === 179 && service.enabled))
@@ -42,6 +48,13 @@ export function validateBgpConfig(device: Device, config: BgpConfig) {
 }
 export function validateBgp(snapshot: Snapshot) {
   const usedTimers = new Set<object>();
+  const ticks = new Map<string, Snapshot['queue']>();
+  for (const item of snapshot.queue)
+    if (item.action.kind === 'bgp-tick') {
+      const timers = ticks.get(item.action.device);
+      if (timers) timers.push(item);
+      else ticks.set(item.action.device, [item]);
+    }
   for (const device of snapshot.devices) {
     const state = device.bgp;
     if (!state) continue;
@@ -52,9 +65,7 @@ export function validateBgp(snapshot: Snapshot) {
       state.peers.some((peer) => !state.neighbors.some((config) => config.ip === peer.ip))
     )
       throw new Error('Referências de peers BGP inválidas.');
-    const timers = snapshot.queue.filter(
-      ({ action }) => action.kind === 'bgp-tick' && action.device === device.id
-    );
+    const timers = ticks.get(device.id) ?? [];
     if (
       timers.length !== Number(state.enabled) ||
       (state.enabled &&

@@ -34,6 +34,7 @@ export const phoneConfigSchema = z
     sipPort: portNumberSchema,
     rtpPort: portNumberSchema,
     autoAnswer: z.boolean(),
+    autoVoiceVlan: z.boolean().default(true),
   })
   .strict();
 export const phoneStateSchema = phoneConfigSchema

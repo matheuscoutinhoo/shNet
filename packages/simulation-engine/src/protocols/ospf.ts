@@ -6,6 +6,7 @@ import { OSPF, ospfConfigSchema, lsaKey, type OspfPacket, type OspfNeighbor } fr
 import { ipNumber, sameSubnet, subnet } from './ipv4';
 import { synchronizeOspf } from './ospf-database';
 import { validateOspfLsa } from './ospf-validation';
+import { ospfHeaderWire } from '../wire/ospf-codec';
 import {
   electOspfNeighbors,
   finishOspfExchange,
@@ -24,8 +25,28 @@ import {
 
 export function configureOspf(engine: SimulationEngine, device: Device, input: unknown) {
   const config = ospfConfigSchema.parse(input);
-  if (device.type !== 'router') throw new Error('OSPF exige roteador.');
-  if (!ipNumber(config.routerId) || ipNumber(config.routerId) >= 0xe0000000)
+  for (const p of config.interfaces) {
+    const authentication = device.interfaces.find((i) => i.id === p.port)?.ospfAuthentication;
+    if (authentication) {
+      p.authenticationMode = authentication.enabled ? 'md5' : undefined;
+      p.authenticationKey = authentication.enabled ? authentication.key : undefined;
+      p.authenticationKeyId = authentication.enabled ? authentication.keyId : undefined;
+    }
+    const override = config.passiveOverrides.find((o) => o.port === p.port);
+    if (override) p.passive = override.passive;
+    else if (config.passiveDefault) p.passive = true;
+    if (p.autoCost) {
+      const physical = device.interfaces.find((i) => i.id === p.port);
+      if (physical)
+        p.cost = Math.max(1, Math.min(65535, Math.floor(config.referenceBandwidth / physical.speed)));
+    }
+  }
+  if (device.type !== 'router' && !(device.type === 'switch' && device.ipRouting))
+    throw new Error('OSPF exige roteamento L3.');
+  if (
+    (!ipNumber(config.routerId) && !(config.autoRouterId && !config.enabled)) ||
+    ipNumber(config.routerId) >= 0xe0000000
+  )
     throw new Error('Router ID OSPF deve ser IPv4 unicast não nulo.');
   if (
     new Set(config.interfaces.map((entry) => entry.port)).size !== config.interfaces.length ||
@@ -36,10 +57,11 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
     throw new Error('Interface OSPF inválida ou duplicada.');
   if (
     new Set(config.areas.map((a) => a.id)).size !== config.areas.length ||
-    config.areas.some(
-      (a) => (a.id === 0 && a.type !== 'normal') || !config.interfaces.some((i) => i.area === a.id)
-    ) ||
-    config.externalRoutes.some((r) => subnet(r.network, r.prefix).network !== r.network)
+    config.areas.some((a) => a.id === 0 && a.type !== 'normal') ||
+    config.externalRoutes.some((r) => subnet(r.network, r.prefix).network !== r.network) ||
+    config.summaryRanges.some((r) => subnet(r.network, r.prefix).network !== r.network) ||
+    new Set(config.passiveOverrides.map((o) => o.port)).size !== config.passiveOverrides.length ||
+    config.passiveOverrides.some((o) => !device.interfaces.some((p) => p.id === o.port))
   )
     throw new Error('OSPF: áreas/rotas externas inválidas.');
   const previous = device.ospf;
@@ -84,11 +106,112 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
     `OSPF ${config.enabled ? 'ativado' : 'desativado'}, router ID ${config.routerId}.`
   );
 }
+
+/** IOS default OSPF network type: broadcast on Ethernet segments, point-to-point on serial/tunnel/loopback. */
+export function defaultOspfNetworkType(port: NetworkInterface): 'point-to-point' | 'broadcast' {
+  return port.loopback || port.tunnel || port.media === 'serial' ? 'point-to-point' : 'broadcast';
+}
+/** Interface OSPF settings for an interface that is newly enabled for OSPF. */
+export function newOspfInterfaceSettings(port: NetworkInterface) {
+  const s = port.ospfSettings ?? {};
+  return {
+    networkType: s.networkType ?? defaultOspfNetworkType(port),
+    ...(s.cost !== undefined ? { cost: s.cost, autoCost: false } : {}),
+    ...(s.priority !== undefined ? { priority: s.priority } : {}),
+    ...(s.helloMs !== undefined ? { helloMs: s.helloMs } : {}),
+    // IOS derives the dead interval from the hello interval unless it was configured.
+    ...(s.deadMs !== undefined ? { deadMs: s.deadMs } : s.helloMs !== undefined ? { deadMs: s.helloMs * 4 } : {}),
+  };
+}
+
+/** Re-evaluate IOS network statements after CLI or form edits without resetting unchanged adjacencies. */
+export function refreshOspfConfiguration(e: SimulationEngine, d: Device) {
+  const s = d.ospf;
+  if (!s || (!s.networks && !(s.autoRouterId && s.routerId === '0.0.0.0'))) return;
+  const id = s.autoRouterId && s.routerId === '0.0.0.0' ? selectOspfRouterId(d) : s.routerId;
+  const manual = s.interfaces.filter((p) => !p.networkManaged);
+  const interfaces = [...manual];
+  for (const p of d.interfaces.filter(
+    (p) => p.mode === 'routed' && p.ip && !manual.some((entry) => entry.port === p.id)
+  )) {
+    const network = s.networks?.find(
+      (n) => ((ipNumber(p.ip!) ^ ipNumber(n.address)) & ~ipNumber(n.wildcard)) === 0
+    );
+    const existing = s.interfaces.find((entry) => entry.port === p.id);
+    if (network)
+      interfaces.push(
+        (existing
+          ? {
+              ...existing,
+              port: p.id,
+              area: network.area,
+              networkManaged: true,
+              autoCost: existing.autoCost ?? true,
+            }
+          : {
+              autoCost: true,
+              ...newOspfInterfaceSettings(p),
+              port: p.id,
+              area: network.area,
+              networkManaged: true,
+            }) as (typeof s.interfaces)[number]
+      );
+  }
+  if (id !== s.routerId || JSON.stringify(interfaces) !== JSON.stringify(s.interfaces)) {
+    const {
+      enabled,
+      routerId,
+      processId,
+      autoRouterId,
+      networks,
+      areas,
+      externalRoutes,
+      maximumPaths,
+      referenceBandwidth,
+      passiveDefault,
+      passiveOverrides,
+      summaryRanges,
+      defaultOriginate,
+    } = s;
+    configureOspf(e, d, {
+      enabled: id !== '0.0.0.0' && (enabled || routerId === '0.0.0.0'),
+      routerId: id,
+      processId,
+      autoRouterId,
+      maximumPaths,
+      referenceBandwidth,
+      passiveDefault,
+      passiveOverrides,
+      summaryRanges,
+      defaultOriginate,
+      networks,
+      areas,
+      externalRoutes,
+      interfaces,
+    });
+  }
+}
+export function selectOspfRouterId(d: Device) {
+  const loopbacks = d.interfaces.filter((p) => p.loopback && p.ip && p.adminUp);
+  return (
+    (loopbacks.length ? loopbacks : d.interfaces.filter((p) => p.ip && p.adminUp))
+      .map((p) => p.ip!)
+      .sort((a, b) => ipNumber(b) - ipNumber(a))[0] ?? '0.0.0.0'
+  );
+}
 function removeNeighbor(engine: SimulationEngine, device: Device, neighbor: OspfNeighbor, why: string) {
   device.ospf!.neighbors = device.ospf!.neighbors.filter((entry) => entry !== neighbor);
   engine.emit('OSPF_NEIGHBOR_CHANGED', device.id, `${neighbor.routerId}: ${neighbor.state} → Down; ${why}.`, {
     port: neighbor.port,
   });
+}
+export function ospfBfdDown(e: SimulationEngine, d: Device, port: string, ip: string) {
+  for (const n of [...(d.ospf?.neighbors ?? [])])
+    if (n.port === port && n.ip === ip) removeNeighbor(e, d, n, 'BFD Down');
+  if (d.ospf?.enabled) {
+    electOspfNeighbors(e, d);
+    synchronizeOspf(e, d);
+  }
 }
 export function handleOspfTick(engine: SimulationEngine, action: Extract<Action, { kind: 'ospf-tick' }>) {
   const device = engine.device(action.device),
@@ -151,9 +274,13 @@ export function receiveOspf(
   const state = device.ospf,
     config = state?.interfaces.find((entry) => entry.port === port.id);
   if (!state?.enabled || !config || config.passive || !port.ip || port.prefix === undefined) return;
+  if (port.bfd?.ospf && port.bfd.sessions.some((s) => s.ip === packet.src && s.hadUp && s.state !== 'Up'))
+    return;
   const reject = (reason: string) => engine.drop(device, `OSPF: ${reason}.`, port.id);
   if (
-    packet.bytes !== ospfBytes(packet.message) + (packet.authentication ? 40 : 0) ||
+    packet.bytes !==
+      ospfBytes(packet.message) +
+        (packet.authentication ? (packet.authentication.algorithm === 'md5' ? 16 : 40) : 0) ||
     packet.area !== config.area ||
     packet.routerId === state.routerId ||
     !sameSubnet(packet.src, port.ip, port.prefix) ||
@@ -166,11 +293,16 @@ export function receiveOspf(
   const auth = packet.authentication,
     old = state.receivedSequences.find((r) => r.port === port.id && r.routerId === packet.routerId);
   if (
-    config.authenticationKey
+    (config.authenticationMode === 'md5' && !config.authenticationKey) ||
+    (config.authenticationKey
       ? !auth ||
+        (config.authenticationMode === 'md5'
+          ? auth.algorithm !== 'md5' || auth.keyId !== (config.authenticationKeyId ?? 1)
+          : auth.algorithm === 'md5') ||
         auth.digest !== ospfAuthenticator(packet, config.authenticationKey) ||
+        (auth.algorithm === 'md5' && old && auth.sequence < old.sequence) ||
         (old && (old.seen.includes(auth.sequence) || (old.seen.length === 64 && auth.sequence < old.seen[0])))
-      : !!auth
+      : !!auth)
   ) {
     reject('autenticação ou replay inválidos');
     return;
@@ -337,7 +469,13 @@ export function receiveOspf(
       reject('LSA fora da área ou validade');
       return;
     }
-    sendOspf(engine, device, port, { type: 'ack', header: { key, sequence: lsa.sequence } }, neighbor);
+    sendOspf(
+      engine,
+      device,
+      port,
+      { type: 'ack', header: { key, sequence: lsa.sequence, wire: ospfHeaderWire(lsa, engine.state.clock) } },
+      neighbor
+    );
     const local = state.lsdb.find((entry) => lsaKey(entry) === key);
     if (!local || local.sequence < lsa.sequence) {
       if (!local && state.lsdb.length >= 1024) {

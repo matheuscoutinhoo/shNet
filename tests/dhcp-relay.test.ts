@@ -369,7 +369,7 @@ describe('DHCP relay e reservas', () => {
     expect(() => c.engine.configureDhcpPool(c.server.id, { ...pool, relayAddress: '192.168.40.1' })).toThrow(
       'relay'
     );
-    expect(() => c.engine.configureDhcpRelay(c.client.id, 'p0', ['192.168.20.10'])).toThrow('roteador');
+    expect(() => c.engine.configureDhcpRelay(c.client.id, 'p0', ['192.168.20.10'])).toThrow('roteamento IP');
     expect(() => c.engine.configureDhcpRelay(c.relay.id, 'p0', ['192.168.20.10', '192.168.20.10'])).toThrow(
       'únicos'
     );
@@ -398,9 +398,9 @@ describe('DHCP relay e reservas', () => {
       'no ip helper-address',
       'ip helper-address 192.168.20.10',
     ])
-      expect(cli.execute(command)).toBe('OK');
-    expect(cli.execute('show ip dhcp relay')).toContain('giaddr=192.168.10.1');
-    expect(cli.execute('show running-config')).toContain('ip helper-address 192.168.20.10');
+      expect(cli.execute(command)).toBe('');
+    expect(cli.execute('do show ip dhcp relay')).toContain('giaddr=192.168.10.1');
+    expect(cli.execute('do show running-config')).toContain('ip helper-address 192.168.20.10');
     for (const command of [
       'enable',
       'conf t',

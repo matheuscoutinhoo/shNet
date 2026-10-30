@@ -1,5 +1,6 @@
 import { z } from 'zod';
-const name = z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
+import { mqcMatchSchema } from './mqc-model';
+const name = z.string().regex(/^[a-zA-Z0-9_-]{1,160}$/),
   time = z.number().finite().nonnegative();
 export const qosClassSchema = z
   .object({
@@ -11,8 +12,16 @@ export const qosClassSchema = z
     dscp: z.number().int().min(0).max(63).optional(),
     priority: z.number().int().min(0).max(7),
     weight: z.number().int().min(1).max(16),
+    share:z.number().finite().positive().max(100).optional(),
+    queueLimit:z.number().int().min(1).max(256).optional(),
+    groups:z.array(z.object({matchAny:z.boolean(),matches:z.array(mqcMatchSchema).max(32)}).strict()).max(4).optional(),
+    shapePaths:z.array(z.object({name,rateMbps:z.number().positive().max(100000),burst:z.number().int().min(64).max(1048576)}).strict()).max(4).optional(),
+    policePaths:z.array(z.object({name,rateMbps:z.number().positive().max(100000),burst:z.number().int().min(64).max(1048576)}).strict()).max(4).optional(),
     mark: z.number().int().min(0).max(63).optional(),
     policeMbps: z.number().finite().min(0.001).max(100000).optional(),
+    llqMbps: z.number().finite().min(0.001).max(100000).optional(),
+    matches: z.array(mqcMatchSchema).max(32).optional(),
+    matchAny: z.boolean().optional(),
     burst: z.number().int().min(64).max(1048576).default(65536),
   })
   .strict()
@@ -23,15 +32,17 @@ export const qosConfigSchema = z
     rateMbps: z.number().finite().min(0.001).max(100000),
     queueLimit: z.number().int().min(1).max(256),
     ecnThreshold: z.number().int().min(1).max(256).optional(),
-    scheduler: z.enum(['priority', 'wrr']),
-    classes: z.array(qosClassSchema).max(8),
+    scheduler: z.enum(['priority', 'wrr', 'llq-wrr','llq-cbwfq']),
+    classes: z.array(qosClassSchema).max(64),
   })
   .strict();
 export const qosStateSchema = qosConfigSchema
   .extend({
     token: z.string().min(1).max(80),
     timerAt: time.optional(),
-    cursor: z.number().int().min(0).max(8),
+    cursor: z.number().int().min(0).max(64),
+    virtualTime:time.optional(),
+    buckets:z.array(z.object({name,kind:z.enum(['shape','police']),tokens:time,updatedAt:time}).strict()).max(128).optional(),
     remaining: z.number().int().min(0).max(16),
     queues: z
       .array(
@@ -42,6 +53,7 @@ export const qosStateSchema = qosConfigSchema
             bytes: z.number().int().min(1).max(65600),
             at: time,
             link: z.string().min(1).max(80),
+            finish:time.optional(),
           })
           .strict()
       )
@@ -57,10 +69,11 @@ export const qosStateSchema = qosConfigSchema
             bytes: z.number().int().nonnegative(),
             tokens: time,
             updatedAt: time,
+            lastFinish:time.optional(),
           })
           .strict()
       )
-      .max(9),
+      .max(65),
   })
   .strict();
 export const qosTimerSchema = z

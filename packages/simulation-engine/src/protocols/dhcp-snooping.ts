@@ -15,7 +15,7 @@ function validateConfig(d: Device, c: ReturnType<typeof dhcpSnoopingConfigSchema
   if (
     new Set(c.vlans).size !== c.vlans.length ||
     new Set(c.trustedPorts).size !== c.trustedPorts.length ||
-    c.vlans.some((v) => !d.vlans.some((i) => i.id === v)) ||
+    [...c.sourceGuardPorts,...c.arpTrustedPorts].some(id=>!d.interfaces.some(p=>p.id===id&&p.mode!=='routed')) ||
     c.trustedPorts.some(
       (id) => !d.interfaces.some((p) => p.id === id && !p.logical && !p.channel && p.mode !== 'routed')
     ) ||
@@ -37,7 +37,7 @@ export function permitDhcpSnooping(
   vlan: number
 ) {
   const c = d.dhcpSnooping;
-  if (!c?.enabled || !c.vlans.includes(vlan)) return true;
+  if (!c || (!c.enabled&&!c.arpInspection&&!c.arpInspectionVlans.includes(vlan)&&!c.sourceGuardPorts.includes(p.id)) || (!c.vlans.includes(vlan)&&!c.arpInspectionVlans.includes(vlan)&&!c.sourceGuardPorts.includes(p.id))) return true;
   c.bindings = c.bindings.filter((b) => b.expiresAt > e.state.clock);
   c.requests = c.requests.filter((r) => r.expiresAt > e.state.clock);
   const trusted = c.trustedPorts.includes(p.id);
@@ -48,6 +48,7 @@ export function permitDhcpSnooping(
   };
   const packet = f.packet;
   if (packet?.protocol === 'UDP' && packet.payload.protocol === 'DHCP') {
+    if(!c.enabled||!c.vlans.includes(vlan))return true;
     const m = packet.payload.message,
       server = ['offer', 'ack', 'nak'].includes(m.type);
     if (server) {
@@ -122,13 +123,12 @@ export function permitDhcpSnooping(
     }
     return true;
   }
-  if (trusted) return true;
   const bindings = [...c.staticBindings, ...c.bindings];
   const bound = (ip: string, mac: string) =>
     bindings.some((b) => b.vlan === vlan && b.port === p.id && b.mac === mac.toLowerCase() && b.ip === ip);
-  if (c.sourceGuard && (packet || f.fragment) && !bound((packet ?? f.fragment)!.src, f.src))
+  if (!trusted&&(c.sourceGuard||c.sourceGuardPorts.includes(p.id)) && (packet || f.fragment) && !bound((packet ?? f.fragment)!.src, f.src))
     return deny('IP Source Guard: IP/MAC/porta sem binding.');
-  if (c.arpInspection && f.arp) {
+  if (!c.arpTrustedPorts.includes(p.id)&&!(c.arpInspection&&!c.arpInspectionVlans.length&&trusted)&&(c.arpInspection||c.arpInspectionVlans.includes(vlan)) && f.arp) {
     const a = f.arp;
     if (a.senderMac !== f.src || (a.senderIp !== '0.0.0.0' && !bound(a.senderIp, a.senderMac)))
       return deny('DAI: anúncio ARP diverge do binding.');

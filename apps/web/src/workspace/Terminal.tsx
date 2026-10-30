@@ -27,6 +27,7 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
   useEffect(() => {
     const state = deviceTerminalState(labRef.current.engine, deviceId);
     const cli = state.cli;
+    let cursor = Math.min(state.cursor ?? state.line.length, state.line.length);
     stateRef.current = state;
     const term = new XTerm({
       fontFamily:
@@ -53,7 +54,8 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
     term.loadAddon(fit);
     term.open(ref.current!);
     fit.fit();
-    type RenderOperation = { kind: 'write'; text: string } | { kind: 'redraw'; text: string; replay: string };
+    type RenderOperation =
+      { kind: 'write'; text: string } | { kind: 'redraw'; text: string; replay: string; tail: number };
     const pending: RenderOperation[] = [];
     let writing = false,
       disposed = false;
@@ -74,8 +76,16 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       }
       writing = true;
       term.write(text, () => {
-        writing = false;
-        drain();
+        const finish = () => {
+          writing = false;
+          drain();
+        };
+        if (operation.kind === 'redraw' && operation.tail > 0) {
+          const column = term.buffer.active.cursorX,
+            up = Math.max(0, Math.ceil((operation.tail - column) / term.cols)),
+            target = (((column - operation.tail) % term.cols) + term.cols) % term.cols;
+          term.write((up ? '\x1b[' + up + 'A' : '') + '\r' + (target ? '\x1b[' + target + 'C' : ''), finish);
+        } else finish();
       });
     };
     const write = (text: string) => {
@@ -83,8 +93,13 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       drain();
     };
     const redraw = (before = '') => {
-      const input = coloredTerminalInput(state.prompt, state.line);
-      pending.push({ kind: 'redraw', text: before + input, replay: state.output + input });
+      const input = coloredTerminalInput(state.prompt, cli.secretInput ? '' : state.line);
+      pending.push({
+        kind: 'redraw',
+        text: before + input,
+        replay: state.output + input,
+        tail: cli.secretInput ? 0 : state.line.length - cursor,
+      });
       drain();
     };
     const result = (text: string) => {
@@ -109,33 +124,86 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
     // Completed output has no transient input-editing controls. XTerm can reflow
     // it at the current width and render the current hostname/draft exactly once.
     state.prompt = cli.prompt;
-    write(state.output + coloredTerminalInput(state.prompt, state.line));
-    const replaceLine = (text: string) => {
+    write(state.output + coloredTerminalInput(state.prompt, cli.secretInput ? '' : state.line));
+    const replaceLine = (text: string, position = text.length) => {
       state.line = text;
+      cursor = Math.max(0, Math.min(position, text.length));
+      state.cursor = cursor;
       state.prompt = cli.prompt;
       redraw();
     };
+    if (cursor < state.line.length) redraw();
     const sub = term.onData((data) => {
       if (data === '\x1b[A') {
+        if (cli.secretInput) return;
         state.historyIndex = Math.max(0, state.historyIndex - 1);
         replaceLine(cli.history[state.historyIndex] ?? '');
         return;
       }
       if (data === '\x1b[B') {
+        if (cli.secretInput) return;
         state.historyIndex = Math.min(cli.history.length, state.historyIndex + 1);
         replaceLine(cli.history[state.historyIndex] ?? '');
+        return;
+      }
+      if (data === '\t') {
+        const completed = cli.complete(state.line.slice(0, cursor));
+        replaceLine(completed + state.line.slice(cursor), completed.length);
+        return;
+      }
+      if (data === '?' && !cli.secretInput) {
+        write('\r\n' + cli.help(state.line) + '\r\n' + coloredTerminalInput(cli.prompt, state.line));
+        return;
+      }
+      if (data === '\x1a') {
+        cli.cancel();
+        cli.end();
+        replaceLine('');
+        return;
+      }
+      if (data === '\x1b[D' || data === '\x02') {
+        replaceLine(state.line, cursor - 1);
+        return;
+      }
+      if (data === '\x1b[C' || data === '\x06') {
+        replaceLine(state.line, cursor + 1);
+        return;
+      }
+      if (['\x1b[H', '\x1b[1~', '\x1bOH', '\x01'].includes(data)) {
+        replaceLine(state.line, 0);
+        return;
+      }
+      if (['\x1b[F', '\x1b[4~', '\x1bOF', '\x05'].includes(data)) {
+        replaceLine(state.line);
+        return;
+      }
+      if (data === '\x1b[3~' || data === '\x04') {
+        replaceLine(state.line.slice(0, cursor) + state.line.slice(cursor + 1), cursor);
+        return;
+      }
+      if (data === '\x15') {
+        replaceLine(state.line.slice(cursor), 0);
+        return;
+      }
+      if (data === '\x0b') {
+        replaceLine(state.line.slice(0, cursor));
+        return;
+      }
+      if (data === '\x17') {
+        const left = state.line.slice(0, cursor).replace(/\s*\S+\s*$/, '');
+        replaceLine(left + state.line.slice(cursor), left.length);
         return;
       }
       if (data.startsWith('\x1b')) return;
       for (const ch of data) {
         if (ch === '\r' || ch === '\n') {
           const input = state.line;
-          appendTerminalOutput(state, coloredTerminalInput(state.prompt, input) + '\r\n');
+          if (cursor !== input.length) replaceLine(input);
+          appendTerminalOutput(state, coloredTerminalInput(state.prompt, cli.displayInput(input)) + '\r\n');
           state.line = '';
-          const output = labRef.current.change(
-            () => cli.execute(input),
-            !/^(show|help|\?|ping|traceroute|nslookup|tcp|http)/i.test(input)
-          );
+          cursor = 0;
+          state.cursor = 0;
+          const output = labRef.current.change(() => cli.execute(input), !cli.readOnly(input), true, true);
           if (output) appendTerminalOutput(state, coloredTerminalOutput(output) + '\r\n');
           if (output?.startsWith('DNS [')) {
             const query = labRef.current.engine.device(deviceId).dnsQueries?.at(-1);
@@ -150,16 +218,28 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
           );
         } else if (ch === '\x7f') {
           if (state.line) {
-            replaceLine(state.line.slice(0, -1));
+            if (cursor > 0)
+              replaceLine(state.line.slice(0, cursor - 1) + state.line.slice(cursor), cursor - 1);
           }
         } else if (ch === '\x03') {
-          appendTerminalOutput(state, coloredTerminalInput(state.prompt, state.line) + '^C\r\n');
+          if (cursor !== state.line.length) replaceLine(state.line);
+          appendTerminalOutput(
+            state,
+            coloredTerminalInput(state.prompt, cli.displayInput(state.line)) + '^C\r\n'
+          );
+          cli.cancel();
           state.line = '';
+          cursor = 0;
+          state.cursor = 0;
           state.prompt = cli.prompt;
           write('^C\r\n' + coloredTerminalInput(state.prompt));
         } else if (ch >= ' ' && ch <= '~' && state.line.length < 512) {
-          state.line += ch;
-          write(coloredTerminalCommand(ch));
+          const atEnd = cursor === state.line.length;
+          state.line = state.line.slice(0, cursor) + ch + state.line.slice(cursor);
+          cursor++;
+          state.cursor = cursor;
+          if (!atEnd) redraw();
+          else if (!cli.secretInput) write(coloredTerminalCommand(ch));
         }
       }
     });
@@ -173,6 +253,7 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
     observer.observe(ref.current!);
     term.focus();
     return () => {
+      if (cli.secretInput) state.line = '';
       disposed = true;
       pending.length = 0;
       sub.dispose();

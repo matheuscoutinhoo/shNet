@@ -9,6 +9,7 @@ import { linksAt } from '../core/topology-index';
 import { receiveArp } from './arp';
 import { receiveIp } from './ipv4';
 import { receiveIp6 } from './ipv6';
+import { acceptsHsrpMac } from './hsrp';
 
 export const routingEnabled = (device: Device) =>
   device.type === 'router' || (device.type === 'switch' && device.ipRouting === true);
@@ -18,6 +19,7 @@ export const managementEnabled = (device: Device) =>
   device.interfaces.some((port) => port.logical?.kind === 'svi' && port.ip && port.prefix !== undefined);
 export const interfaceUp = (device: Device, port: NetworkInterface) =>
   port.adminUp &&
+  !port.errDisabled &&
   (!port.tunnel || (port.tunnel.enabled && port.tunnel.status === 'up')) &&
   (!port.vxlan || port.vxlan.enabled) &&
   (!port.logical?.parent || device.interfaces.some((p) => p.id === port.logical!.parent && p.adminUp));
@@ -63,6 +65,14 @@ export function createLogicalInterface(
     mode: 'routed',
     adminUp: true,
     dot1x: undefined,
+    authenticationControl:undefined,
+    udld:undefined,
+    bfd:undefined,
+    voiceVlan:undefined,
+    portSecurity:undefined,
+    stpGuard:undefined,
+    ospfAuthentication:undefined,
+    ospfSettings: undefined,
     supplicant: undefined,
     logical: { kind, vlan, ...(parentId ? { parent: parentId } : {}) },
     ipv6: undefined,
@@ -75,6 +85,22 @@ export function createLogicalInterface(
     dhcpRelay: undefined,
     vrf: undefined,
     spanningTree: undefined,
+    // Logical interfaces never inherit physical switchport/STP state from the seed port.
+    spanningInstances: undefined,
+    mstBoundary: undefined,
+    bpduGuard: undefined,
+    errDisabled: undefined,
+    bond: undefined,
+    installedNic: undefined,
+    capwapPeer: undefined,
+    meshPeer: undefined,
+    serial: undefined,
+    console: undefined,
+    dhcp6: undefined,
+    dhcp6Relay: undefined,
+    ingressQos: undefined,
+    hsrpVersion: undefined,
+    dhcpConflictDetection: undefined,
     stpEdge: undefined,
     stpCost: undefined,
     tunnel: undefined,
@@ -146,8 +172,14 @@ export function interfaceOperational(snapshot: Snapshot, device: Device, port: N
 export function receiveSvi(engine: SimulationEngine, device: Device, vlan: number, frame: Frame) {
   const port = device.interfaces.find((p) => p.logical?.kind === 'svi' && p.logical.vlan === vlan);
   if (!port || !sviOperational(engine.state, device, port)) return false;
-  const directed = frame.dst === port.mac;
-  if (!directed && frame.dst !== 'ff:ff:ff:ff:ff:ff' && !(frame.ipv6 && frame.dst.startsWith('33:33:')))
+  const directed = frame.dst === port.mac || acceptsHsrpMac(engine.state, device, port, frame.dst);
+  const hsrp = frame.packet?.protocol === 'UDP' && frame.packet.payload.protocol === 'HSRP';
+  if (
+    !directed &&
+    !hsrp &&
+    frame.dst !== 'ff:ff:ff:ff:ff:ff' &&
+    !(frame.ipv6 && frame.dst.startsWith('33:33:'))
+  )
     return false;
   port.rx++;
   if (frame.ipv6) receiveIp6(engine, device, port, frame);
@@ -195,6 +227,7 @@ export function validateLayer3(snapshot: Snapshot) {
           port.natRole ||
           device.ospf?.interfaces.some((p) => p.port === port.id) ||
           device.rip?.interfaces.some((p) => p.port === port.id) ||
+          device.hsrp?.groups.some((g) => g.port === port.id) ||
           device.vrrp?.groups.some((g) => g.port === port.id))
       )
         throw new Error('DHCP, NAT e protocolos de controle exigem a tabela padrão nesta versão.');
@@ -215,7 +248,11 @@ export function validateLayer3(snapshot: Snapshot) {
       if (keys.has(key)) throw new Error('Interface lógica duplicada na VLAN.');
       keys.add(key);
     }
-    for (const route of device.routes) requireVrf(device, route.vrf);
+    for (const route of device.routes) {
+      requireVrf(device, route.vrf);
+      if (route.port && !device.interfaces.some((p) => p.id === route.port && p.vrf === route.vrf))
+        throw new Error('Static route references an interface outside its VRF.');
+    }
     for (const connection of device.tcpConnections ?? []) requireVrf(device, connection.vrf);
     if (vrfs.length && device.nat?.enabled) throw new Error('NAT com VRF ainda não suportado.');
   }

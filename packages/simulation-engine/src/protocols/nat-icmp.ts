@@ -1,4 +1,5 @@
 import type { SimulationEngine } from '../core/engine';
+import { staticNatOutside,natPools } from './nat-selection';
 import type { Device, IcmpPacket, IcmpQuote, NatBinding, NetworkInterface } from '../model';
 import { ipNumber, sameSubnet } from './ipv4';
 
@@ -30,8 +31,10 @@ export function natIcmpInbound(
   packet: IcmpPacket
 ): IcmpPacket | undefined {
   const nat = device.nat!;
-  const fixed = nat.statics.find((entry) => entry.outside === port.id && entry.global === packet.dst);
-  const poolContains = nat.pools.some(
+  const fixed = nat.statics.find(
+    (entry) => staticNatOutside(entry.outside, port) && entry.global === packet.dst
+  );
+  const poolContains = natPools(device).some(
     (pool) =>
       pool.outside === port.id &&
       ipNumber(packet.dst) >= ipNumber(pool.start) &&
@@ -45,7 +48,7 @@ export function natIcmpInbound(
       (entry) =>
         entry.global === packet.dst &&
         entry.expiresAt > engine.state.clock &&
-        nat.pools.some((pool) => pool.name === entry.pool && pool.outside === port.id) &&
+        natPools(device).some((pool) => pool.name === entry.pool && pool.outside === port.id) &&
         matches(entry, quote, 'src')
     );
   const local =
@@ -115,7 +118,7 @@ export function natIcmpOutbound(
   const nat = device.nat!;
   const quote = packet.error?.quote;
   const sourceRequiresNat =
-    nat.statics.some((entry) => entry.outside === port.id && entry.inside === packet.src) ||
+    nat.statics.some((entry) => staticNatOutside(entry.outside, port) && entry.inside === packet.src) ||
     nat.pools.some(
       (pool) => pool.outside === port.id && sameSubnet(pool.source.network, packet.src, pool.source.prefix)
     );
@@ -123,7 +126,8 @@ export function natIcmpOutbound(
     engine.drop(device, 'NAT recusou erro ICMP sem cabeçalho citado.', port.id);
     return;
   }
-  const fixed = quote && nat.statics.find((entry) => entry.outside === port.id && entry.inside === quote.dst);
+  const fixed =
+    quote && nat.statics.find((entry) => staticNatOutside(entry.outside, port) && entry.inside === quote.dst);
   const pools = nat.pools.filter(
     (pool) =>
       pool.outside === port.id && quote && sameSubnet(pool.source.network, quote.dst, pool.source.prefix)
@@ -150,7 +154,7 @@ export function natIcmpOutbound(
   }
   const translated = remap(quote, 'dst', fixed?.global ?? binding!.global, binding?.globalToken);
   const sourceMapping =
-    nat.statics.find((entry) => entry.outside === port.id && entry.inside === packet.src) ??
+    nat.statics.find((entry) => staticNatOutside(entry.outside, port) && entry.inside === packet.src) ??
     nat.bindings.find(
       (entry) =>
         entry.inside === packet.src &&

@@ -2,6 +2,7 @@ import { ospfAuthenticator, ospfAreaType } from './ospf-security';
 import type { SimulationEngine } from '../core/engine';
 import { LIMITS, type Device, type NetworkInterface } from '../model';
 import { OSPF, lsaKey, type OspfLsa, type OspfMessage, type OspfNeighbor } from './ospf-model';
+import { ospfHeaderWire } from '../wire/ospf-codec';
 
 export function ospfBytes(message: OspfMessage) {
   if (message.type === 'hello') return 64 + message.neighbors.length * 4;
@@ -15,7 +16,9 @@ export function ospfBytes(message: OspfMessage) {
       ? 4 + 12 * (lsa.links.length + lsa.prefixes.length)
       : lsa.type === 'network'
         ? 4 + lsa.routers.length * 4
-        : 8)
+        : lsa.type === 'external' || lsa.type === 'nssa'
+          ? 16
+          : 8)
   );
 }
 export function sendOspf(
@@ -28,18 +31,27 @@ export function sendOspf(
   const config = device.ospf?.interfaces.find((entry) => entry.port === port.id);
   if (!device.ospf?.enabled || !device.power || !config || config.passive || !port.adminUp || !port.ip)
     return;
+  if (config.authenticationMode === 'md5' && !config.authenticationKey) return;
   const packet: import('./ospf-model').OspfPacket = {
     protocol: 'OSPF' as const,
     src: port.ip,
     dst: neighbor?.ip ?? OSPF.destination,
     routerId: device.ospf.routerId,
     area: config.area,
+    sentAt: engine.state.clock,
     ttl: 1 as const,
     message,
-    bytes: ospfBytes(message) + (config.authenticationKey ? 40 : 0),
+    bytes:
+      ospfBytes(message) + (config.authenticationKey ? (config.authenticationMode === 'md5' ? 16 : 40) : 0),
   };
   if (config.authenticationKey) {
-    packet.authentication = { sequence: ++engine.state.sequence, digest: '00'.repeat(32) };
+    packet.authentication = {
+      sequence: ++engine.state.sequence,
+      digest: '00'.repeat(config.authenticationMode === 'md5' ? 16 : 32),
+      ...(config.authenticationMode === 'md5'
+        ? { algorithm: 'md5' as const, keyId: config.authenticationKeyId ?? 1 }
+        : {}),
+    };
     packet.authentication.digest = ospfAuthenticator(packet, config.authenticationKey);
   }
   const frame = {
@@ -86,7 +98,11 @@ export function sendOspfDatabase(
   const port = device.interfaces.find((entry) => entry.id === neighbor.port)!;
   neighbor.description ??= device
     .ospf!.lsdb.filter((lsa) => lsa.area === neighbor.area)
-    .map((lsa) => ({ key: lsaKey(lsa), sequence: lsa.sequence }));
+    .map((lsa) => ({
+      key: lsaKey(lsa),
+      sequence: lsa.sequence,
+      wire: ospfHeaderWire(lsa, engine.state.clock),
+    }));
   const headers = neighbor.description;
   const pages = Math.max(1, Math.ceil(headers.length / 16));
   for (let page = 0; page < pages; page++)
@@ -125,7 +141,7 @@ export function sendOspfUpdate(
 ) {
   const key = lsaKey(lsa);
   neighbor.pending = neighbor.pending.filter((entry) => entry.key !== key);
-  neighbor.pending.push({ key, sequence: lsa.sequence });
+  neighbor.pending.push({ key, sequence: lsa.sequence, wire: ospfHeaderWire(lsa, engine.state.clock) });
   sendOspf(
     engine,
     device,

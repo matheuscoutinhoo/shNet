@@ -1,0 +1,7 @@
+{
+  "runs": [
+    {"log":"browser-full.log","status":"interrupted","reason":"Source edits triggered development hot reloads during the run. These results are not release verification."},
+    {"log":"browser-frozen.log","status":"interrupted","reason":"Stopped before the recursive routing fix. These results are not release verification."},
+    {"log":"full-regression.log","status":"interrupted","reason":"Stopped to bound and prioritize recursive static-route lookup. No completed aggregate report was produced."}
+  ]
+}

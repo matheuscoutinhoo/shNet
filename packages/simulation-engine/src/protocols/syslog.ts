@@ -8,7 +8,7 @@ import { SYSLOG, syslogClientSchema, syslogMessageSchema, type SyslogMessage } f
 import { encodeSyslog } from '../wire/syslog-codec';
 
 export function configureSyslog(engine: SimulationEngine, device: Device, input: unknown) {
-  if (!managementEnabled(device)) throw new Error('Configure uma SVI IPv4 para gerenciar o switch L2.');
+  // IOS stores "logging host" before any management address exists; sending starts once one does.
   const config = syslogClientSchema.parse(input);
   if (!isUnicast(config.server)) throw new Error('Coletor syslog deve ser unicast.');
   config.sourcePort ??= device.syslogClient?.sourcePort ?? 49152 + (engine.state.sequence % 16384);
@@ -77,6 +77,7 @@ export function sendSyslog(
 }
 export function forwardSyslogEvent(engine: SimulationEngine, device: Device, event: NetworkEvent) {
   if (!device.syslogClient?.enabled || !device.syslogClient.automatic || !device.power) return;
+  if (!managementEnabled(device)) return;
   const severity =
     event.type === 'LINK_DOWN'
       ? 4
