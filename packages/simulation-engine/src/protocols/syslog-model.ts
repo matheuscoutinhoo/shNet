@@ -28,8 +28,9 @@ export const syslogClientSchema = z
 export const syslogEntrySchema = z
   .object({ receivedAt: timeSchema, source: ipv4Schema, message: syslogMessageSchema })
   .strict();
+export const SYSLOG = { port: 514, entries: 2000, pending: 64 } as const;
 export const syslogServerSchema = z
-  .object({ enabled: z.boolean(), entries: z.array(syslogEntrySchema).max(500).default([]) })
+  .object({ enabled: z.boolean(), entries: z.array(syslogEntrySchema).max(SYSLOG.entries).default([]) })
   .strict();
 export const syslogSendSchema = z
   .object({
@@ -40,4 +41,3 @@ export const syslogSendSchema = z
   })
   .strict();
 export type SyslogMessage = z.infer<typeof syslogMessageSchema>;
-export const SYSLOG = { port: 514, entries: 500, pending: 64 } as const;

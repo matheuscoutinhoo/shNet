@@ -18,7 +18,28 @@ import {
 } from './terminalState';
 import '@xterm/xterm/css/xterm.css';
 import { coloredTerminalCommand, coloredTerminalInput, coloredTerminalOutput } from './terminalColors';
-export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: string }) {
+import { getLocale, tr } from '../i18n';
+/** Output in the interface language; IOS error lines keep their "% " prefix. */
+function localized(text: string) {
+  if (getLocale() !== 'en') return text;
+  return text
+    .split('\n')
+    .map((line) => {
+      const error = /^(\s*%\s?)(.+)$/.exec(line);
+      return error ? error[1] + tr(error[2]) : tr(line);
+    })
+    .join('\n');
+}
+export function Terminal({
+  lab,
+  deviceId,
+  compact = false,
+}: {
+  lab: LabController;
+  deviceId: string;
+  /** Terminal only, without heading, guide and shortcuts (terminal dock). */
+  compact?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null),
     stateRef = useRef<DeviceTerminalState | null>(null),
     labRef = useRef(lab),
@@ -103,7 +124,7 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       drain();
     };
     const result = (text: string) => {
-      const output = coloredTerminalOutput(text) + '\r\n';
+      const output = coloredTerminalOutput(localized(text)) + '\r\n';
       appendTerminalOutput(state, output);
       state.prompt = cli.prompt;
       redraw(output);
@@ -116,8 +137,11 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
           cli.identity.family +
           ' · ' +
           cli.identity.name +
-          ' · Terminal simulado\x1b[0m\r\n' +
-          'Digite help para ver os comandos disponíveis.\r\n\r\n'
+          ' · ' +
+          tr('Terminal simulado') +
+          '\x1b[0m\r\n' +
+          tr('Digite help para ver os comandos disponíveis.') +
+          '\r\n\r\n'
       );
       state.initialized = true;
     }
@@ -133,6 +157,51 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
       redraw();
     };
     if (cursor < state.line.length) redraw();
+    /** Runs one line already shown after the prompt; returns whether it changed the lab. */
+    const submit = (input: string, undoStep: boolean) => {
+      appendTerminalOutput(state, coloredTerminalInput(state.prompt, cli.displayInput(input)) + '\r\n');
+      // Password and reload-dialog answers have no command mark, so they use a full checkpoint.
+      const dialog = cli.secretInput || !!cli.context.confirm;
+      const output = labRef.current.change(() => cli.execute(input), dialog, true, true);
+      const changed = !!cli.lastMark;
+      if (undoStep && cli.lastMark) labRef.current.remember(cli.lastMark);
+      const shown = output && localized(output);
+      if (shown) appendTerminalOutput(state, coloredTerminalOutput(shown) + '\r\n');
+      if (output?.startsWith('DNS [')) {
+        const query = labRef.current.engine.device(deviceId).dnsQueries?.at(-1);
+        if (query && query.status !== 'pending' && output.includes(query.id)) state.seen.add(query.id);
+      }
+      state.historyIndex = cli.history.length;
+      state.prompt = cli.prompt;
+      write(
+        '\r\n' + (shown ? coloredTerminalOutput(shown) + '\r\n' : '') + coloredTerminalInput(state.prompt)
+      );
+      return changed;
+    };
+    // Pasted configuration runs in short slices so the page keeps painting, and counts as one undo step.
+    const batch: string[] = [];
+    let running = false;
+    const runBatch = () => {
+      if (running) return;
+      running = true;
+      let undoStep = true;
+      const slice = () => {
+        if (disposed) return;
+        const started = performance.now();
+        while (batch.length && performance.now() - started < 30) {
+          const line = batch.shift()!;
+          write(coloredTerminalCommand(cli.displayInput(line)));
+          if (submit(line, undoStep)) undoStep = false;
+        }
+        if (batch.length) {
+          setTimeout(slice, 0);
+          return;
+        }
+        running = false;
+        if (state.line) replaceLine(state.line);
+      };
+      slice();
+    };
     const sub = term.onData((data) => {
       if (data === '\x1b[A') {
         if (cli.secretInput) return;
@@ -152,7 +221,7 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
         return;
       }
       if (data === '?' && !cli.secretInput) {
-        write('\r\n' + cli.help(state.line) + '\r\n' + coloredTerminalInput(cli.prompt, state.line));
+        write('\r\n' + localized(cli.help(state.line)) + '\r\n' + coloredTerminalInput(cli.prompt, state.line));
         return;
       }
       if (data === '\x1a') {
@@ -195,33 +264,44 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
         return;
       }
       if (data.startsWith('\x1b')) return;
+      // A pasted block arrives as one chunk with line breaks; a typed Enter arrives alone.
+      const pasted = /[\r\n]/.test(data) && data.length > 1;
+      if (pasted && !batch.length && !running && state.line) {
+        // The typed prefix is replayed together with the pasted lines.
+        const prefix = state.line;
+        replaceLine('');
+        state.line = prefix;
+        cursor = prefix.length;
+        state.cursor = cursor;
+      }
+      let previous = '';
       for (const ch of data) {
+        if (ch === '\n' && previous === '\r') {
+          previous = ch;
+          continue;
+        }
+        previous = ch;
         if (ch === '\r' || ch === '\n') {
           const input = state.line;
+          if (pasted || running || batch.length) {
+            batch.push(input);
+            state.line = '';
+            cursor = 0;
+            state.cursor = 0;
+            continue;
+          }
           if (cursor !== input.length) replaceLine(input);
-          appendTerminalOutput(state, coloredTerminalInput(state.prompt, cli.displayInput(input)) + '\r\n');
           state.line = '';
           cursor = 0;
           state.cursor = 0;
-          const output = labRef.current.change(() => cli.execute(input), !cli.readOnly(input), true, true);
-          if (output) appendTerminalOutput(state, coloredTerminalOutput(output) + '\r\n');
-          if (output?.startsWith('DNS [')) {
-            const query = labRef.current.engine.device(deviceId).dnsQueries?.at(-1);
-            if (query && query.status !== 'pending' && output.includes(query.id)) state.seen.add(query.id);
-          }
-          state.historyIndex = cli.history.length;
-          state.prompt = cli.prompt;
-          write(
-            '\r\n' +
-              (output ? coloredTerminalOutput(output) + '\r\n' : '') +
-              coloredTerminalInput(state.prompt)
-          );
+          submit(input, true);
         } else if (ch === '\x7f') {
           if (state.line) {
             if (cursor > 0)
               replaceLine(state.line.slice(0, cursor - 1) + state.line.slice(cursor), cursor - 1);
           }
         } else if (ch === '\x03') {
+          batch.length = 0;
           if (cursor !== state.line.length) replaceLine(state.line);
           appendTerminalOutput(
             state,
@@ -238,12 +318,15 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
           state.line = state.line.slice(0, cursor) + ch + state.line.slice(cursor);
           cursor++;
           state.cursor = cursor;
+          if (pasted || running) continue;
           if (!atEnd) redraw();
           else if (!cli.secretInput) write(coloredTerminalCommand(ch));
         }
       }
+      if (batch.length) runBatch();
     });
-    const observer = new ResizeObserver(() => {
+    // A popped-out terminal lives in another window; observe it with that window's observer.
+    const observer = new (ref.current!.ownerDocument.defaultView ?? window).ResizeObserver(() => {
       try {
         fit.fit();
       } catch {
@@ -300,6 +383,14 @@ export function Terminal({ lab, deviceId }: { lab: LabController; deviceId: stri
   }, [lab.tick, lab.engine, deviceId]);
   const device = lab.engine.device(deviceId),
     identity = terminalIdentity(device);
+  if (compact)
+    return (
+      <div className="terminal-shell compact">
+        <div className="terminal-frame">
+          <div className="terminal-host" ref={ref} aria-label={'Terminal de ' + identity.name} />
+        </div>
+      </div>
+    );
   return (
     <div className="terminal-shell">
       <div className="terminal-heading">

@@ -1,3 +1,4 @@
+import { ConfigChangesPanel } from './ConfigChangesPanel';
 import {
   deviceCapabilities,
   inspectorTabIds,
@@ -352,6 +353,7 @@ export function Inspector({
             <Suspense fallback={<p className="muted">Carregando terminal…</p>}>
               <Terminal lab={lab} deviceId={device.id} />
             </Suspense>
+            <ConfigChangesPanel lab={lab} device={device} />
           </>
         )}
         {activeTab === 'tables' && (

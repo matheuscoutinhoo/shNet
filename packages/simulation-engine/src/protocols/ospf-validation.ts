@@ -4,6 +4,7 @@ import { ipNumber, subnet } from './ipv4';
 import { lsaKey, type OspfLsa } from './ospf-model';
 import { bestOspfRoutes, ospfSpf } from './ospf-spf';
 import { ospfBytes } from './ospf-wire';
+import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
 
 function unique(values: (string | number)[]) {
   if (new Set(values).size !== values.length) throw new Error('Referência OSPF duplicada.');
@@ -35,7 +36,7 @@ export function validateOspfLsa(lsa: OspfLsa, clock: number) {
 export function validateOspf(snapshot: Snapshot) {
   for (const device of snapshot.devices) {
     const state = device.ospf;
-    if (!state) continue;
+    if (!state || !checkDevice(device.id)) continue;
     if (
       !['router', 'switch'].includes(device.type) ||
       (!ipNumber(state.routerId) && !(state.autoRouterId && !state.enabled)) ||
@@ -53,9 +54,7 @@ export function validateOspf(snapshot: Snapshot) {
       )
     )
       throw new Error('Interface OSPF inexistente.');
-    const timers = snapshot.queue.filter(
-      ({ action }) => action.kind === 'ospf-tick' && action.device === device.id
-    );
+    const timers = deviceTimers(snapshot, device.id, 'ospf-tick');
     if (
       timers.length !== Number(state.enabled) ||
       (state.enabled &&
@@ -105,10 +104,7 @@ export function validateOspf(snapshot: Snapshot) {
       throw new Error('Rotas OSPF não correspondem à LSDB local.');
   }
   for (const { action } of snapshot.queue) {
-    if (
-      action.kind === 'ospf-tick' &&
-      !snapshot.devices.some((device) => device.id === action.device && device.ospf?.enabled)
-    )
+    if (action.kind === 'ospf-tick' && !validatedDevice(snapshot, action.device)?.ospf?.enabled)
       throw new Error('Timer OSPF sem processo.');
     const packet = action.kind === 'deliver' ? action.frame.packet : undefined;
     if (packet?.protocol === 'OSPF') {

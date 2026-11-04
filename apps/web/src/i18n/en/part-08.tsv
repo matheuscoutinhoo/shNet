@@ -1,0 +1,423 @@
+ct90j7y5	VRRP groups
+g6ic38li	Group / VIP
+e5ssdevw	Active / timer
+rh5t751q	Edit VRID {0}
+027222r9	Remove VRID {0}
+anh395j7	No timer
+rwrir8jz	No groups configured.
+s7vimfh9	Tracking: interface NAME DECREMENT, route IPv4 DECREMENT, or service TYPE DECREMENT.
+fzcei72u	Tracking interface not found.
+3ui5jq7i	Service: use TYPE or http:PORT.
+q5csjll4	Add group
+0bbsrx3x	VRRP advertisement interval (ms)
+ahpb772f	Preempt (take over with higher priority)
+1im2ink3	One line per object: interface NAME DECREMENT, route IPv4 DECREMENT, or service TYPE DECREMENT. Use service http:8080 80 for a specific HTTP port. Services: dns, http, ntp, syslog, mqtt, modbus, dhcp, database, radius, and proxy. The check observes whether the local service is enabled; it does not measure the health of its data or dependencies. Recovery allows preemption.
+rwn5encm	Accept mode: serve local services on the virtual IP
+qhpb5khf	VIP must be in the interface subnet. Priority 255 only when VIP = physical IPv4.
+9626hstm	Apply VRRP group
+arjln74x	VXLAN encapsulates Ethernet over UDP/4789. Local VLANs map to a common VNI; ARP, IPv4, and IPv6 traverse the configured underlay. EVPN advertises MAC/IP through the simulated BGP and imports only the matching route target.
+h1s2gzm5	Configure the WAN as routed with IPv4 and return routes. For EVPN, enable routing on the switch and configure neighbors on the BGP tab. peerPolicy static uses peers and data-plane learning; peerPolicy evpn requires IMET members imported by RT for traffic and flooding. A /32 loopback decouples the VTEP from the egress interface. The proxyArp option answers locally only for valid EVPN MAC/IP bindings with an IMET member and an underlay path. Probes, gratuitous ARP, and unknown addresses still traverse the network; proxy ARP does not prove that the VM is alive.
+cqocbnd6	enabled
+uvkj6hj7	disabled
+cwabtl28	· control-plane MACs
+nqawd8mi	New VNI
+88qi4gkw	VNI JSON configuration
+szn06i7u	Apply VNI
+cxoeg2pr	MAC/IP received via EVPN
+wydw4ip1	The model is limited to local MAC/IP advertisements, RT-based import, and sequence-based mobility. There is no multihoming/ESI, DF election, Type 5 routes, proxy ARP, or binary MP-BGP codec. IMET provides dynamic members for ingress replication in the model.
+z3a40dmk	The SSID is the network name; security defines how access is authenticated. Client and AP need compatible settings. For enterprise authentication, configure the EAP roles and certificate trust in the dedicated panel. The exchanges and protection are lab models, not fully compatible with real devices. Distance uses 4 pixels per meter on the canvas.
+su0mpnxl	Use a physical position independent of the diagram
+aktvmtd4	Physical X (meters)
+payifj0y	Physical Y (meters)
+tvlutcp6	Set both radios in meters so that moving the icons does not change the RF distance. Without these positions, the teaching scale of four units per meter still applies.
+c94eooec	Apply physical position
+3zb9itx8	Physical factory obstacles
+paguifql	Segments in meters with a material and configurable loss in dB. Loss adds up across the segments crossed. Approximate 2D model, with no reflection or diffraction.
+wq8hyirq	Obstacles
+8on52rn9	[{"name":"Wall","material":"metal","a":{"x":5,"y":-5},"b":{"x":5,"y":5},"lossDb":15}]
+y0eycodi	Apply obstacles
+pwrdarql	Access point / bridge
+ps9bow3k	Wireless client
+ey6ce50n	Radio enabled
+c6ebx0ob	Wireless security
+hy7w322d	Open
+tni7sp75	WPA2-PSK (conceptual)
+6sfxp0x2	WPA3-SAE (conceptual)
+5ukuquwc	SSID key
+c7ohl20l	Wireless band
+vvgudfsh	Wireless channel
+emo01v25	Transmit power (dBm)
+bpocco99	The obstruction affects this radio's links. Materials use approximate losses and are not walls drawn on the canvas. Interference comes from the other radios and their positions, bands, and channels. No interference or loss value is set here.
+0pa90l7t	Apply wireless settings
+9jp1v1vk	Radio status
+ic25ars7	not configured
+ox1h7eck	No client association
+amujdtwg	Address Wlan0 on the Ports tab, or use DHCP on that interface. On the AP, the access VLAN on Wlan0 maps the SSID to the bridge VLAN. The client uses the selected channel; change it together with the AP.
+8r9dixi7	Links and signal
+n1q1wfh3	dB · interference
+tguygyht	radio in range
+vp3rah5k	out of range/channel mismatch
+7en7kkn1	Clients (
+2tx4rnni	Invalid engine module graph.
+jeeggo9y	Could not load the scenario run engine. Reload and try again.
+0390yfra	Back to labs
+0sjcuo0v	Private lab
+6wv5t11l	Save
+07wp3y79	Lab tasks
+c6uapywz	Help
+bnmfa6ox	Device catalog
+m151dppj	Show catalog
+11zxzth4	Undo (Ctrl+Z)
+sog00yir	Undo
+lkw15gdx	Redo (Ctrl+Shift+Z)
+ksurt5s8	Redo
+zawa2pqc	Duplicate (Ctrl+D)
+j5rrpv4d	Delete selection
+2949lrrd	Align horizontally
+r9g5h7em	Simulation mode
+4w1dwt2z	Event by event
+kpxqqcwc	Real time
+nfru691f	Pause
+cjihrw0j	Run
+7xd6sqyi	Pause simulation
+51ikcu21	Run simulation
+0s2kel5e	queued
+6mcz7rli	Lag relative to the requested virtual time
+xcjooigl	events/s · lag
+6wcl6eou	Loading engine…
+613cch0t	Send ping
+t5p05vi2	Tutorial
+em7577iy	Lab options
+kyw1sxvh	Arrange topology
+105ba6il	Creates one group per hostname prefix (e.g., HQ-CORE-1 → site HQ)
+7xqx6gg3	Group by site
+70tajm48	Collapse all groups
+cg34kse4	Expand all groups
+80bc3hrv	Tabbed terminals
+bk2s5b72	Validate network and scenarios
+1cyyk5ir	Export PCAP capture
+nomeqhk9	Export topology
+8qd8n66x	Import topology
+m87e0k9z	Snapshots
+g7w1ygxp	Pattern
+ths9ml8f	Grid
+7clwuie4	Fine grid
+qdtm93o7	No pattern
+qvz0z5pt	Snap to grid
+2yhyz91b	New note
+x120j6h2	Add note
+ev8c1fmx	Region
+u9hjpqx6	Add region
+c6z359b0	Group selection
+v4aopn8x	Ungroup
+71nim36s	Draw freehand
+ug1n18t3	Add anchored comment
+hlgns1xv	Show ports
+9sr6myr1	Loading panel…
+gdthd3ap	Preparing clone…
+8gpdr6kf	The load exceeds the requested speed. The virtual clock is falling behind; reduce the speed to keep up with the simulation.
+sxshldoa	Reduce speed
+if3meby6	Dismiss error
+cdj9cd5h	CONNECTIONS
+4rsdf7mz	Network cable
+yw5lzuwz	Copper or fiber optic
+c0fyh2sp	Configuration and traffic
+yx5997vm	Use the terminal to configure devices and check the simulation events.
+spfd8y2o	Quick guide
+21goy9tr	Local simulation
+cm5oxaxw	Find device
+p6k4mmjl	Find device…
+0ic4cp0o	Search results
+cy9hituu	{0} device(s). Select one to center it; Enter centers the first.
+l0gihvcn	No device found by name, IP, or MAC.
+nsdyc1hf	Locate {0}
+kug1vnrp	No IPv4 configured
+e351ycgz	All VLANs
+deo5cybo	Topology view
+zgwj2446	Packet in transit
+b1000i8c	Reply in {0} ms
+ti53nk4v	Loading inspector…
+i4pxshjp	Click to inspect
+5jhazczp	Right-click for actions
+w42r5rbe	Drag to move
+nrdibic5	Shift to select
+4x0za4w5	Ctrl+S to save
+49hqym6c	Network engine
+l23e1ki5	File exceeds 16 MB
+p2w3vaba	Send ICMP packet
+gm5naa3t	The engine resolves ARP, looks up routes, and tracks the reply. In simulation mode, use Run or Next event.
+ezuie5tc	Source device
+ibq8tjfq	no IP
+xqjjptyx	Destination IPv4 or hostname
+ilw953al	IPv4 size and fragmentation
+odf0poq4	IPv4 packet size
+zl8ppmai	DF: prevent fragmentation
+7t04q4lb	Packets larger than the MTU are fragmented. DF triggers ICMP Fragmentation Needed.
+qzt2k7sw	Rename device
+5k0fgflm	Device name
+nsvplgi4	Use up to 32 characters: unaccented letters, digits, hyphens, or underscores. Start with a letter or digit.
+smlatfyh	Save name
+bwi9b663	Lab tips
+ep4tqcl6	Review the concepts and see how they work in the topology. In free mode, all topics are available.
+m0zzfq7w	Build a LAN.
+hax405zz	Add two computers and a switch. Connect each host's Eth0 to a different switch port.
+9jqkr9fn	In Ports, use 192.168.10.10/24 and 192.168.10.20/24. On the same subnet, the gateway is optional.
+kcljkrbm	Send a ping.
+ni0g93zl	Choose the source and destination; click Run or step through one event at a time.
+mw2bvubd	Watch the decisions.
+ma6ibv1m	Click the ARP events, check the MAC table, and open the frame inspector.
+50m739f3	Trigger a failure.
+l1624pe1	Shut down an interface and send another ping. Fix the configuration and test again.
+cxr4uwjl	Shortcuts: Ctrl+S save · Ctrl+Z undo · Ctrl+Shift+Z redo · Ctrl+C/V copy/paste · Ctrl+D duplicate · Delete remove. Duplicating removes IPs to avoid conflicts.
+yiutsxer	Lab snapshots
+pmoppyz1	Save a complete state: configurations, tables, clock, and pending events.
+h7qsslnc	Snapshot name
+hce6wwz5	Before configuring the VLANs
+rt7u8rvw	Create snapshot
+wxyvqbjm	No snapshots saved yet.
+fx7w3sg6	{0} The evaluation generates new traffic on a copy: earlier results cannot complete tasks. Check the protocol panel, the CLI, and the timeline to find the cause.
+c2ayl5x3	Restore the routing protocol exchange
+vih7oe3n	Deliver HTTP over learned routes
+se21ury0	Install dynamic routes to remote networks
+ujtf2qwn	Enable routing on the L3 switch
+urue911v	Deliver HTTP between VLANs
+3jwx9dip	Resolve VLAN interface gateways
+zc4o2bw3	Deliver HTTP within VRF BLUE
+bar5ysko	Deliver HTTP within VRF RED
+9feo0r6o	Receive the specific reply from each table
+nnz2ne6x	Negotiate two LACP members
+engy3wnd	Deliver HTTP over the aggregated link
+wmpyki8w	Deliver a new HTTP request with only one member
+boiiurse	Deliver HTTP through the virtual gateway
+a1r0dj63	Lower the priority and elect the backup while the primary stays powered on
+9lc7wo6c	Deliver HTTP after an uplink failure
+ln2g82vk	Obtain a global address via RA/SLAAC
+736s8kak	Deliver ICMPv6 ping between subnets
+x68iqyg9	Resolve the next hop via NDP
+hvwrqr5d	Complete authentication and association
+ow95s29k	Deliver HTTP over the radio link
+84lkzh9r	Transmit protected frames over the radio
+mfchwnl1	Establish the tunnel peers
+yvr88kdz	Deliver HTTP encapsulated over the underlay
+yt8aknv0	Receive the controller policy and select a transport
+03l3zg3g	Deliver a new HTTP request over the remaining transport
+jin5anvm	Observe the model's encrypted transport
+m4o1w9f7	Deliver HTTP through the queue
+y2jd0aok	Classify/enqueue and serve new frames
+dk4ue9ca	Mark DSCP 46 on transmitted traffic
+higof9d4	Deliver HTTP between the LERs
+h3m87jtx	Swap the label in the intermediate LFIB
+zdqrvqje	Pop the label at egress
+f8t13fre	Deliver HTTP over the VNI
+uyhjypl2	Learn remote MAC/IP via BGP/EVPN
+ecavy2mn	Carry frames in UDP/4789
+lwvhkatq	Receive a real RADIUS authorization
+svjmklk4	Open the port and assign VLAN 20
+v3agwcq2	Deliver HTTP after authorization
+bqjscdr9	Deliver HTTP with an allowed Host
+jvszvk6t	Deny HTTP based on Host content while keeping the service reachable
+z3lt244b	Enable application inspection
+l7o9oxk2	Run candidate/validate/commit over the network
+nixy7e1n	evaluation
+nwiat7qu	Synchronize offset and stratum via NTP
+ihxtc4wy	Collect sensor data over the network
+dh4150of	Preserve HTTP after the commit
+a9h6n5ha	Limit of 100 annotations/regions.
+resarcrj	Select at least two devices.
+be9y56n5	Ungroup the devices before grouping them again.
+vdsr777p	A drawing requires 2 to 512 points.
+r38fv9gb	Drawing
+76ppajpc	Duplicate canvas object ID.
+jffp1zs3	An annotation cannot have members.
+ooc5nzxx	Only groups can be collapsed.
+3t95zmcs	Points are incompatible with the drawing.
+t7us15c3	A comment requires an existing anchor.
+ia6p1o92	Invalid or duplicate group member.
+dzeon3ay	Advertisements between autonomous systems
+uzacrann	Re-enable BGP on the first router. Validate the session, learned route, and HTTP.
+2np3emg6	OSPF adjacency and path
+p0ccmb1v	Re-enable OSPF on the last router and validate adjacency, route, and HTTP.
+v0uhr00l	The route must be advertised
+j6d7mxbx	Re-enable RIP on the last router; validate advertisement, table, and traffic.
+9rfrtnhp	The switch is the gateway
+jt5gvssr	Enable ip routing on SW-L3 and validate HTTP between VLANs.
+jg34huo7	Two destinations with the same IP
+qd7nb7u9	Re-enable Gi0/1 on R-VRF. Query HTTP in BLUE and RED while keeping the responses isolated.
+5v2r7fcn	Link aggregation must negotiate
+04sgiw77	SW-A was set to passive, like SW-B. Configure active and validate HTTP after a member fails.
+az6lcyqk	Election with an uplink failure
+ily3a7bw	Restore the PC's 192.168.10.1 gateway. Validate the priority decrement and HTTP after the primary's uplink fails.
+qydrqnk7	The advertisement creates the address
+5g3w58jm	Enable SLAAC on PC-V6-A. Validate RA, address, NDP, and ping between subnets.
+jmqww33a	The credential unlocks the radio
+0258f7cz	Correct the NOTEBOOK key to Wireless-123; validate association and HTTP over the radio.
+jvc954x4	A tunnel needs two peers
+20gljjev	Correct the WAN-A tunnel key to Tunnel-Key-123. Validate negotiation and encapsulated HTTP.
+0lvq7hdh	Distributed policy and measured path
+99vrbv0l	Re-enable the WAN-CONTROLLER controller. Validate the received policy, SLA-based selection, and HTTP after the first transport fails.
+fsh4o9f8	Traffic enters the queue
+fyedddpt	Re-enable QoS on Gi0/2 of QOS-EDGE. Validate DSCP marking and transmission through the queue.
+tm21arhr	The LFIB forwards the label
+e5cqq11u	Re-enable MPLS on the intermediate router. Validate swap/pop and HTTP between LANs.
+cag1xebo	Route targets must match
+w2jlks10	Correct the VTEP-A route target to 65000:10010. Validate the MAC/IP advertisement and HTTP over the VNI.
+cpe9ekld	Authorization before traffic
+yyl0q4cl	Correct the PC-8021X supplicant password to rede123. Validate RADIUS, VLAN 20, and HTTP.
+yycki77y	The rule knows the application
+5qk5khsg	Re-enable application inspection at the edge. Allow allowed.lab and block blocked.lab by HTTP Host.
+jqwcqzha	From candidate to commit
+legjfiao	Re-enable NETCONF/RESTCONF on R-EDGE-01. The evaluation runs edit-config, validate, and commit, and checks NTP and telemetry.
+lnae9vpt	First LAN
+eqxyjz8v	Connect two PCs through a switch, configure IPv4, and validate communication.
+onj78zso	Reconnect the subnets
+n5yoo1u4	Troubleshoot the unavailable link and restore end-to-end communication.
+hoxws13d	Leases in action
+riv9cwou	Configure the clients to obtain an address via DHCP and validate the leases.
+dlbaayq6	End-to-end VLAN 20
+iz7n29ef	Create VLAN 20 on the switches, configure access/trunk, and maintain connectivity.
+5sorhu1u	Translation at the edge
+ypk6zwxi	Implement NAT and permit ICMP while blocking DNS queries with an ACL.
+blo1lmxb	Resilient path
+zw3z1c17	Maintain communication after an uplink goes down without forming an Ethernet loop.
+yosotjfb	SQL database with consensus and failures
+94butu56	Three databases, an HTTP/TCP client, election, and majority-confirmed responses.
+272s5saf	Services / Consistency
+qsv7zikp	Quorum, election, and replicated data
+ocs1bljy	Three full replicas, majority writes, partitions, and the return of the old leader.
+pgprviu5	Availability / Consistency
+lar9sjn1	Enterprise with access, WAN, and DC A/B
+xvt8eeic	Five VLANs, bonds, A/B power, redundant WAN/DC gateways, VIPs, and DHCP/firewall replicas.
+zpkvqdjm	Enterprise / Integrated availability
+27bojaaw	Factory with access, WAN, and DC A/B
+fgrnfmqk	Eight VLANs, three PLC/HMI/SCADA cells, redundant gateways, and failures with IP/Modbus traffic.
+dujilsa8	Industrial / Integrated availability
+eop0vi1w	DHCP with replica and server switchover
+98ui4zxk	Five devices, replicated leases, a dedicated channel, and promotion after powering off the former active server.
+88iskucm	Availability / DHCP
+cxiuehtu	PLC, HMI, SCADA, and MES process
+wlnutlha	Ten devices, a tank process, cycles and alarms, Modbus loads, and A/B access/power.
+ms29xn6p	Industrial / Process and availability
+9wvrsb5w	Services with VIP and redundant access and power
+94ykwvtf	Nine devices, DNS/HTTP on two instances, service tracking, bonds, and A/B UPS.
+4atpxw02	Availability / Services
+gja4bt0p	PLC/HMI with A/B access and power feed
+90sgli2o	Eight devices, active/backup NICs, ARP monitor, two access switches/racks, and A/B UPS.
+drotrvjp	Availability / Modbus TCP
+ebbs0u2f	Enterprise campus and data center fabric
+7813vrs5	38 devices, five VLANs, VRRP/RSTP/LACP, EAP-TLS, three leaves/two spines, tenants, and loopback/IMET VTEPs.
+g46g0w43	Segmented factory and IP redundancy
+rje7cdal	43 devices, eight VLANs, VRRP, redundant DHCP, Modbus PLC, and failure scenarios.
+8zc07jg6	Industrial / Availability
+m0pvx1jb	Campus with enterprise authentication
+n6vlmml8	EAP-TLS, RADIUS, certificates, AES-GCM Wi-Fi, and HTTP over the network.
+ghjb4o3t	Services on an IPv6 network
+gx4hgz6j	DHCPv6, RA, NUD, HTTP/TCP, and UDP echo between two networks.
+5gh3i0up	IPv6 / DHCPv6 / TCP
+ahlam4z7	Configuration arrives over the network
+q63sbw67	NETCONF/RESTCONF, candidate/commit, automation, telemetry, and NTP with real traffic.
+c8l41tjs	Automation / Monitoring
+6v7uklb9	The firewall reads the application
+x7113anc	HTTP Host/path and DNS under application inspection, with TCP, PAT, and rules.
+wej1ze86	The port awaits authorization
+mon9r82b	802.1X, EAPOL, RADIUS, authorized VLAN, and TACACS+ login over the network.
+jsrjvmj8	Ethernet across an IP network
+qrndjr84	VTEPs, VNI, local VLANs, and UDP4789 transport with ARP and HTTP.
+knc5j9wn	BGP advertises where the MAC is
+o73edpks	Educational EVPN with MAC routes, route target, and VXLAN over the underlay.
+nvxxfcgl	The packet follows the labels
+n84li53i	FEC, LFIB, push/swap/pop, label stack, TTL, and HTTP traffic.
+6gf6xlc3	Who goes first in the queue
+fyqzylhf	Congestion, DSCP, shaping, priority, and frame drops.
+m2et1d3u	QoS / Queues
+rq1oarg3	Two LANs over a VPN
+06qyyyw2	Authenticated tunnel over UDP, routes, HTTP, and underlay failure.
+tqnzyusj	The application chooses the path
+22o4q9ac	Two transports, a controller, and RTT/loss-based selection with failover.
+47moeixb	From radio to HTTP response
+7tjcaotn	AP, WPA2 association, bridging to Ethernet, and channel/signal effects.
+mj87lrdb	Addresses that arrive over the network
+lj15t1kz	IPv6, DAD, SLAAC, Router Advertisements, and routed ping with NDP.
+2gq7pyh0	Two cables, one link
+olk1y1xr	LACP active/passive, EtherChannel, STP, and HTTP with one member after a failure.
+wzoaveme	Uplink-aware gateway
+okp0g8rc	Interface tracking lowers the VRRP priority; the backup takes over while the primary stays powered on.
+gyx1ovl9	One trunk, two networks
+fmrdpjyq	Inter-VLAN routing via 802.1Q subinterfaces, ARP, and HTTP.
+1tn07f04	VLANs with the gateway on the switch
+ee6n8drw	SVIs and routing on the L3 switch, with hosts in different VLANs.
+n0r97lza	Same address, separate networks
+juh0nx70	Two VRFs, overlapping IPs, and HTTP connections isolated per table.
+fzon009r	Virtualization / VRF
+7jlyindi	Three autonomous systems
+q3p68u7t	eBGP over TCP, AS_PATH, policies, and an alternate path after a failure.
+7ycrku7h	BGP / Autonomous systems
+5ady28hu	One gateway, two routers
+38dfaau8	IPv4 VRRP, election, and ping and HTTP continuity after the active gateway fails.
+vkob63lh	Redundancy / VRRP
+vwvys14b	Three zones, controlled paths
+429d1z30	LAN, DMZ, and WAN with per-service rules, PAT, and related ICMP errors.
+hbk8o20v	Firewall / Zones
+h5waqalv	One server, two networks
+shbsldk0	Central DHCP, relay on the router, and MAC-based address reservations.
+v19unqmp	Network under observation
+1rsntz6a	SNMP objects and syslog events traverse the lab links.
+hq3uqxfj	Distance-vector routes
+stvuokmi	RIPv2, periodic updates, and route withdrawal with poison reverse.
+1a5wodza	Routes that adapt
+dmvl70u2	Three OSPF routers, lowest cost, and reconvergence after failures.
+3212a5dw	From connection to response
+4nk1i4ur	HTTP and echo over TCP, with PAT and a return-traffic firewall.
+kapcq2kg	Beyond the private network
+qkccdkbu	NAT, address translation, and ACL-based control.
+h91aoopr	Blank lab
+204832w2	Topology with no devices. Add devices and configure the connections.
+mz10mjhb	Your first LAN
+if0m5pne	Two hosts, one switch. Follow ARP and MAC learning.
+mkfkp0lv	Between two networks
+9cocgdp5	Two subnets connected by a router, with traffic between the hosts.
+xdrzrs8x	Automatic addressing
+qvyvyunh	Two clients and a server in the same broadcast domain.
+w52tf4gx	Names on the network
+6dm9xkk1	Configured DHCP and local DNS with A, AAAA, and CNAME records.
+r2zshihm	Broadcast domains
+npyapsas	Two switches connected by a trunk, with hosts in VLAN 10.
+gik7pwp0	Static routes
+ahcpssqy	Two routers and a transit network. Validate the forward and return routes.
+qkwh6ejy	The packet never arrived
+bnyzx1a1	An interface is shut down. Find where and restore communication.
+oo02onsq	Loop-free redundancy
+j021381x	Three switches, a common spanning tree, and an alternate path.
+7khx3ig5	Query with discovery [{0}]. Advance the simulation.
+6jbdaw77	Query sent over TCP connection [{0}]. Advance the simulation.
+g2lvk305	Specify NETWORK/PREFIX.
+ljigefjv	Misaligned BGP prefix.
+900pwt61	Specify permit|deny NETWORK/PREFIX.
+ghf1ollz	BGP not configured.
+8fk5npsr	The variable table must have a "hostname" column.
+hg8av45r	Table row {0}{1} has {2} columns; expected {3}.
+bds1638r	Variable with no value: {0}
+dk1nrsah	Select at least one device.
+ynb229he	Bulk configuration accepts up to {0} devices at a time.
+bg09vnpl	The template accepts up to {0} command lines.
+ca4rrg6b	Command not allowed in bulk configuration.
+0r2b3ela	Device has no IOS configuration mode.
+ifyltjf7	Bulk configuration applied: {0} lines.
+0ohp5z3d	VLAN must be between 1 and 4094
+c2fdu9hk	Invalid VLAN range
+aw7sl500	Interface not found: {0}{1}
+g1bimxy5	Interface not found: {0}
+tjd4s5wl	Interface not found
+qtr55vtf	Transceiver requires SFP/QSFP.
+6ifxyj27	MTU must be between 576 and 9216
+33m1dx70	Use an SVI or no switchport to configure IPv4.
+i9bno1bd	Use a host address, not network/broadcast
+egxhfjsy	IP already used by another interface
+jyqjes41	Use ip route on the router; gateway is a host setting
+cqrc7s3h	VLANs are configured on the switch
+0w4zobfl	VLAN limit reached
+g4mq1k7s	VLAN 1 is reserved
+bcqpczno	Switch-only command
+gscl44pj	Static routes require a router or L3 switch
+tv0cypqf	Specify a network address aligned to the prefix
+pcr36p95	Route limit reached
+qs31famq	Shows this device's commands and usage examples.

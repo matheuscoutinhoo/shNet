@@ -46,7 +46,7 @@ snmp get-next 192.168.20.10 public 1.3.6.1.2.1.1.1.0
 show snmp
 ```
 
-Syslog usa UDP/514. Facility × 8 + severity determina PRI; o limite permite severidade menor ou igual. Eventos automáticos incluem configuração, link, vizinhança OSPF e STP, sem retransmitir mensagens recebidas ou erros de entrega. Cada origem aceita 64 envios pendentes; o coletor conserva os 500 registros mais recentes. O timestamp é virtual e a origem exibida é o IPv4 observado, podendo ser traduzido por NAT.
+Syslog usa UDP/514. Facility × 8 + severity determina PRI; o limite permite severidade menor ou igual. Eventos automáticos incluem configuração, link, vizinhança OSPF e STP, sem retransmitir mensagens recebidas ou erros de entrega. Cada origem aceita 64 envios pendentes; o coletor conserva os 2.000 registros mais recentes. O timestamp é virtual e a origem exibida é o IPv4 observado, podendo ser traduzido por NAT.
 
 ```text
 enable
@@ -246,7 +246,7 @@ DHCP usa Discover/Offer/Request/ACK, oferta reservada por 30 s virtuais, identif
 
 T1 ocorre em 50% do lease e tenta renovação unicast pela tabela de rotas, resolvendo o próximo salto por ARP. O servidor pode estar em outra sub-rede. T2 ocorre em 87,5% e usa broadcast. O cliente remove a configuração ao expirar e inicia nova descoberta. NAK reinicia a descoberta com atraso limitado; release devolve a concessão ao servidor. Há até quatro tentativas por fase, com backoff de 4/8/16/32 s, e limite de quatro reinícios por NAK.
 
-Limites: 16 pools e 2.048 bindings por servidor; cada intervalo contém até 2.048 endereços; leases entre 8 s e 365 dias virtuais. Há relay e reservas por MAC (descritos abaixo). DHCPv6 está disponível separadamente (ADR-029). Snooping, DECLINE e detecção de conflitos ARP foram acrescentados no ADR-030. INIT-REBOOT e autenticação DHCP permanecem ausentes; snooping exige portas confiáveis configuradas. A opção DNS alimenta o resolvedor descrito abaixo.
+Limites: 64 pools e 8.192 bindings por servidor; cada intervalo contém até 2.048 endereços; leases entre 8 s e 365 dias virtuais. Há relay e reservas por MAC (descritos abaixo). DHCPv6 está disponível separadamente (ADR-029). Snooping, DECLINE e detecção de conflitos ARP foram acrescentados no ADR-030. INIT-REBOOT e autenticação DHCP permanecem ausentes; snooping exige portas confiáveis configuradas. A opção DNS alimenta o resolvedor descrito abaixo.
 
 ### Relay e reservas por MAC
 

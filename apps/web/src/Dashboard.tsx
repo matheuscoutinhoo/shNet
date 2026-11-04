@@ -14,7 +14,16 @@ import {
   Activity,
   SlidersHorizontal,
 } from 'lucide-react';
-import { templates, labs, type LabId, type TemplateId } from '@shlab/engine/catalog';
+import {
+  templates,
+  labs,
+  EXAMS,
+  examTopicsFor,
+  type ExamId,
+  type LabId,
+  type TemplateId,
+} from '@shlab/engine/catalog';
+import { ExamMap } from './ExamMap';
 import type { LearningScore } from '@shlab/engine';
 import { api, ApiError, type User, type Project, type ProjectSummary } from './api';
 import { Brand } from './components/Brand';
@@ -25,6 +34,8 @@ import { searchText, templateCategories } from './catalog';
 import { ActivityHistory } from './ActivityHistory';
 import { Account } from './Account';
 import { LocalDrafts } from './LocalDrafts';
+import { LanguageSwitch } from './i18n/LanguageSwitch';
+import { formatLocale } from './i18n';
 
 const categories = [
   ...new Set([...Object.values(templateCategories), ...labs.map((lab) => lab.category)]),
@@ -55,6 +66,8 @@ export function Dashboard({
     [catalogKind, setCatalogKind] = useState('all'),
     [category, setCategory] = useState('all'),
     [difficulty, setDifficulty] = useState('all'),
+    [exam, setExam] = useState<ExamId | 'all'>('all'),
+    [examMap, setExamMap] = useState(false),
     [activityRevision, setActivityRevision] = useState(0),
     [creating, setCreating] = useState<TemplateId | null>(null),
     [labMode, setLabMode] = useState<'free' | 'guided' | 'challenge'>('free'),
@@ -153,11 +166,13 @@ export function Dashboard({
     setCatalogKind('all');
     setCategory('all');
     setDifficulty('all');
+    setExam('all');
   };
   const hasLabFilters = Boolean(query || modeFilter !== 'all' || progressFilter !== 'all' || favoritesOnly);
   const hasCatalogFilters = Boolean(
-    catalogQuery || catalogKind !== 'all' || category !== 'all' || difficulty !== 'all'
+    catalogQuery || catalogKind !== 'all' || category !== 'all' || difficulty !== 'all' || exam !== 'all'
   );
+  const forExam = (id: string) => exam === 'all' || examTopicsFor(id, exam).length > 0;
   const filtered = projects
     .filter(
       (project) =>
@@ -177,6 +192,7 @@ export function Dashboard({
   const filteredTemplates = templates.filter(
     (entry) =>
       catalogKind !== 'lessons' &&
+      forExam(entry.id) &&
       (category === 'all' || templateCategories[entry.id] === category) &&
       searchText(
         entry.name + ' ' + entry.description + ' ' + entry.level + ' ' + templateCategories[entry.id]
@@ -185,6 +201,7 @@ export function Dashboard({
   const filteredLessons = labs.filter(
     (entry) =>
       catalogKind !== 'templates' &&
+      forExam(entry.id) &&
       (category === 'all' || entry.category === category) &&
       (difficulty === 'all' || entry.difficulty === difficulty) &&
       searchText(entry.name + ' ' + entry.objective + ' ' + entry.category + ' ' + entry.difficulty).includes(
@@ -242,6 +259,7 @@ export function Dashboard({
             <strong>{section === 'labs' ? 'Laboratórios' : 'Templates e trilhas'}</strong>
           </span>
           <div className="topbar-preferences">
+            <LanguageSwitch />
             <LocalDrafts owner={user.id} onOpen={onOpen} />
             <span className="private-label">
               <span className="status-dot" /> Privado
@@ -417,7 +435,7 @@ export function Dashboard({
                           <div className="lab-footer">
                             <span>
                               <Clock size={13} />
-                              {new Date(project.updated_at).toLocaleDateString('pt-BR')}
+                              {new Date(project.updated_at).toLocaleDateString(formatLocale())}
                             </span>
                             <ArrowUpRight size={18} />
                           </div>
@@ -496,6 +514,20 @@ export function Dashboard({
                     <option>Avançado</option>
                   </select>
                 </label>
+                <label>
+                  Certificação
+                  <select value={exam} onChange={(event) => setExam(event.target.value as ExamId | 'all')}>
+                    <option value="all">Todas as certificações</option>
+                    {(Object.keys(EXAMS) as ExamId[]).map((id) => (
+                      <option key={id} value={id}>
+                        {EXAMS[id].name} {EXAMS[id].code}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button className="button small" type="button" onClick={() => setExamMap(true)}>
+                  Mapa de estudo CCNA/CCNP
+                </button>
                 {hasCatalogFilters && (
                   <button className="text-button clear-filters" onClick={clearCatalog}>
                     Limpar filtros
@@ -528,6 +560,8 @@ export function Dashboard({
                     {filteredTemplates.map((entry) => (
                       <CatalogCard
                         key={entry.id}
+                        id={entry.id}
+                        exam={exam === 'all' ? undefined : exam}
                         kind="template"
                         name={entry.name}
                         meta={entry.level}
@@ -552,6 +586,8 @@ export function Dashboard({
                     {filteredLessons.map((entry) => (
                       <CatalogCard
                         key={entry.id}
+                        id={entry.id}
+                        exam={exam === 'all' ? undefined : exam}
                         kind="lesson"
                         name={entry.name}
                         meta={entry.category + ' · ' + entry.difficulty}
@@ -570,6 +606,19 @@ export function Dashboard({
           </footer>
         </main>
       </div>
+      {examMap && (
+        <ExamMap
+          onClose={() => setExamMap(false)}
+          onTemplate={(id) => {
+            setExamMap(false);
+            chooseTemplate(id);
+          }}
+          onLesson={(id) => {
+            setExamMap(false);
+            chooseLesson(labs.find((entry) => entry.id === id)!);
+          }}
+        />
+      )}
       {creating && (
         <Modal title="Criar laboratório" onClose={() => setCreating(null)}>
           <form onSubmit={create}>

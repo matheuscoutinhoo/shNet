@@ -165,7 +165,7 @@ export function SyslogPanel({ lab, device }: { lab: LabController; device: Devic
         </>
       )}
       <p className="muted">
-        Até 500 registros. Tempo virtual compartilhado; sem relay, TLS ou formato binário interoperável.
+        Até 2.000 registros. Tempo virtual compartilhado; sem relay, TLS ou formato binário interoperável.
         Syslog UDP pode perder ou duplicar mensagens.
       </p>
     </section>

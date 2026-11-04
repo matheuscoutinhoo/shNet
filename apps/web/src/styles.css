@@ -2191,3 +2191,109 @@ body .workspace-header {
     flex-direction: column;
   }
 }
+
+.language-switch {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 550;
+}
+.language-switch select {
+  width: auto;
+  min-height: 0;
+  height: 30px;
+  padding: 2px 30px 2px 10px;
+  background-position: right 8px center;
+  font-size: 12px;
+}
+.language-switch.compact select {
+  height: 28px;
+}
+.auth-form-side {
+  position: relative;
+}
+.auth-language {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+}
+
+.exam-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.exam-chip {
+  padding: 1px 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.exam-chip.exam-ccna {
+  border-color: var(--teal);
+}
+.exam-chip.exam-encor,
+.exam-chip.exam-enarsi {
+  border-color: #8c7ae6;
+}
+.lab-exam-topics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.lab-exam-topics .exam-chips {
+  margin: 0;
+}
+.exam-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.exam-summary {
+  font-weight: 600;
+}
+.exam-domain h3 {
+  margin: 18px 0 6px;
+  font-size: 15px;
+}
+.exam-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.exam-table th,
+.exam-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--control-border);
+  text-align: left;
+  vertical-align: top;
+  font-size: 13px;
+}
+.exam-table th {
+  width: 52px;
+  white-space: nowrap;
+}
+.exam-table tr.uncovered td:nth-child(2) {
+  color: var(--muted);
+}
+.exam-link {
+  display: inline-block;
+  margin: 0 6px 4px 0;
+  padding: 1px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.exam-link:hover {
+  border-color: var(--teal);
+}

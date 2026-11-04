@@ -59,7 +59,8 @@ export type BgpCandidate = BgpPath & {
   external: boolean;
   remoteId: string;
 };
-export function bestBgpPaths(device: Device): BgpCandidate[] {
+/** Locally originated and accepted (policy-permitted, resolvable) paths: the "valid" BGP paths. */
+export function bgpCandidates(device: Device): BgpCandidate[] {
   const state = device.bgp;
   if (!state?.enabled || !device.power) return [];
   const paths: BgpCandidate[] = state.networks
@@ -100,6 +101,12 @@ export function bestBgpPaths(device: Device): BgpCandidate[] {
       remoteId: peer.remoteId!,
     });
   }
+  return paths;
+}
+export function bestBgpPaths(device: Device): BgpCandidate[] {
+  const state = device.bgp;
+  if (!state?.enabled || !device.power) return [];
+  const paths = bgpCandidates(device);
   const origin = { IGP: 0, EGP: 1, INCOMPLETE: 2 };
   const compare = (a: BgpCandidate, b: BgpCandidate, med = false) =>
     Number(!!a.peer) - Number(!!b.peer) ||

@@ -180,11 +180,6 @@ export function registerLayer3Commands(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^ping vrf ([\w-]{1,32}) ([\d.]+)$/i,
-    modes: ALL_MODES,
-    run: (m, e, d) => 'ICMP enfileirado [' + e.ping(d.id, m[2], 64, m[1]) + '].',
-  });
-  r.register({
     pattern: /^http get vrf ([\w-]{1,32}) ([\d.]+)(?: (\d+))?(?: (\/\S*))?$/i,
     modes: ALL_MODES,
     run: (m, e, d) =>

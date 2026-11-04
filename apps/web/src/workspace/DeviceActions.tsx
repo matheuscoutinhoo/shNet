@@ -1,10 +1,10 @@
 import { deviceCapabilities } from './deviceCapabilities';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Settings2, Pencil, Copy, Cable, Power, Trash2, X } from 'lucide-react';
+import { Settings2, Pencil, Copy, Cable, Power, Trash2, X, TerminalSquare } from 'lucide-react';
 import type { Device } from '@shlab/engine';
 
-export type DeviceAction = 'inspect' | 'rename' | 'duplicate' | 'connect' | 'power' | 'delete';
+export type DeviceAction = 'inspect' | 'terminal' | 'rename' | 'duplicate' | 'connect' | 'power' | 'delete';
 
 export function DeviceActions({
   device,
@@ -28,6 +28,7 @@ export function DeviceActions({
   const capabilities = deviceCapabilities(device);
   const items = [
     { id: 'inspect', label: 'Inspecionar', icon: Settings2 },
+    { id: 'terminal', label: 'Abrir terminal', icon: TerminalSquare },
     { id: 'rename', label: 'Renomear', icon: Pencil },
     { id: 'duplicate', label: 'Duplicar', icon: Copy, disabled: !canDuplicate },
     { id: 'connect', label: 'Conectar', icon: Cable, disabled: !canConnect },
@@ -42,6 +43,8 @@ export function DeviceActions({
   const applicableItems = items.filter(
     (item) =>
       (item.id !== 'power' || capabilities.power) &&
+      (item.id !== 'terminal' ||
+        !['rack', 'patch-panel', 'ups'].includes(device.infrastructure?.kind ?? '')) &&
       (item.id !== 'connect' || (capabilities.ports && device.interfaces.some((p) => p.media !== 'wifi')))
   );
   useLayoutEffect(() => {

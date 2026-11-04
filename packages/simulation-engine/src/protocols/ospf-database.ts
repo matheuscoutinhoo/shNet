@@ -104,7 +104,13 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
           publish(engine, device, networkLsa);
         }
       } else {
-        routerLsa.prefixes.push({ network, prefix: port.prefix, cost: config.cost });
+        // IOS advertises a loopback as a /32 host route unless "ip ospf network point-to-point" is set.
+        const host = port.loopback && port.ospfSettings?.networkType !== 'point-to-point';
+        routerLsa.prefixes.push({
+          network: host ? port.ip : network,
+          prefix: host ? 32 : port.prefix,
+          cost: config.cost,
+        });
         if (!config.passive)
           for (const neighbor of neighbors)
             routerLsa.links.push({ kind: 'router', id: neighbor.routerId, data: port.ip, cost: config.cost });

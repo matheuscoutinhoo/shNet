@@ -1,0 +1,504 @@
+9hlovtu2	NAT rejected an ICMP error without a quoted header.
+cuggdlnd	NAT rejected an ICMP error whose quoted destination has no mapping.
+ufldz66d	Related ICMP: quoted destination {0} → {1}.
+uq6zojmn	SIP ALG: dialog limit reached.
+9juoatrt	Invalid SIP ALG binding.
+f3lhboxd	SIP ALG has no timer.
+40ixao0d	Orphaned SIP ALG timer.
+npdwwz3q	NAT requires a router.
+m3k6k2v8	NAT global address conflicts with VRRP VIP.
+0qae8nv4	NAT address must belong to the outside interface.
+umw3ah28	NAT requires a global host address.
+15m0spqa	Duplicate static NAT mapping.
+nhpunlif	Invalid inside address.
+f9zwljtz	Invalid global address.
+pa16d7vf	Duplicate NAT pool.
+2z8uu5bn	Invalid NAT network or range; maximum of 256 addresses.
+uuszvn6f	Overlapping NAT addresses.
+9cgj2x5a	NAT configuration applied; dynamic translations reset.
+krce8e0k	Translation expired: {0} -> {1}.
+t2t58i8u	NAT translation limit reached.
+wjv61lcb	NAT pool {0} has no available addresses.
+patd1xc7	NAT pool exhausted.
+sglpk9sm	Invalid NAT translation.
+yxhtd96f	Incomplete PAT translation.
+w4rvkjcy	Dynamic NAT must not change ports.
+cyg1x7ll	Invalid PAT ports.
+ifpngumz	Invalid PAT identifier.
+hp44en5b	NAT translation has no timer.
+pycr6kgn	Network clock configured; offset {0} ms.
+g0366s2r	NTP not configured.
+31s34g5e	Invalid NTP servers.
+dfdor30z	NTP client configured.
+90itojuh	No response from server; trying next NTP peer.
+daubh1wn	NTP query to {0}; timestamp recorded at transmission.
+m28h2zpw	NTP: no route/IPv4 to peer.
+w5s43fnz	NTP: server unavailable/unsynchronized.
+j7i669by	NTP: response without matching request/timestamps.
+ozs5kqow	NTP: invalid timestamps/offset.
+gt1lltu0	Invalid NTP state/timer.
+39kxa3xc	Orphaned NTP timer.
+kv2vm8pp	OSPF LSDB full.
+usicba0r	{0} LSA {1}, sequence {2}.
+45m7p1qr	Withdrew
+8ira0mw2	Originated
+qwxrot43	OSPF {0}{1}/{2} via {3}, cost {4}.
+4cp9icfw	SPF from local LSDB: {0} routes selected.
+d916xdv4	Dead interval must be at least twice the Hello interval.
+w8k642tv	{0} on {1}: {2} → {3}.
+c53fjpe6	Duplicate OSPF reference.
+oc1wktvo	Invalid OSPF LSA origin or clock.
+l6um8bf6	Invalid LSA checksum.
+8vgsg7k2	Misaligned OSPF prefix.
+nkw1ja1f	Router LSA with inconsistent ID.
+kfvmp6vr	Inconsistent Network LSA.
+0fgnwdx1	Inconsistent ASBR summary.
+fjtqhw6u	Inconsistent Summary LSA.
+j4b7vwfx	Invalid OSPF process.
+ihql1m1d	OSPF interface not found.
+m7hsypyr	Inconsistent OSPF timer.
+ky0rcfyq	OSPF inactive but has routes or neighbors.
+4644mlub	Inconsistent OSPF neighbor.
+d456c1eo	Incomplete OSPF exchange.
+0vhoxewk	OSPF routes do not match the local LSDB.
+odynzf16	OSPF timer without a process.
+cr13o02d	Invalid OSPF length.
+lau0h421	OSPF {0}, area {1}, {2}{3}.
+0z2ts5pn	OSPF requires L3 routing.
+xrkx8elh	OSPF router ID must be a nonzero unicast IPv4 address.
+xr8fhnaj	Invalid or duplicate OSPF interface.
+pmfdn5l1	OSPF: invalid areas/external routes.
+0yi0quw1	Dead interval expired
+c8t8pmhi	area, subnet, length, or router ID mismatch
+6gt45dbj	invalid authentication or replay
+a4yb0he2	authenticated source limit reached
+qlrm6lvo	OSPF {0} from {1}, area {2}.
+9w6q1ldb	Hello/dead interval, mask, or network type mismatch
+6av3x5h1	duplicate router ID on segment
+kzu2xkpk	neighbor limit reached
+r4cov6ym	message without adjacency
+4v6d9v6n	MTU or database description page mismatch
+ueq1zfji	page count changed during exchange
+fmhijxkk	invalid LSA content
+i4ft8own	LSA outside area or validity window
+e082trj8	LSDB full
+ekncaru4	LSDB received {0}, sequence {1}{2}.
+dqqnvoou	, withdrawn
+l3jwplud	PLC process not configured.
+w5jqjyn9	Configure the PLC's Modbus server before the process.
+k0ac10aa	Tank process and PLC cycle configured; level in thousandths of capacity.
+kys3t6ne	Alarm acknowledged; acknowledgment does not clear an active condition.
+vzjb4m0q	Tank: low={0}, high={1}, invalid setpoint={2}.
+p4727w6g	Scan {0}: level {1}/1000, pump {2}.
+epij565y	Modbus banks are still referenced by the PLC process.
+yjcdjbci	Incompatible PLC state.
+gol07qob	Inconsistent PLC alarm.
+cemruiba	Inconsistent PLC timer.
+1gm0fj8x	Orphaned PLC timer.
+11i578or	QoS port match requires TCP/UDP.
+rx9ijtq1	QoS requires a cabled physical port, a rate up to the port speed, and unique classes.
+b0axzu38	QoS: reconfiguration removed a pending frame.
+z1kddlui	QoS {0} {1} Mbps on {2}.
+znrk1q1w	Policer {0}: insufficient tokens.
+rep1uv3w	QoS policer {0}
+doann0by	Policer {0}: insufficient token budget.
+04rf7baq	QoS policer {0}.
+4h2fk8rm	QoS tail drop: queue full ({0}).
+z2a8qf6p	QoS congestion.
+92d3g0o6	ECN: congestion signaled by CE.
+otai49vc	{0}: {1} frame(s) in queue.
+61viqyfd	{0}: waited {1} ms.
+8jhat5t1	Invalid QoS state/configuration.
+7yoi91dl	Invalid frame in QoS queue.
+9cg3wg98	Inconsistent QoS timer.
+p26zhws1	Orphaned QoS timer.
+po2oiher	Input policer {0}: insufficient tokens.
+g28k336k	Input QoS policer {0}
+2dn2ta46	Quorum: {0}, term {1}.
+g5c6xehz	Quorum: commit {0} confirmed.
+fbsbi3jb	Quorum {0}, term {1}.
+parz2f2f	Quorum requires three or five distinct servers.
+5aovjg68	Select servers that are not in another quorum group.
+22ixfd1x	Connect each pair of servers through dedicated RJ45 ports without IP addresses.
+rbf6itym	Quorum lab configured; three/five full replicas.
+ntnzxjdr	Quorum group removed from all members.
+vkf7o4o1	Quorum server unavailable.
+u6puqggh	Operation incompatible with this group's SQL binding.
+a8xcnilx	Local checkpoint at index {0}; committed data preserved.
+mwthjnpb	Invalid quorum identity/clock.
+6gl2ktd9	Checkpoint transfer does not match the source.
+7iwv2rkp	Invalid quorum ports.
+1klhto3v	Mismatched quorum members or ports.
+pnijoy6h	Divergent committed quorum histories.
+hb5flwyt	Quorum requires exactly one timer per member.
+aaxxmr80	Quorum queue exceeds eight messages per sender.
+hfhqdc64	Orphaned quorum event.
+krlk6c8k	Quorum timer out of range.
+a7fjtig4	Quorum delivery outside the channel.
+3nnmu517	Quorum message does not match the source.
+mun7jb3o	Invalid EAP header.
+pro040aw	EAP Request/Response requires a method.
+5hyakor5	EAP Success/Failure has no payload.
+af6qo05v	EAP exceeds limit.
+zj6g8gxa	Invalid EAP length/code.
+8ant54rm	EAP result with a payload.
+qbmbq9rf	Unsupported EAP method.
+3w6elqi5	EAP-TLS missing flags.
+urtlhc6c	EAP-TLS missing length.
+4euoogc4	RADIUS attribute exceeds limit.
+2gawg828	Invalid MS-MPPE key.
+uinoe9b8	Invalid MS-MPPE length/padding.
+7l9nsr9m	RADIUS requires a 16-octet Request Authenticator.
+5xbsq5vj	Invalid RADIUS header.
+bvvaqu09	MPPE only in Access-Accept.
+mvyix22g	RADIUS exceeds 4096 octets; fragment EAP-TLS.
+4gqh4f64	Invalid RADIUS length/code.
+luuf6ozo	Truncated RADIUS attribute.
+k0s9j67n	RADIUS requires a single Message-Authenticator.
+yxijqr7m	RADIUS response without a correlated request.
+2ezvwvjw	Invalid RADIUS Response Authenticator.
+zwjiu4sw	Invalid RADIUS Message-Authenticator.
+92pngd78	RADIUS EAP-Message missing.
+1o193bow	nas
+xqr96ndr	Duplicate RADIUS attribute.
+w6izj5r1	Invalid RADIUS vendor/MPPE.
+reqmeu7t	Duplicate RADIUS MPPE.
+cbhwwutb	Unsupported XML entity.
+x7g5eqeg	XML too large, or forbidden declaration/DTD or character.
+348swvai	XML exceeds allowed depth/elements.
+9w6f7kls	Invalid XML element.
+znkyae6a	Invalid/duplicate XML attribute.
+dmhx2blp	Mismatched XML closing tag.
+kxr1sj4x	Incomplete XML.
+1q1bbbbd	XML has multiple roots.
+q8cnq2of	Required/duplicate XML element: {0}
+i8vaatlu	Invalid mixed-content XML.
+v2ntc4ka	Duplicate XML field: {0}
+fbb9elov	Invalid XML number.
+2gl9sqyr	Invalid XML boolean.
+t30d0au4	Invalid NETCONF hello/namespace.
+88vh54n4	Invalid capability.
+h8kug7xi	Incompatible NETCONF base.
+8ncoa0dy	Invalid NETCONF session-id.
+oezzelod	Invalid NETCONF RPC/namespace/message-id.
+5hkxmko8	Invalid YANG configuration namespace.
+jrsvpl99	Only the subtree filter is advertised.
+pe1vmsfy	Unsupported NETCONF option: {0}
+x53qcpwk	RPC error
+3e13nuk9	Invalid NETCONF rpc-reply.
+hk8t78u3	Invalid rpc-reply content.
+geluqse6	Empty NETCONF message.
+oswlw62g	Invalid NETCONF 1.1 framing.
+wzif5gr2	NETCONF chunk exceeds limit.
+52f48593	RESTCONF header exceeds limit.
+1lljr6h9	Invalid/duplicate HTTP header.
+6sh62bqk	Unsupported RESTCONF Transfer-Encoding.
+s1j2574b	Invalid Content-Length.
+8vahzyk4	Invalid RESTCONF HTTP line.
+wd5kj2t6	Invalid RESTCONF request.
+tg2s8d88	RESTCONF resource not found.
+vsfk7sl8	Incompatible RESTCONF Accept header.
+mi135ul8	RESTCONF requires application/yang-data+json.
+644dddpy	Invalid YANG JSON root.
+52av6ky3	Invalid If-Match ETag.
+z9jwbn22	RESTCONF error
+ux5suhjd	HTTP/1.1 {0} {1} Content-Type: application/yang-data+json ETag: "{2}" X-Request-ID: {3} Content-Length: {4} Connection: close {5}
+d9agg3ob	Invalid RESTCONF response/ETag.
+5ec2jztu	TLS not authorized.
+7ys1hfjf	Management TLS record exceeds limit.
+vnikrku5	Remote client/service not authorized.
+4llantdb	Unexpected TLS ClientHello.
+0zcpn7c3	Management session limit reached.
+ztgphb1g	Remote record without a TLS session.
+g2ydzr40	Unexpected TLS ServerHello.
+hs8mpx39	Unexpected TLS ClientFinished.
+e2yltoik	Unexpected TLS result.
+qxvjjmsx	Unexpected TLS acknowledgment.
+mh0a6mfp	Invalid TLS record, sequence, or session.
+ou4dr8du	NETCONF/RESTCONF message exceeds limit.
+ws1of82t	Remote response without a correlated message-id.
+e2vizyt3	Remote session without an authorized user.
+gh5zszqk	Reused message-id with a different RPC.
+dnrqf8ff	Response too large; request a smaller page.
+s2q3cozs	Remote management: {0}
+fyjqp9zt	Invalid NETCONF/RESTCONF server.
+pzyqqj78	Invalid management TLS session.
+d52mvewf	Invalid candidate.
+091g2v7e	Duplicate RPC/job ID.
+lsr8omba	Invalid NETCONF/RESTCONF query/timer.
+w5824r0i	Invalid automation state.
+oey6utih	Orphaned remote/automation timer.
+oxfjpvns	Management requires a unicast destination.
+fu2c6lg1	NETCONF uses edit-config and commit.
+r1lg1pxl	Remote query limit reached; remove completed jobs.
+n9h9quai	Active job limit reached.
+5gxmuxfi	{0}: job started.
+9v0ko94g	Remote management not configured.
+d8da8tc2	Remote service requires a network device/server, unique users, and available TCP830/443.
+4sqqq3ll	Management certificate does not match the private key.
+5irby9ix	Educational NETCONF/RESTCONF configured.
+ifg4lasm	Datastore interfaces are inconsistent with the device.
+mg44qr4k	Invalid/misaligned static route.
+kkc1rmj7	Duplicate static route.
+3a501oe7	edit-config/patch requires a patch.
+6eaz2m68	Duplicate interface in patch.
+f1kz4oby	Interface not found in datastore.
+kdzlj841	clearIp and a new address are incompatible.
+rpvldseo	YANG interface not found.
+l3xcenhz	Configuration requires privilege level 15.
+76s69x1k	Datastore locked by another client.
+zs293b2t	PUT accepts the full configuration on the network resource.
+mhwixheb	POST requires the routes resource.
+zm5dtjdb	Patch goes beyond the selected RESTCONF resource.
+rx99d1w1	If-Match revision mismatch.
+mmwxan66	Candidate belongs to another client.
+3kdq01vu	Datastore is not locked.
+2fc5d0cs	copy-config requires a source different from the target.
+mppf6ers	delete-config allowed only on the startup datastore.
+1vli4iy4	NETCONF edit-config uses candidate; RESTCONF patch uses running.
+0vuxqqf8	Candidate has no changes.
+o8dmu8bq	Running changed after the candidate was created.
+eku7l2n3	Candidate validated and applied atomically.
+ejokqgdm	DELETE requires the interface or routes resource.
+f32pd4aw	POST requires new routes not present in the resource.
+fbucg50r	PUT requires a full configuration.
+6o4s2k4e	RESTCONF patch applied atomically.
+d7lbtieo	Duplicate RIP reference.
+owy63rjz	RIP requires a router or L3 switch.
+2fjvuuog	RIP interface not found.
+0bfh96g2	Inconsistent RIP timer.
+3dhao4u2	RIP inactive but has routes.
+dzq0607o	Inconsistent RIP route.
+hlmnkywa	RIP timer without a process.
+ldgdw94j	Invalid RIP length.
+hme9iuxj	RIP: no valid key.
+y7nqwa24	RIPv2 {0} on {1}{2}.
+6ij62im5	, {0} routes
+vm4bpqow	unreachable (metric 16)
+cv3yba86	via {0}, metric {1}
+fvcjizwc	RIP requires L3 routing.
+esgcesyy	RIP: invalid keys/filters.
+x4g2ifgg	Invalid or duplicate RIP interface.
+uookytd5	RIPv2 {0}.
+2oks90rj	RIP table full.
+phzspd1k	RIP: invalid source, destination, length, TTL, or ports.
+4yvnqg0q	RIP: invalid authentication/anti-replay.
+py7j0gcf	RIP: authentication not configured.
+eu8e07yo	RIPv2 {0} from {1}.
+f9r2oqtw	RIP: invalid prefix.
+3jhrpuuy	SD-WAN edge requires a router.
+nubqpw9t	Duplicate SD-WAN policies or misaligned network.
+07z31we3	Controller requires a routed IPv4 underlay.
+tlkn3p38	SD-WAN site {0} configured.
+8etmk591	Controller requires a server or router/L3 switch.
+4amiwvj8	Invalid site/policy.
+d5h0rmsl	enabled.
+an7m4ewq	disabled.
+d96sr1ky	SD-WAN controller rejected site/key/port.
+y43v1907	Policies sent to site {0}.
+01zivzm9	SD-WAN: invalid controller response.
+z6litsw7	Controller policies applied via UDP traffic.
+gxlk110t	{0}: no transport available.
+03axi2qn	{0}: SLA unavailable; policy requires blocking.
+kchfre62	{0} → {1} ({2}): RTT {3} ms, loss {4}%{5}.
+bur3yfk1	Invalid certificate validity.
+mcznlewr	Invalid cryptographic sequence.
+l0iphykk	Cryptographic record exceeds limit.
+yn6pbsud	NetOS · {0} · educational simulator
+thqtb6i6	Invalid OID
+d5x6dx7w	SNMP value does not match declared type
+axcf1j07	SNMP/161 agent {0}.
+z0v7tejj	SNMP {0} {1}; agent {2}.
+e62kblnq	{0} to {1}:161; attempt {2}.
+wmhkpv8s	SNMP requires a powered-on device with an IPv4 stack.
+cq309n3u	SNMP agent must be unicast.
+ceh0ldog	Invalid SNMP operation.
+l114hqec	Configure an IPv4 address on the SNMP source.
+g4g3d0m8	Pending SNMP query limit reached.
+ruhyx12e	SNMP: invalid source, destination, UDP ports, or TTL.
+e3os5v1g	SNMP: response does not match the pending query.
+t0rrhdpc	Agent disabled or community has no access.
+6srky8pd	Response {0}: {1}; {2} object(s).
+bqu7ope9	State synchronization disabled; replicas expire according to their original timers.
+b9mchbb7	HA synchronization requires two distinct routers.
+ult9os7l	Disable the existing HA pair before changing the peer.
+jnr8c927	Directly connect the dedicated HA synchronization ports.
+mn95z9fx	The HA pair requires equivalent firewall policies and NAT pools.
+07h4lklk	HA pair configured with {0}; replication is subject to the dedicated link.
+9mo2hao8	Limit of 4096 HA records reached; state not replicated.
+ap87kn76	State {0}/{1} revision {2}.
+z84xnxxw	State rejected: policy, collision, or HA limit.
+ah5uejjg	Invalid HA pair or dedicated interface.
+he3fwdrx	Duplicate HA mapping.
+ygk6t6b4	Invalid or non-reciprocal HA mapping.
+xlx814z3	Map all firewall/NAT interfaces and reserve a dedicated port.
+b0n3r7xt	The HA port must be dedicated, with no IP, NAT, VRRP, or subinterfaces.
+0447hah1	HA peer missing.
+eb064dtr	Invalid HA synchronization records.
+qfw5plco	HA pair has no valid reconciliation timer.
+i8zyiz2o	Orphaned HA timer.
+gi8red86	Invalid HA delivery.
+20aooba9	Incompatible nested STP instance.
+t4bbzxlb	STP instance not found.
+yf5b1vf1	Timer for a nonexistent STP instance.
+m7i3ahrc	Duplicate STP timer.
+n7a8xxow	Inconsistent STP instance configuration.
+mlvl8pxn	Inconsistent STP instance ports.
+sl25obp3	STP port state without an active protocol.
+2ovuxdnm	STP applies only to switches.
+6uxeh0nw	STP has no valid Hello timer.
+pka95f15	Inconsistent STP root bridge.
+z0w2vrj7	STP root port not found.
+3aoe2on4	Routed interface does not participate in STP.
+o7g8oap2	Incomplete STP port state.
+q09ndwwp	Deferred STP transmission has no valid timer.
+umumt1hl	Blocked STP port cannot forward.
+5dvbsyss	More than one STP root port.
+fukslit9	STP transition without a timer.
+eo5kfm0w	STP learning state without a transition.
+v2g3e1jo	BPDU information without a valid expiration.
+5shmqrz4	Topology change: MAC table flushed to relearn the path.
+vb6ceudd	{0}: root {1}, cost {2}.
+vmbw44q4	Root {0}; cost {1}{2}
+4pnt788y	; this switch is the root.
+cfykcsvn	{0}: role {1}.
+xvealdvj	Spanning tree requires a switch.
+uurnosnc	Invalid STP mode or priority not a multiple of 4096 (0 to 61440).
+k7xfzhu0	{0} enabled; priority {1}.
+xw5rfpuz	BPDU received: root {0}, cost {1}.
+k1rm8ul6	PVST/MSTP requires a switch.
+mcl6pq5e	Invalid STP instances, priorities, or VLAN mapping.
+jlu2uyyg	{0}: {1} instances, BPDU-based election, and per-VLAN forwarding.
+7ojinx10	Syslog collector must be unicast.
+ugcqv761	Syslog collector requires a server or router.
+so41qqlm	Syslog/514 collector {0}.
+5g57w3qi	Configure and enable syslog forwarding.
+6jb7mxag	Severity {0} above threshold {1}.
+lidgdpa4	Limit of 64 pending syslog messages reached.
+09oy2les	Message {0} to {1}:514.
+0gc3qlnw	Syslog source disabled before transmission.
+hhh768lg	Syslog has no source IPv4 address.
+wvweb5iq	Message {0} sent over UDP/514; no delivery confirmation.
+9w3sqwpv	Syslog: invalid datagram or timestamp.
+otseo1nx	Syslog collector disabled.
+hh2f4ebz	TACACS+ CHAP, authorization, and accounting over TCP/49: {0}.
+6ppnuaz6	TACACS+ session without a key.
+xp5098ff	Unauthorized TACACS+ NAS/sequence.
+btitdqm3	Unsupported TACACS+ service.
+z86q0awj	Invalid TACACS+ response sequence.
+5utf4k4i	TACACS+ response without a query.
+5kw6lfjn	TACACS+ response outside the session/phase.
+pk4iy526	Invalid Authentication REPLY.
+o4o6h322	Invalid TACACS+ policy.
+y4fp6hcr	Invalid Accounting REPLY.
+1dzzl0qb	TCP options applied to subsequent connections.
+ea363ibj	TCP: negotiated timestamp missing.
+rcotogw7	TCP PAWS: old timestamp.
+lsxfzyyi	{0}: ECN/ECE, cwnd={1}; next data segment confirms CWR.
+3qrmonjy	TCP buffer exceeded or invalid UTF-16.
+fyawqhe6	TCP header inconsistent with flags or payload size.
+nw6ktbfw	shLab: simulated HTTP server.
+wphvou0y	HTTP response too large.
+uvd1ives	Invalid TCP buffer.
+s9uvm3vw	{0}: PMTUD MTU={1}; MSS={2}; segments rebuilt without losing sequence.
+p2w8rveo	Port reserved by the replicated database.
+qukl28fi	TCP service requires a server, a switch with an SVI, or a router.
+r36n3a0q	Port reserved for NETCONF/RESTCONF.
+xp3yzn74	TCP/49 reserved by TACACS+.
+8kjxtd76	TCP/179 is reserved by BGP.
+ivbfbaxg	TCP/53 is reserved by the DNS service.
+5qaemk4l	Limit of 32 TCP services.
+vnqrzjxm	Service {0} TCP/{1} {2}.
+11m0ld63	Binary TCP buffer requires octets.
+176ksqea	Limit of 16384 bytes sent per TCP connection.
+75f8eyns	{0}: {1} bytes received by {2}.
+rqlffv15	TCP stack incompatible with the device.
+we3xw4rd	Duplicate TCP service port.
+x9cg8hny	Duplicate TCP ID.
+ex5t9ur4	BGP flow requires TCP/179 and application state.
+rqclaz26	DNS connection requires TCP/53.
+co5arzv1	Duplicate TCP connection.
+kw3s8z7o	Invalid TCP counters or clock.
+so7disyi	TCP connection closed with pending work.
+cqklr6bx	TCP connection has no valid expiration timer.
+k1zwitqy	Invalid TCP extension negotiation or clock.
+utc2zxd8	SACK scoreboard inconsistent with TCP negotiation.
+5gs22n97	Invalid TCP window/RTT estimate.
+hiwbzgf6	Inconsistent TCP out-of-order queue.
+o5o35tjs	TCP connection closed with a pending queue.
+ixocefhm	TCP has no valid retransmission timer.
+nkqgwj3h	Inconsistent pending TCP segment.
+lbjx1ees	Inconsistent TCP send window.
+mofmijt0	TCP has no segment to retransmit.
+f207yaj8	TCP handshake without a pending SYN.
+44xnu7gk	TCP close without a pending FIN.
+pha53j77	TCP state requires a received FIN.
+622xku7a	TCP TIME-WAIT with a pending retransmission.
+2ednpkz3	TCP timer without a connection.
+chwm1zv9	Concurrent TCP connection limit reached.
+ogj6st0u	TCP requires an active IP stack.
+mibnc4eq	IPv6 link-local TCP requires an outgoing interface.
+xdfvrc62	Configure an IP address and a route to the TCP destination.
+1617p881	TCP source does not belong to an active IP interface.
+t4r42m93	TCP requires a unicast destination.
+a4exxbuo	{0}: active open SYN-SENT to {1}:{2}.
+q5ko2osn	TCP connection not found.
+wza95ije	TCP connection unavailable for sending.
+7z7s6coq	{0}: closed by local reset.
+vscfnxrs	TCP backlog full; SYN dropped.
+y9rk6mrz	TCP octet representation incompatible with the connection.
+cgebybkp	{0}: reset received; port closed or connection aborted.
+slj6mjkq	TCP RST outside the expected sequence.
+65h8m9ky	Invalid TCP SYN-ACK.
+8mq9dycw	Unexpected SYN on an existing TCP connection.
+gt1ahqm4	Synchronized TCP segment without ACK.
+94cmry4o	TCP ACK acknowledges bytes not yet sent.
+ylex1kdx	Invalid final TCP handshake ACK.
+0xusoixl	TCP data after FIN or receive window exhausted.
+v8lcdcx2	fast retransmit/loss recovery
+fscf470d	{0}: 120 s idle limit reached.
+9nbz6vjr	{0}: {1} retransmissions exhausted. Check drops, ACLs, and routes.
+9driv1rd	Telemetry not configured.
+xejsao0f	Invalid telemetry collector/sensors.
+kr0c8waq	Periodic telemetry publishing configured.
+jns9lveq	Collector requires a server/router/L3 switch.
+g22432ho	UDP57500 collector configured.
+83sy917s	Telemetry: sensor exceeds MTU.
+jk8ofp4x	Sample {0} with {1} sensors sent to the collector.
+ta3mv8ke	Telemetry: no IPv4/route or device powered off.
+zca2o9gs	Telemetry: invalid collector, source, length, or integrity.
+tf9pntcz	Telemetry: replay/stale sequence.
+k6pfs7m3	Sample {0} received from {1}.
+oualfdnr	Invalid telemetry state/timer.
+ilzstlgu	Invalid telemetry collector.
+zy30dwf6	Orphaned telemetry timer.
+f9vjookg	ClientHello
+hrlfphz4	ServerHello
+rynp86bb	ClientFinished
+fbvrk7wd	TLS has no handshake secret.
+64qvtapp	Invalid TLS ClientHello, binding, or identity.
+e7flrxid	Incompatible TLS ServerHello.
+gl0faguw	Invalid TLS certificate, name, validity, CertificateVerify, or Finished.
+1jy4j0c0	EAP-TLS requires a client certificate/key.
+o17qf87t	Incompatible TLS ClientFinished.
+l9szef2x	Invalid TLS client Finished.
+lphynhbr	Incompatible TLS result.
+aqbs5982	TLS result without transcript proof.
+38v44vzd	Incompatible TLS acknowledgment.
+zdyi6aw2	Invalid TLS result acknowledgment.
+xwjcnpwe	TLS not authorized to export MSK.
+tmlx3ej3	Invalid SD-WAN policy.
+y95rkv3f	Controller requires an underlay and a key.
+l3opwyt8	Invalid tunnel interface/underlay.
+58b0o39m	Invalid tunnel state.
+1nq0eob9	Inconsistent tunnel timer.
+yxtbereb	Invalid SD-WAN state.
+g1via9pt	Inconsistent SD-WAN timer.
+9wjhs3gq	Invalid SD-WAN controller.
+mowcset9	Orphaned tunnel/SD-WAN timer.
+bgqxjebo	Interface has no tunnel.
+9fuip1qn	Old IKE SA was deleted.
+lext46yj	Tunnel requires a router and a routed IPv4 underlay in the default table.
+glq19znf	Invalid tunnel addresses/prefixes.
+ovs1cvhg	Duplicate tunnel channel/peer.
+h71apbk8	Tunnel over UDP/4500 (simulation model)

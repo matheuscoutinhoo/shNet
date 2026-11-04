@@ -4,7 +4,9 @@ import {
   validateSnapshot,
   applySimulationDelta,
   canonicalScenarioJson,
+  materializeMark,
   type SimulationDelta,
+  type StateMark,
 } from '@shlab/engine';
 import { api, ApiError, type Project } from '../api';
 import { SnapshotHistory } from './snapshot-history';
@@ -147,6 +149,10 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     },
     [engine, refresh]
   );
+  /** Records a terminal command's pre-command mark as an undo step without another full copy. */
+  const remember = useCallback((mark: StateMark) => {
+    snapshots.current.checkpointLazy(() => materializeMark(mark), mark.bytes);
+  }, []);
   const restore = useCallback(
     (snapshot: unknown) => {
       const applied = change((e) => {
@@ -482,6 +488,7 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     setPlaybackMode,
     playbackMetrics,
     change,
+    remember,
     restore,
     history,
     save,

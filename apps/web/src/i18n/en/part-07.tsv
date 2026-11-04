@@ -1,0 +1,515 @@
+2sx5p6o7	Relay hops
+xeee310a	Number of DHCP relay agent hops; helps limit forwarding loops.
+07yugch7	Selected DHCP server
+wkzr2b5a	Identifies the server participating in this lease.
+m8eczsi7	Requested IPv4
+0eqaecja	Address the client asks to use.
+x97ga1gc	Offered / confirmed IPv4
+377cvfpx	Address and prefix offered or confirmed by the server, depending on the message type.
+0sg08677	Provided gateway
+kgrj8z96	Suggested next hop for destinations outside the client's subnet.
+2obj58kc	Provided DNS servers
+8oy56yh0	Suggested destinations for name queries.
+aea8tdni	Lease time
+gg8e2334	How long the client can use the configuration; it must renew to keep using it.
+njuohw2y	Local LACP identity
+w42m8icd	System, aggregation key, and port advertised by this end.
+q2ri6ddx	Identity of the other end, recognized during negotiation.
+l2fvawnu	Negotiation mode
+t3bgcuk5	Active starts the LACP exchange; passive responds to received messages.
+v0v341pf	VXLAN identifier (VNI)
+tiz05vj4	Identifies the virtual network shared between the tunnel endpoints.
+eo09a3w9	Valid VNI
+1lhyqdfh	Indicates that the virtual network identifier is present and valid.
+znki5tmr	OSPF identity
+yikdxlys	Router identifier; it does not need to be the IP of the interface that sent the packet.
+3ureqx86	OSPF area
+ohio5dg6	Protocol information exchange domain; neighbors need a compatible configuration.
+hr8gqnjh	VRRP group / virtual address
+z8a6t3vw	VRID identifies the group; VIP is the gateway used by hosts.
+tei195ze	VRRP priority
+bepqydv9	Takes part in the active router election, along with the protocol rules.
+jrv7u2cp	Advertisement interval
+jhf8bsgm	Helps the participant detect when the active router has stopped advertising.
+1u28f1n4	Target neighbor
+8yabtp5w	IPv6 address whose presence or MAC is being checked on the link.
+508x4s9c	Link MTU
+qd1jaidh	Largest IP packet advertised as accepted on the link, in bytes.
+rfgj6fbp	Autonomous system / BGP identity
+xhuud9w7	ASN identifies the autonomous system; Router ID identifies the participant.
+q3du3qv7	BGP hold time
+6eqm6qle	Negotiated time before closing a session that has stopped receiving messages.
+wf5m9cqh	Advertised / withdrawn routes
+ohuy1uh2	Number of paths advertised and withdrawn in this message.
+kwl35jgi	Local results are locked by another tab. Export the scenario run.
+fevvkf48	Local result exceeds 2 MiB; export the scenario run.
+nt156ddc	Local result limit reached (50 per lab, 200/32 MiB total). Save or export pending results.
+pjxvsqu0	Ambient noise is a scenario condition and cannot be set in this form.
+45ujlp32	Choose a radio obstruction; do not set a numeric attenuation.
+1psn1i8a	New rule
+vn5a95jn	Delete ACL
+bc9ynd97	Delete ACL {0}
+0k93b1q1	Edit rule
+ejjgh0e6	Edit rule {0} of {1}
+td8z0489	Implicit deny:
+aj5ttakt	Inbound
+tlwvb7q8	Outbound
+6cr2on1l	None
+62c2u09e	NAT role
+rmv5e6be	NAT role {0}
+wozqvair	None
+v48ypqvm	New translation
+lv4256yu	NAT enabled
+mvoiqy8w	Hairpin: reach the global IP from inside LANs
+pq6y9qjs	SIP / SDP ALG and RTP media
+kisjt35y	: media
+6iy6mz2k	waiting for SDP
+vlcpp0x7	; return via
+z7kfwdz4	Remove static translation
+dcyds6gh	Remove NAT {0}
+bgdpef6u	Remove NAT pool
+aol9rm2c	Remove NAT pool {0}
+ppudf8d3	Active translations
+u0my4211	Invalid rule.
+p5vfnp4k	ACL rule
+qqs5cl5s	ACL name
+hsp2shur	Sequence
+1mezm0ai	Source CIDR
+a1viurfc	Destination CIDR
+fpj6mf6x	Destination UDP/TCP port
+rmzc7uqp	Save rule
+dixm98dk	Invalid configuration.
+5be3cx4d	NAT translation
+k2l74c12	Translation mode
+opk5wmb0	NAT pool name
+r7jsll5k	Inside local address
+trp2svg5	Inside network CIDR
+b6bckoss	Starting global address
+4g5dpzd9	Ending global address
+3p21y3dl	Save translation
+bulqt8cm	Local storage is locked by another tab.
+cs3jvucp	Draft exceeds 16 MiB. Export the topology.
+kgz2xhfo	Local draft limit reached (30/64 MiB). Recover, export, or discard old drafts.
+6jsnnqv7	Failed to write the local draft.
+t0mzce5x	Failed to remove the draft.
+jauofcql	{0} configuration differences
+42gv4fts	Invalid draft; export it to review
+o7yts5a4	Available local drafts (
+c0l9i8sr	Compare before recovering. Each tab keeps its own draft; the server will be updated after recovery.
+d179shpd	Recover draft
+nrb2jg30	There is a different version on the server. Your changes remain in this lab and in the local draft, when available.
+iv4nx1oz	{0}-recovery
+vm7at4mc	Export changes
+vhzu9g5c	Could not preserve the changes locally. Export them before loading the server version.
+x3epxl0o	Load server version
+7ucw5bc1	Save changes to a copy
+umuh8z3l	Quorum and replicated data lab
+y5cun5gn	Full replicas, vote-based election, and majority commit. Each pair uses a dedicated cable without IP.
+wx5gbu86	This group is bound to the SQL database; use queries over the network.
+8h1bsv47	This storage is independent of the SQL database and other services.
+more5j4q	· term
+qeoxmxpj	bytes; not installed yet.
+4eatjuca	Compact committed history
+7gxuu9yn	Replicated operation
+5mgbifzy	Write key
+zmxv3iz7	Delete key
+au5vmd41	Replicated key
+hx7mckke	Replicated value
+2ghig515	Propose operation
+feqj2bvp	Operation term
+pk6521do	committed by majority
+e3wt9etl	index compacted; individual commit status unavailable
+3p3mzmt2	not committed
+p5tlskzh	Committed local copy (historical)
+pe30m9ly	An isolated leader may keep considering itself the leader, but it cannot commit new operations. The historical copy does not prove a current read. Automatic compaction of committed prefixes, up to 256 retained entries, 128 uncommitted, and a 512 KiB checkpoint. No membership changes.
+roh8mx2g	Remove quorum group
+n3j7azt2	Replica server
+6c2tl21z	Create three-replica group
+ul6rbl04	configure edge
+bbtvlhka	Automation and monitoring
+7k910kj6	NETCONF negotiates capabilities and XML base 1.0/1.1 over TCP/830, with running/candidate/startup, validate, commit, and lock. RESTCONF uses HTTP resources, GET/PATCH/PUT/POST/DELETE, and ETag on TCP/443. Both validate certificates and encrypt the channel with the TLS model. Telemetry publishes sensors over UDP; NTP measures offset with four timestamps.
+pf40natt	Management operation
+tmf5cmfp	NETCONF / RESTCONF server
+vwm6xofk	Send remote RPC
+05susy3r	Run automation sequence
+9y3cc7x1	Telemetry publisher
+ab4j4wzu	Telemetry collector
+ez9ufm26	Clock / NTP server
+oof7co2q	NTP client
+9iv2gz1n	Network management JSON
+jt3r4nbg	Apply management
+mhtrotlk	pending
+j7wqu1d1	free
+a2gjoqsa	synchronized
+59tyc1yd	waiting for peer
+57s5ga1n	ms · failures
+sfxnft9t	Telemetry sent:
+wxpafqof	datagrams.
+xd1zives	Collector:
+bc91djys	rejected.
+jw7ik28v	Source / time
+4kn4vv62	Value
+3xd62685	Received data
+ts3i67tt	get/get-config use pages of 8 interfaces and 16 routes (offset). Candidate detects concurrent changes to running; lock has a 30 s lease. Jobs stop at the first error. NTP does not implement authentication or frequency discipline; telemetry uses the model's own format.
+en7zc8xc	Device inspection
+c2dmu402	Resize device details
+crnyzoz4	{0} pixels
+h1oa3nkz	Drag left to expand. Use ← and → on the keyboard.
+ekxlnjop	Lab events and traffic
+8jc2tkvm	Resize events and traffic panel
+efri5q7w	{0} pixels high
+3e9g5usy	Drag up to expand. Use ↑ and ↓ on the keyboard; Home shrinks and End expands.
+od7fl2de	Distance vector
+exd831jl	RIPv2 advertises networks to neighbors over UDP/520. In this model, directly connected networks have a cost of 1; each receiver adds 1. Metric 16 means unreachable. Step through events to follow the changes.
+cw4v2tzp	Filters, metrics, redistribution, and key chain
+fwfyqjzx	Advanced RIP JSON configuration
+eumrdiss	Enable RIPv2
+a5zbyrcm	Participate in RIP on
+ro52mv9q	Passive (advertise network without sending updates)
+w4lsrfkh	Applying resets the RIP table. Without poison reverse, split horizon omits routes learned through the outgoing interface.
+8qez5y7j	Apply RIP
+yhdbyai2	Hold-down, redistribution, filters, and keys
+mpn5w3fb	Configure costs, permitted prefixes per direction, and key validity periods. The form above preserves the advanced settings.
+zonv2d01	RIP configuration (JSON)
+piaclzir	Apply advanced RIP
+5kkacpm0	RIP table
+ificexnc	Network / source
+hcnn8158	Expires in
+rcbhe591	Connected
+oianf6g8	16 · withdrawn
+9epqaerh	No routes in the RIP table.
+l0jcwnre	Fix the JSON to open the form.
+zmkq0qs0	Scenario run name
+4wgln3oh	Duration (ms)
+fz8vev0y	Deadline (ms)
+33pc5gmn	Warm-up / convergence (ms)
+557xay1a	Flow
+ifq1ovg3	Destination IPv4 or IPv6
+rs5qx8yo	Connectivity test
+0fzwbigv	Parameters and criteria for flow
+1zzsl82t	Flow {0}{1} configuration
+gwaye5vu	VRF (empty = default)
+54aw4pqk	IPv6 scope (interface ID)
+emu7y7zc	Allow
+2dlezhbm	Deny
+g5izijqf	Required evidence
+r787qmwt	Correlated policy rule
+gcs7as6t	No response
+8k7704xi	Remove flow
+ouder72l	Flow {0}{1}
+ns4mhzqi	Add flow
+7sehojbe	Failure
+ojjne7ur	Failure {0}{1} configuration
+ygr1d7fr	Target (name/ID)
+b2dwy3qz	Remove failure
+f5jsz8st	Add device failure
+h2rc3igz	Scheduled actions
+ec8dt1xw	State checks
+o0r3wb7m	The limits are criteria for this scenario run. Define the production SLA per flow. Edit advanced service, port, link, and power feed parameters in the forms or in the JSON below. Configure applies a validated proposal; rollback reverts only the changed fields, without rewinding the clock. Checkpoint/restore restores the entire simulation.
+h7u77qb1	About this panel
+eyyaphvk	How to read the fields and test
+gi2k05xb	Try it:
+cn3yjwlv	Worker failure.
+f357ieon	The topology exceeds the history limit. Export it and reduce the capture before editing.
+i4jb4rja	SNMP v2c · object reads
+3lwfrtwu	GET and GETNEXT over UDP/161. The agent responds with its current state; an incorrect community gets no response.
+t6mpglao	SNMP agent active
+4hunenbb	Agent community
+9rz6k8kw	Apply SNMP agent
+9419rv7q	Queried agent
+j8lqzadh	SNMP operation
+x3r8940z	Query community
+us3aho2o	Queried OIDs
+mqvutlzr	Up to 16 space-separated OIDs. Name: 1.3.6.1.2.1.1.5.0 · Agent uptime: 1.3.6.1.2.1.1.3.0 · Interfaces: 1.3.6.1.2.1.2.1.0.
+hlctync8	Query SNMP
+270m3w5g	No SNMP queries.
+baxd5a1z	Read-only; no SET, traps, SNMPv3, or BER codec. shLab counters use the example tree 1.3.6.1.4.1.32473.1: RX .1, TX .2, drops .3.0, errors .4; interfaces by index starting at 1.
+t9rzr617	STP mode
+yarvtazw	PVST (rapid, per VLAN)
+6igzrm4r	MSTP (region and instances)
+mml7shgi	Bridge priority
+4665qtok	PVST/MSTP instances
+o1rizbns	PVST creates one tree per configured VLAN. MSTP groups VLANs by the mappings field; region, revision, and map must match across switches. Priorities use instance and priority.
+vxjlon79	STP instance configuration
+ivb6ypsy	Apply STP
+kktuzd9p	STP instance
+c343scbz	Instance
+jp4nvh6r	Bridge ID
+cz09qx22	Root cost
+xuoyu96a	This bridge is the root
+ptgm12dc	Topology changes
+03gh21fh	Role / state
+ztse6rm4	Spanning tree disabled.
+c2uqikg4	Disabled
+23mgvu5b	Link unavailable
+danqxo38	Policy mismatch
+akclfm05	Link available
+bza6v6pg	Firewall/NAT HA synchronization
+ard010ew	Use a direct cable between dedicated ports. Both routers need equivalent policies. The link replicates TCP/UDP/ICMP sessions and NAT/PAT translations; VRRP still elects the gateway.
+1aq2rhfc	· Pending updates:
+d87ydcp5	Sent:
+kzbanri9	· Received:
+8jvmmucy	· Rejected:
+s47275k0	HA mapping: use local ID and remote ID, one pair per line.
+xnpr0kq5	Local dedicated port
+ooykyf32	Peer dedicated port
+kxpz52sz	Interface mapping (local ID remote ID)
+ifa9q4ct	Apply HA pair
+jh6a4jpk	Disable HA pair
+rbwj81iu	An available link does not guarantee that all updates arrived. Loss, delay, or partitions can interrupt sessions. The channel is a state model, with no proprietary codec or PCAP. It does not replicate application inspection, SIP ALG, or hairpin.
+jtb00pqo	Syslog · logging over the network
+h0n844vs	Messages over UDP/514, with no delivery acknowledgment. The severity threshold includes equal or lower values.
+3nm67wy9	Send syslog
+4x4ht1hb	Syslog destination
+mnssax47	Severity threshold
+bke86c1g	Automatic events
+o4z4eid5	Configuration, link up/down, OSPF adjacency, and STP changes. Received messages and delivery failures do not trigger new messages.
+xnkuwlox	Apply syslog forwarding
+5ij0k3qm	Syslog message
+fy8aawy0	Message severity
+356girik	Send syslog message
+8iozv5ag	Syslog collector active
+vhm8ewkf	Received records ·
+ilcexw7t	Clear syslog
+noil8ecf	Time / source
+wj8g84ef	Up to 2,000 records. Shared virtual time; no relay, TLS, or interoperable binary format. UDP syslog may lose or duplicate messages.
+bls1f6x4	Application data
+cx55nxo1	Message {0}
+scp8ze11	BGP stream fragment; the engine reassembles the segments.
+cobbiaqa	Advertisements / withdrawals
+ormxdzi4	EVPN MAC/IP and IMET / withdrawals
+xpc4ed8a	Application data carried over TCP
+ltdiojj7	Connect, send data, and follow SYN, ACK, and FIN in the timeline. Use Next event or Play to advance.
+bclwpinu	Options for new connections
+sipr1sdq	SACK · selective acknowledgment
+tb5rzajl	ECN · congestion signaling without loss
+10m37gvw	PMTUD · path MTU discovery
+hxidfl8t	Advertised MSS (bytes)
+6pqhf0aq	Apply TCP options
+8n50o61g	TCP services
+8en2ybz0	This host can serve TCP Echo: it returns the received bytes to the sender. It does not provide an HTTP server in this profile.
+1f7fl5ta	Save service
+2xik31nn	disabled
+22uodja4	Generate traffic
+13izc17q	TCP traffic VRF
+myg5gm3t	TCP operation
+9gl31h6l	Open connection
+f8gbxisw	TCP destination IPv4/IPv6
+8i3zan3l	TCP destination port
+r1ftm6il	Automatic (global address)
+8u59tztw	HTTP host (optional)
+qpuxgp8f	Virtual name; defaults to the destination IP
+vl8oj7mg	HTTP path
+yta29a0n	Echo message
+g3qsgibh	Start TCP traffic
+xpyu8cge	Connections
+w3nnuc5o	Destination / port
+pve2gvbi	default
+1y2nsf1b	· Remote window
+px6w0zwd	B · Retransmissions
+ra9sgjcw	In flight
+mjzxrfo1	ms · Out of order
+vy5ryscf	not discovered
+y27ary8y	negotiated
+6d278wqh	negotiated
+0fzaa4b6	disabled
+rteitm4e	Waiting for application data.
+sareaxvr	Connection data
+0v1kcgau	Send TCP data
+o3upe23o	Close with FIN
+3pq4a9ta	No TCP connections.
+mx3l5i27	{0} terminal
+jdege0qo	Commands for
+2u5xcnhv	This terminal is simulated. Commands only query or change this device in the lab.
+85pjcm38	To configure: type
+7tljkzbq	, then
+j8hk9fde	before port commands and
+md5ge9jb	to exit.
+lpbg48yc	Example:
+2q71gbau	History
+za7qpuo4	Ctrl
+fxe02ugi	Clear line
+xq3xn1ad	Terminals · {0}
+ee9aorfy	Terminals
+1o9mjukz	Terminal sessions
+vmzdqs6q	Open another terminal
+r11nst0p	Open a terminal for another device
+40yroi1z	Open…
+mem8sn6f	Restore terminals
+18yr3qsu	Maximize terminals
+yohvhjet	Restore
+2y0l9f75	Maximize
+j90d7kqg	Bring terminals back
+dyshcevh	Open terminals in another window
+ozde19zl	Bring back
+14y2cnz9	Open in another window
+x55gakhs	Close terminals
+3nqvjdp8	Choose a device from “Open…”.
+ic5iwnna	terminals in another window
+jjsqrtnq	Events
+u3sohham	Traffic
+c9wahabk	Lab notes
+mdrqxn3w	Selection:
+3f9l9r9d	{0} devices
+7k8lwxdr	Entire network
+ozcodiqf	Ping tests started
+hyv30wk1	from the selection
+n2m1xsqi	on the network
+i0tz8rjj	View entire network
+x010nf70	Click an event to understand the decision.
+xl360ws9	Event list
+ewxhtqyl	Time (ms)
+vaatl5jm	No events match this filter.
+n94cxkot	No events recorded for the selection.
+qmwcn2xr	No events recorded.
+cro33047	Send a ping to view the simulation traffic and events.
+yk89c56z	Initial TTL
+x9qztrn4	Removed device
+pgydmbof	✓ Received
+gubrwevm	Waiting…
+3gnolhep	No ping tests started from the selection.
+sd25yc4j	No ping tests sent.
+4f59zj6z	Document hypotheses, addresses, and findings…
+p3i09dwa	Why did this happen?
+q58kdlfx	Failure or block
+05c7ljvz	Simulation record
+8s7igl7c	s of virtual time
+jutnllko	Event explanation
+y9m87fqj	What to check now
+44gjcwhw	Recorded reason:
+82m0vxy3	Device removed from the lab
+ojwlplzh	Removed interface
+hnpg1j3v	Device event; no specific interface
+gizevovi	Packet fields and layers
+dgu9sf9q	The values below are the ones recorded in this event. Virtual time advances with the simulation, not with the computer clock. Sent and received frames are separate records.
+dyb5s454	Recorded reason
+enq9c2v6	IPv4 fragment
+qaza2u33	Protocol / TTL
+1otl3wji	of payload
+uelnhir7	The application receives the data after complete reassembly. A lost or overlapping fragment invalidates delivery.
+ao4y34d9	NDP target
+plwpl7n9	Advertised MTU
+pwc7eaf7	· On-link:
+svrh5trc	no
+62775oen	· SLAAC allowed:
+24gprgsy	· Address valid for
+s4m9nu48	s and preferred for new connections for
+nx0y7p7z	Quoted packet:
+rkdrelll	UDP payload:
+p5q4pbi6	Technical packet contents
+rfaspdf6	Link-local control on the uncontrolled port; data depends on the RADIUS response.
+obwsg58v	MPLS — labels
+dkulu26y	Stack outer → inner
+2wg5h4vm	Inner packet
+nfcu4i45	802.11 — protected payload
+fvj1wsu8	Integrity
+re544mvj	Encrypted payload
+fo5mjq8f	Educational cipher. The payload is opened on the associated interface; it does not implement real AES/CCMP/GCMP.
+gbfrzt7h	Open network — no key-based authentication
+e08dnazr	Negotiation
+c2i9vhpr	Nonce
+szu8x08x	Security simulation limits
+7ofzwpi4	The lab represents authentication messages, proofs, and states. The key is not sent in this packet. This representation does not implement all the 802.11 cryptography of a real device.
+60cnqejq	LACP — aggregation control
+pgbf4zp8	Not recognized
+l1rcx4x5	Layers involved in this message: data link delivers frames on the local network; network addresses packets between networks; transport organizes communication between applications. The numbers are OSI model layers, not the order of events.
+juf1ewda	Layers present in this message
+uml8xdus	IEEE 802.11 — link representation
+khvkvb4v	EtherType
+x2kugivz	802.11 control (model)
+l7nrl16i	Untagged (VLAN set by the port)
+oiosazhd	Domain / instance
+zx8vgfw0	Quoted header
+ftpb0uax	Quoted identifier
+tuuld31v	Quoted ports
+c2jw4mbg	Quoted sequence
+13pivs5p	Advertised interval
+pz7z56pl	Inner Ethernet payload
+vdikg45z	Tunnel over UDP/4500
+a2dbquvu	SD-WAN control
+uxdebc81	RIPv2
+xzpj91h9	giaddr (relay)
+ouyrn1ps	Relay hops
+rs6d68sc	This event records a decision or state change, with no associated packet to decode.
+35gvzlfq	Expand {0}
+e1i2h5d9	Expand group
+l8qb9zf7	Collapse {0}
+n1280fke	Collapse group
+rfv0gzky	Annotation text
+pfq2zp6b	Color {0}
+ho4agzby	Passive infrastructure
+jcq853kp	Powered on
+ttgkispf	Powered off
+n3kg0uks	{0} connections
+m7ouz9fd	Approximate AP coverage
+vzyddabz	Illustrative range ≈
+eug30cl6	NetOS · {0} ports
+832zbylj	IPv4 not configured
+nevu17z6	Passive pass-through
+ns2azpov	Shift
+7egojvcj	Drag your first device onto the canvas
+7lt2t8f9	or click one in the catalog on the left.
+p9js07j4	Drag to move · Scroll to zoom · Shift to select
+lr54c587	connections
+qhbtoc0y	Logical
+hypvgstt	View-only projection; cable groupings do not represent new protocols.
+zigz1yy1	Layer 3 (subnets)
+ittwiox3	Routers and L3 switches connected by a shared IPv4 subnet.
+8dje9kvy	OSPF (areas)
+vrxcwvrl	OSPF adjacencies by area; a dashed line indicates a missing or incomplete neighbor.
+9fjc9tni	BGP (autonomous systems)
+0x1b4aas	BGP sessions grouped by AS; a dashed line indicates a session that is not established.
+w9l71gxn	{0} cables
+806y3szq	{0} cables ·
+he9onj2j	The endpoints first negotiate identity and keys; then they carry protected packets over the outer IP network, called the underlay. Failures, filters, and size limits on that network also affect the tunnel. SD-WAN compares delay, jitter, and loss to choose paths. This simulated protocol is not interoperable with a production IPsec VPN.
+dveoafxw	ms · loss
+fho98p5k	% · data
+lrh7p574	Routes:
+9hn3djhd	Tunnel number
+kj2yksg6	Tunnel enabled
+11a5zq4d	Tunnel mode
+tf7iegoc	VPN (conceptual)
+ytc6s5v1	no IPv4
+jme2wqlo	Shared channel
+hwohs0tc	Tunnel channel
+l3kthxwe	Tunnel key
+9f8wic33	Overlay prefix
+bftvt8z8	MPLS (transport class)
+k45dui52	LTE (transport class)
+y6ejcar8	Key lifetime (seconds)
+sdx5nm9r	Tunnel MTU
+sts34s4g	Advertised prefixes
+ksl1mz4r	Apply tunnel
+xyv07lnt	SD-WAN policies
+2iii84o5	Policies are evaluated in JSON order. The first matching destination/protocol/port selects the preferred transport within the SLA; fallback allows a path outside the SLA.
+8n317flb	SD-WAN enabled
+uyevnhra	Controller IPv4 (optional)
+h3h2ookc	Controller key
+152cq6jj	JSON policies
+12loxgec	SD-WAN JSON policies
+acecb5uo	Apply SD-WAN
+knopv5gz	policies received at {0} ms
+xzc3tg84	no response received
+uidtz2cn	Distributes policies over UDP/5000 to edges with a valid site and key. The files below describe simulated network configuration.
+e88iexh7	Controller enabled
+md36davl	Distribution key
+32zigc0l	JSON sites and policies
+zxj0zv6p	Apply controller
+8pbj4s2z	Local recovery unavailable: {0} Export your changes if the server also fails.
+2apl5cx2	Could not read local drafts: {0}
+v9gpsetj	Pending changes
+8na145pv	Version conflict: export and reopen the lab.
+8pshxqo9	Failed to save
+ie6slu60	Session expired and local recovery is unavailable. Export your work before signing in again.
+0viyrul5	Processing did not respond within 30 seconds. The simulation was paused; you can save and resume.
+liwlrjbl	Simulation failure.
+8dv1cexl	Failed to load the simulation processor.
+773gkfqt	Another tab saved changes. Compare or create a copy before continuing.
+cmxmt51l	Could not update the lab: {0}
+ebjjka5v	Lab deleted; recover the draft into a copy.
+xj93fioa	Connected
+y86ql8mc	Disconnected
+rpn7k1an	This lab was deleted in another tab. Export your work.
+hkoe36ry	Gateway or service with a virtual address
+7fsrttq6	Participants on the same LAN advertise their priority with VRRPv3. The ACTIVE participant answers for the virtual MAC; the BACKUP takes over after three intervals plus the skew time. Accept mode allows serving local services on the VIP. Configure the same service and content on both participants. VRRP does not replicate data, leases, or TCP sessions; the firewall/NAT HA channel has its own configuration.
+an0t06fv	Enable VRRP

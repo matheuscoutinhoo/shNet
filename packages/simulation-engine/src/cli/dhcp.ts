@@ -1,5 +1,6 @@
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, type Context } from './registry';
 import {
+  DHCP_LIMITS,
   DHCP_MAX_LEASE_MS,
   dhcpPendingPoolSchema,
   ipv4Schema,
@@ -68,8 +69,8 @@ function declareIosPool(device: Device, name: string) {
     throw new Error('Serviço DHCP requer servidor ou roteador.');
   device.dhcpServer ??= { enabled: true, pools: [], bindings: [] };
   const server = device.dhcpServer;
-  if (server.pools.length + (server.pendingPools?.length ?? 0) >= 16)
-    throw new Error('Limite de 16 pools DHCP por equipamento.');
+  if (server.pools.length + (server.pendingPools?.length ?? 0) >= DHCP_LIMITS.pools)
+    throw new Error('Limite de ' + DHCP_LIMITS.pools + ' pools DHCP por equipamento.');
   const entry: DhcpPendingPool = { name, dns: [], leaseMs: IOS_LEASE_MS };
   server.pendingPools = [...(server.pendingPools ?? []), entry];
   // Server profiles start on their own LAN (one-step setup); "network" moves the pool elsewhere.

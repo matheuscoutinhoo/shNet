@@ -3,6 +3,7 @@ import type { Action, Device, UdpPacket, Snapshot } from '../model';
 import { clockConfigSchema, ntpConfigSchema } from './telemetry-model';
 import { resolveRoute } from './ipv4';
 import { isUnicast } from './dhcp-config';
+import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
 export const networkTime = (e: SimulationEngine, d: Device) =>
   e.state.clock + (d.networkClock?.offsetMs ?? 0);
 export function configureClock(e: SimulationEngine, d: Device, input: unknown) {
@@ -173,8 +174,8 @@ export function receiveNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
 export function validateNtp(s: Snapshot) {
   for (const d of s.devices) {
     const n = d.ntp;
-    if (!n) continue;
-    const timers = s.queue.filter((q) => q.action.kind === 'ntp-tick' && q.action.device === d.id);
+    if (!n || !checkDevice(d.id)) continue;
+    const timers = deviceTimers(s, d.id, 'ntp-tick');
     if (
       !d.networkClock ||
       n.index >= n.servers.length ||
@@ -197,8 +198,7 @@ export function validateNtp(s: Snapshot) {
   }
   for (const q of s.queue) {
     const a = q.action;
-    if (a.kind === 'ntp-tick' && !s.devices.some((d) => d.id === a.device && d.ntp))
-      throw new Error('Timer NTP órfão.');
+    if (a.kind === 'ntp-tick' && !validatedDevice(s, a.device)?.ntp) throw new Error('Timer NTP órfão.');
   }
 }
 

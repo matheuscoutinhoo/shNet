@@ -1,0 +1,297 @@
+g5leplg6	Overlay gateway
+uhri1pd6	SLA-based forwarding and tunnel selection.
+n01s49xz	Stateful inspection
+kd9olqla	Eth/Gi0/1 trusted; all other interfaces external. Inspects TCP/UDP/ICMP.
+4w810a3j	Application firewall
+iu9u3d0m	HTTP/DNS inspection
+lc98csfl	Stateful firewall with rules for HTTP Host/path and cleartext DNS names.
+e32vbnbu	IP encapsulation
+3om8rfii	Configure the tunnel and underlay; negotiation and protection are simplified for teaching.
+06pc5koq	Services endpoint
+7frxncb5	IPv4/IPv6 and configurable services.
+fhoamk2j	Name resolution
+o8eywzly	DNS over UDP/TCP; configure the address and records, and enable the service.
+q2lq4nzj	IP leases
+0kasmc5s	Configure a static IP and a lease pool before enabling the service.
+cvyoglji	Clock synchronization
+2zxakdwn	NTP UDP/123; configure the clock and enable the server.
+wkyz70aj	Network authentication
+87ju98cg	RADIUS and TACACS+; configure users and the key.
+tezdl89q	UDP/1812 and VLAN assignment.
+jvekywq0	Terminal authorization
+17hcx2ow	TCP/49 and user privilege.
+cn4da4h7	HTTP application
+7iq2ivgz	Configure the address and the HTTP/TCP service.
+f5dmgl6l	Event collection
+ldbavdsq	Configure and enable the UDP/514 collector.
+5o628adm	Monitoring
+es2x3d4o	SNMP queries and telemetry collector.
+t8e8oujf	Automation server
+zhiynf7u	Remote management
+t3xa8djw	NETCONF/RESTCONF and jobs; configure users, credentials, and remote access.
+894hmr35	Virtual networks
+f3di8x1f	IP router for building a provider network; configure routes/BGP.
+faenli3e	IP translation
+k6st098m	Configure inside/outside, pool/PAT, and routes in the policy panel.
+1r37oa21	Nonexistent device profile.
+568oas2x	High SYN rate
+9zvmntso	Lab HTTP server response.
+rhrf7sub	Profile {0} applied: {1}
+zh4i5zdm	Active/standby DHCP with a confirmed replica over a dedicated cable. Request DHCP on the clients and advance the simulation. Administrative promotion in the DHCP panel powers off the former active server; there is no automatic election. T1 points to the old server and T2 allows renewal with the new one, keeping the address. When it returns, the old server remains standby and receives the current database. There is a single access switch in this model: this scenario run isolates the service HA. The replica channel is simulated, with no vendor codec for PCAP.
+f8xxq5ug	Invalid UPS profile.
+szjpv5hx	Two access paths and active/backup bonds with a 1 s ARP monitor/3 s timeout. HMI and PLC receive A/B power feeds; each access path depends on its UPS. Rack loss is tested by powering off its UPS and its switch: powering off the rack structure does not simulate a fire. Loss of both access paths or of the endpoint itself interrupts the flow. There is no replica of the PLC process.
+7ubsrhnn	HMI → redundant PLC
+bgggtmrk	Dual access — baseline
+5gl0utjz	Loss and recovery of rack {0}
+zekdjq7n	Campus/data center: VLANs, VRRP, EAP-TLS, services, and a 2-spine/3-leaf fabric. VTEPs on loopback, IMET and RT in the data plane. Services/gateway/WAN still have single points of failure: review the pre-check and test your SLAs.
+oi8qjuxj	User → ERP
+afo5j6qm	Tenant A → LB
+wnlbd4l7	Tenant B isolated
+2l93c2cq	Enterprise/DC — application baseline
+0dyagdgm	GUEST → ERP — policy check
+ci2pwj94	Guest → ERP
+c4zltb6w	Loss of {0}
+bqjlpgk9	Management NTP
+y4ssfwmq	Management syslog
+an5vh8i7	Enterprise/DC scenario run
+9qiw50ad	Converged fabric and Wi-Fi state
+r90a3bva	EAP-TLS authorized
+o5gjrivu	LB powered
+stjpqc23	APP-1 healthy
+z64vscx5	Loss of the primary firewall
+afozokg1	Loss of the primary distribution
+rbijvtkb	Cell A isolation
+2ihzdd47	PLC A unavailable
+obmyjqq1	SCADA unavailable: local HMI independent
+dn66nk91	Guest segmentation
+0cx8dijj	Guest → MES blocked
+1ib6fc54	Guest → PLC blocked
+n9f0dzl7	Resolve MES
+6dc1jk2y	DNS — uncached response
+c2sjbl1x	DNS — service failure and restoration
+4ea46ca8	DHCP — leases via relay
+1crukjno	IT lease
+wscoq8ry	MQTT — QoS 1 publish and wildcard subscription
+2383ggor	Temperature A
+osc4cagv	factory/+/temperature
+at9e6k85	SNMP — SCADA identity
+6hqxvvse	NTP — management synchronization
+jbnkkhtz	Synchronize clock
+2ip7clqy	Syslog — reception at the collector
+fxbkb4ty	Maintenance
+l9kzxcma	Factory maintenance
+biiz21mz	MES — HTTP failure and restoration
+ddrpu84y	{0} — power feed loss and restoration
+6njago0l	Partial
+9moevoqh	IOS/IOS XE subset: modes, abbreviations, ACLs, PAT, VRF, OSPF/BGP, MST, campus security, MQC, and IP SLA. write memory validates the replay before saving; configurations without a complete replay are rejected. Native SSH/VTY, SNMPv3, OSPFv3, EIGRP, IS-IS, and parity with all commands/platforms remain pending. Does not run Cisco firmware.
+w4c076zv	CDP/LLDP and HSRP IPv4 v1/v2 have Ethernet/UDP codecs. HSRP includes election, preemption, tracking of interfaces and IP SLA objects, virtual MAC/ARP, and DHCP relay through the active router. HSRP authentication and IPv6 remain pending; the decoder rejects unsupported authentication TLVs.
+v23t1bgp	NICs and A/B access
+plbp5sks	Simulated
+mexgqmid	Active/backup bond on PC/server/PLC/HMI, IPv4/IPv6, and DHCP on the logical interface. Enterprise/factory models combine A/B access, power, and WAN/DC gateways. Carrier detects local failures; the ARP monitor watches an L2 target. Failure of the endpoint or of both paths interrupts the flow.
+4y9ecss0	Service availability
+vuson24e	VRRP accept mode and tracking allow DNS/HTTP/NTP/syslog on the active VIP, with equivalent content configured. DHCPv4 replicates leases over a dedicated channel and allows administrative promotion with fencing. Data/logs/sessions of the other services are not replicated; quorum/automatic election remain pending.
+f8pbfkhd	Discrete-event model; does not run vendor firmware.
+tg3m1gej	OSPFv2 includes per-flow ECMP, stub/NSSA areas, summarization, conditional default route, and MD5. BGP includes prefix-lists/route-maps, peer-groups, maximum-prefix, and TCP MD5. MQC applies classification, marking, LLQ/WRR, policing, and global shaping; discrete weights approximate bandwidth percent. Does not represent all Cisco hardware mechanisms, protocols, or commands.
+2b8w51p5	Campus security and failure detection
+kt227l4y	DHCP snooping, DAI, IP source guard, port-security, voice VLAN, and root/loop guard act on forwarding. UDLD uses single-hop advertisements/echo and eight attempts before err-disable; its timing is simplified and there is no PCAP codec. Single-hop asynchronous IPv4 BFD uses UDP/3784 and brings down OSPF adjacencies; no Echo, Demand, authentication, multihop, or BGP integration. Native 802.1X drives the existing EAPOL/RADIUS model; it is not a complete implementation of all EAP methods.
+7ibetfrz	WAN and enterprise operations
+wrx90j6n	ACL/interface-based PAT, NTP, timezone, virtual configuration files, ICMP IP SLA, tracking, and inventory/error/forwarding queries use the model's real state. MPLS uses manual LFIB/FEC, without LDP. Encrypted tunnels use an educational handshake, without the full IKEv2 CLI or an interoperable IKEv2/ESP format. The model's NETCONF/RESTCONF is not equivalent to native Cisco management over certified SSH/TLS.
+2qnrlul5	Stateful firewall
+qygklot2	Zone-based ip/TCP/UDP/ICMP inspection and transit sessions cover IPv4/IPv6 on routers. An explicit HA pair replicates sessions and NAT/PAT over a dedicated channel that is subject to failures; VRRP alone does not replicate state. Application inspection/SIP ALG and hairpin are not replicated. The L3 switch offers ACLs.
+p6d9vkn6	Approximate model of distance, obstacles, and interference; does not replace a site survey.
+uanroucb	Check the configured QoS level and authentication; the model's transport is not equivalent to industrial broker certification.
+ed1ix0ix	GET/GETNEXT with community; SNMPv3 authPriv and traps not implemented.
+bj2ltxk2	Binary MBAP/PDU over TCP and PCAP: functions 01/02/03/04/05/06/15/16. Simplified tank process, PLC scans, and HMI/SCADA/MES cycles with alarms and deadlines. No ladder logic, firmware, or certified physics. Old hex/newline connections are legacy and excluded from PCAP.
+lzm36ex5	Not supported
+kxmxpu8p	These protocols are not emulated.
+cz5rdu3w	RSTP does not replace industrial redundancy protocols.
+iwpjkslf	NTP does not validate precision synchronization or deterministic scheduling.
+yh164lbw	SCADA, MES, cameras, and process
+6pszrw8q	Represented
+xdn4qov9	Periodic Modbus loads, setpoint, and an educational tank process. Does not run complete MES/SCADA applications, firmware, or video codecs.
+ipnr53fu	VTEP on a /32 loopback and BGP updateSource allow operational alternate paths. MAC/IP and IMET members per RT; peerPolicy evpn requires members in the data plane. Binary BGP/MP-BGP with AS4 and EVPN route types 2/3. Optional ARP suppression per EVPN binding and IMET member; does not attest VM health. No ESI/DF, Type 5, or NDP proxy.
+s3si07q0	ICMP/HTTP/Modbus accept IPv6, VRF, and link-local scope. Other scenario adapters use IPv4 in the default table. Dynamic VRF protocols not implemented.
+hxrrpevs	A/B power feed
+fycy2py8	A load can have multiple UPS units: it stays powered while a requested source has output. Each UPS reserves the full rated power; does not represent real electrical switching.
+i8v01u16	Ethernet/IP/TCP, OSPFv2/MD5, HSRPv1/v2 without authentication, BFD, CDP/LLDP, Modbus, DNS, DHCPv4/v6, syslog, VXLAN, and BGP/EVPN have binary codecs with validation. Exporting/decoding does not attest interoperability with Cisco devices. Protocols without a codec, legacy OSPF HMAC authentication, and legacy OSPF headers without metadata are explicitly excluded. The DHCP replica channel has no vendor codec.
+dw4jibv9	Simplified tank, level 0–1000. PLC: 100 ms scan, holding 0=setpoint, input 0=level, coil 0=pump, discrete 0=latched alarm. HMI/SCADA read every 1 s; MES every 2 s, over binary Modbus TCP, 800 ms deadline. Pumping stops when the PLC is powered off; draining continues within the scan resolution limits. Neither the network nor the A/B power feeds replicate the PLC. No ladder logic, firmware, functional safety, or certified physics.
+2ii5o5r9	PLC/HMI/SCADA/MES process — baseline
+q0rht3mm	Process — PLC power-off and recovery
+kww66kgk	Process — Modbus service failure only
+xmftmzzo	{0} detects failure
+6a96tabd	Process — loss of access A
+rzd61xgq	Process — MES changes the setpoint over the network
+rqqikv5z	MES → setpoint
+uigd1tgx	Setpoint received
+mifm7ken	The destination needs an active IPv4 interface.
+l7s9wcmd	Diagnostics exceeded the 3,000-event budget.
+decpnvp1	Lab not found.
+uytd0epj	Guided assessment limited to 24 devices, 48 connections, and 128 ACL rules.
+qamzlpcz	Add two PCs and a switch
+skh5owj1	Physically connect the hosts
+25mz81q9	Configure distinct IPs in the same subnet
+6jfwkddl	Restore the router interfaces
+dutqfcd6	Configure the host gateways
+gn2i4i4c	Enable the service and a DHCP pool
+36jz5yc2	Obtain valid leases on both PCs
+za689otk	Receive addresses without duplicates
+57421v8m	Create VLAN 20 on both switches
+0fcsdzkq	Configure the access ports in VLAN 20
+cm5zveo3	Allow VLAN 20 on the trunks
+1w3pcqa4	Enable NAT at the edge
+ldk9pj9x	Apply an ACL to the inbound interface
+gowjohc7	Block DNS with an ACL, not by a missing service
+iibywmow	Enable RSTP on all three switches
+sw1bnj3q	Keep an alternate port blocked
+ld1ys3k2	Promote the alternate path after a failure
+qa95zx66	Validate ping with the uplink down
+ka101u2b	Validate communication with new traffic
+cnrl5ipr	Observe NAT translation in the validation traffic
+rnimrdfo	Duplicate objective IDs.
+sbucwbma	Build the LAN endpoints
+sax3x8io	Add two PCs and a switch from the catalog. The PCs generate traffic; the switch forwards frames using MAC addresses.
+wnq08ga8	Use the + button on the PC and Switch profiles. Each device needs an available port.
+b0pogz6k	Build the physical path
+4qqmwt11	Connect each PC's port to a different port on the same switch. Leave the cables and interfaces up.
+hdq9jdet	Open Connect. Choose a PC and the switch for each copper link.
+fd9a570v	Configure addresses on the same network
+sdt51q65	Open the configuration of both PCs and assign different IPv4 addresses in the same subnet, for example 192.168.10.10/24 and 192.168.10.20/24.
+qtoo7x1n	On a directly connected LAN, no gateway is needed. Check the mask and VLAN of the ports.
+wfe7m87x	Observe ARP and ICMP
+knouzeyp	Run ping between the PCs and follow ARP Request, ARP Reply, Echo Request, and Echo Reply on the timeline. The validation sends a new ping, without reusing old results.
+3tj7vs3o	An active cable is not enough: the destination address must be assigned to the other PC.
+c3axl98u	Move up to the transport layer
+yakgroph	On the second PC, enable a TCP echo service on port 7. The test opens a new connection, sends a message, and verifies that the simulation's TCP echoes it back.
+muqih9oy	Select the second PC, open TCP / HTTP, and enable echo/7. SYN, SYN-ACK, and ACK precede the data.
+jbjsdadn	Objective references a nonexistent device.
+xlox29gq	Objective references a nonexistent interface.
+1boa0y1x	Nonexistent IPv6 scope.
+itxv3p45	Nonexistent objective VRF.
+aimgeybq	Nonexistent link endpoint.
+9qx0xxzc	Link-local ping requires a scope interface.
+71n6rg51	Expected A record value must be IPv4.
+krq88pdg	{0} {1} device(s) powered on.
+dkxlvs5y	Link, power, and interfaces verified.
+npammon8	Observed IPv4: {0}/{1}.
+r5rxmim2	none
+3e7qwg2y	Port mode, VLAN creation, and membership verified.
+uuo62nu8	DHCP-renewed lease and server binding correlated.
+5wy8cqre	Routing table verified after convergence.
+9fsf6z5a	New ICMP{0}: {1}.
+28c5g2op	no result
+3tdhyq06	New TCP session: {0}; {1} bytes received.
+qcnkivxh	New DNS query: {0}, security {1}.
+c9e35vtd	Verification unavailable.
+t2rnky7v	Invalid tutorial step.
+wzxibc8d	Two PCs and a switch must be powered on.
+lehx8dsa	Both PCs must be connected to active ports on the same switch.
+nbg35xq6	Distinct addresses with the same prefix and network.
+b1w7dllz	Configure the addresses before the ping.
+4iaqmmxc	Ping not performed.
+cvcm0apv	Configure the addresses before TCP.
+xpshm3ip	TCP not performed.
+cv6titqw	Nonexistent device or interface
+ksg86vvm	Radio links are created by the wireless configuration.
+pkxmurz5	A cable requires physical interfaces.
+bc26u78g	Connect interfaces on different devices
+m68lij6z	Interface already used by another cable
+355stn4g	Incompatible speeds: configure both interfaces
+075i2sv4	Serial/console require matching sockets.
+6besed6h	Serial requires one DCE and one DTE.
+tfzcerev	Serial/console cable reach exceeded.
+sgkst1mq	Incompatible media: copper requires RJ45; fiber/DAC requires the same SFP or QSFP socket.
+mf719v3x	Transceiver incompatible with the cable.
+0rj74yvi	Speed incompatible with the socket.
+501vf2f8	Distance exceeds the media reach ({0} m).
+u29zhme4	Ports require the UDP or TCP protocol.
+4th71qq4	Invalid lease timers
+uyiapcq6	IP and prefix must be set together
+pe5jxndb	IPv6 TCP requires IPv6 encapsulation.
+wwnhd4qz	ICMP error and quoted header are inconsistent.
+ofp2hdsg	Payload incompatible with EtherType
+v7fe5l3i	Security / AAA
+pd5ddzzs	Automation / clock
+fwcefu5x	Dependencies
+dq5ebwxo	AS {0} · {1} routes
+8fo40vlw	{0} routes · {1} neighbors
+oc88l1vh	{0} entries
+rj8sb96f	{0} neighbors
+snsuesho	active/backup · NIC {0}{1}
+b6x7k9xm	unavailable
+o96oykem	· local carrier
+oq2wkd6v	Tunnel {0}
+tpj0x1rq	VLAN {0} · RT {1} · {2} EVPN MACs · {3}/{4} TX/RX
+0y0cu6fw	{0} queued · {1} drops
+6loy5ado	{0} FECs · {1} labels
+9qpv8x00	{0} · channel {1} · {2}
+e5wrfahw	{0} sessions · {1} drops
+32ogkcgu	Network login
+n3n45h3d	Privilege {0}
+88ay3bs6	no client
+w4q77u5b	Telemetry
+vxvketeo	{0} datagrams → {1}
+yrohgqy4	Collector
+2q1tdh0v	Clock
+3gzv9kks	server
+mysut2yx	GET/GETNEXT on UDP/161
+pwja4a68	{0} records
+ccvuhpa9	device present
+fzjh8pfs	powered off
+9jnn73ib	not found
+tl5nju5y	Device gateway
+74rn1uez	Route {0}/{1}
+cfhabwtu	{0}:jumper:{1}:{2}
+3jb68rxr	Educational SQL database bound to the quorum: SELECT and changes require majority confirmation; other services are independent.
+rife3ayo	The quorum only protects the study storage; the other services do not use this confirmation.
+b4rtadsi	Test partitions and committed writes. A leader role or a historical copy does not certify availability or current reads.
+l69c1ygi	The replicated database uses individual IPs; clients can discover the leader over HTTP/TCP with an explicit cluster and replicas. There is no TCP migration or quorum-managed VIP.
+dsvlsb80	Use discovery for new queries after an election. A change timeout has an indeterminate result; confirm the state before retrying. Compaction preserves committed data; up to 256 retained entries and 512 KiB per checkpoint.
+afzbkiii	Materialized quorum state takes up to {0} bytes; checkpoint budget: 512 KiB.
+ynvf4el6	Reduce data before growing. New changes that grow a state beyond the budget are rejected, without erasing committed data.
+di7uxydq	Retained quorum history is close to the 256-entry limit.
+bnv3mbnj	Check majority and commit status: uncommitted entries cannot be compacted. Old datasets above 512 KiB keep their data and may prevent compaction.
+p86xxjim	{0}: administrative DHCP switchover; there is no automatic election.
+7wfxchto	Promotion requires an up-to-date replica and powers off the former active server. Validate T1/T2 with traffic and SLA.
+hxeeq558	{0}: DHCP replica {1}.
+v0v58cft	without a confirmed second copy after fencing
+zmg4i7ar	synchronizing
+h39bp41q	unavailable; replies depend on confirmation
+lachsk9j	Restore the channel, power, and standby configuration; advance the simulation and check the leases.
+xk2tqqi1	{0}: VRRP without firewall/NAT replication; existing connections may be interrupted.
+bfj962lt	Configure an HA pair with a dedicated channel and validate continuity with the same connection.
+u08i7s6c	{0}: HA synchronization {1}.
+rb3jni8e	with mismatched policies
+6uey4o4d	without an operational link
+84nochew	Restore the cable/power and apply equivalent policies on both peers.
+avx5ncmu	{0}: {1} state updates not yet received by the peer.
+7jwlbh9t	Advance the clock and check the counters and scenario runs before confirming continuity.
+zquwnz06	{0}: {1} HA updates were rejected.
+qzxwvgfj	Check limits, collisions, and policies; resolve pending issues before certifying continuity.
+4m7iwx0u	{0}: HA does not replicate hairpin, SIP ALG, or application inspection flows.
+ss4iexpg	Use the specific scenario run for these applications; basic TCP/NAT state does not prove continuity.
+75rmmpz6	Check the VLAN, mask, Wi-Fi association, and gateway. The analysis uses the potential configuration and current associations; it does not certify reachability or a gateway outside the snapshot.
+kq2d7row	{0}: VXLAN MTU {1} + 50 exceeds {2} ({3}).
+fv5ztkdn	Increase the underlay path MTU or reduce the tenant MTU; test DF packets and small messages with Ethernet padding.
+iwq77erm	{0}: a single UPS powers the load.
+l0ribg8n	If the SLA requires A/B, attach two independent UPS units and test the loss of each one and of both. Each source reserves the full rated power.
+xw5xfjjc	{0}: requested loads exceed the maximum power.
+8zw1msbk	Resize the UPS and validate the full load with the other source unavailable.
+lgpn1570	{0}: only one physical access path.
+k9acuqbs	Check whether the SLA requires redundant interfaces, switches, and power feeds.
+vpa0mt2p	{0}: {1} links terminate on the same device ({2}).
+1up8hlpo	Two uplinks cannot protect against a failure of this switch; test device and power loss.
+b1n0t0ci	{0}: route {1}/{2} has host bits set.
+rm7axv04	Use the canonical network address to make the review unambiguous.
+6wdvonid	{0}: next hop {1} has no IPv4 interface in the route's subnet/VRF.
+0lyer4r6	Fix the address, mask, or VRF. The engine resolves static routes through connected interfaces; the review does not prove availability.
+h6xjijek	{0}: route {1}/{2} points to {3}, the physical IP of a VRRP participant.
+93jbk20t	Consider using the VIP as the next hop and validate the return path after failover.
+3q7shzqf	{0}: IPv6 next hop {1} is outside the prefixes of interface {2}.
+8f5lf72o	Check the interface and the NDP scope; a link-local next hop must belong to the indicated link. The static review does not certify reachability.
+49lcuquv	{0}: ACL {1}, rule {2} shadowed by earlier rule {3}.
+vpfs33yi	The first matching rule decides. Review the order and perform positive/negative scenario runs before confirming isolation.
+mqy0m2x8	inbound
+q28rdsmb	outbound
+n893pcrb	Review the first-match order and test data, NDP, and ICMPv6 errors separately.
+ezokfs5x	VIP {0}: DHCP relay configured only on {1}.
+yhwhswft	Configure the relay and compatible pools on the backup; test new leases after the primary fails.

@@ -1,0 +1,471 @@
+r1m14r9r	DHCP HA replication queue exceeds its limits.
+kec5pqq3	Invalid pending DHCP HA response.
+5vkkiurx	Orphaned DHCP HA timer.
+eqr4qtzz	Invalid DHCP HA transfer.
+4296nhi5	Remove the DHCP HA pair before changing the pools.
+g9r5yc0e	DHCP relay: request already contains giaddr or hops; chaining not supported.
+3q9xgx3p	DHCP relay: ciaddr does not belong to the ingress network.
+wgzdcdzv	Relay preserves client and transaction; giaddr={0}, hops=1; UDP 67 → 67 to {1}.
+plqv69hl	DHCP relay: response from an unconfigured server, or mismatched giaddr, hops, or subnet.
+ldzv145e	Response from server {0} delivered on the giaddr={1} network; UDP 67 → 68.
+b88rouwn	{0} expired: {1} returned to pool {2}.
+mfrtsgqr	Offer reservation
+o19ftwv6	Lease
+7sm5j369	DHCP NAK: requested address has no valid lease in this pool.
+mls012dw	DHCP: no pool matches the giaddr, ciaddr, or destination interface.
+77br5j5w	ARP conflict: {0} quarantined for 600 s.
+h5oei1sh	Lease {0} released by the client.
+ftze31b4	No address available: check the pool's exclusions, reservations, and leases.
+0ijn63v4	DHCP snooping requires a switch.
+o6zwbamw	DHCP snooping configured; tables relearned from REQUEST/ACK.
+ay0mbs0l	Invalid DHCP snooping configuration, VLAN, port, or binding.
+3pj7ph2v	server response on an untrusted port or invalid UDP ports.
+06lj58sl	response without an observed transaction or from another server.
+rgp2crfy	ACK does not confirm the requested address.
+aen9g57x	mismatched client, MAC, giaddr, or UDP ports.
+meli7l4w	IP Source Guard: IP/MAC/port without binding.
+1u8hsu41	DAI: ARP announcement does not match the binding.
+2ue7tym2	ARP probe without an observed lease.
+t91x5207	DHCP snooping is a switch feature.
+0juifkni	Invalid DHCP snooping table.
+6me79sn4	DHCP {0}: {1}/{2} from pool {3}; {4} s lease.
+d4tvqxcb	Inconsistent DHCPv6 hop count.
+ck6d04zq	DHCPv6: pool requires addresses/prefixes and T1 < T2 < valid lifetime.
+rwado909	DHCPv6: request an address or prefix.
+dmnyxe54	DHCPv6 relay configured on {0}.
+cxbe8v2f	DHCPv6 relay requires IPv6 routing, an L3 interface, and unique global/ULA servers.
+56u2cwzk	DHCPv6 relay: pending request without a source interface.
+c8q0kv1j	DHCPv6 relay: invalid delegation.
+ezereyw9	DHCPv6 relay: invalid source, port, or hop limit.
+nyx9dt47	DHCPv6 relay: wait for DAD of a global/ULA address on the link.
+9ez5u381	DHCPv6 relay: pending correlation limit reached.
+a0pouir5	DHCPv6 relay: no route to {0}
+b086xady	DHCPv6 RELAY-FORW; link {0}; hops {1}.
+ucj0rx7o	DHCPv6 relay: uncorrelated response or tampered interface.
+rbv25nh8	DHCPv6
+uboytl5c	DHCPv6 RELAY-REPL forwarded to the originating link.
+9qnuj4ps	Duplicate DHCPv6 pool.
+0ysl809u	DHCPv6 pool requires an IPv6 interface.
+hr8sinf6	Invalid DHCPv6 remote link prefix.
+6bcmt84e	DHCPv6 pool: on-link unicast range of up to 256 addresses.
+p4jzfdqd	Invalid DHCPv6 delegation pool.
+2ww597uw	DHCPv6 DNS requires a global/ULA unicast address.
+fphcsaaf	DHCPv6 relay peers must be unique global/ULA addresses.
+im5tuk6i	Incompatible DHCPv6 server.
+rumz6u8a	DHCPv6 server configured; previous leases removed.
+ntvxpo9d	Enable IPv6 before the DHCPv6 client.
+feb0yefd	Delegation requires a separate IPv6 interface in the same VRF with forwarding enabled.
+5mvur9iy	Delegation requires a router/L3 switch.
+nh50fqqb	DHCPv6 client {0}.
+ky9csaqs	DHCPv6 {0} (IAID {1}).
+3l48buhv	DHCPv6 client does not exist.
+g45e76e4	DHCPv6 lease released.
+4xj7epxa	Expired DHCPv6 leases removed.
+vfqopqz2	DHCPv6: valid lifetime expired.
+vswol6w7	No DHCPv6 response after six attempts.
+fetidt9k	DHCPv6 {0}: {1}.
+g8z7e47d	DHCPv6 BOUND: {0}{1}
+koduyivw	prefix {0}/{1}
+4evx351t	Invalid DHCPv6 server/lease.
+uhhf6o9u	Inconsistent DHCPv6 lease.
+y005prjj	Inconsistent DHCPv6 client/timer.
+qvnvuy7b	Invalid client DHCPv6 lease/timers.
+pmoojro9	Orphaned DHCPv6 timer.
+vrl1zj8p	; {0} record(s) received.
+1puipq8l	; server {0}.
+3z9hy6o4	{0} query for {1} to {2}:53; attempt {3}.
+h2v80a0l	L2 switch has no DNS resolver.
+500mdgcy	Device powered off.
+db4dx1bf	Invalid DNS transport.
+yawl2qwh	Configure DNS servers on the interface or obtain them via DHCP.
+j0rm6ep6	Configure an address and a route to the DNS server, and wait for DAD.
+jvnu38e8	Invalid TTL.
+hyh380n5	Pending DNS query limit reached.
+sacgx6op	{0} answered from cache; remaining TTL {1} s.
+e2wjojsj	No DNS response from {0} after 5 s of virtual time.
+wypolqgn	DNS response without a matching query: mismatched source, ID, port, or question.
+n87il950	{0}: truncated UDP response; retrying the query over TCP/53.
+grcsb9jo	DNS response contains records outside the queried chain.
+hvkooyiu	DNSSEC: invalid signature, trust anchor, validity period, or denial-of-existence proof.
+7fx4djyp	Invalid DNS name
+andtgkti	Duplicate DNS record.
+w950msb9	CNAME cannot coexist with other records of the same name.
+ee4xnfkx	Limit of 256 DNS records reached.
+0od2t08z	DNS resolver requires a routed interface.
+smqm6uhl	DNS on this interface is managed by DHCP; change the pool options.
+a3awkem8	DNS servers must use unicast IPv4.
+a13ff0rc	Invalid DNS server on the interface.
+9hj4s2eh	Duplicate DNS query.
+hj3pjdcv	Invalid DNS reference or clock.
+c15khy0h	DNS/TCP query without a matching connection.
+62nug5yn	UDP query with a TCP connection.
+3d0g25vy	DNS query without a matching timer.
+q228ydtj	Duplicate DNS query port.
+lsao9x9p	Pending DNS query already has a result.
+sekctihu	Invalid DNS duration.
+oonlzbeu	DNS response does not match the question.
+kxo7bf2v	Invalid or expired DNS cache.
+scf27i2z	DNSSEC cache without a valid proof.
+gfw7vzk1	response exceeds the UDP limit; TC=1, client may retry over TCP.
+o5shr3pc	{0}, {1} record(s).
+shrtm661	DNS message exceeds the model's TCP buffer.
+mzbyrdvl	Invalid DNS/TCP length.
+pwgosxmu	DNS/TCP length out of range.
+z3wfrict	DNS/TCP accepts one message per connection in this model.
+mk7oxjw6	DNS/TCP: invalid framing or message.
+qj5brskt	{0}: {1}, {2} records over TCP/53.
+lks6ekdr	DNS/TCP: message type incompatible with the connection role.
+sqz07sr6	DNSSEC zones require a server or router.
+s1odl4yr	Duplicate DNSSEC zone or trust anchor.
+7uis5gry	DNSSEC validation requires EDNS with DO=1.
+gtugbu10	Port has no 802.1X.
+821tjkbc	Missing supplicant.
+008zkj6d	802.1X requires a physical access port and a routed IPv4 underlay for RADIUS.
+wz3e1nzm	802.1X access control {0}.
+4k2oarre	Supplicant requires an Ethernet port on an endpoint/router.
+gdfrmrcn	Wired 802.1X supplicant configured.
+ia367xy9	Port authorized for {0} in VLAN {1}.
+8q4yuwcu	Port unauthorized; data blocked.
+3b0r05sw	Controlled port: frame {0} without 802.1X authorization.
+jmgkwicd	802.1X: data blocked on the controlled port.
+6frr4kit	Authorization revoked due to failure/expiration.
+lmixafu5	EAP flight pending.
+ferc147w	EAP fragment missing.
+2k0iwbkm	Invalid EAP-TLS flags/payload.
+f048jxel	Invalid EAP-TLS initial length.
+famd6no5	EAP-TLS fragment without initial length.
+b1948x94	EAP-TLS fragments exceed the length.
+9w5o2gdm	Inconsistent EAP-TLS More flag.
+noek3tcj	Incomplete EAP-TLS flight.
+h680djpx	EAP requires a server identity, unicast clients, and valid users for TLS/PEAP.
+gddjiqb1	EAP {0} / RADIUS server configured.
+pyle12tb	EAP authenticator requires an AP and a routed/SVI IPv4 underlay.
+jq2ibqtn	EAP/RADIUS authenticator AP configured.
+wy9jh3g7	EAP client requires a radio, TLS certificate, or PEAP password.
+gmoxvp30	EAP {0} supplicant configured.
+rfw2lhgx	Enterprise SSID without a RADIUS authenticator.
+x72fuj1c	EAP-RADIUS without an underlay route.
+mq0zihnp	EAP Response without an authenticating association.
+n9cbhl4t	EAP Request without a supplicant/association.
+iygmufpn	EAP Success without TLS/PMK.
+5b7hwfth	EAP Failure received.
+m2en9f0a	EAP Request expected.
+yid5xtoe	Incompatible EAP method.
+i0byqo9f	Unexpected EAP ACK.
+51m9wc1r	TLS without ClientHello.
+720ueqy0	Invalid NAS/RADIUS service.
+6pmf5d6n	Access-Request without EAP/State/NAS.
+pa7kfsdc	EAP session limit reached.
+nza15ig9	EAP identity repeated with a new request.
+tffzua0s	Invalid EAP State/identifier/method.
+lvypie02	Duplicate ClientHello.
+nwae7rkc	Unexpected TLS flight.
+p0nj5fy2	RADIUS response without a correlated NAS/request.
+04fmhbuu	Invalid RADIUS identifier/State.
+ixi9ht7m	Access-Accept without EAP-Success/MPPE.
+9w5ezkdd	Access-Challenge without Request.
+etamf1go	EAP session expired; reauthentication required.
+nyqxjqn4	Inconsistent EAP NAS/queries.
+byhe86n7	Inconsistent EAP supplicant/association.
+u2h732h0	Inconsistent EAP server/identity.
+q7i05tpz	Enterprise association without PMK.
+5zwc8duy	STP: ingress port in discarding state; data frame blocked.
+uywife0u	Frame rejected: VLAN not allowed on the ingress port.
+imy8b6iq	MAC {0} learned in VLAN {1}.
+w6mwp3zu	STP: port learns MAC addresses but does not forward data yet.
+ot6czb7z	Broadcast restricted to VLAN {0}.
+6xn8hf4v	Unknown destination MAC: flooding only in VLAN {0}.
+ujws0x8f	No egress port forwards this VLAN.
+427f6qi0	RT requires a 16-bit ASN/32-bit local value or a 32-bit ASN/16-bit local value.
+zwq2s5th	EVPN withdrawal requires the previously advertised NLRI.
+kdpaljtj	MP_REACH requires EVPN over IPv4 in the model.
+v5a92qrx	EVPN communities missing or truncated.
+7uznz6aj	The model supports one RT per advertisement.
+j7zbeycf	Unsupported EVPN encapsulation.
+dlkx24iu	Invalid MAC Mobility or sticky MAC not supported.
+p20cc152	EVPN requires an RT and VXLAN encapsulation.
+p5ufur2v	MP_UNREACH requires EVPN.
+u3vcheqv	RD does not match the VTEP:0 model.
+k89aarpf	MAC/IP NLRI does not match the global VNI / zero ESI model.
+8fcsrvxj	EVPN RD and next-hop mismatch.
+47urngqt	Invalid IMET NLRI.
+iqfgvo33	IMET PMSI requires ingress replication with consistent VNI/VTEP.
+fdmucu9c	EVPN type not supported by the model.
+n1165efx	MAC {0} / VNI {1}: BGP session unavailable.
+21tauyac	IMET: {0} members advertised and {1} withdrawn to {2}.
+gr1o95xi	{0} MAC(s) advertised via BGP to {1}.
+vaee2qa8	MAC {0} / VNI {1} withdrawn by {2}.
+xrwizf03	EVPN: invalid NEXT_HOP/AS_PATH/MAC.
+2413jbb4	EVPN: MAC route limit reached.
+7granvxo	Invalid EVPN RIB/local MAC.
+n3dmwu6h	Transit firewall requires a router.
+ldotslh2	Invalid trusted firewall interface.
+jhj75mq1	Choose at least one trusted interface.
+xjm4jos8	Duplicate firewall protocols.
+4re0yo3h	Duplicate zone or invalid zone interface.
+f5cuam59	Invalid zone rule: sequence, zones, or destination port.
+97oklgzf	Invalid firewall session.
+3b4f4ffl	Firewall session without a valid timer.
+t0md2dmt	Firewall timer without a session.
+ef2ocfz4	Transit firewall {0}; sessions reset.
+h1nwv5x5	Session {0} expired on the virtual clock.
+1hkyhsgd	Firewall {0} on {1}: {2}; {3} → {4}.
+vrsqz7cv	interface without a zone; default drop
+a91pcqev	rule {0} {1} → {2}
+13hc06m4	Rule {0}: permit without tracking.
+uc9mcyw2	Transit traffic within the same trusted zone.
+gj7qfav7	RTP RELATED to the authorized SIP dialog.
+w5o1vsp8	ICMP error without a matching session and quoted packet
+a2bkarqc	ICMP RELATED to session {0}; timers preserved.
+qi2kicpd	transit between untrusted interfaces
+hwf3hdol	no inspect rule; default drop between zones
+wbawhyyi	return traffic without a session initiated from the trusted network
+2bvyx2ai	session limit reached
+kxzwgbe4	unsolicited connection; missing SYN from the initiator
+9qyav4uv	RST outside the tracked sequence
+0olsgjgf	RST closed session {0}.
+72j3wsi5	flags, sequence, or ACK inconsistent with the session
+408o6ikr	only outbound Echo Requests and correlated Echo Replies are tracked
+7f5hl66w	{0} {1} {2}: {3} traffic permitted.
+n6u6k2jr	return
+rnelm904	Invalid IPv4 fragment header, alignment, or length.
+cwonm42l	Serialized IPv4 datagram exceeds 65535 bytes.
+b270u6z8	Datagram {0}: {1} fragments; MTU {2}.
+19ee609p	IPv4 reassembly limit reached.
+56f2watp	overlapping fragments; datagram rejected.
+wmg4tgxl	contradictory final length.
+iwq6b3w0	buffer full.
+9sh87epf	Missing original typed datagram metadata.
+71vllw08	Invalid envelope.
+7k2ebpvl	Invalid datagram identity.
+pws00c11	invalid reassembled payload or header.
+bct55p63	Datagram {0} reassembled from {1} fragments.
+mgts2p9k	TTL expired on an IPv4 fragment.
+02ufzk9h	No route for IPv4 fragment.
+0sc1n98u	Fragment without an egress IPv4 address.
+e8gw6sio	Fragment ARP buffer full.
+f19ex7nu	Fragment ARP queue full.
+13thzqp1	Fragment ARP resolution limit exceeded.
+q1lkd6bi	Incomplete datagram {0} expired.
+b1p7nax7	Fragment ARP expired.
+6zlbh3ym	Fragment buffer exceeds 512 KiB.
+giurrbyz	Invalid IPv4 reassembly or timer.
+xa4p34kt	Invalid fragment ARP or timer.
+fztvauno	Fragment timer without an owner.
+dr32fhai	HMI scan not configured.
+k35j89s4	HMI scan requires an IP host and a unicast IPv4 Modbus target.
+nt8rwxg0	Periodic HMI/SCADA/MES scan over Modbus TCP configured.
+04gl1653	Communication alarm: {0} consecutive reads missed.
+xbsz83wu	Mismatched Modbus response or application exception.
+i5x5m43g	{0}; sampled-value alarm: {1}.
+zu3dkd8i	Communication restored
+32fsdg7y	Sample received
+6963drt5	{0}: {1}; response in {2} ms.
+w092hpa4	Connection removed.
+j25r7bmm	No valid read response within the deadline.
+usamhn1o	Inconsistent HMI scan state.
+j4txji7q	Inconsistent HMI timer.
+3ym3s05x	Orphaned HMI timer.
+qnxq6w5q	Fragmentation Needed requires an MTU.
+bjd000su	IDS requires a signature or threshold.
+v6m11vqd	Duplicate IDS rule.
+wb9o0q80	IDS/IPS configured.
+3g5kcol8	: signature detected
+l5aajd5i	: threshold of {0} packets
+l7osz0my	IPS: traffic blocked by signature/threshold.
+yj38849m	Duplicate IDS state.
+1aprlhae	Invalid IDS reference/clock.
+86rjsn5y	The band between alarms must exceed twice the hysteresis.
+d1ilgoww	HMI requires a deadline no longer than the interval, a valid range, and ordered alarms.
+duiv3hxp	Configure the firewall before application inspection.
+hglxfm45	HTTP/DNS inspection configured; classification reset.
+mxlb38oh	Invalid/duplicate application rule: HTTP uses host/pathPrefix; DNS uses nameSuffix.
+xtd7c635	by rule {0}
+lkap50jb	by the default action
+rfimrecz	DNS inspection: query blocked for {0}.
+qc6i06t7	Application inspection: flow blocked.
+h4maejyv	Application inspection flow limit reached.
+vfb420up	Inspection: ambiguous range or reordering buffer exceeded.
+ceo7rlze	{0} inspection: request blocked.
+1pqwe4s5	Duplicate inspection flow.
+p9t7u15s	Invalid application inspection state/timer.
+f4mmkb3f	Orphaned inspection timer.
+4urqbltk	IPP: invalid octets.
+k1db3mda	Truncated IPP.
+zsh65ri3	Unsupported IPP version.
+mria2mgv	Invalid IPP ID/group.
+mzpvzy8e	Invalid IPP attribute/tag.
+dypjaonb	Invalid IPP name.
+i4log6yf	Invalid IPP value.
+dnn9v7tc	Invalid IPP integer.
+72g5pb28	Prefix must be between 0 and 32
+7uoeo8rf	Non-contiguous mask
+73qmubpq	VRRP virtual IP does not accept local traffic in this state; use it as a gateway.
+ktp2imnb	Packet destined for this device.
+r6ok7ffg	Local UDP services require the default table in this version.
+72ke29ma	Echo Reply received: round-trip path is valid.
+d4rawax2	ICMP {0} received from {1}
+dsbqpbsa	TTL expired at the router.
+7alws8pu	Disable the DHCPv6 relay before removing IPv6.
+n34riyxl	Remove the DHCPv6 pools/delegation from the interface first.
+awiiaun8	Remove the IPv6 routes from the interface first.
+i2343pxy	IPv6 requires MTU >= 1280 and an L3 interface that is not a LACP member.
+sxbn16aq	RA requires a router or L3 switch.
+7jq4d0zj	Configure unique global/ULA unicast addresses. Link-local is automatic.
+7yzhmwjk	Duplicate IPv6 address in the same VRF on the device.
+h6aeuits	Invalid RA prefix.
+el9wdekv	The new address must keep the DHCPv6 range on-link.
+4o1vlbvd	IPv6 configured on {0}; DAD pending.
+i4t5k8va	DAD complete: {0}/{1}.
+igztffmw	ICMPv6 {0} from {1}.
+grpq88qj	NDP: invalid Hop Limit/MAC option.
+w1c324kj	DAD: duplicate address {0}.
+ee9epgm4	RA: gateway {0} and prefixes updated.
+cnk3iqew	SLAAC requires /64 and preferred <= valid.
+1kwgglpm	Inconsistent ICMPv6 fields.
+43jazml6	Inconsistent TCP/IPv6 header.
+1uzro2g7	Inconsistent UDP/IPv6 length.
+zkya7elm	IPv6 forwarding requires a router/L3 switch.
+auc33ufm	Incompatible IPv6 interface.
+9p8x33f7	Inconsistent IPv6 timer.
+ja60mr69	Duplicate IPv6 addresses or missing link-local address.
+sobk40pb	Invalid IPv6/DAD/SLAAC state.
+e82g3c1a	Invalid RA gateway.
+y3ru7ftj	Invalid on-link IPv6 prefix.
+mtptdqqr	Invalid NDP neighbor.
+ow3tx75v	NDP neighbor without a confirmation deadline.
+hcyaew2g	Invalid NDP resolution/timer.
+954e1pkr	Pending IPv6 packet without NDP resolution.
+q1a5vwf8	Invalid IPv6 route.
+wgodimhg	Invalid IPv6 probe.
+c6ezbtpg	Invalid IPv6 probe timer.
+r1rqm301	Orphaned IPv6 timer.
+uiwy4c5v	ICMPv6 {0} → {1}
+ldiyblc9	{0}: STALE → DELAY; traffic uses the known MAC.
+cz1mrldb	NDP queue full.
+0cgqt1p4	NDP requires a usable address on the interface.
+029m845r	NDP timed out: {0} did not respond after {1} attempt(s).
+aymqgevq	{0}: PROBE → FAILED; gateway removed if necessary.
+lor8f64c	IPv6 route requires an aligned network, an interface in the VRF, and a usable on-link next hop.
+arcx1z8g	IPv6 route limit reached.
+5t6jj69i	IPv6 route {0}/{1}{2}
+33urj3gn	IPv6: device powered off.
+m1nzdrya	IPv6: no route to {0}.
+3vvqb90g	IPv6 longest prefix match /{0} ({1}) via {2}.
+4u71i29v	IPv6: packet exceeds MTU {0}; the router does not fragment.
+qw2cmlho	IPv6: invalid source/destination/Hop Limit.
+jn3zqaz4	IPv6: forwarding disabled or link-local address off-link.
+z5bi7u9z	IPv6: Hop Limit exhausted.
+mn3mzsv3	IPv6 ping: invalid destination, Hop Limit, or size.
+51et208s	Link-local destination requires an egress interface.
+357kmfb3	IPv6 interface does not exist in the VRF.
+b6xnsv7y	Wait for DAD/SLAAC or configure a source IPv6 address.
+00oq7fbm	Too many pending IPv6 probes.
+pnvf1c76	ICMPv6 Echo Request → {0}; Hop Limit {1}.
+qjmbli2b	Invalid EtherChannel configuration.
+ftfrb7x3	Members must be physical ports free of IP stack/policies and not in another group.
+x2v03kam	Members require the same speed, mode, and full duplex.
+fxaqf2tj	EtherChannel {0}: {1}, {2} members, minimum {3}.
+hps0dfag	EtherChannel does not exist.
+0k460y5j	Remove addresses and references before deleting the EtherChannel.
+rx6pp7p1	EtherChannel removed.
+ifph28hv	{0}: {1} members collecting/distributing{2}.
+xnm49ksu	; group unavailable
+aeji1yj2	LACP: group below the minimum number of synchronized members.
+73tyjrd7	Invalid cable on an aggregated port.
+mctas97c	Member without an EtherChannel.
+23cca9wx	Invalid/duplicate EtherChannel.
+6wf7i3he	Incompatible EtherChannel member.
+09ua712w	Inconsistent LACP state.
+fecqg6pe	Inconsistent LACP timer.
+662cehes	Orphaned LACP timer.
+roumqtss	VRF does not exist: {0}
+pzapytwt	VLAN must be between 1 and 4094.
+ykh4cfu7	Subinterface requires a routed physical router port; SVI requires a switch.
+cf5qgde7	VLAN limit reached.
+903iz4bz	Logical interface {0} created.
+zf8qnov2	Duplicate VRFs or incompatible device.
+peoobkyl	ip routing is a switch option.
+7luxdwdy	Loopback requires a routed interface with static IPv4 on a router or switch.
+a4sld2k3	IPv4 on a switch requires an SVI or routed port.
+liadhekg	Duplicate IPv4 address in the same VRF.
+r2ie5uev	DHCP, NAT, and control protocols require the default table in this version.
+jp2lq1ve	Invalid logical interface reference.
+gkvpil06	Logical interface must use routed mode and static IPv4.
+adqrx5wu	Duplicate logical interface in the VLAN.
+1c8h0iei	NAT with VRF not supported yet.
+euhamzln	Cables can only connect physical interfaces.
+3tfthtzc	IPv4 management not available on the L2 switch.
+7mxytzqw	SNMP agent started in the future.
+z831awh2	Invalid SNMP query.
+kz0mlo99	Pending SNMP query without a valid timer.
+dy72zdv8	Completed SNMP query with an invalid timer or duration.
+adfzq1bh	SNMP response inconsistent with the queried OIDs.
+m4r6psc3	Incomplete SNMP query with response data.
+25o2dnpy	Invalid syslog collector.
+csbemm39	Invalid type for syslog collector.
+t8mnvedv	Syslog entry outside the virtual clock.
+o3jimzpf	Invalid management datagram length.
+uybd81e2	SNMP timer without a pending query.
+y4e2berr	Syslog transmission without a valid source.
+omlnlp7o	Inconsistent syslog queue.
+5fu6moiy	Mesh requires an AP/switch.
+wqvlg221	Mesh requires the AP role.
+1xyu4um4	Mesh {0} configured.
+o7oacsvj	Mesh: path to {0} via {1}.
+tes2kh0k	Mesh: no path to a root.
+4m50hl71	Mesh: advertisement without valid authentication/path.
+c02s3y8x	Mesh: invalid session/ciphertext/replay.
+g8opwhdj	Mesh: invalid inner content.
+3s9qemqp	Mesh requires distinct AP/peers.
+2bsj6rx3	Invalid mesh peer.
+x0uhuwno	Invalid mesh path.
+5g7yjrw0	Mesh without a timer.
+kbpdrb3p	Invalid mesh link.
+0x2j8nwh	Orphaned mesh timer.
+gvdzalut	Quantity/values incompatible with the Modbus function.
+gvoe7p45	Modbus: invalid octets.
+ko5ib0rl	Modbus: invalid length.
+sfeb3lpf	Modbus: invalid MBAP.
+lzrss9he	Modbus server requires a PLC/server or router.
+uq8plfi5	Modbus port in use by another service.
+de16545i	Modbus: {0} {1} updated starting at {2}.
+0237np8p	Modbus state without a matching TCP service.
+bb8ccvvw	Invalid ciphertext integrity.
+0gg9lgxo	MPLS requires a router.
+g7m453l4	MPLS/FEC/LFIB configured.
+r8luv4xq	MPLS: invalid FEC/LFIB, next-hop, or labels.
+jtkbl89u	FEC {0}: push {1}.
+06tgf9rp	MPLS not enabled on the ingress interface.
+eh8rpw5q	MPLS: link-local control traffic is not carried.
+dllxv8r2	MPLS: invalid inner length.
+x89h0pff	MPLS: label {0} without LFIB entry.
+fgohf9j0	MPLS: label TTL expired.
+yvk52jyg	MPLS: local pop requires the bottom-of-stack label.
+brmu05ea	Label {0} popped; IP lookup.
+w9yull5v	MPLS: egress interface down.
+533u2tdc	MPLS: label stack exceeded.
+7cot5tf3	Inconsistent pending ARP/MPLS.
+75vodamj	Inconsistent MPLS payload.
+6zeoa16m	MQTT password requires a username.
+i32jugn8	MQTT QoS 1 requires a Packet Identifier.
+9kz3d6gj	MQTT QoS 0 does not allow DUP.
+atovpjpd	MQTT: invalid octets.
+xsitgx73	Invalid MQTT Remaining Length.
+oppb43c8	MQTT: length mismatch.
+snunp0kv	Truncated MQTT.
+cawybdns	Truncated MQTT string.
+pe7zaih5	MQTT requires 3.1.1 with a clean session.
+m3p2km1g	Unsupported MQTT CONNECT flags.
+wbqnsz6h	Unexpected MQTT Session Present.
+olhoptyf	MQTT: QoS 0 only.
+mblf3sc8	Invalid MQTT SUBACK QoS.
+8gl4ibyr	Unsupported MQTT packet or flags.
+mdp3btuo	Extra MQTT data.
+2md97xqi	NAT hairpin: server without an inside route.
+pu8wfn2s	NAT hairpin: binding limit reached.
+cbi1n3up	Hairpin return {0} → {1}.
+jh06f0ro	Invalid NAT hairpin binding or timer.
+k72g80w1	Orphaned NAT hairpin timer.
+mmzm1a5b	ICMP error without a matching quoted packet and NAT translation.
+c7stvs1y	Related ICMP: destination and quoted source {0} → {1}.

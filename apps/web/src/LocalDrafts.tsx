@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api, download, type Project } from './api';
 import { Modal } from './components/Modal';
 import { projectDrafts, removeProjectDraft, type ProjectDraft } from './workspace/project-drafts';
+import { formatLocale } from './i18n';
 export function LocalDrafts({ owner, onOpen }: { owner: string; onOpen: (p: Project) => void }) {
   const [open, setOpen] = useState(false),
     [rows, setRows] = useState<ProjectDraft[]>([]),
@@ -40,7 +41,7 @@ export function LocalDrafts({ owner, onOpen }: { owner: string; onOpen: (p: Proj
           {rows.map((draft) => (
             <div key={draft.key}>
               <p>
-                {draft.name} · {new Date(draft.updatedAt).toLocaleString('pt-BR')} · revisão {draft.revision}
+                {draft.name} · {new Date(draft.updatedAt).toLocaleString(formatLocale())} · revisão {draft.revision}
               </p>
               <div className="button-row">
                 <button

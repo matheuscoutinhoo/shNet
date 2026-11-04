@@ -218,6 +218,7 @@ export const canvasItemSchema = z
     height: finite.min(40).max(5000),
     color: z.enum(['cyan', 'lime', 'blue', 'rose']),
     members: z.array(id).max(200).optional(),
+    collapsed: z.literal(true).optional(),
     points: z
       .array(z.object({ x: finite.min(0).max(5000), y: finite.min(0).max(5000) }).strict())
       .min(2)
@@ -502,6 +503,8 @@ const dhcpClientSchema = z
   })
   .strict();
 export const DHCP_MAX_LEASE_MS = 365 * 86400000;
+// Per-server limits sized for a central enterprise DHCP server.
+export const DHCP_LIMITS = { pools: 64, bindings: 8192 } as const;
 export const dhcpPoolSchema = z
   .object({
     name: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
@@ -568,13 +571,13 @@ const dhcpBindingSchema = z
 const dhcpServerSchema = z
   .object({
     enabled: z.boolean(),
-    pools: z.array(dhcpPoolSchema).max(16),
-    bindings: z.array(dhcpBindingSchema).max(2048),
+    pools: z.array(dhcpPoolSchema).max(DHCP_LIMITS.pools),
+    bindings: z.array(dhcpBindingSchema).max(DHCP_LIMITS.bindings),
     declined: z
       .array(z.object({ address: ipv4Schema, expiresAt: finite.nonnegative() }).strict())
       .max(256)
       .optional(),
-    pendingPools: z.array(dhcpPendingPoolSchema).max(16).optional(),
+    pendingPools: z.array(dhcpPendingPoolSchema).max(DHCP_LIMITS.pools).optional(),
     // IOS global "ip dhcp excluded-address LOW [HIGH]" ranges, applied to every pool.
     excludedRanges: z
       .array(z.object({ start: ipv4Schema, end: ipv4Schema }).strict())
@@ -1294,7 +1297,7 @@ const dhcpHaTransferSchema = z
     peerToken: id,
     link: id,
     revision: z.number().int().positive(),
-    bindings: z.array(dhcpBindingSchema).max(2048),
+    bindings: z.array(dhcpBindingSchema).max(DHCP_LIMITS.bindings),
     declined: z.array(z.object({ address: ipv4Schema, expiresAt: finite.nonnegative() }).strict()).max(256),
   })
   .strict();
@@ -1481,8 +1484,8 @@ export const snapshotSchema = z
           .strict()
       )
       .max(100000),
-    events: z.array(eventSchema).max(1500),
-    diagnostics: z.array(eventSchema).max(4000).optional(),
+    events: z.array(eventSchema).max(5000),
+    diagnostics: z.array(eventSchema).max(10000).optional(),
     capture: z
       .object({
         frames: z.array(eventSchema).max(10000),
@@ -1493,8 +1496,8 @@ export const snapshotSchema = z
       })
       .strict()
       .optional(),
-    probes: z.array(probeSchema).max(200),
-    probes6: z.array(probe6Schema).max(200).optional(),
+    probes: z.array(probeSchema).max(1000),
+    probes6: z.array(probe6Schema).max(1000).optional(),
     notes: z.string().max(10000),
     rfObstacles: z.array(rfObstacleSchema).max(100).optional(),
     scenarios: z.array(scenarioSchema).max(32).optional(),
@@ -1513,8 +1516,8 @@ export const snapshotSchema = z
  * revalidating thousands of immutable records after every local edit is skipped.
  */
 export const snapshotTrustedLogsSchema = snapshotSchema.extend({
-  events: z.array(z.any()).max(1500),
-  diagnostics: z.array(z.any()).max(4000).optional(),
+  events: z.array(z.any()).max(5000),
+  diagnostics: z.array(z.any()).max(10000).optional(),
   capture: z
     .object({
       frames: z.array(z.any()).max(10000),
@@ -1526,6 +1529,14 @@ export const snapshotTrustedLogsSchema = snapshotSchema.extend({
     .strict()
     .optional(),
 });
+/** Trusted logs, unchanged devices and existing queue entries; new ones are parsed individually. */
+export const snapshotScopedSchema = snapshotTrustedLogsSchema.extend({
+  devices: z.array(z.any()).max(2000),
+  queue: z.array(z.any()).max(100000),
+});
+export const queueEntrySchema = z
+  .object({ at: finite.nonnegative(), order: z.number().int().nonnegative(), action: actionSchema })
+  .strict();
 export type Device = z.infer<typeof deviceSchema>;
 export type BridgeId = z.infer<typeof bridgeIdSchema>;
 export type Bpdu = z.infer<typeof bpduSchema>;
@@ -1573,10 +1584,10 @@ export const DHCP = {
 } as const;
 export const LIMITS = {
   queue: 100000,
-  events: 1500,
+  events: 5000,
   capture: 10000,
-  diagnostics: 4000,
-  probes: 200,
+  diagnostics: 10000,
+  probes: 1000,
   devices: 2000,
   macAge: 300000,
   arpAge: 60000,

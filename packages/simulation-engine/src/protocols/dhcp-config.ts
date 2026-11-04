@@ -1,4 +1,5 @@
 import {
+  DHCP_LIMITS,
   dhcpPoolSchema,
   ipv4Schema,
   type Device,
@@ -217,7 +218,7 @@ export function iosPoolProblem(device: Device, entry: DhcpPendingPool) {
   const built = buildIosPool(device, entry);
   if (!built.pool) return built.error;
   const others = (device.dhcpServer?.pools ?? []).filter((pool) => pool.name !== entry.name);
-  if (others.length >= 16) return 'Limite de 16 pools DHCP por equipamento.';
+  if (others.length >= DHCP_LIMITS.pools) return 'Limite de ' + DHCP_LIMITS.pools + ' pools DHCP por equipamento.';
   const clash = others.find((pool) => overlapping(pool, built.pool!));
   return clash ? entry.network + '/' + entry.prefix + ' overlaps with pool: ' + clash.name : undefined;
 }
@@ -240,7 +241,7 @@ export function refreshDhcpPools(device: Device) {
     else pending.push(iosPoolDeclaration(pool));
   }
   for (const entry of server.pendingPools ?? []) {
-    const bound = pools.length < 16 ? buildIosPool(device, entry).pool : undefined;
+    const bound = pools.length < DHCP_LIMITS.pools ? buildIosPool(device, entry).pool : undefined;
     if (bound && !pools.some((pool) => overlapping(pool, bound))) pools.push(bound);
     else pending.push(entry);
   }
@@ -274,7 +275,8 @@ export function configureDhcpPool(device: Device, input: unknown): DhcpPool {
     if (!device.dhcpServer.pendingPools.length) delete device.dhcpServer.pendingPools;
   }
   const others = device.dhcpServer?.pools.filter((entry) => entry.name !== pool.name) ?? [];
-  if (others.length >= 16) throw new Error('Limite de 16 pools DHCP por equipamento.');
+  if (others.length >= DHCP_LIMITS.pools)
+    throw new Error('Limite de ' + DHCP_LIMITS.pools + ' pools DHCP por equipamento.');
   if (others.some((entry) => overlapping(entry, pool)))
     throw new Error('Pools DHCP não podem ter intervalos sobrepostos.');
   if (

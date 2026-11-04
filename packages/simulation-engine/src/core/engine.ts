@@ -183,6 +183,7 @@ import {
   releaseNegotiatedSpeed,
   validateConnection,
 } from '../links/physical';
+import { markState, materializeMark, type StateMark } from './state-mark';
 import { enqueue, enqueueAt, random } from './queue';
 import { validateSnapshot } from './validation';
 import { receiveArp, sendWithArp, handleArpTimer } from '../protocols/arp';
@@ -312,6 +313,15 @@ export class SimulationEngine {
     if (capture) copy.capture = { ...capture, frames: [...capture.frames] };
     else delete copy.capture;
     return copy;
+  }
+  private lastMark?: StateMark;
+  /** Compact rollback point that also records which devices a local edit changes (see StateMark). */
+  mark(): StateMark {
+    this.lastMark = markState(this.state, this.lastMark);
+    return this.lastMark;
+  }
+  restore(mark: StateMark) {
+    this.state = materializeMark(mark);
   }
   configurePlcProcess(deviceId: string, input: unknown) {
     configurePlcProcess(this, this.device(deviceId), input);

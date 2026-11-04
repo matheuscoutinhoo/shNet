@@ -9,6 +9,7 @@ import {
   type UdpPacket,
 } from '../packages/simulation-engine/src';
 import { managementPacket } from '../packages/simulation-engine/src/protocols/management-wire';
+import { SYSLOG } from '../packages/simulation-engine/src/protocols/syslog-model';
 
 const nameOid = '1.3.6.1.2.1.1.5.0',
   rxOid = '1.3.6.1.4.1.32473.1.1.1';
@@ -283,11 +284,15 @@ describe('SNMP e syslog sobre a rede simulada', () => {
   });
   it('limita registros e fila syslog e remove envios pendentes ao desativar origem', () => {
     const { engine, client, server, router } = network(true);
-    for (let batch = 0; batch < 9; batch++) {
-      for (let i = 0; i < 60; i++) engine.sendSyslog(client.id, 'registro ' + (batch * 60 + i), 4);
+    // Fill the collector past its retention limit in batches below the pending-send limit.
+    const total = SYSLOG.entries + 40,
+      batches = Math.ceil(total / 60);
+    for (let batch = 0; batch < batches; batch++) {
+      for (let i = 0; i < 60 && batch * 60 + i < total; i++)
+        engine.sendSyslog(client.id, 'registro ' + (batch * 60 + i), 4);
       engine.advanceTo((batch + 1) * 100);
     }
-    expect(server.syslogServer!.entries).toHaveLength(500);
+    expect(server.syslogServer!.entries).toHaveLength(SYSLOG.entries);
     expect(server.syslogServer!.entries[0].message.text).toBe('registro 40');
     expect(router.nat!.bindings).toHaveLength(1);
     expect(router.firewall!.sessions).toHaveLength(1);

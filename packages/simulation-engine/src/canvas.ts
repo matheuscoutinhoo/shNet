@@ -83,6 +83,7 @@ export function validateCanvas(snapshot: Snapshot) {
     if (ids.has(item.id)) throw new Error('ID de objeto de canvas duplicado.');
     ids.add(item.id);
     if (item.kind !== 'group' && item.members?.length) throw new Error('Anotação não pode possuir membros.');
+    if (item.collapsed && item.kind !== 'group') throw new Error('Somente grupos podem ser recolhidos.');
     if (
       (item.kind === 'drawing') !== !!item.points ||
       (item.points && item.points.some((p) => p.x > item.width || p.y > item.height))

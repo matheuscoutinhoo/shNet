@@ -1,0 +1,111 @@
+# Hand-maintained translations (strings added after the bulk translation).
+pkj2w3um	Simulated terminal
+1lj41onm	Type help to see the available commands.
+s7e4c8tv	Opened
+syph749u	Fundamentals
+ir8sgvqe	Native VLAN
+u1rsdxtm	End
+4uvawndq	PoE source
+wlcvpauf	Omit {0}
+gfi8nwkn	Omit
+1bgr1zep	Add to favorites
+x1m7idrf	Creating…
+ope2753h	student
+9hsrayt6	accepted /
+46ye27hz	configuring
+j2sb3l19	· parent
+0fjhxann	backup
+1cv3ibb8	Details
+tkocvyzv	{0}-review
+37itd38d	Synchronizing
+jkriyipa	Standby
+edfaza6x	DNS cache is empty.
+2hg2113e	Running:
+a6cx3nl7	Verifying…
+y7dc0z63	Failed
+6vpn20i5	sending
+qs8kq5qo	. PSE reserve:
+b8lwuv8g	Registers: {0}
+25f7iz3n	latched
+vxlff255	Recharge (W)
+jmes8gyy	Single-mode
+lye8x6xq	Multimode
+taypo6nu	Router lifetime (ms)
+eatxkquj	Evaluating...
+xcocv1eg	Partner
+dd10kkiv	I learned TCP.
+h6pvo26i	Practice
+47qugcms	Saving…
+bbbwm02j	Details
+82cw0907	· age
+jf1rs3fa	TCP flags
+hd4kkdgv	LACP partner
+fwrhjxgo	Receiving checkpoint
+kizu383a	empty
+sye61ebz	Update 30 s ±5 s · timeout 180 s · flush 120 s
+0g3tcvdi	Flush
+0icfgzdr	What happened?
+18ghwvbg	Responder
+bpn0a8fx	Empty canvas
+9wgt7vl2	Connecting
+4rr7ny5k	Reconnecting
+qdkya6ck	Discovered APs
+0aygm119	Highlight VLAN
+sdltl30b	Queue ping
+theqhkpg	DNS cache is empty
+y2gqev0z	ip routing enables the switch's L3 stack.
+7onatylw	DNS cache cleared.
+86i6u71i	Load balancing
+6vft55cl	{0} communicating
+xfqe8pm9	I learned TCP on shLab.
+ek14mngy	unknown
+74bcyr99	Use the same ip ospf hello-interval and dead-interval on the segment.
+8hot3dnp	Document
+aov3tosl	shLab document
+jfgik4xa	BGP withdrew {0} via {1}.
+7tb9v9vt	ICMP {0} / {1}; quotes {2} {3} → {4}.
+h9ubokc4	{0}: partner {1}, key {2}.
+5g9emeb3	registers
+xmorgbla	Offset corrected {0} ms; RTT {1} ms; stratum {2}.
+oi3ludtf	OSPF withdrew {0}/{1} via {2}.
+x0ztwu1i	interface changed
+hyr8p5y8	NETCONF chunk splits a UTF-8 character.
+wbxbflyi	Syslog/514 send {0}.
+ak1871dz	· MST boundary
+l5y30r42	Certification
+2bl6n366	All certifications
+s35skjpr	CCNA/CCNP study map
+h9yhom9s	Official exam topics (in English, as published by Cisco) and the templates or learning paths that exercise them in the simulator. Check the current blueprint version before booking the exam.
+z6wsykxq	Exam topics:
+jdjwecss	topics with a template or learning path.
+7923nd4j	No template or learning path yet
+e7yrwk0q	NETWORK SIMULATOR
+w85m2yi1	CHALLENGE
+f9ynv1nx	{0}/{1} tasks{2}
+8mj0wjli	{0} / privilege {1}
+p0itb46c	/1000 · Pump:
+z2qhyhjt	INSPECT DEVICE
+rskcw3p0	DEVICE STATUS
+jhb8tpgw	/100 · Best score:
+ze7icgdj	/256 entries retained ·
+jniblqce	/128 unconfirmed
+y3033b1c	VIRTUAL TIME
+x32lf6ah	ROUTER
+vcublind	SERVER
+fachmedr	COMPUTER
+pmmr6bbi	/ effective
+b1rn5rg6	DEVICES
+w87g7lc2	/2000 devices
+qhfft627	NETOS EXAMPLE · CREATE A VLAN
+reiqpqi4	{0}/{1} members
+k7rx9kab	{0}/{1} accepted/rejected
+21cirzxd	{0}/{1} steps
+pq04yspz	{0}/{1}: gateway {2} not found in the Ethernet domain.
+viapbb9h	{0}/{1}: IPv6 rule {2} of {3} is shadowed by an earlier rule.
+6clv11po	{0}/{1}: the relay depends on {2} DHCP server(s) available in the configuration.
+udbjeejo	{0}/{1}: only {2} has a pool for giaddr {3}.
+5sa7n6y0	{0}/{1}: giaddr {2} has no pool on {3}.
+bee1z17d	{0}/{1}: access port in VLAN {2}, which does not exist on the switch.
+cbg7mum2	{0} / {1} configured over {2}.
+qkx1rli0	{0} / VLAN {1} / A/B access
+gm0ohrwg	{0} · Delete closes the tab

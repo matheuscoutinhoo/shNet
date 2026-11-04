@@ -1,0 +1,1886 @@
+[
+ [
+  "027222r9",
+  "Remover VRID {0}"
+ ],
+ [
+  "029m845r",
+  "NDP expirou: {0} não respondeu após {1} tentativa(s)."
+ ],
+ [
+  "03axi2qn",
+  "{0}: SLA indisponível; política exige bloqueio."
+ ],
+ [
+  "04gl1653",
+  "Alarme de comunicação: {0} leituras consecutivas perdidas."
+ ],
+ [
+  "04rf7baq",
+  "QoS policer {0}."
+ ],
+ [
+  "07h4lklk",
+  "Par HA configurado com {0}; cópia sujeita ao enlace dedicado."
+ ],
+ [
+  "09oy2les",
+  "Mensagem {0} para {1}:514."
+ ],
+ [
+  "0mn19gzg",
+  "objetivo-{0}"
+ ],
+ [
+  "0odvunf3",
+  "OSPF {0}, router ID {1} {2} adjacências Full, {3} LSAs, {4} rotas, {5} alterações SPF."
+ ],
+ [
+  "0olsgjgf",
+  "RST encerrou sessão {0}."
+ ],
+ [
+  "0y0cu6fw",
+  "{0} em fila · {1} drops"
+ ],
+ [
+  "13hc06m4",
+  "Regra {0}: permit sem rastreamento."
+ ],
+ [
+  "14skolli",
+  "HTTP {0} recebido de {1}:{2}."
+ ],
+ [
+  "1hkyhsgd",
+  "Firewall {0} em {1}: {2}; {3} → {4}."
+ ],
+ [
+  "1mm2zv2j",
+  "ARP expirou: {0} não respondeu no domínio de broadcast; {1} pacote(s) removido(s)."
+ ],
+ [
+  "1p467sw5",
+  "{0}: tipos de rede {1}/{2}; a adjacência pode formar, mas o SPF descarta o enlace."
+ ],
+ [
+  "1pflslgm",
+  "ACL {0} em {1}: {2}."
+ ],
+ [
+  "1puipq8l",
+  "; servidor {0}."
+ ],
+ [
+  "1xyu4um4",
+  "Mesh {0} configurado."
+ ],
+ [
+  "1zzsl82t",
+  "Configuração do fluxo {0}{1}"
+ ],
+ [
+  "21cirzxd",
+  "{0}/{1} passos"
+ ],
+ [
+  "21tauyac",
+  "IMET: {0} membros anunciados, {1} retirados para {2}."
+ ],
+ [
+  "27jo3dgp",
+  "Editar {0} {1}"
+ ],
+ [
+  "2apl5cx2",
+  "Não foi possível consultar os rascunhos locais: {0}"
+ ],
+ [
+  "2bt2w76q",
+  "{0} de {1}: loop de AS/reflexão ou filtro de entrada."
+ ],
+ [
+  "2dn2ta46",
+  "Quorum: {0}, termo {1}."
+ ],
+ [
+  "2gueejzb",
+  "Enlace {0}: habilitado, porém fisicamente inoperante."
+ ],
+ [
+  "2hg5l47j",
+  "VRID {0}: anúncio prioridade {1}."
+ ],
+ [
+  "2k3yp6xe",
+  "Autenticação 802.11 com {0}."
+ ],
+ [
+  "2lzw35to",
+  "· resposta em {0} ms"
+ ],
+ [
+  "2zhki6o1",
+  "NIC ativa {0}"
+ ],
+ [
+  "34zodxt5",
+  "{0} administrativamente {1}"
+ ],
+ [
+  "35gvzlfq",
+  "Expandir {0}"
+ ],
+ [
+  "35ly0u9e",
+  "Limite de {0} pools DHCP por equipamento."
+ ],
+ [
+  "36w8azj8",
+  "Área {0} · sem adjacência"
+ ],
+ [
+  "3b0r05sw",
+  "Controlled port: frame {0} sem autorização 802.1X."
+ ],
+ [
+  "3bshlt7i",
+  "Encaminhamento IPv6 {0}"
+ ],
+ [
+  "3dweajct",
+  "{0} linhas"
+ ],
+ [
+  "3f9l9r9d",
+  "{0} equipamentos"
+ ],
+ [
+  "3gcbn3dv",
+  "Concessão aplicada: {0}/{1}; gateway {2}; expira em {3} ms virtuais."
+ ],
+ [
+  "3hpyp5m0",
+  "Área {0}"
+ ],
+ [
+  "3mt2en8f",
+  "regra {0} {1}"
+ ],
+ [
+  "3n7br14i",
+  "Interface DHCP inexistente: {0}"
+ ],
+ [
+  "3q7shzqf",
+  "{0}: próximo salto IPv6 {1} fora dos prefixos da interface {2}."
+ ],
+ [
+  "3tdhyq06",
+  "Nova sessão TCP: {0}; {1} bytes recebidos."
+ ],
+ [
+  "3vvqb90g",
+  "Longest prefix match IPv6 /{0} ({1}) via {2}."
+ ],
+ [
+  "3xlz7rh1",
+  "Opções do equipamento {0}"
+ ],
+ [
+  "3z9hy6o4",
+  "Consulta {0} {1} para {2}:53; tentativa {3}."
+ ],
+ [
+  "434xz61s",
+  "HTTP enfileirado [{0}]."
+ ],
+ [
+  "43a8vpdh",
+  "Lease de {0} expirou: IPv4, gateway e DNS removidos antes de nova descoberta."
+ ],
+ [
+  "44hkc4zw",
+  "ICMP Echo Request para {0}; TTL {1}."
+ ],
+ [
+  "46hohwhl",
+  "Excluir {0} {1}"
+ ],
+ [
+  "49lcuquv",
+  "{0}: ACL {1}, regra {2} coberta pela regra anterior {3}."
+ ],
+ [
+  "4cp9icfw",
+  "SPF a partir da LSDB local: {0} rotas selecionadas."
+ ],
+ [
+  "4fhs8hmx",
+  "{0} disponível"
+ ],
+ [
+  "4h2fk8rm",
+  "QoS tail drop: fila cheia ({0})."
+ ],
+ [
+  "4i111uu9",
+  "Interface IPv6 inexistente na VRF: {0}"
+ ],
+ [
+  "4jr8ljlw",
+  "{0}: regra {1} permite {2} → {3}."
+ ],
+ [
+  "4m7iwx0u",
+  "{0}: HA não replica hairpin, SIP ALG ou fluxos de inspeção de aplicação."
+ ],
+ [
+  "4mim4ly8",
+  "{0}-origem"
+ ],
+ [
+  "4o1vlbvd",
+  "IPv6 configurado em {0}; DAD pendente."
+ ],
+ [
+  "4rlbq7qk",
+  "Em voo={0} B CWND={1} B SSTHRESH={2} B RTO={3} ms RTT={4} ms"
+ ],
+ [
+  "4u71i29v",
+  "IPv6: pacote excede MTU {0}; roteador não fragmenta."
+ ],
+ [
+  "501vf2f8",
+  "Distância excede o alcance da mídia ({0} m)."
+ ],
+ [
+  "571ecreu",
+  "Equipamento inexistente ou repetido na proposta: {0}"
+ ],
+ [
+  "5a3gccgc",
+  "{0}: regras NAT sem interface {1}; nada é traduzido."
+ ],
+ [
+  "5ag90o11",
+  "Liberar DHCP {0}"
+ ],
+ [
+  "5eunno9g",
+  "{0} ms após a falha"
+ ],
+ [
+  "5gl0utjz",
+  "Perda e retorno do rack {0}"
+ ],
+ [
+  "5gxmuxfi",
+  "{0}: job iniciado."
+ ],
+ [
+  "5osbp9gb",
+  "{0}-resultado"
+ ],
+ [
+  "5sa7n6y0",
+  "{0}/{1}: giaddr {2} sem pool em {3}."
+ ],
+ [
+  "5t6jj69i",
+  "Rota IPv6 {0}/{1}{2}"
+ ],
+ [
+  "5xxifr17",
+  "Mensagem [{0}] enfileirada."
+ ],
+ [
+  "61viqyfd",
+  "{0}: espera {1} ms."
+ ],
+ [
+  "631wrpuc",
+  "Cliente autorizado no SSID {0}."
+ ],
+ [
+  "6963drt5",
+  "{0}: {1}; resposta em {2} ms."
+ ],
+ [
+  "6clv11po",
+  "{0}/{1}: relay depende de {2} servidor(es) DHCP disponível(is) na configuração."
+ ],
+ [
+  "6gc6fowu",
+  "Cabo conectado: {0}"
+ ],
+ [
+  "6ij62im5",
+  ", {0} rotas"
+ ],
+ [
+  "6jb7mxag",
+  "Severidade {0} acima do limite {1}."
+ ],
+ [
+  "6jbdaw77",
+  "Consulta enviada pela conexão TCP [{0}]. Avance a simulação."
+ ],
+ [
+  "6loy5ado",
+  "{0} FECs · {1} labels"
+ ],
+ [
+  "6me79sn4",
+  "DHCP {0}: {1}/{2} do pool {3}; lease de {4} s."
+ ],
+ [
+  "6nksjvx6",
+  "{0}: única instância habilitada de {1}."
+ ],
+ [
+  "6omkr89r",
+  "Equipamento inexistente: {0}"
+ ],
+ [
+  "6srky8pd",
+  "Resposta {0}: {1}; {2} objeto(s)."
+ ],
+ [
+  "6vft55cl",
+  "{0} comunicando"
+ ],
+ [
+  "6wdvonid",
+  "{0}: próximo salto {1} sem interface IPv4 na sub-rede/VRF da rota."
+ ],
+ [
+  "6xn8hf4v",
+  "MAC destino desconhecido: flooding apenas na VLAN {0}."
+ ],
+ [
+  "74bwbryo",
+  "Trilhas: {0} · Desafios: {1} · Tutorial: {2}"
+ ],
+ [
+  "74logak5",
+  "alimentado por {0}"
+ ],
+ [
+  "74rn1uez",
+  "Rota {0}/{1}"
+ ],
+ [
+  "75f8eyns",
+  "{0}: {1} bytes recebidos por {2}."
+ ],
+ [
+  "75qfuzxf",
+  "{0}: áreas OSPF {1}/{2} no mesmo segmento; a adjacência não forma."
+ ],
+ [
+  "77br5j5w",
+  "Conflito ARP: {0} em quarentena por 600 s."
+ ],
+ [
+  "77w1afrs",
+  "DHCP: comprimento inválido da opção {0}."
+ ],
+ [
+  "78jilqdp",
+  "{0} {1} pelo underlay {2}."
+ ],
+ [
+  "7dfws0eq",
+  "{0}: portas access nas VLANs {1}/{2} unem dois domínios de broadcast."
+ ],
+ [
+  "7f5hl66w",
+  "{0} {1} {2}: {3} autorizado."
+ ],
+ [
+  "7g3fzq24",
+  "{0} criada."
+ ],
+ [
+  "7khx3ig5",
+  "Consulta com descoberta [{0}]. Avance a simulação."
+ ],
+ [
+  "7n031ziy",
+  "Configuração repetida de {0} em {1}"
+ ],
+ [
+  "7tb9v9vt",
+  "ICMP {0} / {1}; cita {2} {3} → {4}."
+ ],
+ [
+  "7vwje8dy",
+  "802.11 {0} de {1}."
+ ],
+ [
+  "7z7s6coq",
+  "{0}: encerramento por reset local."
+ ],
+ [
+  "806y3szq",
+  "{0} cabos ·"
+ ],
+ [
+  "82cgerul",
+  "A quantidade de portas de rede difere do perfil atual ({0}). As portas e conexões antigas foram preservadas para revisão."
+ ],
+ [
+  "843hoie9",
+  "ARP probe {0}/3 para {1}."
+ ],
+ [
+  "88s1y26n",
+  "{0}: MTU IP {1}/{2}; OSPF fica preso em EXSTART/EXCHANGE e pacotes grandes são descartados."
+ ],
+ [
+  "8fo40vlw",
+  "{0} rotas · {1} vizinhos"
+ ],
+ [
+  "8mj0wjli",
+  "{0} / privilégio {1}"
+ ],
+ [
+  "8pbj4s2z",
+  "Recuperação local indisponível: {0} Exporte as alterações se o servidor também falhar."
+ ],
+ [
+  "903iz4bz",
+  "Interface lógica {0} criada."
+ ],
+ [
+  "9ab22ja6",
+  "{0}: VTEP vinculado à interface física {1}."
+ ],
+ [
+  "9d4ssh20",
+  "Opção de vizinho BGP inválida: {0}"
+ ],
+ [
+  "9fsf6z5a",
+  "Novo ICMP{0}: {1}."
+ ],
+ [
+  "9gbq51pr",
+  "Origem inexistente: {0}"
+ ],
+ [
+  "9iaerda9",
+  "Enlace {0}: VLANs nativas {1}/{2} diferentes."
+ ],
+ [
+  "9jzl9bxz",
+  "{0}: serviço disponível pela política."
+ ],
+ [
+  "9nbz6vjr",
+  "{0}: esgotadas {1} retransmissões. Consulte descartes, ACL e rotas."
+ ],
+ [
+  "9qccnvr1",
+  "Underlay sem rota/carrier para {0}."
+ ],
+ [
+  "9qpv8x00",
+  "{0} · canal {1} · {2}"
+ ],
+ [
+  "9zvwshu8",
+  "{0}: VNI {1} usa flooding/learning estático; RT limita importação de controle."
+ ],
+ [
+  "a0pouir5",
+  "Relay DHCPv6: sem rota para {0}"
+ ],
+ [
+  "a2bkarqc",
+  "ICMP RELATED à sessão {0}; timers preservados."
+ ],
+ [
+  "a4exxbuo",
+  "{0}: abertura ativa SYN-SENT para {1}:{2}."
+ ],
+ [
+  "a8xcnilx",
+  "Checkpoint local no índice {0}; dados confirmados preservados."
+ ],
+ [
+  "a91pcqev",
+  "regra {0} {1} → {2}"
+ ],
+ [
+  "a9x25hz3",
+  "VNI {0} ↔ VLAN {1} configurado."
+ ],
+ [
+  "afb04l9k",
+  "Não foi possível consultar os resultados locais: {0}"
+ ],
+ [
+  "afzbkiii",
+  "Estado materializado do quorum ocupa até {0} bytes; orçamento de checkpoint: 512 KiB."
+ ],
+ [
+  "aol9rm2c",
+  "Remover pool NAT {0}"
+ ],
+ [
+  "ap87kn76",
+  "Estado {0}/{1} revisão {2}."
+ ],
+ [
+  "avx5ncmu",
+  "{0}: {1} atualizações de estado ainda não recebidas pelo peer."
+ ],
+ [
+  "aw7sl500",
+  "Interface inexistente: {0}{1}"
+ ],
+ [
+  "axcf1j07",
+  "Agente SNMP/161 {0}."
+ ],
+ [
+  "aymqgevq",
+  "{0}: PROBE → FAILED; gateway removido se necessário."
+ ],
+ [
+  "b086xady",
+  "DHCPv6 RELAY-FORW; link {0}; hops {1}."
+ ],
+ [
+  "b0ui9a4p",
+  "Pool DHCP {0} removido."
+ ],
+ [
+  "b1000i8c",
+  "Resposta em {0} ms"
+ ],
+ [
+  "b1n0t0ci",
+  "{0}: rota {1}/{2} contém bits de host."
+ ],
+ [
+  "b270u6z8",
+  "Datagrama {0}: {1} fragmentos; MTU {2}."
+ ],
+ [
+  "b32snjx0",
+  "T1: renovando {0} com o servidor {1}."
+ ],
+ [
+  "b88rouwn",
+  "{0} expirada: {1} voltou ao pool {2}."
+ ],
+ [
+  "b8lwuv8g",
+  "Registradores: {0}"
+ ],
+ [
+  "bc9ynd97",
+  "Excluir ACL {0}"
+ ],
+ [
+  "bct55p63",
+  "Datagrama {0} reconstituído após {1} fragmentos."
+ ],
+ [
+  "bds1638r",
+  "Variável sem valor: {0}"
+ ],
+ [
+  "bee1z17d",
+  "{0}/{1}: porta access na VLAN {2}, que não existe no switch."
+ ],
+ [
+  "bg09vnpl",
+  "O modelo aceita até {0} linhas de comando."
+ ],
+ [
+  "bj3ihtha",
+  "ipp://{0}/ipp/print"
+ ],
+ [
+  "bnqedjzx",
+  "Interface inexistente: {0}/{1}"
+ ],
+ [
+  "bo2kk6td",
+  "Neste equipamento, foi registrado: {0}."
+ ],
+ [
+  "brisvoic",
+  "O switch aprende MACs e encaminha quadros entre portas da mesma VLAN. Cada VLAN separa o tráfego de broadcast.{0}"
+ ],
+ [
+  "brmu05ea",
+  "Label {0} removido; lookup IP."
+ ],
+ [
+  "c4zltb6w",
+  "Perda de {0}"
+ ],
+ [
+  "c7stvs1y",
+  "ICMP relacionado: destino e origem citada {0} → {1}."
+ ],
+ [
+  "c8aks6ay",
+  "VRID {0}: prioridade configurada {1}, efetiva {2}."
+ ],
+ [
+  "cbg7mum2",
+  "{0} / {1} configurado sobre {2}."
+ ],
+ [
+  "cbi1n3up",
+  "Retorno hairpin {0} → {1}."
+ ],
+ [
+  "ceo7rlze",
+  "Inspeção {0}: pedido bloqueado."
+ ],
+ [
+  "cfhabwtu",
+  "{0}:jumper:{1}:{2}"
+ ],
+ [
+  "cfi5m0mv",
+  "Cache ARP sem {0}: broadcast, tentativa {1}/3."
+ ],
+ [
+  "cfvxsanz",
+  "Fluxo {0} exige apenas seus próprios parâmetros."
+ ],
+ [
+  "cfykcsvn",
+  "{0}: papel {1}."
+ ],
+ [
+  "cgebybkp",
+  "{0}: reset recebido; porta fechada ou conexão abortada."
+ ],
+ [
+  "cjv2pwnn",
+  "Protocolo sem adaptador: {0}"
+ ],
+ [
+  "clexo22r",
+  "; renovação unicast para {0}."
+ ],
+ [
+  "cmxmt51l",
+  "Não foi possível atualizar o laboratório: {0}"
+ ],
+ [
+  "crnyzoz4",
+  "{0} pixels"
+ ],
+ [
+  "csbvbz68",
+  "Conflito detectado por ARP; DECLINE para {0}."
+ ],
+ [
+  "ctsqi4x9",
+  "{0}: uma ponta é trunk e a outra access; apenas a VLAN nativa/de acesso passa."
+ ],
+ [
+  "cv3yba86",
+  "via {0}, métrica {1}"
+ ],
+ [
+  "cx55nxo1",
+  "Mensagem {0}"
+ ],
+ [
+  "cxpn3p5z",
+  "{0}: VLANs permitidas só em uma ponta — {1}: {2}; {3}: {4}."
+ ],
+ [
+  "cy9hituu",
+  "{0} equipamento(s). Selecione para centralizar; Enter centraliza o primeiro."
+ ],
+ [
+  "d0letyom",
+  "{0}, wildcard bits {1}"
+ ],
+ [
+  "d0vwtosz",
+  "Serviço DHCP {0}"
+ ],
+ [
+  "d4rawax2",
+  "ICMP {0} recebido de {1}"
+ ],
+ [
+  "daubh1wn",
+  "Consulta NTP a {0}; timestamp marcado na transmissão."
+ ],
+ [
+  "dcyds6gh",
+  "Remover NAT {0}"
+ ],
+ [
+  "ddrpu84y",
+  "{0} — perda e restauração da alimentação"
+ ],
+ [
+  "de16545i",
+  "Modbus: {0} {1} atualizados a partir de {2}."
+ ],
+ [
+  "dmnyxe54",
+  "Relay DHCPv6 configurado em {0}."
+ ],
+ [
+  "doann0by",
+  "Policer {0}: orçamento de tokens insuficiente."
+ ],
+ [
+  "dq5ebwxo",
+  "AS {0} · {1} rotas"
+ ],
+ [
+  "e29f1kqf",
+  "{0} switch(es) L3 encaminham IP; firewall stateful de trânsito requer roteador no modelo atual."
+ ],
+ [
+  "e2wjojsj",
+  "Sem resposta DNS de {0} após 5 s virtuais."
+ ],
+ [
+  "e5wrfahw",
+  "{0} sessões · {1} drops"
+ ],
+ [
+  "e62kblnq",
+  "{0} para {1}:161; tentativa {2}."
+ ],
+ [
+  "e7i81xyh",
+  "Consulta DNS enfileirada [{0}]. Avance a simulação."
+ ],
+ [
+  "ee9epgm4",
+  "RA: gateway {0} e prefixos atualizados."
+ ],
+ [
+  "ef2ocfz4",
+  "Firewall de trânsito {0}; sessões reiniciadas."
+ ],
+ [
+  "efri5q7w",
+  "{0} pixels de altura"
+ ],
+ [
+  "ejjgh0e6",
+  "Editar regra {0} de {1}"
+ ],
+ [
+  "ekncaru4",
+  "LSDB recebeu {0}, sequência {1}{2}."
+ ],
+ [
+  "epnyorkw",
+  "{0}-rascunho"
+ ],
+ [
+  "etes79dj",
+  "Devolvendo a concessão {0} ao servidor."
+ ],
+ [
+  "eu8e07yo",
+  "RIPv2 {0} de {1}."
+ ],
+ [
+  "eug30cl6",
+  "NetOS · {0} portas"
+ ],
+ [
+  "euuhymmz",
+  "Registro DNS {0} {1} configurado."
+ ],
+ [
+  "evz748xv",
+  "{0}: MTU IP {1}/{2} no segmento OSPF; a adjacência fica presa em EXSTART/EXCHANGE."
+ ],
+ [
+  "ewalckan",
+  "POST /ipp/print HTTP/1.1 Host: {0} Content-Type: application/ipp Content-Length: {1} Connection: close {2}"
+ ],
+ [
+  "ex1kzzw6",
+  "Desabilite DHCP antes de editar o endereço: {0}"
+ ],
+ [
+  "ezdtxgc4",
+  "CAPWAP: WTP {0} expirou."
+ ],
+ [
+  "ezokfs5x",
+  "VIP {0}: relay DHCP configurado somente em {1}."
+ ],
+ [
+  "f8wvqm0u",
+  "Aplicação TCP {0} usa enquadramento didático."
+ ],
+ [
+  "f9ynv1nx",
+  "{0}/{1} tarefas{2}"
+ ],
+ [
+  "fbsbi3jb",
+  "Quorum {0}, termo {1}."
+ ],
+ [
+  "fetidt9k",
+  "DHCPv6 {0}: {1}."
+ ],
+ [
+  "fgvxlzf3",
+  "Aplicação: {0}"
+ ],
+ [
+  "fjumgd2o",
+  "Este painel configura {0}. Habilitar um recurso não comprova que suas negociações e dependências já funcionam."
+ ],
+ [
+  "fl2j40ww",
+  "Cliente autorizado: {0}."
+ ],
+ [
+  "fnspw3ar",
+  "{0}: Hello/Dead {1}/{2} s vs {3}/{4} s; a adjacência não forma."
+ ],
+ [
+  "fq36j678",
+  "1000Base{0}X SFP"
+ ],
+ [
+  "fscf470d",
+  "{0}: limite de inatividade de 120 s."
+ ],
+ [
+  "fx7w3sg6",
+  "{0} A avaliação cria tráfego novo em uma cópia: resultados anteriores não concluem tarefas. Consulte o painel do protocolo, a CLI e a timeline para encontrar a causa."
+ ],
+ [
+  "fxaqf2tj",
+  "EtherChannel {0}: {1}, {2} membros, mínimo {3}."
+ ],
+ [
+  "g1bimxy5",
+  "Interface inexistente: {0}"
+ ],
+ [
+  "g1fblzih",
+  "VNI {0}: RT {1}/{2} divergente."
+ ],
+ [
+  "g27a0ijw",
+  "MQTT QoS 1 sem PUBACK: {0}"
+ ],
+ [
+  "g28k336k",
+  "Input QoS policer {0}"
+ ],
+ [
+  "g3a9cex6",
+  "Pool DHCP {0} configurado."
+ ],
+ [
+  "g4u9ecr9",
+  "Não foi possível concluir a ação (HTTP {0})."
+ ],
+ [
+  "g5c6xehz",
+  "Quorum: commit {0} confirmado."
+ ],
+ [
+  "g8z7e47d",
+  "DHCPv6 BOUND: {0}{1}"
+ ],
+ [
+  "g909g6dr",
+  "Proposta de configuração aplicada a {0} equipamento(s)."
+ ],
+ [
+  "g9go0663",
+  "Infraestrutura {0} configurada."
+ ],
+ [
+  "gddjiqb1",
+  "Servidor EAP {0} / RADIUS configurado."
+ ],
+ [
+  "gm0ohrwg",
+  "{0} · Delete fecha a aba"
+ ],
+ [
+  "gmoxvp30",
+  "Supplicant EAP {0} configurado."
+ ],
+ [
+  "gnvgj4xs",
+  "Bits: {0}"
+ ],
+ [
+  "gr1o95xi",
+  "{0} MAC(s) anunciados por BGP para {1}."
+ ],
+ [
+  "gxlk110t",
+  "{0}: nenhum transporte disponível."
+ ],
+ [
+  "h1nwv5x5",
+  "Sessão {0} expirada no relógio virtual."
+ ],
+ [
+  "h1tgwmmz",
+  "Excluir {0}"
+ ],
+ [
+  "h5oei1sh",
+  "Concessão {0} devolvida pelo cliente."
+ ],
+ [
+  "h6xjijek",
+  "{0}: rota {1}/{2} aponta para {3}, IP físico de um participante VRRP."
+ ],
+ [
+  "h9ubokc4",
+  "{0}: parceiro {1}, key {2}."
+ ],
+ [
+  "hg8av45r",
+  "Linha {0}{1} da tabela tem {2} colunas; esperado {3}."
+ ],
+ [
+  "hh2f4ebz",
+  "TACACS+ CHAP, autorização e accounting TCP/49: {0}."
+ ],
+ [
+  "ht3oqz9w",
+  "Renovar DHCP {0}"
+ ],
+ [
+  "hxeeq558",
+  "{0}: réplica DHCP {1}."
+ ],
+ [
+  "i1dij9vz",
+  "HA integrada — perda de {0}"
+ ],
+ [
+  "i4t5k8va",
+  "DAD concluído: {0}/{1}."
+ ],
+ [
+  "i5rziwxa",
+  "Serviço ausente: {0}/{1}"
+ ],
+ [
+  "i5x5m43g",
+  "{0}; alarme do valor amostrado: {1}."
+ ],
+ [
+  "ia367xy9",
+  "Porta autorizada para {0} na VLAN {1}."
+ ],
+ [
+  "ial3pdkd",
+  "Serviços HA — parada de {0}"
+ ],
+ [
+  "ifph28hv",
+  "{0}: {1} membros coletando/distribuindo{2}."
+ ],
+ [
+  "ifyltjf7",
+  "Configuração em massa aplicada: {0} linhas."
+ ],
+ [
+  "igztffmw",
+  "ICMPv6 {0} de {1}."
+ ],
+ [
+  "iif9ds60",
+  "DHCP: réplica confirmada, revisão {0}."
+ ],
+ [
+  "imy8b6iq",
+  "MAC {0} aprendido na VLAN {1}."
+ ],
+ [
+  "injzah8v",
+  "Resposta da VRF {0}"
+ ],
+ [
+  "iv4nx1oz",
+  "{0}-recuperacao"
+ ],
+ [
+  "iwq77erm",
+  "{0}: uma única UPS alimenta a carga."
+ ],
+ [
+  "j3o5uagk",
+  "TX={0} B RX={1} B retransmissões={2}"
+ ],
+ [
+  "j427b11y",
+  "RIPv2 {0} · update 30s ±5s · timeout 180s · garbage 120s REDE VIA METRICA EXPIRA(s)"
+ ],
+ [
+  "jauofcql",
+  "{0} diferenças de configuração"
+ ],
+ [
+  "jfgik4xa",
+  "BGP retirou {0} via {1}."
+ ],
+ [
+  "jk8ofp4x",
+  "Amostra {0} com {1} sensores enviada ao coletor."
+ ],
+ [
+  "jlu2uyyg",
+  "{0}: {1} instâncias, eleição por BPDUs e encaminhamento por VLAN."
+ ],
+ [
+  "jtkbl89u",
+  "FEC {0}: push {1}."
+ ],
+ [
+  "jz5ln6xw",
+  "Editar pool {0}"
+ ],
+ [
+  "k6pfs7m3",
+  "Amostra {0} de {1} recebida."
+ ],
+ [
+  "k76qi8s5",
+  "Wireless {0} configurado: {1} / canal {2}."
+ ],
+ [
+  "k7rx9kab",
+  "{0}/{1} aceitos/rejeitados"
+ ],
+ [
+  "k7xfzhu0",
+  "{0} habilitado; prioridade {1}."
+ ],
+ [
+  "kchfre62",
+  "{0} → {1} ({2}): RTT {3} ms, perda {4}%{5}."
+ ],
+ [
+  "ke6mh19m",
+  "TCP [{0}] enfileirado. Avance a simulação."
+ ],
+ [
+  "khc4ux9m",
+  "Longest prefix match /{0} via {1} em {2}."
+ ],
+ [
+  "kifp4ido",
+  "Porta UDP {0} sem serviço ativo."
+ ],
+ [
+  "knopv5gz",
+  "políticas recebidas em {0} ms"
+ ],
+ [
+  "koduyivw",
+  "prefixo {0}/{1}"
+ ],
+ [
+  "kq2d7row",
+  "{0}: MTU VXLAN {1} + 50 excede {2} ({3})."
+ ],
+ [
+  "krce8e0k",
+  "Tradução expirada: {0} -> {1}."
+ ],
+ [
+  "krq88pdg",
+  "{0} equipamento(s) {1} ligado(s)."
+ ],
+ [
+  "ky9csaqs",
+  "DHCPv6 {0} (IAID {1})."
+ ],
+ [
+  "l5aajd5i",
+  ": limiar {0} pacotes"
+ ],
+ [
+  "l5u8bew1",
+  "Valor inválido: {0}"
+ ],
+ [
+  "l6tuifca",
+  "{0} {1} de {2}."
+ ],
+ [
+  "l8qb9zf7",
+  "Recolher {0}"
+ ],
+ [
+  "l9rb6cnq",
+  "IPv4 DF: MTU {0} excedida; ICMP Fragmentation Needed."
+ ],
+ [
+  "lau0h421",
+  "OSPF {0}, área {1}, {2}{3}."
+ ],
+ [
+  "ldiyblc9",
+  "{0}: STALE → DELAY; tráfego usa o MAC conhecido."
+ ],
+ [
+  "ldzv145e",
+  "Resposta do servidor {0} entregue na rede de giaddr={1}; UDP 67 → 68."
+ ],
+ [
+  "lgpn1570",
+  "{0}: apenas um caminho físico de acesso."
+ ],
+ [
+  "ljkvq6kl",
+  "ACL {0} {1} em {2}: {3}; {4} {5} -> {6}."
+ ],
+ [
+  "llkzodry",
+  "VRID {0}: {1}, prioridade {2}{3}."
+ ],
+ [
+  "lnesihjf",
+  "Excluir pool {0}"
+ ],
+ [
+  "lo8kv7fn",
+  "{0}: network {1} sem rota exata na tabela; o prefixo não é anunciado."
+ ],
+ [
+  "lsxfzyyi",
+  "{0}: ECN/ECE, cwnd={1}; próximo dado confirma CWR."
+ ],
+ [
+  "lts9ba21",
+  "DNS {0}: resposta divergente ou ausente"
+ ],
+ [
+  "lvzefud9",
+  "Cabo instalado; enlace físico inoperante: {0}"
+ ],
+ [
+  "m1nzdrya",
+  "IPv6: nenhuma rota para {0}."
+ ],
+ [
+  "mcr6bw7o",
+  "BGP instalou {0} via {1}, distância {2}."
+ ],
+ [
+  "mnie274b",
+  "Payload UDP {0} sem codec binário."
+ ],
+ [
+  "mtobjgdk",
+  "Registro DNS removido: {0}."
+ ],
+ [
+  "mx3l5i27",
+  "Terminal de {0}"
+ ],
+ [
+  "n1165efx",
+  "MAC {0} / VNI {1}: sessão BGP indisponível."
+ ],
+ [
+  "n1nl3oc5",
+  "Interface {0} removida."
+ ],
+ [
+  "n3kg0uks",
+  "{0} conexões"
+ ],
+ [
+  "n3n45h3d",
+  "Privilégio {0}"
+ ],
+ [
+  "n4cfiv4z",
+  "TCP [{0}] HTTP GET enfileirado. Avance a simulação."
+ ],
+ [
+  "n4f76qc9",
+  "Inspecionar {0}"
+ ],
+ [
+  "n550ivpm",
+  "{0} duplicado"
+ ],
+ [
+  "n87il950",
+  "{0}: resposta UDP truncada; nova consulta por TCP/53."
+ ],
+ [
+  "n91jgwgz",
+  "Enlace {0}: referência de interface inexistente."
+ ],
+ [
+  "nh50fqqb",
+  "Cliente DHCPv6 {0}."
+ ],
+ [
+  "npammon8",
+  "IPv4 observado: {0}/{1}."
+ ],
+ [
+  "nsdyc1hf",
+  "Localizar {0}"
+ ],
+ [
+  "o5shr3pc",
+  "{0}, {1} registro(s)."
+ ],
+ [
+  "o6vtpznz",
+  "{0} e {1} traduzem a mesma rede interna sem estado NAT compartilhado; respostas que voltam pelo outro roteador são descartadas."
+ ],
+ [
+  "o7oacsvj",
+  "Mesh: caminho para {0} via {1}."
+ ],
+ [
+  "oc88l1vh",
+  "{0} entradas"
+ ],
+ [
+  "ocm398d9",
+  "DHCP: lista IPv4 inválida, opção {0}."
+ ],
+ [
+  "oi3ludtf",
+  "OSPF retirou {0}/{1} via {2}."
+ ],
+ [
+  "ojjne7ur",
+  "Configuração da falha {0}{1}"
+ ],
+ [
+  "opr7ub0w",
+  "DHCP {0}: {1}, tentativa {2}{3}"
+ ],
+ [
+  "oq2wkd6v",
+  "Túnel {0}"
+ ],
+ [
+  "ot6czb7z",
+  "Broadcast restrito à VLAN {0}."
+ ],
+ [
+  "otai49vc",
+  "{0}: {1} frame(s) na fila."
+ ],
+ [
+  "ouder72l",
+  "Fluxo {0}{1}"
+ ],
+ [
+  "p0c60eic",
+  "TCP [{0}] echo enfileirado. Avance a simulação."
+ ],
+ [
+  "p4727w6g",
+  "Scan {0}: nível {1}/1000, bomba {2}."
+ ],
+ [
+  "p59qzdmo",
+  "Exceção Modbus {0}"
+ ],
+ [
+  "p86xxjim",
+  "{0}: troca DHCP administrativa; não há eleição automática."
+ ],
+ [
+  "p9nilayf",
+  "{0} achados adicionais excederam o limite da revisão."
+ ],
+ [
+  "pe1vmsfy",
+  "Opção NETCONF não suportada: {0}"
+ ],
+ [
+  "pfq2zp6b",
+  "Cor {0}"
+ ],
+ [
+  "pkfhw5xf",
+  "Descoberta SQL em {0}: {1}"
+ ],
+ [
+  "pmzazxbw",
+  "Cliente associado ao SSID {0}."
+ ],
+ [
+  "pnvf1c76",
+  "ICMPv6 Echo Request → {0}; Hop Limit {1}."
+ ],
+ [
+  "po2oiher",
+  "Input policer {0}: insufficient tokens."
+ ],
+ [
+  "pq04yspz",
+  "{0}/{1}: gateway {2} não encontrado no domínio Ethernet."
+ ],
+ [
+  "pwja4a68",
+  "{0} registros"
+ ],
+ [
+  "pycr6kgn",
+  "Relógio de rede configurado; offset {0} ms."
+ ],
+ [
+  "q1lkd6bi",
+  "Datagrama {0} incompleto expirou."
+ ],
+ [
+  "q8cnq2of",
+  "Elemento XML obrigatório/duplicado: {0}"
+ ],
+ [
+  "q8w62xp2",
+  "Credencial wireless inválida para {0}."
+ ],
+ [
+  "q9seoj6r",
+  "Configuração de {0} atualizada."
+ ],
+ [
+  "qcnkivxh",
+  "Nova consulta DNS: {0}, segurança {1}."
+ ],
+ [
+  "qdxt3vv3",
+  "Ações de {0}"
+ ],
+ [
+  "qeetdev5",
+  "RTP PCMU: pacote {0}; chamada {1}."
+ ],
+ [
+  "qfpqijzd",
+  "· tentativas a cada {0} ms"
+ ],
+ [
+  "qhp991l0",
+  "Reservas {0}"
+ ],
+ [
+  "qj5brskt",
+  "{0}: {1}, {2} registros por TCP/53."
+ ],
+ [
+  "qkx1rli0",
+  "{0} / VLAN {1} / acesso A/B"
+ ],
+ [
+  "qlrm6lvo",
+  "OSPF {0} de {1}, área {2}."
+ ],
+ [
+  "qwxrot43",
+  "OSPF {0}{1}/{2} via {3}, custo {4}."
+ ],
+ [
+  "qyf3avek",
+  "{0}-cenarios"
+ ],
+ [
+  "r3cvn4ot",
+  "{0}: duplex {1}/{2}; espere colisões tardias e perda sob carga."
+ ],
+ [
+  "reiqpqi4",
+  "{0}/{1} membros"
+ ],
+ [
+  "rep1uv3w",
+  "QoS policer {0}"
+ ],
+ [
+  "rfimrecz",
+  "Inspeção DNS: consulta bloqueada para {0}."
+ ],
+ [
+  "rg05h2t6",
+  "Foi registrada uma etapa de acesso à rede “{0}”. {1} A mensagem isolada não confirma que todas as etapas terminaram."
+ ],
+ [
+  "rh5t751q",
+  "Editar VRID {0}"
+ ],
+ [
+  "rhrf7sub",
+  "Perfil {0} aplicado: {1}"
+ ],
+ [
+  "rj8sb96f",
+  "{0} vizinhos"
+ ],
+ [
+  "rmv5e6be",
+  "Papel NAT {0}"
+ ],
+ [
+  "roumqtss",
+  "VRF inexistente: {0}"
+ ],
+ [
+  "s2q3cozs",
+  "Gerenciamento remoto: {0}"
+ ],
+ [
+  "s70b7cjv",
+  "DHCP ativo/reserva com {0}; promoção administrativa com desligamento do antigo ativo."
+ ],
+ [
+  "s9uvm3vw",
+  "{0}: PMTUD MTU={1}; MSS={2}; segmentos refeitos sem perder sequência."
+ ],
+ [
+  "sacgx6op",
+  "{0} atendido pelo cache; TTL restante {1} s."
+ ],
+ [
+  "sceg4dfk",
+  "Conceitos envolvidos em {0}."
+ ],
+ [
+  "sfvpggds",
+  "Pools {0}/{1}: intervalos sobrepostos no mesmo domínio."
+ ],
+ [
+  "sgaxv3d4",
+  "{0} → {1} armazenado por 60 s virtuais."
+ ],
+ [
+  "snsuesho",
+  "ativo/backup · NIC {0}{1}"
+ ],
+ [
+  "so41qqlm",
+  "Coletor syslog/514 {0}."
+ ],
+ [
+  "songlih1",
+  "{0} SSID={1} {2} banda={3} canal={4} {5}"
+ ],
+ [
+  "ssc305b2",
+  "Formato {0}"
+ ],
+ [
+  "stw4a1te",
+  "Frame recebido em {0}."
+ ],
+ [
+  "tcp83e5v",
+  "Interface inexistente ou repetida: {0}/{1}"
+ ],
+ [
+  "tctg6nm3",
+  "Resultado calculado, mas não salvo: {0}{1}"
+ ],
+ [
+  "tgci309d",
+  "{0}: ativo/backup, {1} NICs; primária {2}."
+ ],
+ [
+  "tkocvyzv",
+  "{0}-revisao"
+ ],
+ [
+  "tkrauzq4",
+  "SNMP {0}: resposta divergente ou ausente"
+ ],
+ [
+  "tlkn3p38",
+  "SD-WAN site {0} configurado."
+ ],
+ [
+  "tnhsdswg",
+  "UDP IPv6: {0} caracteres recebidos."
+ ],
+ [
+  "tpj0x1rq",
+  "VLAN {0} · RT {1} · {2} MACs EVPN · {3}/{4} TX/RX"
+ ],
+ [
+  "tq92ia9i",
+  "{0}, DC roteado e WAN A/B. Cada endpoint tem bond ativo/backup e alimentação A/B. Acesso, core, FW, WAN e DC-GW independentes por lado; RSTP/LACP, VIPs e tracking de portas, firewall com réplica. Falhas dos presets ocorrem na rede simulada. DNS/HTTP são conteúdo equivalente configurado, logs permanecem locais e sessões de serviço não são replicadas. DHCP replica leases com confirmação; sua promoção ainda exige fencing administrativo. O próprio endpoint/PLC/servidor WAN ou DC permanece único; perder as duas vias interrompe o serviço. Este modelo não acrescenta EVPN/ECMP nem quorum de serviços."
+ ],
+ [
+  "tzvuygoq",
+  "{0} ms virtuais"
+ ],
+ [
+  "u08i7s6c",
+  "{0}: sincronização HA {1}."
+ ],
+ [
+  "u3dd0iu5",
+  "HTTP entre VLANs por {0}"
+ ],
+ [
+  "u8c4mc5b",
+  "{0} na tabela {1}."
+ ],
+ [
+  "u9r5kj6j",
+  "Limite de {0} equipamentos"
+ ],
+ [
+  "ua79otvf",
+  "{0} Neste registro, a operação foi recusada, descartada ou não recebeu a resposta esperada. Consulte o motivo específico abaixo antes de mudar a configuração."
+ ],
+ [
+  "uczfjjsc",
+  "Interface repetida; reúna seus campos em uma alteração: {0}/{1}"
+ ],
+ [
+  "udbjeejo",
+  "{0}/{1}: somente {2} possui pool para giaddr {3}."
+ ],
+ [
+  "uegxte90",
+  "Porta inexistente: {0}"
+ ],
+ [
+  "ufldz66d",
+  "ICMP relacionado: destino citado {0} → {1}."
+ ],
+ [
+  "uiwy4c5v",
+  "ICMPv6 {0} → {1}"
+ ],
+ [
+  "uo08etcx",
+  "Área {0} · {1}"
+ ],
+ [
+  "uookytd5",
+  "RIPv2 {0}."
+ ],
+ [
+  "urcwmu27",
+  "Linha {0} “{1}”:"
+ ],
+ [
+  "usicba0r",
+  "{0} LSA {1}, sequência {2}."
+ ],
+ [
+  "uu5wy2e8",
+  "Protocolo IP {0} sem codec binário."
+ ],
+ [
+  "uvidgcxy",
+  "Roteamento L3 {0}"
+ ],
+ [
+  "ux5suhjd",
+  "HTTP/1.1 {0} {1} Content-Type: application/yang-data+json ETag: \"{2}\" X-Request-ID: {3} Content-Length: {4} Connection: close {5}"
+ ],
+ [
+  "v2m6xua5",
+  "DHCP promovido; {0} desligado por fencing administrativo. Operação sem segunda cópia até resincronizar."
+ ],
+ [
+  "v2ntc4ka",
+  "Campo XML duplicado: {0}"
+ ],
+ [
+  "vaee2qa8",
+  "MAC {0} / VNI {1} retirado por {2}."
+ ],
+ [
+  "vb6ceudd",
+  "{0}: root {1}, custo {2}."
+ ],
+ [
+  "viapbb9h",
+  "{0}/{1}: regra IPv6 {2} de {3} coberta por regra anterior."
+ ],
+ [
+  "vmbw44q4",
+  "Root {0}; custo {1}{2}"
+ ],
+ [
+  "vnqrzjxm",
+  "Serviço {0} TCP/{1} {2}."
+ ],
+ [
+  "vpa0mt2p",
+  "{0}: {1} enlaces terminam no mesmo equipamento ({2})."
+ ],
+ [
+  "vqr6ir4b",
+  "Access-Request {0} para {1}; tentativa {2}."
+ ],
+ [
+  "vrl1zj8p",
+  "; {0} registro(s) recebido(s)."
+ ],
+ [
+  "vu8gsndy",
+  ", {0} anúncios, {1} retiradas"
+ ],
+ [
+  "vw0sikml",
+  "{0} instalada."
+ ],
+ [
+  "vxvketeo",
+  "{0} datagramas → {1}"
+ ],
+ [
+  "vyga4y2b",
+  "SNMP [{0}] enfileirado. Avance a simulação."
+ ],
+ [
+  "vzjb4m0q",
+  "Tanque: baixo={0}, alto={1}, setpoint inválido={2}."
+ ],
+ [
+  "w1c324kj",
+  "DAD: endereço duplicado {0}."
+ ],
+ [
+  "w2lve76f",
+  "DHCP: {0}, revisão {1}."
+ ],
+ [
+  "w6oaybal",
+  "{0}-clone-review"
+ ],
+ [
+  "w77m7547",
+  "Este comando não se aplica a {0}. Digite help para os comandos deste equipamento."
+ ],
+ [
+  "w8k642tv",
+  "{0} em {1}: {2} → {3}."
+ ],
+ [
+  "w9l71gxn",
+  "{0} cabos"
+ ],
+ [
+  "wbxbflyi",
+  "Envio syslog/514 {0}."
+ ],
+ [
+  "wgzdcdzv",
+  "Relay preserva cliente e transação; giaddr={0}, hops=1; UDP 67 → 67 para {1}."
+ ],
+ [
+  "wiac1xkm",
+  "VRRP {0}; {1} grupos."
+ ],
+ [
+  "wiph7gaf",
+  "IPP Job {0} concluído."
+ ],
+ [
+  "wjv61lcb",
+  "Pool NAT {0} sem endereços disponíveis."
+ ],
+ [
+  "wlcvpauf",
+  "Omitir {0}"
+ ],
+ [
+  "wp4gplsh",
+  "{0}: inspeção de aplicação usa somente IPv4; zonas de trânsito cobrem IPv4/IPv6."
+ ],
+ [
+  "wrac68hy",
+  "Alvo de assertion inexistente: {0}"
+ ],
+ [
+  "wtdsifc1",
+  "IPP Print-Job {0}: {1} página(s)."
+ ],
+ [
+  "wvweb5iq",
+  "Mensagem {0} enviada por UDP/514; sem confirmação de entrega."
+ ],
+ [
+  "ww6v0d48",
+  "{0} (recuperado)"
+ ],
+ [
+  "wz3e1nzm",
+  "Controle de acesso 802.1X {0}."
+ ],
+ [
+  "x1i5vp03",
+  "Enlace inexistente: {0}"
+ ],
+ [
+  "x89h0pff",
+  "MPLS: label {0} sem LFIB."
+ ],
+ [
+  "xbn1x7su",
+  "Nenhuma rota corresponde a {0} e não há gateway/rota padrão válido."
+ ],
+ [
+  "xk2tqqi1",
+  "{0}: VRRP sem réplica de firewall/NAT; conexões existentes podem interromper."
+ ],
+ [
+  "xmftmzzo",
+  "{0} detecta falha"
+ ],
+ [
+  "xmorgbla",
+  "Offset corrigido {0} ms; RTT {1} ms; stratum {2}."
+ ],
+ [
+  "xowe2avb",
+  "HTTP pelo overlay {0}"
+ ],
+ [
+  "xq3xn1ad",
+  "Terminais · {0}"
+ ],
+ [
+  "xru591on",
+  ". Armazenamento local indisponível: {0}. Exporte o ensaio antes de fechar."
+ ],
+ [
+  "xs2tord2",
+  "VXLAN: sem rota underlay para {0}."
+ ],
+ [
+  "xtd7c635",
+  "pela regra {0}"
+ ],
+ [
+  "xw5rfpuz",
+  "BPDU recebido: root {0}, custo {1}."
+ ],
+ [
+  "xw5xfjjc",
+  "{0}: cargas solicitadas excedem a potência máxima."
+ ],
+ [
+  "xw7v0xgu",
+  "Porta {0} adicionada."
+ ],
+ [
+  "xzo51liy",
+  "ACL {0} atualizada."
+ ],
+ [
+  "y43v1907",
+  "Políticas enviadas para site {0}."
+ ],
+ [
+  "y7nqwa24",
+  "RIPv2 {0} em {1}{2}."
+ ],
+ [
+  "y7pxu5vl",
+  "Frame transmitido em {0}."
+ ],
+ [
+  "yg7vvdvp",
+  "VRF de {0}"
+ ],
+ [
+  "yn6pbsud",
+  "NetOS · {0} · simulador educacional"
+ ],
+ [
+  "ynb229he",
+  "Configuração em massa aceita até {0} equipamentos por vez."
+ ],
+ [
+  "ypk8e8e6",
+  "Limite de {0} anotações/regiões: {1} sites exigem mais espaço no canvas."
+ ],
+ [
+  "yr03mzsz",
+  "Verificação {0}{1}"
+ ],
+ [
+  "z0v7tejj",
+  "SNMP {0} {1}; agente {2}."
+ ],
+ [
+  "z1kddlui",
+  "QoS {0} {1} Mbps em {2}."
+ ],
+ [
+  "z8ieaa7v",
+  "{0} de {1} laboratórios"
+ ],
+ [
+  "z90csb08",
+  "Serviço DNS {0}"
+ ],
+ [
+  "zahnmdx1",
+  "Comando aplicado: {0}"
+ ],
+ [
+  "zd829nqv",
+  "Serviços HA — perda do acesso/rack {0}"
+ ],
+ [
+  "zfbfl1ei",
+  "Endereço IPv4 repetido no contexto {0}."
+ ],
+ [
+  "zhyl3n9z",
+  "VNI {0} recebido de {1}; VLAN local {2}."
+ ],
+ [
+  "zl67vjbe",
+  "A rede “{0}” foi {1}. Um beacon informa que a rede existe; não confirma associação, autenticação nem acesso à internet."
+ ],
+ [
+  "znrk1q1w",
+  "Policer {0}: insufficient tokens."
+ ],
+ [
+  "zquwnz06",
+  "{0}: {1} atualizações HA foram recusadas."
+ ],
+ [
+  "zrlgx8f8",
+  "Associação aceita; iniciando troca de chave {0}."
+ ],
+ [
+  "ztscvdrr",
+  "Cliente associado: {0}."
+ ]
+]

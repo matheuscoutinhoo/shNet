@@ -1,5 +1,6 @@
 import type { Snapshot } from '@shlab/engine';
-type Entry = { snapshot: Snapshot; bytes: number; order: number };
+// Lazy entries come from terminal marks and are materialized only when undone or redone.
+type Entry = { snapshot?: Snapshot; load?: () => Snapshot; bytes: number; order: number };
 export class SnapshotHistory {
   private undo: Entry[] = [];
   private redo: Entry[] = [];
@@ -42,6 +43,11 @@ export class SnapshotHistory {
     this.undo.push(entry);
     this.trim();
   }
+  checkpointLazy(load: () => Snapshot, bytes: number) {
+    this.redo = [];
+    this.undo.push({ load, bytes, order: ++this.order });
+    this.trim();
+  }
   restore(direction: 'undo' | 'redo', current: Snapshot) {
     const source = direction === 'undo' ? this.undo : this.redo,
       target = direction === 'undo' ? this.redo : this.undo;
@@ -50,6 +56,6 @@ export class SnapshotHistory {
       previous = source.pop()!;
     target.push(entry);
     this.trim();
-    return previous.snapshot;
+    return previous.snapshot ?? previous.load!();
   }
 }

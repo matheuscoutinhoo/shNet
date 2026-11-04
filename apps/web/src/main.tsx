@@ -8,6 +8,7 @@ const Workspace = lazy(() => import('./workspace/Workspace').then((m) => ({ defa
 import './styles.css';
 import '@fontsource-variable/space-grotesk';
 import { initializeTheme } from './theme';
+import { initI18n } from './i18n';
 initializeTheme();
 function App() {
   const [user, setUser] = useState<User | null>(null),
@@ -89,8 +90,11 @@ function App() {
     </>
   );
 }
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+// English loads its dictionary before the first render, so Portuguese never flashes.
+void initI18n().finally(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
 );

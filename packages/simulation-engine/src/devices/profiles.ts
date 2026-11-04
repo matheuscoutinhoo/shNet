@@ -261,7 +261,8 @@ export const deviceProfiles: DeviceProfile[] = [
     'Roteador',
     'Routing',
     'Roteamento IP',
-    'Rotas conectadas, estáticas, OSPF, RIP, BGP e VRF.'
+    'Rotas conectadas, estáticas, OSPF, RIP, BGP e VRF.',
+    { ports: 8, uplinks: 'sfp' }
   ),
   p(
     'edge',
@@ -269,7 +270,8 @@ export const deviceProfiles: DeviceProfile[] = [
     'Roteador de borda',
     'Routing',
     'Borda IP',
-    'Roteamento, NAT, ACL e políticas de rede.'
+    'Roteamento, NAT, ACL e políticas de rede.',
+    { ports: 12, uplinks: 'sfp' }
   ),
   p(
     'branch',
@@ -277,7 +279,8 @@ export const deviceProfiles: DeviceProfile[] = [
     'Roteador de filial',
     'Routing',
     'Filial',
-    'Rotas, serviços e conectividade com a matriz.'
+    'Rotas, serviços e conectividade com a matriz.',
+    { ports: 8, uplinks: 'sfp' }
   ),
   p(
     'virtual-router',
@@ -285,7 +288,8 @@ export const deviceProfiles: DeviceProfile[] = [
     'Roteador virtual',
     'Routing',
     'Roteamento virtual',
-    'Mesmo encaminhamento IP do motor, sem hypervisor externo.'
+    'Mesmo encaminhamento IP do motor, sem hypervisor externo.',
+    { ports: 8 }
   ),
   p(
     'ap',
@@ -457,7 +461,8 @@ export const deviceProfiles: DeviceProfile[] = [
     'ISP',
     'Redes virtuais',
     'Underlay IP',
-    'Roteador IP para compor uma rede de provedor; configure rotas/BGP.'
+    'Roteador IP para compor uma rede de provedor; configure rotas/BGP.',
+    { ports: 16, uplinks: 'sfp' }
   ),
   p(
     'nat-gateway',

@@ -208,10 +208,9 @@ export function validateLayer3(snapshot: Snapshot) {
           port.aggregate ||
           port.channel ||
           port.dhcp ||
-          port.ipv4Mode === 'dhcp' ||
-          (port.ip && port.prefix !== 32))
+          port.ipv4Mode === 'dhcp')
       )
-        throw new Error('Loopback exige interface routed estática /32 em roteador ou switch.');
+        throw new Error('Loopback exige interface routed com IPv4 estático em roteador ou switch.');
       requireVrf(device, port.vrf);
       if (device.type === 'switch' && port.ip && port.mode !== 'routed')
         throw new Error('IPv4 no switch exige SVI ou porta routed.');

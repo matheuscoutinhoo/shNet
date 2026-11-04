@@ -77,7 +77,9 @@ describe('Cisco CLI behavior', () => {
       port: { id: 'p0' },
       nextHop: '203.0.113.10',
     });
-    expect(cli.execute('show ip route')).toContain('S 203.0.113.0/24 [200/1] directly connected');
+    expect(cli.execute('show ip route')).toMatch(
+      /^S\s+203\.0\.113\.0\/24 is directly connected, GigabitEthernet0\/1$/m
+    );
     const sw = e.addProfile('switch-l2'),
       scli = new TerminalSession(e, sw.id);
     run(scli, [
@@ -273,10 +275,10 @@ describe('Cisco CLI behavior', () => {
     const peer = e.addDevice('router');
     e.connect({ device: id, port: 'p0' }, { device: peer.id, port: 'p0' });
     run(cli, ['en', 'conf t', 'interface Gi0/1', 'ip address 192.0.2.1 255.255.255.0', 'end']);
-    expect(cli.execute('show ip route')).toContain('C 192.0.2.0/24');
+    expect(cli.execute('show ip route')).toMatch(/^C\s+192\.0\.2\.0\/24 is directly connected, GigabitEthernet0\/1$/m);
     expect(cli.execute('show interfaces Gi0/1')).toContain('line protocol is up');
     run(cli, ['conf t', 'interface Gi0/1', 'shutdown', 'end']);
-    expect(cli.execute('show ip route')).not.toContain('C 192.0.2.0/24');
+    expect(cli.execute('show ip route')).not.toContain('192.0.2.0/24');
     expect(cli.execute('show interfaces Gi0/1')).toContain('administratively down');
   });
   it('resolves recursive next hops, rejects recursion loops and uses floating distance', () => {
