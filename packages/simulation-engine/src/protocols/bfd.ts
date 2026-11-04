@@ -231,12 +231,14 @@ export function configureBfd(
   if (input.template && !template) throw new Error('BFD template is not configured.');
   const c = bfdConfigSchema.parse(
     Object.fromEntries(
-      Object.keys(bfdConfigSchema.shape).map((k) => [
-        k,
-        (template && ['intervalMs', 'minRxMs', 'multiplier', 'authentication'].includes(k)
-          ? template
-          : input)[k as keyof typeof input],
-      ])
+      Object.keys(bfdConfigSchema.shape).map((k) => {
+        // Timers and authentication come from the referenced template, the rest from the input.
+        const source: Record<string, unknown> =
+          template && ['intervalMs', 'minRxMs', 'multiplier', 'authentication'].includes(k)
+            ? template
+            : input;
+        return [k, source[k]];
+      })
     )
   );
   c.ospf = input.ospf ?? old?.ospf ?? false;
@@ -465,14 +467,16 @@ export function validateBfd(s: Snapshot) {
           throw new Error('Invalid BFD session state.');
     }
   }
-  for (const q of s.queue)
+  for (const q of s.queue) {
+    const action = q.action;
     if (
-      q.action.kind === 'bfd-tick' &&
+      action.kind === 'bfd-tick' &&
       !s.devices.some(
         (d) =>
-          d.id === q.action.device &&
-          d.interfaces.some((p) => p.id === q.action.port && p.bfd?.token === q.action.token)
+          d.id === action.device &&
+          d.interfaces.some((p) => p.id === action.port && p.bfd?.token === action.token)
       )
     )
       throw new Error('Orphan BFD timer.');
+  }
 }

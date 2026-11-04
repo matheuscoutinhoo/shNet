@@ -89,7 +89,7 @@ describe('CDP voice VLAN provisioning and tagged calls', () => {
     expect(media.length).toBeGreaterThan(20);
     expect(media.every((f) => f.vlan === 30 && f.pcp === 5 && f.packet?.dscp === 46)).toBe(true);
     const cdp =
-      e.state.capture!.frames.find((v) => v.frame.discovery?.voiceVlan === 30)?.frame ??
+      e.state.capture!.frames.find((v) => v.frame?.discovery?.voiceVlan === 30)?.frame ??
       e.state.events.find((v) => v.frame?.discovery?.voiceVlan === 30)?.frame;
     expect(cdp).toBeDefined();
     if (cdp) {
