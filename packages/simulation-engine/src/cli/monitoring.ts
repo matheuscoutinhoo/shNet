@@ -83,7 +83,10 @@ export function registerMonitoring(r: CommandRegistry) {
       m[1].toLowerCase() === 'track'
         ? (d.monitoring?.tracks ?? [])
             .filter((t) => !m[2] || t.id === Number(m[2]))
-            .map((t) => `Track ${t.id}: ${t.state ? 'Up' : 'Down'}, ${t.kind}, changed at ${Math.round(t.changedAt)} ms`)
+            .map(
+              (t) =>
+                `Track ${t.id}: ${t.state ? 'Up' : 'Down'}, ${t.kind}, changed at ${Math.round(t.changedAt)} ms`
+            )
             .join('\n')
         : (d.monitoring?.operations ?? [])
             .filter((o) => !m[2] || o.id === Number(m[2]))

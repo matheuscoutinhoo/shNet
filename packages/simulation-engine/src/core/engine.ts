@@ -95,7 +95,7 @@ import {
 } from '../protocols/applications';
 import { submitPrint } from '../protocols/applications-http';
 import { configurePhone, callPhone, hangupPhone, handleVoiceTick } from '../protocols/voice';
-import {phoneEgressFrame,phoneIngressFrame} from '../protocols/voice-vlan';
+import { phoneEgressFrame, phoneIngressFrame } from '../protocols/voice-vlan';
 import { expireSipAlg } from '../protocols/nat-sip';
 import { handleHairpinExpiry, hairpinError } from '../protocols/nat-hairpin';
 import { fragmentFrame, receiveFragment, handleFragmentAction } from '../protocols/fragment';
@@ -125,7 +125,7 @@ import {
   permitDot1x,
 } from '../protocols/dot1x';
 import { configureVxlan, sendVxlanFrame } from '../protocols/vxlan';
-import { configureQos, enqueueQos, handleQosTick,permitIngressQos } from '../protocols/qos';
+import { configureQos, enqueueQos, handleQosTick, permitIngressQos } from '../protocols/qos';
 import { configureMpls, mplsRoute, pushMpls, receiveMpls } from '../protocols/mpls';
 import { configureSdwan, configureSdwanController, handleSdwanTick, selectSdwan } from '../protocols/sdwan';
 import { configureTunnel, handleTunnelTick, sendTunnelFrame } from '../protocols/tunnel';
@@ -474,9 +474,9 @@ export class SimulationEngine {
   configureVxlan(deviceId: string, input: unknown) {
     return configureVxlan(this, this.device(deviceId), input);
   }
-  configureQos(deviceId: string, portId: string, input: unknown,direction:'in'|'out'='out') {
+  configureQos(deviceId: string, portId: string, input: unknown, direction: 'in' | 'out' = 'out') {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
-    configureQos(this, device, port, input,direction);
+    configureQos(this, device, port, input, direction);
   }
   configureMpls(deviceId: string, input: unknown) {
     configureMpls(this, this.device(deviceId), input);
@@ -791,7 +791,9 @@ export class SimulationEngine {
     for (const d of this.state.devices) d.consoleSessions = d.consoleSessions?.filter((c) => c.link !== id);
     this.state.links = this.state.links.filter((l) => l.id !== id);
     for (const end of removed ? [removed.a, removed.b] : []) {
-      const port = this.state.devices.find((d) => d.id === end.device)?.interfaces.find((p) => p.id === end.port);
+      const port = this.state.devices
+        .find((d) => d.id === end.device)
+        ?.interfaces.find((p) => p.id === end.port);
       if (port) releaseNegotiatedSpeed(port);
     }
     this.state.canvasItems = this.state.canvasItems?.filter(
@@ -1389,7 +1391,7 @@ export class SimulationEngine {
   }
   sendFrame(deviceId: string, portId: string, frame: Frame) {
     const { device: d, port } = endpoint(this.state, { device: deviceId, port: portId });
-    frame=phoneEgressFrame(this.state,d,port,frame);
+    frame = phoneEgressFrame(this.state, d, port, frame);
     if (port.capwapPeer) {
       sendCapwapFrame(this, d, port, frame);
       return;
@@ -1926,7 +1928,7 @@ export class SimulationEngine {
       return;
     }
     if (!permitDot1x(this, d, physical, a.frame, 'in')) return;
-    if(!permitIngressQos(this,d,physical,a.frame))return;
+    if (!permitIngressQos(this, d, physical, a.frame)) return;
     if (a.frame.wifi) {
       receiveWireless(this, d, a.frame, a.link);
       return;
@@ -1964,9 +1966,12 @@ export class SimulationEngine {
       switchFrame(this, d, port, a.frame);
       return;
     }
-    const phoneIngress=phoneIngressFrame(this.state,d,port,a.frame);
-    if(phoneIngress.error){this.drop(d,phoneIngress.error,port.id,a.frame);return;}
-    a.frame=phoneIngress.frame;
+    const phoneIngress = phoneIngressFrame(this.state, d, port, a.frame);
+    if (phoneIngress.error) {
+      this.drop(d, phoneIngress.error, port.id, a.frame);
+      return;
+    }
+    a.frame = phoneIngress.frame;
     const logical =
       a.frame.vlan === undefined
         ? undefined

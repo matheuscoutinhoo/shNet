@@ -36,13 +36,11 @@ test('Cisco CLI: edição, ajuda, senha oculta e startup sobrevivem à restaura�
   const engine = new SimulationEngine(),
     router = engine.addProfile('router');
   router.hostname = 'R-CISCO';
-  await page
-    .locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]')
-    .setInputFiles({
-      name: 'cisco-cli.shlab.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from(JSON.stringify(engine.snapshot())),
-    });
+  await page.locator('input[type=file][accept=".json,.shlab.json,.netlab.json"]').setInputFiles({
+    name: 'cisco-cli.shlab.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(engine.snapshot())),
+  });
   await inspectDevice(page, 'R-CISCO');
   const inspector = page.locator('.inspector');
   await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
@@ -5369,7 +5367,10 @@ test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais e
   await expect(page.getByRole('status').filter({ hasText: 'terminais em outra janela' })).toBeVisible();
   await popup.close();
   await expect(page.getByRole('region', { name: 'Terminais' })).toBeVisible();
-  await page.getByRole('region', { name: 'Terminais' }).getByRole('button', { name: 'Fechar terminais' }).click();
+  await page
+    .getByRole('region', { name: 'Terminais' })
+    .getByRole('button', { name: 'Fechar terminais' })
+    .click();
 
   // Bulk configuration on the two routers, then the running/startup diff in the inspector.
   await options('Configuração em massa');
@@ -5434,11 +5435,15 @@ test('Idioma: interface, canvas, terminal e eventos em inglês; volta ao portugu
     await page.keyboard.type(text);
     await page.keyboard.press('Enter');
   };
-  await expect(dock.locator('.xterm-rows')).toContainText(en('Digite help para ver os comandos disponíveis.'));
+  await expect(dock.locator('.xterm-rows')).toContainText(
+    en('Digite help para ver os comandos disponíveis.')
+  );
   for (const line of ['enable', 'configure terminal', 'vlan 5000', 'router ospf 1']) await type(line);
   const rows = dock.locator('.xterm-rows');
   await expect(rows).toContainText('% ' + en('VLAN deve estar entre 1 e 4094'));
-  const pattern = en('Este comando não se aplica a Switch L2. Digite help para os comandos deste equipamento.');
+  const pattern = en(
+    'Este comando não se aplica a Switch L2. Digite help para os comandos deste equipamento.'
+  );
   expect(pattern).toMatch(/Switch L2/);
   await expect(rows).toContainText(pattern.slice(0, 40));
 
@@ -5473,7 +5478,9 @@ test('Certificações: filtro CCNA, tópicos nos cards e mapa de estudo abre a t
   );
   // Only CCNA topics are shown while the CCNA filter is active.
   await expect(ospf.locator('.exam-chip', { hasText: 'ENCOR' })).toHaveCount(0);
-  await expect(page.locator('.catalog-card').filter({ hasText: 'Quorum, eleição e dados replicados' })).toHaveCount(0);
+  await expect(
+    page.locator('.catalog-card').filter({ hasText: 'Quorum, eleição e dados replicados' })
+  ).toHaveCount(0);
   await page.getByRole('button', { name: 'Mapa de estudo CCNA/CCNP', exact: true }).click();
   const map = page.getByRole('dialog', { name: 'Mapa de estudo CCNA/CCNP' });
   await expect(map.getByRole('tab', { name: /CCNA 200-301 v1\.1/ })).toHaveAttribute('aria-selected', 'true');

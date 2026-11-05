@@ -49,7 +49,17 @@ it('native UDLD survives startup replay with independent runtime', () => {
   const e = new SimulationEngine(),
     d = e.addProfile('switch-l3'),
     t = new TerminalSession(e, d.id);
-  run(t, ['en', 'conf t', 'interface Gi0/1', 'udld port aggressive', 'end', 'write memory', 'reload', '', 'en']);
+  run(t, [
+    'en',
+    'conf t',
+    'interface Gi0/1',
+    'udld port aggressive',
+    'end',
+    'write memory',
+    'reload',
+    '',
+    'en',
+  ]);
   expect(e.device(d.id).interfaces[0].udld?.mode).toBe('aggressive');
   expect(e.device(d.id).interfaces[0].udld?.peers).toEqual([]);
   validateSnapshot(e.snapshot());

@@ -198,7 +198,9 @@ export function registerIpv6Commands(r: CommandRegistry) {
             )
         );
         if (!port)
-          throw new Error('% Next hop ' + nextHop + ' is not on a connected IPv6 subnet; specify the exit interface.');
+          throw new Error(
+            '% Next hop ' + nextHop + ' is not on a connected IPv6 subnet; specify the exit interface.'
+          );
       } else {
         const name = interfaceName(m[4]).toLowerCase();
         port = d.interfaces.find((p) => p.name.toLowerCase() === name);

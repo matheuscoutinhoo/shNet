@@ -22,7 +22,8 @@ import { dhcpHaStatus } from '../protocols/dhcp-ha';
 
 // IOS default lease: one day.
 const IOS_LEASE_MS = 86400000;
-type PoolDraft = DhcpPendingPool & Partial<Pick<DhcpPool, 'port' | 'relayAddress' | 'relayAddresses' | 'ios'>>;
+type PoolDraft = DhcpPendingPool &
+  Partial<Pick<DhcpPool, 'port' | 'relayAddress' | 'relayAddresses' | 'ios'>>;
 
 function savePending(device: Device, draft: DhcpPendingPool) {
   const entry = dhcpPendingPoolSchema.parse(draft),
@@ -300,7 +301,8 @@ export function registerDhcpCommands(registry: CommandRegistry) {
     run: (matches, engine, device) => {
       const start = ipv4Schema.parse(matches[2]),
         end = ipv4Schema.parse(matches[3] ?? matches[2]);
-      if (ipNumber(start) > ipNumber(end)) throw new Error('O endereço final deve ser maior ou igual ao inicial.');
+      if (ipNumber(start) > ipNumber(end))
+        throw new Error('O endereço final deve ser maior ou igual ao inicial.');
       if (device.type !== 'server' && device.type !== 'router')
         throw new Error('Serviço DHCP requer servidor ou roteador.');
       device.dhcpServer ??= { enabled: true, pools: [], bindings: [] };
@@ -314,13 +316,17 @@ export function registerDhcpCommands(registry: CommandRegistry) {
       else delete server.excludedRanges;
       // Leases inside a new exclusion are withdrawn so the address is never offered again.
       const withdrawn = new Set(
-        server.bindings.filter((binding) => globallyExcluded(device, binding.address)).map((binding) => binding.id)
+        server.bindings
+          .filter((binding) => globallyExcluded(device, binding.address))
+          .map((binding) => binding.id)
       );
       if (!withdrawn.size) return;
       server.bindings = server.bindings.filter((binding) => !withdrawn.has(binding.id));
       engine.state.queue = engine.state.queue.filter(
         ({ action }) =>
-          action.kind !== 'dhcp-binding-expire' || action.device !== device.id || !withdrawn.has(action.binding)
+          action.kind !== 'dhcp-binding-expire' ||
+          action.device !== device.id ||
+          !withdrawn.has(action.binding)
       );
     },
   });
@@ -355,7 +361,9 @@ export function registerDhcpCommands(registry: CommandRegistry) {
     pattern: /^range ([\d.]+) ([\d.]+)$/i,
     modes: ['dhcp'],
     run: (matches, engine, device, context) =>
-      editPool(engine, device, context, (pool) => Object.assign(pool, { start: matches[1], end: matches[2] })),
+      editPool(engine, device, context, (pool) =>
+        Object.assign(pool, { start: matches[1], end: matches[2] })
+      ),
   });
   registry.register({
     pattern: /^lease (?:(infinite)|seconds (\d+(?:\.\d{1,3})?)|(\d+)(?: (\d+))?(?: (\d+))?)$/i,
@@ -468,11 +476,19 @@ export function registerDhcpCommands(registry: CommandRegistry) {
             entry.name +
             ' ' +
             (entry.network !== undefined
-              ? entry.network + '/' + entry.prefix + ' inactive: no routed IPv4 interface can serve this network'
+              ? entry.network +
+                '/' +
+                entry.prefix +
+                ' inactive: no routed IPv4 interface can serve this network'
               : '- inactive: configure network')
         ),
       ];
-      return 'DHCP ' + (server?.enabled ? 'enabled' : 'disabled') + '\n' + (lines.join('\n') || 'Nenhum pool configurado');
+      return (
+        'DHCP ' +
+        (server?.enabled ? 'enabled' : 'disabled') +
+        '\n' +
+        (lines.join('\n') || 'Nenhum pool configurado')
+      );
     },
   });
   registry.register({
@@ -539,17 +555,43 @@ export function dhcpRunningConfig(device: Device): string[] {
       ...port.dhcpRelay!.map((address) => ' ip helper-address ' + address),
       ' exit',
     ]);
-  const c=device.dhcpSnooping;
-  const snooping=c?[
-    (c.enabled?'':'no ')+'ip dhcp snooping',
-    ...(c.vlans.length?['ip dhcp snooping vlan '+c.vlans.join(',')]:[]),
-    ...((c.arpInspectionVlans.length||c.arpInspection)?['ip arp inspection vlan '+(c.arpInspectionVlans.length?c.arpInspectionVlans:c.vlans).join(',')]:[]),
-    ...device.interfaces.filter(p=>c.trustedPorts.includes(p.id)||c.arpTrustedPorts.includes(p.id)||c.sourceGuardPorts.includes(p.id)||(c.sourceGuard&&p.mode!=='routed')).flatMap(p=>[
-      'interface '+p.name,...(c.trustedPorts.includes(p.id)?[' ip dhcp snooping trust']:[]),...(c.arpTrustedPorts.includes(p.id)||(c.arpInspection&&c.trustedPorts.includes(p.id))?[' ip arp inspection trust']:[]),...(c.sourceGuardPorts.includes(p.id)||(c.sourceGuard&&p.mode!=='routed')?[' ip verify source']:[]),'exit'
-    ]),
-    ...c.staticBindings.map(b=>`ip source binding ${b.mac} vlan ${b.vlan} ${b.ip} interface ${device.interfaces.find(p=>p.id===b.port)!.name}`)
-  ]:[];
-  if (!server) return [...relays,...snooping];
+  const c = device.dhcpSnooping;
+  const snooping = c
+    ? [
+        (c.enabled ? '' : 'no ') + 'ip dhcp snooping',
+        ...(c.vlans.length ? ['ip dhcp snooping vlan ' + c.vlans.join(',')] : []),
+        ...(c.arpInspectionVlans.length || c.arpInspection
+          ? [
+              'ip arp inspection vlan ' +
+                (c.arpInspectionVlans.length ? c.arpInspectionVlans : c.vlans).join(','),
+            ]
+          : []),
+        ...device.interfaces
+          .filter(
+            (p) =>
+              c.trustedPorts.includes(p.id) ||
+              c.arpTrustedPorts.includes(p.id) ||
+              c.sourceGuardPorts.includes(p.id) ||
+              (c.sourceGuard && p.mode !== 'routed')
+          )
+          .flatMap((p) => [
+            'interface ' + p.name,
+            ...(c.trustedPorts.includes(p.id) ? [' ip dhcp snooping trust'] : []),
+            ...(c.arpTrustedPorts.includes(p.id) || (c.arpInspection && c.trustedPorts.includes(p.id))
+              ? [' ip arp inspection trust']
+              : []),
+            ...(c.sourceGuardPorts.includes(p.id) || (c.sourceGuard && p.mode !== 'routed')
+              ? [' ip verify source']
+              : []),
+            'exit',
+          ]),
+        ...c.staticBindings.map(
+          (b) =>
+            `ip source binding ${b.mac} vlan ${b.vlan} ${b.ip} interface ${device.interfaces.find((p) => p.id === b.port)!.name}`
+        ),
+      ]
+    : [];
+  if (!server) return [...relays, ...snooping];
   const iosPools = [
     ...server.pools.filter((pool) => pool.ios).map(iosPoolDeclaration),
     ...(server.pendingPools ?? []),
@@ -559,7 +601,8 @@ export function dhcpRunningConfig(device: Device): string[] {
     ...snooping,
     server.enabled ? 'service dhcp' : 'no service dhcp',
     ...(server.excludedRanges ?? []).map(
-      (range) => 'ip dhcp excluded-address ' + range.start + (range.end !== range.start ? ' ' + range.end : '')
+      (range) =>
+        'ip dhcp excluded-address ' + range.start + (range.end !== range.start ? ' ' + range.end : '')
     ),
     ...server.pools
       .filter((pool) => !pool.ios)
@@ -581,7 +624,9 @@ export function dhcpRunningConfig(device: Device): string[] {
       ]),
     ...iosPools.flatMap((entry) => [
       'ip dhcp pool ' + entry.name,
-      ...(entry.network !== undefined ? [' network ' + entry.network + ' ' + ipString(mask(entry.prefix!))] : []),
+      ...(entry.network !== undefined
+        ? [' network ' + entry.network + ' ' + ipString(mask(entry.prefix!))]
+        : []),
       ...(entry.start && entry.end ? [' range ' + entry.start + ' ' + entry.end] : []),
       ...(entry.gateway ? [' default-router ' + entry.gateway] : []),
       ...(entry.dns.length ? [' dns-server ' + entry.dns.join(' ')] : []),

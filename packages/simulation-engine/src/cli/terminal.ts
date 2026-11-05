@@ -49,9 +49,9 @@ export class TerminalSession {
       'class-map': '(config-cmap)#',
       'policy-map': '(config-pmap)#',
       'policy-class': '(config-pmap-c)#',
-      'key-chain':'(config-keychain)#',
-      'key-chain-key':'(config-keychain-key)#',
-      'bfd-template':'(config-bfd)#',
+      'key-chain': '(config-keychain)#',
+      'key-chain-key': '(config-keychain-key)#',
+      'bfd-template': '(config-bfd)#',
     }[this.context.mode];
     return (
       this.engine.device(this.deviceId).hostname +

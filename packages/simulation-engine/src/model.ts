@@ -134,9 +134,9 @@ import { z } from 'zod';
 import { iosSystemSchema } from './protocols/ios-system-model';
 import { monitoringSchema, monitoringTimerSchema } from './protocols/monitoring-model';
 import { udldStateSchema, udldMessageSchema, udldTimerSchema } from './protocols/udld-model';
-import { bfdStateSchema, bfdMessageSchema, bfdTimerSchema,bfdTemplatesSchema } from './protocols/bfd-model';
-import {keyChainsSchema} from './protocols/key-chain-model';
-import {mstBpduSchema} from './protocols/stp-wire-model';
+import { bfdStateSchema, bfdMessageSchema, bfdTimerSchema, bfdTemplatesSchema } from './protocols/bfd-model';
+import { keyChainsSchema } from './protocols/key-chain-model';
+import { mstBpduSchema } from './protocols/stp-wire-model';
 import { routingPolicySchema } from './protocols/routing-policy-model';
 import { mqcSchema } from './protocols/mqc-model';
 import { modbusConfigSchema } from './protocols/modbus-model';
@@ -325,8 +325,8 @@ export const bpduSchema = z
     age: finite.min(0).max(20000),
     proposal: z.boolean(),
     agreement: z.boolean(),
-    portState:z.enum(['discarding','learning','forwarding']).optional(),
-    mst:mstBpduSchema.optional(),
+    portState: z.enum(['discarding', 'learning', 'forwarding']).optional(),
+    mst: mstBpduSchema.optional(),
     role: z.enum(['root', 'designated', 'alternate', 'disabled']).optional(),
     changeId: id.optional(),
     instance: z.number().int().min(0).max(4094).optional(),
@@ -618,7 +618,7 @@ export const interfaceSchema = z
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),
-    ingressQos:qosStateSchema.optional(),
+    ingressQos: qosStateSchema.optional(),
     dot1x: dot1xStateSchema.optional(),
     authenticationControl: z.enum(['auto', 'force-authorized', 'force-unauthorized']).optional(),
     udld: udldStateSchema.optional(),
@@ -721,7 +721,11 @@ const dhcpOptions = {
   server: ipv4Schema,
   gateway: ipv4Schema.optional(),
   dns: z.array(ipv4Schema).max(8),
-  leaseMs: z.number().int().min(8000).max(365 * 86400000),
+  leaseMs: z
+    .number()
+    .int()
+    .min(8000)
+    .max(365 * 86400000),
 };
 export const dhcpMessageSchema = z.discriminatedUnion('type', [
   dhcpIdentity.extend({ type: z.literal('discover') }),
@@ -819,7 +823,7 @@ export const frameSchema = z
     src: mac,
     dst: mac,
     vlan: vlan.optional(),
-    pcp:z.number().int().min(0).max(7).optional(),
+    pcp: z.number().int().min(0).max(7).optional(),
     etherType: z.enum([
       'ARP',
       'IPv4',
@@ -853,7 +857,7 @@ export const frameSchema = z
   })
   .strict()
   .refine((f) => {
-    if(f.pcp!==undefined&&f.vlan===undefined)return false;
+    if (f.pcp !== undefined && f.vlan === undefined) return false;
     const payloads = [
       f.lacp,
       f.arp,
@@ -966,8 +970,8 @@ export const deviceSchema = z
     telemetryCollector: collectorStateSchema.optional(),
     networkClock: clockConfigSchema.optional(),
     ntp: ntpStateSchema.optional(),
-    keyChains:keyChainsSchema.optional(),
-    bfdTemplates:bfdTemplatesSchema.optional(),
+    keyChains: keyChainsSchema.optional(),
+    bfdTemplates: bfdTemplatesSchema.optional(),
     remoteManagement: remoteStateSchema.optional(),
     remoteQueries: z.array(remoteQuerySchema).max(128).optional(),
     automationJobs: z.array(automationJobSchema).max(16).optional(),

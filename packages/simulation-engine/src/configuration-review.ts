@@ -91,7 +91,9 @@ function configuration(value: unknown): unknown {
       .map(([key, val]) => [
         key,
         key === 'bfd'
-          ? configuration(pick(val, ['intervalMs', 'minRxMs', 'multiplier', 'ospf','template','authentication']))
+          ? configuration(
+              pick(val, ['intervalMs', 'minRxMs', 'multiplier', 'ospf', 'template', 'authentication'])
+            )
           : key === 'udld'
             ? configuration(pick(val, ['mode', 'intervalMs']))
             : key === 'monitoring' && val && typeof val === 'object' && 'operations' in val && 'tracks' in val

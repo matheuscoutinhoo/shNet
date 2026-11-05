@@ -9,11 +9,11 @@ import { encodeDiscovery, decodeDiscovery } from './discovery-codec';
 import { encodeHsrp, decodeHsrp } from './hsrp-codec';
 import { encodeOspf, decodeOspf } from './ospf-codec';
 import { encodeBfd, decodeBfd } from './bfd-codec';
-import {encodeLacp,decodeLacp} from './lacp-codec';
-import {encodeEapol,decodeEapol} from './eapol-codec';
-import {encodeUdld,decodeUdld} from './udld-codec';
-import {encodeStp,decodeStp} from './stp-codec';
-import {packetSchema} from '../model';
+import { encodeLacp, decodeLacp } from './lacp-codec';
+import { encodeEapol, decodeEapol } from './eapol-codec';
+import { encodeUdld, decodeUdld } from './udld-codec';
+import { encodeStp, decodeStp } from './stp-codec';
+import { packetSchema } from '../model';
 import { concat, checksum, hex, ip4, ip6, need, pseudo, readIp6, text, u16, u32, view } from './binary';
 const mac = (value: string) => hex(value.replaceAll(':', ''));
 const flags = { FIN: 1, SYN: 2, RST: 4, PSH: 8, ACK: 16, ECE: 64, CWR: 128 };
@@ -223,21 +223,48 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
   if (depth > 4) throw new Error('Limite de encapsulamentos Ethernet/VXLAN.');
   const f = frameSchema.parse(input);
   let body: Uint8Array, type: number;
-  if (
-    f.wan ||
-    f.secure ||
-    f.wifi ||
-    f.meshHello ||
-    (f.fragment&&f.fragment.encoding!=='ipv4')
-  )
+  if (f.wan || f.secure || f.wifi || f.meshHello || (f.fragment && f.fragment.encoding !== 'ipv4'))
     throw new Error('Envelope didático ou enlace sem codec Ethernet interoperável.');
-  if(f.fragment){const p=f.fragment;type=0x0800;const protocol={ICMP:1,TCP:6,UDP:17,OSPF:89,VRRP:112}[p.protocol];const h=concat(new Uint8Array([0x45,(p.dscp??0)<<2]),u16(p.bytes),u16(p.identification),u16((p.more?0x2000:0)|(p.offset/8)),new Uint8Array([p.ttl,protocol]),new Uint8Array(2),ip4(p.src),ip4(p.dst));view(h).setUint16(10,checksum(h));body=concat(h,Uint8Array.from(p.data));
-  }else if(f.mpls){const p=packetSchema.parse(JSON.parse(f.mpls.packet)),inner=encodeEthernet({src:f.src,dst:f.dst,etherType:'IPv4',packet:p,hops:1},depth+1);const size=view(inner).getUint16(16);if(f.mpls.bytes!==size+4*f.mpls.labels.length)throw new Error('MPLS modeled and wire sizes differ.');type=0x8847;body=concat(...f.mpls.labels.map((l,i)=>u32(((l.value<<12)|(l.tc<<9)|(i===f.mpls!.labels.length-1?0x100:0)|l.ttl)>>>0)),inner.subarray(14,14+size));
-  }else if(f.bpdu){({type,body}=encodeStp(f.bpdu));
-  }else if(f.lacp){type=0x8809;body=encodeLacp(f.lacp);
-  }else if(f.eapol){type=0x888e;body=encodeEapol(f.eapol);
-  }else if(f.udld){({type,body}=encodeUdld(f.udld));
-  }else if (f.discovery) {
+  if (f.fragment) {
+    const p = f.fragment;
+    type = 0x0800;
+    const protocol = { ICMP: 1, TCP: 6, UDP: 17, OSPF: 89, VRRP: 112 }[p.protocol];
+    const h = concat(
+      new Uint8Array([0x45, (p.dscp ?? 0) << 2]),
+      u16(p.bytes),
+      u16(p.identification),
+      u16((p.more ? 0x2000 : 0) | (p.offset / 8)),
+      new Uint8Array([p.ttl, protocol]),
+      new Uint8Array(2),
+      ip4(p.src),
+      ip4(p.dst)
+    );
+    view(h).setUint16(10, checksum(h));
+    body = concat(h, Uint8Array.from(p.data));
+  } else if (f.mpls) {
+    const p = packetSchema.parse(JSON.parse(f.mpls.packet)),
+      inner = encodeEthernet({ src: f.src, dst: f.dst, etherType: 'IPv4', packet: p, hops: 1 }, depth + 1);
+    const size = view(inner).getUint16(16);
+    if (f.mpls.bytes !== size + 4 * f.mpls.labels.length)
+      throw new Error('MPLS modeled and wire sizes differ.');
+    type = 0x8847;
+    body = concat(
+      ...f.mpls.labels.map((l, i) =>
+        u32(((l.value << 12) | (l.tc << 9) | (i === f.mpls!.labels.length - 1 ? 0x100 : 0) | l.ttl) >>> 0)
+      ),
+      inner.subarray(14, 14 + size)
+    );
+  } else if (f.bpdu) {
+    ({ type, body } = encodeStp(f.bpdu));
+  } else if (f.lacp) {
+    type = 0x8809;
+    body = encodeLacp(f.lacp);
+  } else if (f.eapol) {
+    type = 0x888e;
+    body = encodeEapol(f.eapol);
+  } else if (f.udld) {
+    ({ type, body } = encodeUdld(f.udld));
+  } else if (f.discovery) {
     ({ type, body } = encodeDiscovery(f.discovery));
   } else if (f.arp) {
     const a = f.arp;
@@ -342,7 +369,7 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
   const ethernet = concat(
     mac(f.dst),
     mac(f.src),
-    ...(f.vlan ? [u16(0x8100), u16(((f.pcp??0)<<13)|f.vlan)] : []),
+    ...(f.vlan ? [u16(0x8100), u16(((f.pcp ?? 0) << 13) | f.vlan)] : []),
     u16(type),
     body
   );
@@ -352,7 +379,7 @@ export interface DecodedEthernet {
   srcMac: string;
   dstMac: string;
   vlan?: number;
-  pcp?:number;
+  pcp?: number;
   etherType: number;
   family?: 4 | 6;
   src?: string;
@@ -363,12 +390,12 @@ export interface DecodedEthernet {
   arp?: { operation: number; senderIp: string; targetIp: string };
   discovery?: ReturnType<typeof decodeDiscovery>;
   ospf?: ReturnType<typeof decodeOspf>;
-  lacp?:ReturnType<typeof decodeLacp>;
-  eapol?:ReturnType<typeof decodeEapol>;
-  udld?:ReturnType<typeof decodeUdld>;
-  bpdu?:ReturnType<typeof decodeStp>;
-  fragment?:{identification:number;offset:number;more:boolean;data:Uint8Array};
-  mpls?:{labels:{value:number;tc:number;ttl:number}[];inner:DecodedEthernet};
+  lacp?: ReturnType<typeof decodeLacp>;
+  eapol?: ReturnType<typeof decodeEapol>;
+  udld?: ReturnType<typeof decodeUdld>;
+  bpdu?: ReturnType<typeof decodeStp>;
+  fragment?: { identification: number; offset: number; more: boolean; data: Uint8Array };
+  mpls?: { labels: { value: number; tc: number; ttl: number }[]; inner: DecodedEthernet };
   transport?: {
     sourcePort?: number;
     destinationPort?: number;
@@ -397,16 +424,57 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
   if (r.etherType === 0x8100) {
     need(bytes, at, 4);
     r.vlan = dv.getUint16(at) & 4095;
-    r.pcp=dv.getUint16(at)>>>13;
+    r.pcp = dv.getUint16(at) >>> 13;
     r.etherType = dv.getUint16(at + 2);
     at += 4;
   }
   const format4 = (at: number) => Array.from(bytes.subarray(at, at + 4)).join('.');
-  if(r.etherType<=1500&&(r.dstMac==='01:80:c2:00:00:00'||r.dstMac==='01:00:0c:cc:cc:cd')){need(bytes,at,r.etherType);r.bpdu=decodeStp(bytes.subarray(at,at+r.etherType));return r;}
-  if(r.etherType===0x8809){r.lacp=decodeLacp(bytes.subarray(at));return r;}
-  if(r.etherType===0x888e){r.eapol=decodeEapol(bytes.subarray(at));return r;}
-  if(r.etherType===0x8847){const labels:{value:number;tc:number;ttl:number}[]=[];let bottom=false;for(let i=0;i<8&&!bottom;i++){need(bytes,at,4);const n=dv.getUint32(at);labels.push({value:n>>>12,tc:(n>>>9)&7,ttl:n&255});bottom=!!(n&0x100);at+=4;}if(!bottom)throw new Error('MPLS stack lacks bottom label.');need(bytes,at,1);const nibble=bytes[at]>>>4;if(![4,6].includes(nibble))throw new Error('MPLS inner protocol is not IPv4/IPv6.');r.mpls={labels,inner:decodeEthernet(concat(new Uint8Array(12),u16(nibble===4?0x0800:0x86dd),bytes.subarray(at)),depth+1)};return r;}
-  if(r.etherType<=1500&&r.dstMac==='01:00:0c:cc:cc:cc'&&bytes[at+6]===1&&bytes[at+7]===0x11){need(bytes,at,r.etherType);r.udld=decodeUdld(bytes.subarray(at,at+r.etherType));return r;}
+  if (r.etherType <= 1500 && (r.dstMac === '01:80:c2:00:00:00' || r.dstMac === '01:00:0c:cc:cc:cd')) {
+    need(bytes, at, r.etherType);
+    r.bpdu = decodeStp(bytes.subarray(at, at + r.etherType));
+    return r;
+  }
+  if (r.etherType === 0x8809) {
+    r.lacp = decodeLacp(bytes.subarray(at));
+    return r;
+  }
+  if (r.etherType === 0x888e) {
+    r.eapol = decodeEapol(bytes.subarray(at));
+    return r;
+  }
+  if (r.etherType === 0x8847) {
+    const labels: { value: number; tc: number; ttl: number }[] = [];
+    let bottom = false;
+    for (let i = 0; i < 8 && !bottom; i++) {
+      need(bytes, at, 4);
+      const n = dv.getUint32(at);
+      labels.push({ value: n >>> 12, tc: (n >>> 9) & 7, ttl: n & 255 });
+      bottom = !!(n & 0x100);
+      at += 4;
+    }
+    if (!bottom) throw new Error('MPLS stack lacks bottom label.');
+    need(bytes, at, 1);
+    const nibble = bytes[at] >>> 4;
+    if (![4, 6].includes(nibble)) throw new Error('MPLS inner protocol is not IPv4/IPv6.');
+    r.mpls = {
+      labels,
+      inner: decodeEthernet(
+        concat(new Uint8Array(12), u16(nibble === 4 ? 0x0800 : 0x86dd), bytes.subarray(at)),
+        depth + 1
+      ),
+    };
+    return r;
+  }
+  if (
+    r.etherType <= 1500 &&
+    r.dstMac === '01:00:0c:cc:cc:cc' &&
+    bytes[at + 6] === 1 &&
+    bytes[at + 7] === 0x11
+  ) {
+    need(bytes, at, r.etherType);
+    r.udld = decodeUdld(bytes.subarray(at, at + r.etherType));
+    return r;
+  }
   if (r.etherType === 0x88cc || (r.etherType <= 1500 && r.dstMac === '01:00:0c:cc:cc:cc')) {
     if (r.etherType <= 1500) need(bytes, at, r.etherType);
     r.discovery = decodeDiscovery(
@@ -441,7 +509,17 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
     r.ttl = bytes[at + 8];
     r.ecn = bytes[at + 1] & 3;
     r.protocol = bytes[at + 9];
-    if(dv.getUint16(at+6)&0x3fff){const field=dv.getUint16(at+6);if(field&0x8000||field&0x4000)throw new Error('Invalid IPv4 fragmentation flags.');const data=bytes.subarray(at+h,at+size),more=!!(field&0x2000),offset=(field&0x1fff)*8;if(!data.length||more&&data.length%8||offset+data.length>65515)throw new Error('Invalid IPv4 fragment length.');r.fragment={identification:dv.getUint16(at+4),offset,more,data};return r;}
+    if (dv.getUint16(at + 6) & 0x3fff) {
+      const field = dv.getUint16(at + 6);
+      if (field & 0x8000 || field & 0x4000) throw new Error('Invalid IPv4 fragmentation flags.');
+      const data = bytes.subarray(at + h, at + size),
+        more = !!(field & 0x2000),
+        offset = (field & 0x1fff) * 8;
+      if (!data.length || (more && data.length % 8) || offset + data.length > 65515)
+        throw new Error('Invalid IPv4 fragment length.');
+      r.fragment = { identification: dv.getUint16(at + 4), offset, more, data };
+      return r;
+    }
     end = at + size;
     at += h;
   } else if (r.etherType === 0x86dd) {

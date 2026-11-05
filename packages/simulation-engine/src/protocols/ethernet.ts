@@ -6,16 +6,21 @@ import type { SimulationEngine } from '../core/engine';
 import { receiveSvi, interfaceOperational } from './layer3';
 import { spanningPortState } from './stp-scope';
 import { replyEvpnArp } from './evpn-arp';
-import {permitPortSecurity} from './port-security';
+import { permitPortSecurity } from './port-security';
 export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterface, frame: Frame) {
-  const vlan = input.mode === 'trunk' ? (frame.vlan ?? input.nativeVlan) : input.voiceVlan!==undefined&&frame.vlan===input.voiceVlan?input.voiceVlan:input.accessVlan;
+  const vlan =
+    input.mode === 'trunk'
+      ? (frame.vlan ?? input.nativeVlan)
+      : input.voiceVlan !== undefined && frame.vlan === input.voiceVlan
+        ? input.voiceVlan
+        : input.accessVlan;
   const tree = spanningPortState(d, input, vlan);
   if (tree?.state === 'discarding') {
     e.drop(d, 'STP: porta de entrada em discarding; frame de dados bloqueado.', input.id, frame);
     return;
   }
   if (
-    (input.mode === 'access' && frame.vlan !== undefined&&frame.vlan!==input.voiceVlan) ||
+    (input.mode === 'access' && frame.vlan !== undefined && frame.vlan !== input.voiceVlan) ||
     (input.mode === 'trunk' && !input.allowedVlans.includes(vlan)) ||
     !d.vlans.some((v) => v.id === vlan)
   ) {
@@ -23,7 +28,7 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
     return;
   }
   if (!permitDhcpSnooping(e, d, input, frame, vlan)) return;
-  if(!permitPortSecurity(e,d,input,frame))return;
+  if (!permitPortSecurity(e, d, input, frame)) return;
   d.macTable = d.macTable.filter(
     (m) => m.expires > e.state.clock && !(m.mac === frame.src && m.vlan === vlan)
   );
@@ -62,7 +67,7 @@ export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vla
       p.mode !== 'routed' &&
       p.adminUp &&
       (!spanningPortState(d, p, vlan) || spanningPortState(d, p, vlan)?.state === 'forwarding') &&
-      (p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan||p.voiceVlan===vlan)
+      (p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan || p.voiceVlan === vlan)
   );
   const ports = known ? candidates.filter((p) => p.id === known.port) : candidates;
   if (!known)
@@ -76,8 +81,8 @@ export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vla
     );
   if (!ports.length) e.drop(d, 'Nenhuma porta de saída encaminha esta VLAN.', input, frame);
   for (const port of ports) {
-    const tagged=(port.mode==='trunk'&&port.nativeVlan!==vlan)||port.voiceVlan===vlan;
-    const wire={...frame,vlan:tagged?vlan:undefined,pcp:tagged?frame.pcp:undefined};
+    const tagged = (port.mode === 'trunk' && port.nativeVlan !== vlan) || port.voiceVlan === vlan;
+    const wire = { ...frame, vlan: tagged ? vlan : undefined, pcp: tagged ? frame.pcp : undefined };
     e.sendFrame(d.id, port.id, wire);
   }
 }

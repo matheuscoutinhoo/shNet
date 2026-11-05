@@ -135,7 +135,7 @@ export function resolveRoute(
               distance: 200,
             });
       for (const r of device.routes.filter((r) => r.vrf === vrf && sameSubnet(r.network, dst, r.prefix))) {
-        if(r.track&&!device.monitoring?.tracks.find(t=>t.id===r.track)?.state)continue;
+        if (r.track && !device.monitoring?.tracks.find((t) => t.id === r.track)?.state) continue;
         const key = JSON.stringify([vrf, r.network, r.prefix, r.nextHop, r.port]);
         if (r.distance === 255 || visited.has(key) || visited.size >= 16 || (visited.size && !r.prefix))
           continue;
@@ -190,13 +190,16 @@ export function resolveRoute(
     // resolving less-specific routes can expand a cyclic graph exponentially,
     // even when the next hop already has a directly connected path.
     candidates.sort((a, b) => b.prefix - a.prefix || a.distance - b.distance || a.metric - b.metric);
-    if(flowKey && !visited.size && candidates[0]?.distance>0) {
-      const best=candidates[0], count=candidates.findIndex(c=>c.prefix!==best.prefix||c.distance!==best.distance||c.metric!==best.metric);
-      const equal=candidates.splice(0,count<0?candidates.length:count);
-      let hash=2166136261;
-      for(const char of flowKey)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
-      const offset=hash%equal.length;
-      candidates.unshift(...equal.slice(offset),...equal.slice(0,offset));
+    if (flowKey && !visited.size && candidates[0]?.distance > 0) {
+      const best = candidates[0],
+        count = candidates.findIndex(
+          (c) => c.prefix !== best.prefix || c.distance !== best.distance || c.metric !== best.metric
+        );
+      const equal = candidates.splice(0, count < 0 ? candidates.length : count);
+      let hash = 2166136261;
+      for (const char of flowKey) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+      const offset = hash % equal.length;
+      candidates.unshift(...equal.slice(offset), ...equal.slice(0, offset));
     }
     for (const candidate of candidates) {
       if (candidate.port) {

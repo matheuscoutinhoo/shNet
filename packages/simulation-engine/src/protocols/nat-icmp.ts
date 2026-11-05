@@ -1,5 +1,5 @@
 import type { SimulationEngine } from '../core/engine';
-import { staticNatOutside,natPools } from './nat-selection';
+import { staticNatOutside, natPools } from './nat-selection';
 import type { Device, IcmpPacket, IcmpQuote, NatBinding, NetworkInterface } from '../model';
 import { ipNumber, sameSubnet } from './ipv4';
 

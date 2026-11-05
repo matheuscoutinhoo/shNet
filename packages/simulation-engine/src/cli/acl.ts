@@ -56,11 +56,23 @@ export function aclAddress(range: AclRule['source'], wildcard?: string) {
         : `${range.network} ${ipString(~mask(range.prefix))}`;
 }
 export function registerNativeAclCommands(r: CommandRegistry) {
-  r.register({pattern:/^access-list (\d+) (permit|deny) (.+)$/i,modes:['config'],run:(m,e,d)=>{
-    const n=Number(m[1]),kind=(n>=1&&n<=99)||(n>=1300&&n<=1999)?'standard':(n>=100&&n<=199)||(n>=2000&&n<=2699)?'extended':undefined;
-    if(!kind)throw new Error('Invalid numbered IPv4 ACL range.');
-    const context={mode:'config' as const};r.execute(`ip access-list ${kind} ${n}`,e,d,context);r.execute(`${m[2]} ${m[3]}`,e,d,context);
-  }});
+  r.register({
+    pattern: /^access-list (\d+) (permit|deny) (.+)$/i,
+    modes: ['config'],
+    run: (m, e, d) => {
+      const n = Number(m[1]),
+        kind =
+          (n >= 1 && n <= 99) || (n >= 1300 && n <= 1999)
+            ? 'standard'
+            : (n >= 100 && n <= 199) || (n >= 2000 && n <= 2699)
+              ? 'extended'
+              : undefined;
+      if (!kind) throw new Error('Invalid numbered IPv4 ACL range.');
+      const context = { mode: 'config' as const };
+      r.execute(`ip access-list ${kind} ${n}`, e, d, context);
+      r.execute(`${m[2]} ${m[3]}`, e, d, context);
+    },
+  });
   r.register({
     pattern: /^(no )?ip access-list (standard|extended) ([\w-]{1,32})$/i,
     syntax: [
@@ -105,8 +117,9 @@ export function registerNativeAclCommands(r: CommandRegistry) {
         sourcePort = standard ? undefined : port(tokens);
       const destination = standard ? { range: { network: '0.0.0.0', prefix: 0 } } : address(tokens);
       const destinationPort = port(tokens);
-      const established=tokens[0]?.toLowerCase()==='established';if(established)tokens.shift();
-      if(established&&protocol!=='tcp')throw new Error('established requires TCP.');
+      const established = tokens[0]?.toLowerCase() === 'established';
+      if (established) tokens.shift();
+      if (established && protocol !== 'tcp') throw new Error('established requires TCP.');
       if (tokens.length) throw new Error('Unsupported ACL qualifier: ' + tokens.join(' '));
       const sequence = m[1] ? Number(m[1]) : Math.max(0, ...acl.rules.map((r) => r.sequence)) + 10;
       const rule = {
@@ -119,7 +132,7 @@ export function registerNativeAclCommands(r: CommandRegistry) {
         destinationWildcard: 'wildcard' in destination ? destination.wildcard : undefined,
         sourcePort,
         destinationPort,
-        ...(established?{established:true}:{}),
+        ...(established ? { established: true } : {}),
       };
       e.configureAcl(d.id, { ...acl, rules: [...acl.rules.filter((r) => r.sequence !== sequence), rule] });
     },

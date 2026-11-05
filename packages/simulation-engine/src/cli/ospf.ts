@@ -296,10 +296,17 @@ export function registerOspfCommands(registry: CommandRegistry) {
     modes: ['interface'],
     run: (match, engine, device, context) => {
       if (!match[1] && match[3] === undefined) throw new Error('% Incomplete command.');
-      const key = ({ cost: 'cost', priority: 'priority', 'hello-interval': 'helloMs', 'dead-interval': 'deadMs' } as const)[
-        match[2].toLowerCase() as 'cost' | 'priority' | 'hello-interval' | 'dead-interval'
-      ];
-      const value = match[1] ? undefined : Number(match[3]) * (key === 'helloMs' || key === 'deadMs' ? 1000 : 1);
+      const key = (
+        {
+          cost: 'cost',
+          priority: 'priority',
+          'hello-interval': 'helloMs',
+          'dead-interval': 'deadMs',
+        } as const
+      )[match[2].toLowerCase() as 'cost' | 'priority' | 'hello-interval' | 'dead-interval'];
+      const value = match[1]
+        ? undefined
+        : Number(match[3]) * (key === 'helloMs' || key === 'deadMs' ? 1000 : 1);
       setOspfInterface(engine, device, currentPort(device, context), key, value);
     },
   });
@@ -367,11 +374,15 @@ function ospfInterfaceRunning(device: Device): string[] {
       dead = entry?.deadMs ?? settings.deadMs ?? hello * 4,
       cost = entry ? (entry.autoCost ? undefined : entry.cost) : settings.cost;
     const lines = [
-      ...(networkType && networkType !== defaultOspfNetworkType(port) ? [' ip ospf network ' + networkType] : []),
+      ...(networkType && networkType !== defaultOspfNetworkType(port)
+        ? [' ip ospf network ' + networkType]
+        : []),
       ...(priority !== undefined && priority !== 1 ? [' ip ospf priority ' + priority] : []),
       ...(hello !== OSPF.helloMs ? [' ip ospf hello-interval ' + hello / 1000] : []),
       ...(dead !== hello * 4 ? [' ip ospf dead-interval ' + dead / 1000] : []),
-      ...(entry && !entry.networkManaged ? [' ip ospf ' + (state!.processId ?? 1) + ' area ' + entry.area] : []),
+      ...(entry && !entry.networkManaged
+        ? [' ip ospf ' + (state!.processId ?? 1) + ' area ' + entry.area]
+        : []),
       ...(cost !== undefined ? [' ip ospf cost ' + cost] : []),
     ];
     return lines.length ? ['interface ' + port.name, ...lines, 'exit'] : [];

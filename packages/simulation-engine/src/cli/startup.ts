@@ -187,7 +187,10 @@ function restore(draft: SimulationEngine, id: string, registry: CommandRegistry)
     (p) => !p.logical && !p.loopback && !aggregate(p) && !hardware.some((port) => port.id === p.id)
   );
   const interfaces = [...hardware, ...physical].map((p) =>
-    emptyPort(p as NetworkInterface, old.interfaces.find((port) => port.id === p.id))
+    emptyPort(
+      p as NetworkInterface,
+      old.interfaces.find((port) => port.id === p.id)
+    )
   );
   for (const p of interfaces) if (old.type === 'router' && !p.logical) p.mode = 'routed';
   const blank: Device = {

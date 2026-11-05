@@ -178,7 +178,8 @@ export function receiveDhcpServer(
   // Like IOS and common DHCP servers, a relayed request is served by the pool whose network contains giaddr.
   if (relayed && !pools.length)
     pools = server.pools.filter(
-      (pool) => listening(pool) && !!pool.relayAddress && sameSubnet(message.giaddr!, pool.network, pool.prefix)
+      (pool) =>
+        listening(pool) && !!pool.relayAddress && sameSubnet(message.giaddr!, pool.network, pool.prefix)
     );
   const reservedPool = pools.find((pool) =>
     pool.reservations?.some((entry) => entry.clientMac === message.clientMac.toLowerCase())

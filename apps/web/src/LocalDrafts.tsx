@@ -41,7 +41,8 @@ export function LocalDrafts({ owner, onOpen }: { owner: string; onOpen: (p: Proj
           {rows.map((draft) => (
             <div key={draft.key}>
               <p>
-                {draft.name} · {new Date(draft.updatedAt).toLocaleString(formatLocale())} · revisão {draft.revision}
+                {draft.name} · {new Date(draft.updatedAt).toLocaleString(formatLocale())} · revisão{' '}
+                {draft.revision}
               </p>
               <div className="button-row">
                 <button

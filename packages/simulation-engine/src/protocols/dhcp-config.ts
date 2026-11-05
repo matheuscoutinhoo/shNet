@@ -154,7 +154,10 @@ const routedStatic = (p: NetworkInterface) =>
 function iosPoolBinding(device: Device, network: string, prefix: number) {
   const local = device.interfaces.find(
     (p) =>
-      routedStatic(p) && !p.dhcpRelay?.length && p.prefix === prefix && subnet(p.ip!, prefix).network === network
+      routedStatic(p) &&
+      !p.dhcpRelay?.length &&
+      p.prefix === prefix &&
+      subnet(p.ip!, prefix).network === network
   );
   if (local) return { port: local.id };
   const candidates = device.interfaces.filter((p) => routedStatic(p) && !sameSubnet(p.ip!, network, prefix));
@@ -196,7 +199,8 @@ function buildIosPool(device: Device, pool: DhcpPool | DhcpPendingPool): { pool?
       ? current.relayAddress
       : (pool.gateway ?? range.first)
     : undefined;
-  if (current && current.port === binding.port && current.relayAddress === relayAddress) return { pool: current };
+  if (current && current.port === binding.port && current.relayAddress === relayAddress)
+    return { pool: current };
   const declared = iosPoolDeclaration(pool);
   try {
     const next = dhcpPoolSchema.parse({
@@ -218,7 +222,8 @@ export function iosPoolProblem(device: Device, entry: DhcpPendingPool) {
   const built = buildIosPool(device, entry);
   if (!built.pool) return built.error;
   const others = (device.dhcpServer?.pools ?? []).filter((pool) => pool.name !== entry.name);
-  if (others.length >= DHCP_LIMITS.pools) return 'Limite de ' + DHCP_LIMITS.pools + ' pools DHCP por equipamento.';
+  if (others.length >= DHCP_LIMITS.pools)
+    return 'Limite de ' + DHCP_LIMITS.pools + ' pools DHCP por equipamento.';
   const clash = others.find((pool) => overlapping(pool, built.pool!));
   return clash ? entry.network + '/' + entry.prefix + ' overlaps with pool: ' + clash.name : undefined;
 }
@@ -271,7 +276,9 @@ export function configureDhcpPool(device: Device, input: unknown): DhcpPool {
   const pool = dhcpPoolSchema.parse(input);
   validateDhcpPool(device, pool);
   if (device.dhcpServer?.pendingPools?.some((entry) => entry.name === pool.name)) {
-    device.dhcpServer.pendingPools = device.dhcpServer.pendingPools.filter((entry) => entry.name !== pool.name);
+    device.dhcpServer.pendingPools = device.dhcpServer.pendingPools.filter(
+      (entry) => entry.name !== pool.name
+    );
     if (!device.dhcpServer.pendingPools.length) delete device.dhcpServer.pendingPools;
   }
   const others = device.dhcpServer?.pools.filter((entry) => entry.name !== pool.name) ?? [];

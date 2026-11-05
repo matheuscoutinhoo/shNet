@@ -36,8 +36,8 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
   copy.ipRouting = d.ipRouting;
   copy.ipv6Routing = d.ipv6Routing;
   copy.loopGuardDefault = d.loopGuardDefault;
-  if(d.keyChains)copy.keyChains=structuredClone(d.keyChains);
-  if(d.bfdTemplates)copy.bfdTemplates=structuredClone(d.bfdTemplates);
+  if (d.keyChains) copy.keyChains = structuredClone(d.keyChains);
+  if (d.bfdTemplates) copy.bfdTemplates = structuredClone(d.bfdTemplates);
   copy.dot1xSystemAuthControl = d.dot1xSystemAuthControl;
   if (d.iosSystem)
     copy.iosSystem = {
@@ -254,7 +254,7 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     };
     scheduleMonitoring(e, copy);
   }
-  if (d.discovery&&!d.phone) e.configureDiscovery(copy.id, discoveryConfig(d));
+  if (d.discovery && !d.phone) e.configureDiscovery(copy.id, discoveryConfig(d));
   if (d.hsrp)
     e.configureHsrp(copy.id, {
       groups: hsrpConfig(d).map((g) => ({
@@ -316,9 +316,9 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       sipPort: d.phone.sipPort,
       rtpPort: d.phone.rtpPort,
       autoAnswer: d.phone.autoAnswer,
-      autoVoiceVlan:d.phone.autoVoiceVlan,
+      autoVoiceVlan: d.phone.autoVoiceVlan,
     });
-  if(d.phone&&d.discovery)e.configureDiscovery(copy.id,discoveryConfig(d));
+  if (d.phone && d.discovery) e.configureDiscovery(copy.id, discoveryConfig(d));
   if (d.printer)
     e.configurePrinter(copy.id, {
       enabled: d.printer.enabled,

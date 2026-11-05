@@ -3,7 +3,7 @@ import { showAccessLists, showNatTranslations } from './ios-show';
 import { type Device, type NatConfig } from '../model';
 import { parsePrefix, sameSubnet } from '../protocols/ipv4';
 import { registerNativeAclCommands, aclAddress } from './acl';
-import {interfaceName} from './operational';
+import { interfaceName } from './operational';
 
 export function policyNetwork(value: string) {
   if (value.toLowerCase() === 'any') return { network: '0.0.0.0', prefix: 0 };
@@ -26,13 +26,25 @@ function outside(device: Device, address: string) {
 }
 export function registerPolicyCommands(registry: CommandRegistry) {
   registerNativeAclCommands(registry);
-  registry.register({pattern:/^(no )?ip nat inside source list ([\w-]+) interface (\S+) overload$/i,modes:CONFIG_MODES,run:(m,e,d)=>{
-    const p=d.interfaces.find(p=>p.name.toLowerCase()===interfaceName(m[3]).toLowerCase());if(!p||p.mode!=='routed')throw new Error('Invalid PAT interface.');
-    const value=currentNat(d),old=value.interfaceRules?.find(r=>r.acl===m[2]&&r.outside===p.id);
-    value.interfaceRules=(value.interfaceRules??[]).filter(r=>r.acl!==m[2]||r.outside!==p.id);
-    let n=1;while(value.interfaceRules.some(r=>r.name==='PAT-'+n)||value.pools.some(r=>r.name==='PAT-'+n))n++;
-    if(!m[1])value.interfaceRules.push({name:old?.name??'PAT-'+n,acl:m[2],outside:p.id});e.configureNat(d.id,value);
-  }});
+  registry.register({
+    pattern: /^(no )?ip nat inside source list ([\w-]+) interface (\S+) overload$/i,
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      const p = d.interfaces.find((p) => p.name.toLowerCase() === interfaceName(m[3]).toLowerCase());
+      if (!p || p.mode !== 'routed') throw new Error('Invalid PAT interface.');
+      const value = currentNat(d),
+        old = value.interfaceRules?.find((r) => r.acl === m[2] && r.outside === p.id);
+      value.interfaceRules = (value.interfaceRules ?? []).filter((r) => r.acl !== m[2] || r.outside !== p.id);
+      let n = 1;
+      while (
+        value.interfaceRules.some((r) => r.name === 'PAT-' + n) ||
+        value.pools.some((r) => r.name === 'PAT-' + n)
+      )
+        n++;
+      if (!m[1]) value.interfaceRules.push({ name: old?.name ?? 'PAT-' + n, acl: m[2], outside: p.id });
+      e.configureNat(d.id, value);
+    },
+  });
   registry.register({
     pattern: /^(no )?ip nat alg sip$/i,
     modes: CONFIG_MODES,
@@ -173,7 +185,12 @@ export function registerPolicyCommands(registry: CommandRegistry) {
   });
   registry.register({
     pattern: /^show (?:ip )?access-lists(?: ([\w-]{1,32}))?$/i,
-    syntax: ['show access-lists', 'show access-lists <name>', 'show ip access-lists', 'show ip access-lists <name>'],
+    syntax: [
+      'show access-lists',
+      'show access-lists <name>',
+      'show ip access-lists',
+      'show ip access-lists <name>',
+    ],
     modes: ALL_MODES,
     run: (match, _engine, device) => showAccessLists(device, match[1]) || 'Nenhuma ACL',
   });
@@ -193,12 +210,15 @@ export function policyRunningConfig(device: Device) {
           ` ${rule.sequence} ${rule.action} ` +
           (acl.kind === 'standard'
             ? aclAddress(rule.source, rule.sourceWildcard)
-            : `${rule.protocol} ${aclAddress(rule.source, rule.sourceWildcard)}${rule.sourcePort ? ' eq ' + rule.sourcePort : ''} ${aclAddress(rule.destination, rule.destinationWildcard)}${rule.destinationPort ? ' eq ' + rule.destinationPort : ''}${rule.established?' established':''}`)
+            : `${rule.protocol} ${aclAddress(rule.source, rule.sourceWildcard)}${rule.sourcePort ? ' eq ' + rule.sourcePort : ''} ${aclAddress(rule.destination, rule.destinationWildcard)}${rule.destinationPort ? ' eq ' + rule.destinationPort : ''}${rule.established ? ' established' : ''}`)
       ),
       'exit',
     ]) ?? []),
     ...(device.nat ? [device.nat.enabled ? 'service nat' : 'no service nat'] : []),
-    ...(device.nat?.interfaceRules??[]).map(rule=>`ip nat inside source list ${rule.acl} interface ${device.interfaces.find(p=>p.id===rule.outside)!.name} overload`),
+    ...(device.nat?.interfaceRules ?? []).map(
+      (rule) =>
+        `ip nat inside source list ${rule.acl} interface ${device.interfaces.find((p) => p.id === rule.outside)!.name} overload`
+    ),
     ...(device.nat?.statics.map(
       (entry) =>
         'ip nat ' +

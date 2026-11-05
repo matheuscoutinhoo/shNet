@@ -29,7 +29,13 @@ import { syncPvstInstances } from '../protocols/stp';
 import { hardwareSpeed } from '../links/physical';
 import { registerManagementCommands, managementRunningConfig } from './management';
 import { clearArpPending } from '../protocols/arp';
-import { interfaceName, showInterfaces, showInterfacesDescription, showInterfacesStatus, showRoutes } from './operational';
+import {
+  interfaceName,
+  showInterfaces,
+  showInterfacesDescription,
+  showInterfacesStatus,
+  showRoutes,
+} from './operational';
 import { saveStartup, reloadLosesChanges } from './startup';
 import { registerDiscoveryCommands, discoveryRunningConfig } from './discovery';
 import { registerHsrpCommands, hsrpRunningConfig } from './hsrp';
@@ -143,17 +149,19 @@ export function makeRegistry() {
     modes: all,
     run: (_m, _e, _d, c) => {
       c.mode =
-        c.mode==='key-chain-key'?'key-chain':c.mode === 'policy-class'
-          ? 'policy-map'
-          : c.mode === 'address-family'
-            ? c.vrf
-              ? 'vrf'
-              : 'router'
-            : config.includes(c.mode) && c.mode !== 'config'
-              ? 'config'
-              : c.mode === 'config'
-                ? 'privileged'
-                : 'user';
+        c.mode === 'key-chain-key'
+          ? 'key-chain'
+          : c.mode === 'policy-class'
+            ? 'policy-map'
+            : c.mode === 'address-family'
+              ? c.vrf
+                ? 'vrf'
+                : 'router'
+              : config.includes(c.mode) && c.mode !== 'config'
+                ? 'config'
+                : c.mode === 'config'
+                  ? 'privileged'
+                  : 'user';
     },
   });
   r.register({
@@ -496,7 +504,8 @@ export function makeRegistry() {
             )
             .join('\n')
         );
-      if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'status') return showInterfacesStatus(e, d);
+      if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'status')
+        return showInterfacesStatus(e, d);
       if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'description')
         return showInterfacesDescription(e, d);
       return showInterfaces(e, d, m[1].toLowerCase() === 'ip interface brief', m[2]);

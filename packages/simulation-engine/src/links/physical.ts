@@ -63,7 +63,12 @@ type End = { device: Device; port: NetworkInterface };
  * speed; an auto port facing a fixed port follows it. Fiber, fixed pairs and patch panels do not negotiate.
  */
 export function negotiatedSpeed(a: End, b: End): Speed | undefined {
-  if (a.port.media !== 'rj45' || b.port.media !== 'rj45' || a.device.infrastructure || b.device.infrastructure)
+  if (
+    a.port.media !== 'rj45' ||
+    b.port.media !== 'rj45' ||
+    a.device.infrastructure ||
+    b.device.infrastructure
+  )
     return undefined;
   const autoA = a.port.speedAuto !== false,
     autoB = b.port.speedAuto !== false;
@@ -78,7 +83,8 @@ function runAt(p: NetworkInterface, speed: Speed) {
   if (speed === max) delete p.maxSpeed;
   else p.maxSpeed = max;
 }
-const negotiable = (end: End) => end.port.media === 'rj45' && end.port.speedAuto !== false && !end.device.infrastructure;
+const negotiable = (end: End) =>
+  end.port.media === 'rj45' && end.port.speedAuto !== false && !end.device.infrastructure;
 /** Re-runs negotiation on both ends of a cable. */
 export function negotiateLink(state: Snapshot, link: Link) {
   if (!['copper', 'crossover'].includes(link.cable)) return;

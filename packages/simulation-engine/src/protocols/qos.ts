@@ -8,9 +8,9 @@ import {
   type Snapshot,
 } from '../model';
 import { qosConfigSchema } from './qos-model';
-import {qosMatches,qosFrameBytes} from './qos-classify';
-export function qosConfig(p: NetworkInterface,direction:'in'|'out'='out') {
-  const q = direction==='out'?p.qos:p.ingressQos;
+import { qosMatches, qosFrameBytes } from './qos-classify';
+export function qosConfig(p: NetworkInterface, direction: 'in' | 'out' = 'out') {
+  const q = direction === 'out' ? p.qos : p.ingressQos;
   return q
     ? {
         enabled: q.enabled,
@@ -22,8 +22,14 @@ export function qosConfig(p: NetworkInterface,direction:'in'|'out'='out') {
       }
     : { enabled: true, rateMbps: p.speed, queueLimit: 64, scheduler: 'priority' as const, classes: [] };
 }
-export function configureQos(e: SimulationEngine, d: Device, p: NetworkInterface, input: unknown,direction:'in'|'out'='out') {
-  const selector=direction==='out'?'qos':'ingressQos';
+export function configureQos(
+  e: SimulationEngine,
+  d: Device,
+  p: NetworkInterface,
+  input: unknown,
+  direction: 'in' | 'out' = 'out'
+) {
+  const selector = direction === 'out' ? 'qos' : 'ingressQos';
   const c = qosConfigSchema.parse(input);
   if (
     p.logical ||
@@ -51,8 +57,20 @@ export function configureQos(e: SimulationEngine, d: Device, p: NetworkInterface
     cursor: 0,
     remaining: 0,
     queues: [],
-    virtualTime:0,
-    buckets:[...new Map(c.classes.flatMap(r=>[...(r.shapePaths??[]).map(b=>({...b,kind:'shape' as const})),...(r.policePaths??[]).map(b=>({...b,kind:'police' as const}))]).map(b=>[b.kind+':'+b.name,{name:b.name,kind:b.kind,tokens:b.burst,updatedAt:e.state.clock}])).values()],
+    virtualTime: 0,
+    buckets: [
+      ...new Map(
+        c.classes
+          .flatMap((r) => [
+            ...(r.shapePaths ?? []).map((b) => ({ ...b, kind: 'shape' as const })),
+            ...(r.policePaths ?? []).map((b) => ({ ...b, kind: 'police' as const })),
+          ])
+          .map((b) => [
+            b.kind + ':' + b.name,
+            { name: b.name, kind: b.kind, tokens: b.burst, updatedAt: e.state.clock },
+          ])
+      ).values(),
+    ],
     stats: [...c.classes.map((c) => ({ name: c.name, burst: c.burst })), { name: 'default', burst: 0 }].map(
       (c) => ({
         name: c.name,
@@ -65,9 +83,10 @@ export function configureQos(e: SimulationEngine, d: Device, p: NetworkInterface
       })
     ),
   };
-  if(direction==='out')e.state.queue = e.state.queue.filter(
-    ({ action: a }) => a.kind !== 'qos-tick' || a.device !== d.id || a.port !== p.id
-  );
+  if (direction === 'out')
+    e.state.queue = e.state.queue.filter(
+      ({ action: a }) => a.kind !== 'qos-tick' || a.device !== d.id || a.port !== p.id
+    );
   e.emit('CONFIG_CHANGED', d.id, 'QoS ' + c.scheduler + ' ' + c.rateMbps + ' Mbps em ' + p.name + '.', {
     port: p.id,
   });
@@ -76,13 +95,27 @@ export function enqueueQos(e: SimulationEngine, d: Device, p: NetworkInterface, 
   const q = p.qos;
   if (!q?.enabled) return false;
   const packet = frame.packet ?? frame.ipv6 ?? frame.fragment,
-    rule = q.classes.find(c=>qosMatches(c,frame,d)),
+    rule = q.classes.find((c) => qosMatches(c, frame, d)),
     name = rule?.name ?? 'default',
     stats = q.stats.find((s) => s.name === name)!,
     bytes = qosFrameBytes(frame);
   const policing = rule?.policeMbps ?? (q.queues.length ? rule?.llqMbps : undefined);
-  for(const path of rule?.policePaths??[]){const bucket=q.buckets!.find(b=>b.kind==='police'&&b.name===path.name)!;bucket.tokens=Math.min(path.burst,bucket.tokens+(e.state.clock-bucket.updatedAt)*path.rateMbps*125);bucket.updatedAt=e.state.clock;if(bucket.tokens<bytes){stats.dropped++;e.emit('QOS_DROP',d.id,'Policer '+path.name+': insufficient tokens.',{port:p.id,frame});e.drop(d,'QoS policer '+path.name,p.id,frame);return true;}}
-  for(const path of rule?.policePaths??[])q.buckets!.find(b=>b.kind==='police'&&b.name===path.name)!.tokens-=bytes;
+  for (const path of rule?.policePaths ?? []) {
+    const bucket = q.buckets!.find((b) => b.kind === 'police' && b.name === path.name)!;
+    bucket.tokens = Math.min(
+      path.burst,
+      bucket.tokens + (e.state.clock - bucket.updatedAt) * path.rateMbps * 125
+    );
+    bucket.updatedAt = e.state.clock;
+    if (bucket.tokens < bytes) {
+      stats.dropped++;
+      e.emit('QOS_DROP', d.id, 'Policer ' + path.name + ': insufficient tokens.', { port: p.id, frame });
+      e.drop(d, 'QoS policer ' + path.name, p.id, frame);
+      return true;
+    }
+  }
+  for (const path of rule?.policePaths ?? [])
+    q.buckets!.find((b) => b.kind === 'police' && b.name === path.name)!.tokens -= bytes;
   if (rule && policing !== undefined) {
     stats.tokens = Math.min(rule.burst, stats.tokens + (e.state.clock - stats.updatedAt) * policing * 125);
     stats.updatedAt = e.state.clock;
@@ -97,7 +130,10 @@ export function enqueueQos(e: SimulationEngine, d: Device, p: NetworkInterface, 
     }
     stats.tokens -= bytes;
   }
-  if (q.queues.length >= q.queueLimit || (rule?.queueLimit!==undefined&&q.queues.filter(f=>f.class===name).length>=rule.queueLimit)) {
+  if (
+    q.queues.length >= q.queueLimit ||
+    (rule?.queueLimit !== undefined && q.queues.filter((f) => f.class === name).length >= rule.queueLimit)
+  ) {
     stats.dropped++;
     e.emit('QOS_DROP', d.id, 'QoS tail drop: fila cheia (' + q.queueLimit + ').', { port: p.id, frame });
     e.drop(d, 'QoS congestionamento.', p.id, frame);
@@ -127,9 +163,11 @@ export function enqueueQos(e: SimulationEngine, d: Device, p: NetworkInterface, 
     bytes,
     at: e.state.clock,
     link,
-    ...(q.scheduler==='llq-cbwfq'?{finish:Math.max(q.virtualTime??0,stats.lastFinish??0)+bytes/(rule?.share??1)}:{}),
+    ...(q.scheduler === 'llq-cbwfq'
+      ? { finish: Math.max(q.virtualTime ?? 0, stats.lastFinish ?? 0) + bytes / (rule?.share ?? 1) }
+      : {}),
   });
-  if(q.scheduler==='llq-cbwfq')stats.lastFinish=q.queues.at(-1)!.finish;
+  if (q.scheduler === 'llq-cbwfq') stats.lastFinish = q.queues.at(-1)!.finish;
   stats.enqueued++;
   e.emit('QOS_ENQUEUE', d.id, name + ': ' + q.queues.length + ' frame(s) na fila.', { port: p.id, frame });
   if (q.timerAt === undefined) {
@@ -146,22 +184,49 @@ export function handleQosTick(e: SimulationEngine, a: Extract<Action, { kind: 'q
   delete q.timerAt;
   if (!q.queues.length) return;
   const classes = [...q.classes, { name: 'default', priority: 0, weight: 1 }];
-  let selectedIndex:number|undefined;
-  if(q.scheduler==='llq-cbwfq'){
-    let next=Infinity;const eligible:number[]=[];
-    for(const [i,item]of q.queues.entries()){
-      if(q.queues.findIndex(v=>v.class===item.class)!==i)continue;
-      const rule=q.classes.find(c=>c.name===item.class);let wait=0;
-      for(const path of rule?.shapePaths??[]){const bucket=q.buckets!.find(b=>b.kind==='shape'&&b.name===path.name)!;bucket.tokens=Math.min(Math.max(path.burst,item.bytes),bucket.tokens+(e.state.clock-bucket.updatedAt)*path.rateMbps*125);bucket.updatedAt=e.state.clock;wait=Math.max(wait,(item.bytes-bucket.tokens)/(path.rateMbps*125));}
-      if(wait<=0)eligible.push(i);else next=Math.min(next,e.state.clock+wait);
+  let selectedIndex: number | undefined;
+  if (q.scheduler === 'llq-cbwfq') {
+    let next = Infinity;
+    const eligible: number[] = [];
+    for (const [i, item] of q.queues.entries()) {
+      if (q.queues.findIndex((v) => v.class === item.class) !== i) continue;
+      const rule = q.classes.find((c) => c.name === item.class);
+      let wait = 0;
+      for (const path of rule?.shapePaths ?? []) {
+        const bucket = q.buckets!.find((b) => b.kind === 'shape' && b.name === path.name)!;
+        bucket.tokens = Math.min(
+          Math.max(path.burst, item.bytes),
+          bucket.tokens + (e.state.clock - bucket.updatedAt) * path.rateMbps * 125
+        );
+        bucket.updatedAt = e.state.clock;
+        wait = Math.max(wait, (item.bytes - bucket.tokens) / (path.rateMbps * 125));
+      }
+      if (wait <= 0) eligible.push(i);
+      else next = Math.min(next, e.state.clock + wait);
     }
-    if(!eligible.length){q.timerAt=Math.max(e.state.clock+0.001,next);e.scheduleAt(q.timerAt,{kind:'qos-tick',device:d.id,port:p.id,token:q.token});return;}
-    eligible.sort((a,b)=>{const ra=q.classes.find(c=>c.name===q.queues[a].class),rb=q.classes.find(c=>c.name===q.queues[b].class);return (rb?.priority??0)-(ra?.priority??0)||(q.queues[a].finish??0)-(q.queues[b].finish??0)||a-b;});selectedIndex=eligible[0];
-    const item=q.queues[selectedIndex],rule=q.classes.find(c=>c.name===item.class);for(const path of rule?.shapePaths??[])q.buckets!.find(b=>b.kind==='shape'&&b.name===path.name)!.tokens-=item.bytes;
-    if(!rule?.priority)q.virtualTime=item.finish;
+    if (!eligible.length) {
+      q.timerAt = Math.max(e.state.clock + 0.001, next);
+      e.scheduleAt(q.timerAt, { kind: 'qos-tick', device: d.id, port: p.id, token: q.token });
+      return;
+    }
+    eligible.sort((a, b) => {
+      const ra = q.classes.find((c) => c.name === q.queues[a].class),
+        rb = q.classes.find((c) => c.name === q.queues[b].class);
+      return (
+        (rb?.priority ?? 0) - (ra?.priority ?? 0) ||
+        (q.queues[a].finish ?? 0) - (q.queues[b].finish ?? 0) ||
+        a - b
+      );
+    });
+    selectedIndex = eligible[0];
+    const item = q.queues[selectedIndex],
+      rule = q.classes.find((c) => c.name === item.class);
+    for (const path of rule?.shapePaths ?? [])
+      q.buckets!.find((b) => b.kind === 'shape' && b.name === path.name)!.tokens -= item.bytes;
+    if (!rule?.priority) q.virtualTime = item.finish;
   }
   let name: string;
-  if(selectedIndex!==undefined)name=q.queues[selectedIndex].class;
+  if (selectedIndex !== undefined) name = q.queues[selectedIndex].class;
   else if (
     q.scheduler === 'priority' ||
     (q.scheduler === 'llq-wrr' &&
@@ -184,7 +249,7 @@ export function handleQosTick(e: SimulationEngine, a: Extract<Action, { kind: 'q
     q.remaining--;
     if (q.remaining === 0) q.cursor = (q.cursor + 1) % classes.length;
   }
-  const at = selectedIndex??q.queues.findIndex((f) => f.class === name),
+  const at = selectedIndex ?? q.queues.findIndex((f) => f.class === name),
     [item] = q.queues.splice(at, 1),
     frame = frameSchema.parse(JSON.parse(item.frame)),
     stats = q.stats.find((s) => s.name === name)!;
@@ -202,63 +267,107 @@ export function handleQosTick(e: SimulationEngine, a: Extract<Action, { kind: 'q
 export function validateQos(s: Snapshot) {
   const used = new Set<Action>();
   for (const d of s.devices)
-    for (const p of d.interfaces)for(const direction of ['in','out'] as const) {
-      const q = direction==='out'?p.qos:p.ingressQos;
-      if (!q) continue;
-      const names = [...q.classes.map((c) => c.name), 'default'];
-      if (
-        p.logical ||
-        p.aggregate ||
-        p.bond ||
-        p.tunnel ||
-        p.vxlan ||
-        p.media === 'wifi' ||
-        q.rateMbps > p.speed ||
-        new Set(names).size !== names.length ||
-        q.cursor >= names.length ||
-        q.stats.length !== names.length ||
-        new Set(q.stats.map((n) => n.name)).size !== names.length ||
-        q.stats.some((n) => !names.includes(n.name) || n.updatedAt > s.clock) ||
-        q.queues.length > q.queueLimit
-      )
-        throw new Error('Estado/configuração QoS inválido.');
-      for (const f of q.queues) {
-        const frame = frameSchema.parse(JSON.parse(f.frame));
+    for (const p of d.interfaces)
+      for (const direction of ['in', 'out'] as const) {
+        const q = direction === 'out' ? p.qos : p.ingressQos;
+        if (!q) continue;
+        const names = [...q.classes.map((c) => c.name), 'default'];
         if (
-          f.bytes !== qosFrameBytes(frame) ||
-          !names.includes(f.class) ||
-          f.at > s.clock ||
-          (q.scheduler==='llq-cbwfq'&&f.finish===undefined)||
-          !s.links.some(
-            (l) => l.id === f.link && [l.a, l.b].some((end) => end.device === d.id && end.port === p.id)
-          )
+          p.logical ||
+          p.aggregate ||
+          p.bond ||
+          p.tunnel ||
+          p.vxlan ||
+          p.media === 'wifi' ||
+          q.rateMbps > p.speed ||
+          new Set(names).size !== names.length ||
+          q.cursor >= names.length ||
+          q.stats.length !== names.length ||
+          new Set(q.stats.map((n) => n.name)).size !== names.length ||
+          q.stats.some((n) => !names.includes(n.name) || n.updatedAt > s.clock) ||
+          q.queues.length > q.queueLimit
         )
-          throw new Error('Frame na fila QoS inválido.');
+          throw new Error('Estado/configuração QoS inválido.');
+        for (const f of q.queues) {
+          const frame = frameSchema.parse(JSON.parse(f.frame));
+          if (
+            f.bytes !== qosFrameBytes(frame) ||
+            !names.includes(f.class) ||
+            f.at > s.clock ||
+            (q.scheduler === 'llq-cbwfq' && f.finish === undefined) ||
+            !s.links.some(
+              (l) => l.id === f.link && [l.a, l.b].some((end) => end.device === d.id && end.port === p.id)
+            )
+          )
+            throw new Error('Frame na fila QoS inválido.');
+        }
+        const ticks = s.queue.filter(
+          (v) =>
+            direction === 'out' &&
+            v.action.kind === 'qos-tick' &&
+            v.action.device === d.id &&
+            v.action.port === p.id
+        );
+        if (
+          q.timerAt === undefined
+            ? ticks.length > 0 || q.queues.length > 0
+            : ticks.length !== 1 ||
+              ticks[0].at !== q.timerAt ||
+              (ticks[0].action as Extract<Action, { kind: 'qos-tick' }>).token !== q.token
+        )
+          throw new Error('Timer QoS inconsistente.');
+        ticks.forEach((v) => used.add(v.action));
+        const paths = [
+          ...new Map(
+            q.classes
+              .flatMap((c) => [
+                ...(c.shapePaths ?? []).map((b) => ({ ...b, kind: 'shape' as const })),
+                ...(c.policePaths ?? []).map((b) => ({ ...b, kind: 'police' as const })),
+              ])
+              .map((b) => [b.kind + ':' + b.name, b])
+          ).values(),
+        ];
+        if (
+          paths.length !== (q.buckets?.length ?? 0) ||
+          paths.some((path) => {
+            const b = q.buckets?.find((b) => b.kind === path.kind && b.name === path.name);
+            return !b || b.updatedAt > s.clock || b.tokens > Math.max(path.burst, 65600);
+          })
+        )
+          throw new Error('Invalid hierarchical QoS token buckets.');
       }
-      const ticks = s.queue.filter(
-        (v) => direction==='out'&&v.action.kind === 'qos-tick' && v.action.device === d.id && v.action.port === p.id
-      );
-      if (
-        q.timerAt === undefined
-          ? ticks.length > 0 || q.queues.length > 0
-          : ticks.length !== 1 ||
-            ticks[0].at !== q.timerAt ||
-            (ticks[0].action as Extract<Action, { kind: 'qos-tick' }>).token !== q.token
-      )
-        throw new Error('Timer QoS inconsistente.');
-      ticks.forEach((v) => used.add(v.action));
-      const paths=[...new Map(q.classes.flatMap(c=>[...(c.shapePaths??[]).map(b=>({...b,kind:'shape' as const})),...(c.policePaths??[]).map(b=>({...b,kind:'police' as const}))]).map(b=>[b.kind+':'+b.name,b])).values()];
-      if(paths.length!==(q.buckets?.length??0)||paths.some(path=>{const b=q.buckets?.find(b=>b.kind===path.kind&&b.name===path.name);return !b||b.updatedAt>s.clock||b.tokens>Math.max(path.burst,65600);}))throw new Error('Invalid hierarchical QoS token buckets.');
-    }
   for (const v of s.queue)
     if (v.action.kind === 'qos-tick' && !used.has(v.action)) throw new Error('Timer QoS órfão.');
 }
-export function permitIngressQos(e:SimulationEngine,d:Device,p:NetworkInterface,frame:Frame){
- const q=p.ingressQos;if(!q?.enabled||!(frame.packet||frame.ipv6||frame.fragment||frame.mpls))return true;
- const rule=q.classes.find(c=>qosMatches(c,frame,d)),stats=q.stats.find(s=>s.name===(rule?.name??'default'))!,bytes=qosFrameBytes(frame);
- stats.enqueued++;
- for(const path of rule?.policePaths??[]){const b=q.buckets!.find(b=>b.name===path.name&&b.kind==='police')!;b.tokens=Math.min(path.burst,b.tokens+(e.state.clock-b.updatedAt)*path.rateMbps*125);b.updatedAt=e.state.clock;if(b.tokens<bytes){stats.dropped++;e.emit('QOS_DROP',d.id,'Input policer '+path.name+': insufficient tokens.',{port:p.id,frame});e.drop(d,'Input QoS policer '+path.name,p.id,frame);return false;}}
- for(const path of rule?.policePaths??[])q.buckets!.find(b=>b.name===path.name&&b.kind==='police')!.tokens-=bytes;
- const packet=frame.packet??frame.ipv6??frame.fragment;if(rule?.mark!==undefined&&packet){packet.dscp=rule.mark;e.emit('QOS_MARK',d.id,'Input DSCP '+rule.mark,{port:p.id,frame});}
- stats.dequeued++;stats.bytes+=bytes;return true;
+export function permitIngressQos(e: SimulationEngine, d: Device, p: NetworkInterface, frame: Frame) {
+  const q = p.ingressQos;
+  if (!q?.enabled || !(frame.packet || frame.ipv6 || frame.fragment || frame.mpls)) return true;
+  const rule = q.classes.find((c) => qosMatches(c, frame, d)),
+    stats = q.stats.find((s) => s.name === (rule?.name ?? 'default'))!,
+    bytes = qosFrameBytes(frame);
+  stats.enqueued++;
+  for (const path of rule?.policePaths ?? []) {
+    const b = q.buckets!.find((b) => b.name === path.name && b.kind === 'police')!;
+    b.tokens = Math.min(path.burst, b.tokens + (e.state.clock - b.updatedAt) * path.rateMbps * 125);
+    b.updatedAt = e.state.clock;
+    if (b.tokens < bytes) {
+      stats.dropped++;
+      e.emit('QOS_DROP', d.id, 'Input policer ' + path.name + ': insufficient tokens.', {
+        port: p.id,
+        frame,
+      });
+      e.drop(d, 'Input QoS policer ' + path.name, p.id, frame);
+      return false;
+    }
+  }
+  for (const path of rule?.policePaths ?? [])
+    q.buckets!.find((b) => b.name === path.name && b.kind === 'police')!.tokens -= bytes;
+  const packet = frame.packet ?? frame.ipv6 ?? frame.fragment;
+  if (rule?.mark !== undefined && packet) {
+    packet.dscp = rule.mark;
+    e.emit('QOS_MARK', d.id, 'Input DSCP ' + rule.mark, { port: p.id, frame });
+  }
+  stats.dequeued++;
+  stats.bytes += bytes;
+  return true;
 }

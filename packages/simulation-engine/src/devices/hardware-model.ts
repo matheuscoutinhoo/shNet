@@ -63,7 +63,12 @@ export const consoleSessionsSchema = z
               'archive',
               'ip-sla',
               'route-map',
-              'class-map','policy-map','policy-class','key-chain','key-chain-key','bfd-template',
+              'class-map',
+              'policy-map',
+              'policy-class',
+              'key-chain',
+              'key-chain-key',
+              'bfd-template',
             ]),
             port: idSchema.optional(),
             vlan: z.number().int().min(1).max(4094).optional(),
@@ -75,10 +80,10 @@ export const consoleSessionsSchema = z
             aclType: z.enum(['standard', 'extended']).optional(),
             line: z.enum(['console', 'vty']).optional(),
             vrf: z.string().max(32).optional(),
-            sla:z.number().int().positive().optional(),
-            name:z.string().max(32).optional(),
-            sequence:z.number().int().min(1).max(65535).optional(),
-            className:z.string().max(32).optional(),
+            sla: z.number().int().positive().optional(),
+            name: z.string().max(32).optional(),
+            sequence: z.number().int().min(1).max(65535).optional(),
+            className: z.string().max(32).optional(),
             auth: z
               .object({ kind: z.literal('enable'), attempts: z.number().int().min(0).max(2) })
               .strict()

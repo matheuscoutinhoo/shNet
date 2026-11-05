@@ -21,7 +21,11 @@ export function registerManagementCommands(registry: CommandRegistry) {
   registry.register({
     // IOS: "snmp-server community NAME [RO|RW] [acl]" defines a community and starts the agent.
     pattern: /^snmp-server community ([a-z0-9_-]+)(?: (ro|rw))?(?: ([\w-]+))?$/i,
-    syntax: ['snmp-server community <name>', 'snmp-server community <name> RO', 'snmp-server community <name> RW'],
+    syntax: [
+      'snmp-server community <name>',
+      'snmp-server community <name> RO',
+      'snmp-server community <name> RW',
+    ],
     modes: CONFIG_MODES,
     run: (match, engine, device) =>
       engine.configureSnmpAgent(device.id, {
