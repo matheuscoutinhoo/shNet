@@ -62,10 +62,12 @@ assert not any(e['message']['text'] in ['Negado pela ACL', 'Perdido no enlace', 
 tshark = shutil.which('tshark') or (r'C:\Program Files\Wireshark\tshark.exe' if sys.platform == 'win32' else None)
 assert tshark, 'TShark required.'
 def run(*args):
-    result = subprocess.run([tshark, '-n', '-r', str(root / 'syslog.pcap'), *args], capture_output=True, text=True, encoding='utf-8')
+    # The capture goes through stdin: Ubuntu 26.04 confines tshark with an
+    # AppArmor profile that cannot open files in the workspace.
+    result = subprocess.run([tshark, '-n', '-r', '-', *args], input=(root / 'syslog.pcap').read_bytes(), capture_output=True)
     if result.returncode:
-        raise RuntimeError('TShark: ' + result.stderr)
-    return result.stdout
+        raise RuntimeError(f'TShark exited with {result.returncode}: {result.stderr.decode(errors="replace").strip()}')
+    return result.stdout.decode('utf-8')
 registry = subprocess.run([tshark, '-G', 'fields'], capture_output=True, text=True, check=True, encoding='utf-8').stdout
 available = {line.split('\t')[2] for line in registry.splitlines() if line.startswith('F\t')}
 assert {'syslog.facility', 'syslog.level'} <= available

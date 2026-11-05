@@ -18,8 +18,14 @@ if not tshark:
     raise RuntimeError('TShark is required; install it or set TSHARK_PATH.')
 
 
-def run(*args):
-    return subprocess.run([tshark, *args], check=True, capture_output=True, text=True, encoding='utf-8').stdout
+def run(*args, capture=None):
+    # Captures go through stdin: Ubuntu 26.04 confines tshark with an AppArmor
+    # profile that cannot open files in the workspace.
+    command = [tshark, '-r', '-', *args] if capture else [tshark, *args]
+    result = subprocess.run(command, input=capture.read_bytes() if capture else None, capture_output=True)
+    if result.returncode:
+        raise RuntimeError(f'TShark exited with {result.returncode}: {result.stderr.decode(errors="replace").strip()}')
+    return result.stdout.decode('utf-8')
 
 
 fields = ['frame.number', 'bgp.type', 'bgp.cap.4as', 'bgp.cap.mp.afi', 'bgp.cap.mp.safi',
@@ -44,12 +50,12 @@ for name in ['bgp', 'evpn']:
                 assert Ether(bytes(copied)).getlayer(layer, index).chksum == original, (name, layer, index)
                 checksums += 1
                 index += 1
-    malformed = run('-r', str(file), '-Y', '_ws.malformed', '-T', 'fields', '-e', 'frame.number')
+    malformed = run('-Y', '_ws.malformed', '-T', 'fields', '-e', 'frame.number', capture=file)
     assert not malformed.strip(), (name, malformed)
-    args = ['-r', str(file), '-Y', 'bgp', '-T', 'fields', '-E', 'separator=/t', '-E', 'occurrence=a']
+    args = ['-Y', 'bgp', '-T', 'fields', '-E', 'separator=/t', '-E', 'occurrence=a']
     for field in fields:
         args += ['-e', field]
-    rows = [dict(zip(fields, row)) for row in csv.reader(io.StringIO(run(*args)), delimiter='\t')]
+    rows = [dict(zip(fields, row)) for row in csv.reader(io.StringIO(run(*args, capture=file)), delimiter='\t')]
 
     def values(field):
         return {v for row in rows for v in row[field].split(',') if v}

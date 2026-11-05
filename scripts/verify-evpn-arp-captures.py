@@ -44,7 +44,13 @@ for case in json.loads((root / 'scenarios.json').read_text(encoding='utf-8'))['c
             assert resets
         else:
             assert any(TCP in p and b'overlay VXLAN' in bytes(p[TCP].payload) for p in current)
-    malformed = subprocess.run([tshark, '-r', str(file), '-Y', '_ws.malformed', '-T', 'fields', '-e', 'frame.number'], check=True, capture_output=True, text=True).stdout
+    # The capture goes through stdin: Ubuntu 26.04 confines tshark with an
+    # AppArmor profile that cannot open files in the workspace.
+    result = subprocess.run([tshark, '-r', '-', '-Y', '_ws.malformed', '-T', 'fields', '-e', 'frame.number'],
+                            input=file.read_bytes(), capture_output=True)
+    if result.returncode:
+        raise RuntimeError(f'TShark exited with {result.returncode}: {result.stderr.decode(errors="replace").strip()}')
+    malformed = result.stdout.decode('utf-8')
     assert not malformed.strip(), malformed
     summary.append({'case': case['kind'], 'packets': len(packets), 'checksums': checksums,
                     'localArpReplies': len(replies), 'overlayArpRequests': len(broadcasts),
