@@ -29,38 +29,53 @@ export function permitPacket(
   const acl = device.accessLists?.find((entry) => entry.name === name);
   // IOS permits all traffic through an interface that references an undefined ACL.
   if (!acl) return true;
-  const rule=matchingAclRule(device,name,packet);
+  const rule = matchingAclRule(device, name, packet);
   if (rule) rule.hits++;
   else if (acl) acl.implicitDrops++;
   const permitted = rule?.action === 'permit';
   const reason =
-    'ACL ' + name + ' ' + direction + ' em ' + port.name + ': ' +
+    'ACL ' +
+    name +
+    ' ' +
+    direction +
+    ' em ' +
+    port.name +
+    ': ' +
     (rule ? 'regra ' + rule.sequence + ' ' + rule.action : 'deny implícito') +
-    '; ' + packet.protocol + ' ' + packet.src + ' -> ' + packet.dst + '.';
+    '; ' +
+    packet.protocol +
+    ' ' +
+    packet.src +
+    ' -> ' +
+    packet.dst +
+    '.';
   engine.emit(permitted ? 'ACL_PERMIT' : 'ACL_DENY', device.id, reason, { port: port.id, packet });
   if (!permitted) engine.drop(device, reason, port.id);
   return permitted;
 }
-export function matchingAclRule(device:Device,name:string,packet:Packet){
-  return device.accessLists?.find(acl=>acl.name===name)?.rules.find(
-    (entry) =>
-      (entry.protocol === 'ip' || entry.protocol.toUpperCase() === packet.protocol) &&
-      (entry.sourceWildcard
-        ? ((ipNumber(entry.source.network) ^ ipNumber(packet.src)) & ~ipNumber(entry.sourceWildcard)) === 0
-        : sameSubnet(entry.source.network, packet.src, entry.source.prefix)) &&
-      (entry.destinationWildcard
-        ? ((ipNumber(entry.destination.network) ^ ipNumber(packet.dst)) &
-            ~ipNumber(entry.destinationWildcard)) ===
-          0
-        : sameSubnet(entry.destination.network, packet.dst, entry.destination.prefix)) &&
-      (entry.sourcePort === undefined ||
-        ((packet.protocol === 'TCP' || packet.protocol === 'UDP') &&
-          packet.sourcePort === entry.sourcePort)) &&
-      (entry.destinationPort === undefined ||
-        ((packet.protocol === 'TCP' || packet.protocol === 'UDP') &&
-          packet.destinationPort === entry.destinationPort)) &&
-      (!entry.established||(packet.protocol==='TCP'&&packet.flags.some(f=>f==='ACK'||f==='RST')))
-  );
+export function matchingAclRule(device: Device, name: string, packet: Packet) {
+  return device.accessLists
+    ?.find((acl) => acl.name === name)
+    ?.rules.find(
+      (entry) =>
+        (entry.protocol === 'ip' || entry.protocol.toUpperCase() === packet.protocol) &&
+        (entry.sourceWildcard
+          ? ((ipNumber(entry.source.network) ^ ipNumber(packet.src)) & ~ipNumber(entry.sourceWildcard)) === 0
+          : sameSubnet(entry.source.network, packet.src, entry.source.prefix)) &&
+        (entry.destinationWildcard
+          ? ((ipNumber(entry.destination.network) ^ ipNumber(packet.dst)) &
+              ~ipNumber(entry.destinationWildcard)) ===
+            0
+          : sameSubnet(entry.destination.network, packet.dst, entry.destination.prefix)) &&
+        (entry.sourcePort === undefined ||
+          ((packet.protocol === 'TCP' || packet.protocol === 'UDP') &&
+            packet.sourcePort === entry.sourcePort)) &&
+        (entry.destinationPort === undefined ||
+          ((packet.protocol === 'TCP' || packet.protocol === 'UDP') &&
+            packet.destinationPort === entry.destinationPort)) &&
+        (!entry.established ||
+          (packet.protocol === 'TCP' && packet.flags.some((f) => f === 'ACK' || f === 'RST')))
+    );
 }
 
 export function validateAcls(device: Device) {

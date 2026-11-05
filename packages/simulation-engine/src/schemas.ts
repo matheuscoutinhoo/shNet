@@ -18,7 +18,7 @@ export const routeEntrySchema = z
     nextHop: ipv4Schema,
     metric: z.number().int().min(0).max(65535),
     distance: z.number().int().min(1).max(255).optional(),
-    track:z.number().int().min(1).max(1000).optional(),
+    track: z.number().int().min(1).max(1000).optional(),
     port: idSchema.optional(),
     vrf: z
       .string()

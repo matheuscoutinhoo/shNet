@@ -16,21 +16,21 @@ Cisco's [campus design guide](https://www.cisco.com/c/en/us/td/docs/solutions/CV
 
 Evidence directory: [`artifacts/global-enterprise-validation-2026-10-26`](../artifacts/global-enterprise-validation-2026-10-26/).
 
-| Artifact | Purpose |
-| --- | --- |
-| [Original topology](../artifacts/global-enterprise-validation-2026-10-26/global-enterprise.shlab.json) | Preserves the configuration-order failure; import only in a disposable lab. |
-| [Topology with workaround](../artifacts/global-enterprise-validation-2026-10-26/global-enterprise-workaround.shlab.json) | Same design with Rapid PVST reapplied after routed uplinks. DHCP remains blocked. |
-| [Converged topology](../artifacts/global-enterprise-validation-2026-10-26/global-enterprise-converged.shlab.json) | Starts at 65,000 ms, avoiding initial convergence when reproducing operational tests. |
-| [Design inventory](../artifacts/global-enterprise-validation-2026-10-26/design.json) | Site, equipment and addressing inventory. |
-| [Configuration transcript](../artifacts/global-enterprise-validation-2026-10-26/configuration-transcript.json) | Commands and responses used to configure network devices. |
-| [Native enterprise workflows](../artifacts/global-enterprise-validation-2026-10-26/native-workflows.json) | Independent command probes, VRF-mode and spanning-tree checks, ECMP and OSPF capture evidence. |
-| [Behavior results](../artifacts/global-enterprise-validation-2026-10-26/behavior-results.json) | Expected and actual results, including failures; engine contract/source hash. |
-| [Consolidated verification](../artifacts/global-enterprise-validation-2026-10-26/verification.json) | Inventory, build matching, test counts, replay and management-service results. |
-| [Prioritized findings CSV](../artifacts/global-enterprise-validation-2026-10-26/findings.csv) | Issue IDs, priorities, categories, evidence and proposed acceptance criteria. |
-| [Storm diagnosis](../artifacts/global-enterprise-validation-2026-10-26/storm-diagnosis.json) | Spanning trees, repeated HSRP frames and queued events. |
-| [Convergence profile](../artifacts/global-enterprise-validation-2026-10-26/convergence-profile.json) | Virtual-time progress and queue growth before the workaround. |
-| [Operational probes](../artifacts/global-enterprise-validation-2026-10-26/operational-probes.json) | Uptime error and independent BGP alternate-path result. |
-| [Screenshots](../artifacts/global-enterprise-validation-2026-10-26/screenshots/) | Rendered UI and CLI evidence. |
+| Artifact                                                                                                                 | Purpose                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| [Original topology](../artifacts/global-enterprise-validation-2026-10-26/global-enterprise.shlab.json)                   | Preserves the configuration-order failure; import only in a disposable lab.                    |
+| [Topology with workaround](../artifacts/global-enterprise-validation-2026-10-26/global-enterprise-workaround.shlab.json) | Same design with Rapid PVST reapplied after routed uplinks. DHCP remains blocked.              |
+| [Converged topology](../artifacts/global-enterprise-validation-2026-10-26/global-enterprise-converged.shlab.json)        | Starts at 65,000 ms, avoiding initial convergence when reproducing operational tests.          |
+| [Design inventory](../artifacts/global-enterprise-validation-2026-10-26/design.json)                                     | Site, equipment and addressing inventory.                                                      |
+| [Configuration transcript](../artifacts/global-enterprise-validation-2026-10-26/configuration-transcript.json)           | Commands and responses used to configure network devices.                                      |
+| [Native enterprise workflows](../artifacts/global-enterprise-validation-2026-10-26/native-workflows.json)                | Independent command probes, VRF-mode and spanning-tree checks, ECMP and OSPF capture evidence. |
+| [Behavior results](../artifacts/global-enterprise-validation-2026-10-26/behavior-results.json)                           | Expected and actual results, including failures; engine contract/source hash.                  |
+| [Consolidated verification](../artifacts/global-enterprise-validation-2026-10-26/verification.json)                      | Inventory, build matching, test counts, replay and management-service results.                 |
+| [Prioritized findings CSV](../artifacts/global-enterprise-validation-2026-10-26/findings.csv)                            | Issue IDs, priorities, categories, evidence and proposed acceptance criteria.                  |
+| [Storm diagnosis](../artifacts/global-enterprise-validation-2026-10-26/storm-diagnosis.json)                             | Spanning trees, repeated HSRP frames and queued events.                                        |
+| [Convergence profile](../artifacts/global-enterprise-validation-2026-10-26/convergence-profile.json)                     | Virtual-time progress and queue growth before the workaround.                                  |
+| [Operational probes](../artifacts/global-enterprise-validation-2026-10-26/operational-probes.json)                       | Uptime error and independent BGP alternate-path result.                                        |
+| [Screenshots](../artifacts/global-enterprise-validation-2026-10-26/screenshots/)                                         | Rendered UI and CLI evidence.                                                                  |
 
 ## Confirmed bugs and fidelity failures
 
@@ -104,31 +104,31 @@ Evidence: `native-workflows.json` → `ospfCapture`, plus the `ethernet-codec.ts
 
 The additional inventory deliberately probes **advanced enterprise workflows**, not the earlier core 42-command inventory. Of **61 selected checks, 5 pass and 56 expose gaps**. These counts are not a general success rate, do not mean previously passing core commands regressed, and do not measure every Cisco feature. Every probe includes its setup and response in `native-workflows.json`.
 
-| ID | Priority | Enterprise requirement and observed limitation |
-| --- | --- | --- |
-| GE-07 | P1 | **Secure management:** native VTY, local username/secret, domain/SSHv2, AAA/RADIUS submodes and SNMPv3 workflows fail. JSON-based AAA/remote management elsewhere is not SSH2 or a native IOS management plane. N01–N07, N10, N12. |
-| GE-08 | P1 | **Routing control:** native passive-interface, reference bandwidth, stub/summarization/default-origination/authentication, BGP prefix-list/route-map/peer-group/maximum-prefix/password and BFD workflows fail. Some engine features exist through custom configuration; they cannot be assessed as native Cisco workflows. N16–N21, N25–N30. |
-| GE-09 | P1 | **WAN and tenant segmentation:** native VRF-aware OSPF, MPLS interface enable, IKEv2 proposal, Tunnel interface and PAT-overload workflows fail. A private-IP OSPF WAN does not validate enterprise MPLS L3VPN, DMVPN, Catalyst SD-WAN or IPsec interoperability. N32–N36. |
-| GE-10 | P1 | **Campus access security:** native DHCP snooping, DAI, port-security, IP source guard and dot1x system control fail. Native root/loop guard and UDLD also fail. Existing custom security models require separate behavioral verification. N40–N47. |
-| GE-11 | P2 | **QoS and voice:** MQC class-map/policy-map/service-policy and voice VLAN commands fail. Generic queue/traffic models do not validate Cisco MQC classification, policing, shaping, hardware buffers or production voice behavior. N48, N51–N53. |
-| GE-12 | P2 | **Operations:** native NTP server, timezone, archive, IP SLA/object tracking, inventory/environment/interface-error counters and CEF commands fail. Syslog host configuration, LACP member/Port-channel commands, HSRP interface tracking and EtherChannel display do pass. N08–N15, N37–N38, N54, N56–N60. |
-| GE-13 | P2 | **Other native coverage:** MST region submode, numbered extended ACL syntax, TCP-established ACL qualifier and HSRP authentication fail. N39, N49–N50, N55. |
+| ID    | Priority                 | Enterprise requirement and observed limitation                                                                                                                                                                                                                                                                                                                                             |
+| ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GE-07 | P1                       | **Secure management:** native VTY, local username/secret, domain/SSHv2, AAA/RADIUS submodes and SNMPv3 workflows fail. JSON-based AAA/remote management elsewhere is not SSH2 or a native IOS management plane. N01–N07, N10, N12.                                                                                                                                                         |
+| GE-08 | P1                       | **Routing control:** native passive-interface, reference bandwidth, stub/summarization/default-origination/authentication, BGP prefix-list/route-map/peer-group/maximum-prefix/password and BFD workflows fail. Some engine features exist through custom configuration; they cannot be assessed as native Cisco workflows. N16–N21, N25–N30.                                              |
+| GE-09 | P1                       | **WAN and tenant segmentation:** native VRF-aware OSPF, MPLS interface enable, IKEv2 proposal, Tunnel interface and PAT-overload workflows fail. A private-IP OSPF WAN does not validate enterprise MPLS L3VPN, DMVPN, Catalyst SD-WAN or IPsec interoperability. N32–N36.                                                                                                                 |
+| GE-10 | P1                       | **Campus access security:** native DHCP snooping, DAI, port-security, IP source guard and dot1x system control fail. Native root/loop guard and UDLD also fail. Existing custom security models require separate behavioral verification. N40–N47.                                                                                                                                         |
+| GE-11 | P2                       | **QoS and voice:** MQC class-map/policy-map/service-policy and voice VLAN commands fail. Generic queue/traffic models do not validate Cisco MQC classification, policing, shaping, hardware buffers or production voice behavior. N48, N51–N53.                                                                                                                                            |
+| GE-12 | P2                       | **Operations:** native NTP server, timezone, archive, IP SLA/object tracking, inventory/environment/interface-error counters and CEF commands fail. Syslog host configuration, LACP member/Port-channel commands, HSRP interface tracking and EtherChannel display do pass. N08–N15, N37–N38, N54, N56–N60.                                                                                |
+| GE-13 | P2                       | **Other native coverage:** MST region submode, numbered extended ACL syntax, TCP-established ACL qualifier and HSRP authentication fail. N39, N49–N50, N55.                                                                                                                                                                                                                                |
 | GE-14 | P1 for exact equivalence | **Platform and dual-stack fidelity:** OSPFv3/EIGRP/IS-IS process workflows fail (N22–N24). The app executes a generic educational model, not IOS XE/IOS XR/NX-OS/ASA/Catalyst wireless images. Licensing, ASIC/TCAM limits, image-specific defaults and defects, hardware scheduling, full Cisco controller/fabric behavior and vendor interoperability are not established by this audit. |
 
 ## Behavioral results after the workaround
 
 The 14 acceptance cases record **13 passes and one failure**. The one failure is DHCP acquisition across all six sites. The results deliberately retain that failure.
 
-| Test | Observation |
-| --- | --- |
-| DATA-01 | All 30 ordered cross-site corporate ICMP paths succeed. |
-| SEC-01 | All 30 cross-site guest-to-corporate ICMP paths are denied. |
-| APP-01 / DNS-01 | All six sites retrieve the New York HTTP application and resolve corporate DNS. |
-| DHCP-01 | All six DHCP clients fail to bind because SVI relay could not be configured. |
-| CTRL-01 / CTRL-02 | Each site's corporate HSRP group has one active and one standby; every configured non-passive OSPF interface has a Full neighbor. |
-| HA-01–HA-05 | All 30 paths recover after primary New York core failure, all six primary WAN handoffs failing, primary provider failure, London primary edge failure, and Sydney access-uplink failure. |
-| NEG-01 | Losing both Sydney WAN edges blocks remote traffic while preserving local application reachability. |
-| PERSIST-01 | Restoring the converged snapshot preserves all 30 cross-site paths. |
+| Test              | Observation                                                                                                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DATA-01           | All 30 ordered cross-site corporate ICMP paths succeed.                                                                                                                                  |
+| SEC-01            | All 30 cross-site guest-to-corporate ICMP paths are denied.                                                                                                                              |
+| APP-01 / DNS-01   | All six sites retrieve the New York HTTP application and resolve corporate DNS.                                                                                                          |
+| DHCP-01           | All six DHCP clients fail to bind because SVI relay could not be configured.                                                                                                             |
+| CTRL-01 / CTRL-02 | Each site's corporate HSRP group has one active and one standby; every configured non-passive OSPF interface has a Full neighbor.                                                        |
+| HA-01–HA-05       | All 30 paths recover after primary New York core failure, all six primary WAN handoffs failing, primary provider failure, London primary edge failure, and Sydney access-uplink failure. |
+| NEG-01            | Losing both Sydney WAN edges blocks remote traffic while preserving local application reachability.                                                                                      |
+| PERSIST-01        | Restoring the converged snapshot preserves all 30 cross-site paths.                                                                                                                      |
 
 The corrected initial 65-second warmup processes **32,865 events in about 40 seconds of wall time** on this run. This is a local measurement, not a capacity guarantee. Recovery cases probe after explicit settling intervals (16 or 50 virtual seconds); they establish eventual reachability, not exact Cisco convergence, zero loss or preservation of existing TCP/firewall sessions. Separate BGP evidence establishes six sessions across three routers and successful forwarding after switching from `10.0.13.3` to `10.0.12.2`.
 

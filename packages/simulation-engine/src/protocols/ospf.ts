@@ -120,7 +120,11 @@ export function newOspfInterfaceSettings(port: NetworkInterface) {
     ...(s.priority !== undefined ? { priority: s.priority } : {}),
     ...(s.helloMs !== undefined ? { helloMs: s.helloMs } : {}),
     // IOS derives the dead interval from the hello interval unless it was configured.
-    ...(s.deadMs !== undefined ? { deadMs: s.deadMs } : s.helloMs !== undefined ? { deadMs: s.helloMs * 4 } : {}),
+    ...(s.deadMs !== undefined
+      ? { deadMs: s.deadMs }
+      : s.helloMs !== undefined
+        ? { deadMs: s.helloMs * 4 }
+        : {}),
   };
 }
 

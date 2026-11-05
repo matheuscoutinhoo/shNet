@@ -62,7 +62,9 @@ export function ActivityHistory({
               <strong>
                 {actions[entry.action] ?? entry.action} · {entry.name}
               </strong>
-              <time dateTime={entry.created_at}>{new Date(entry.created_at).toLocaleString(formatLocale())}</time>
+              <time dateTime={entry.created_at}>
+                {new Date(entry.created_at).toLocaleString(formatLocale())}
+              </time>
               {entry.revision !== null && <small>Versão {entry.revision}</small>}
             </div>
             {entry.project_id && (

@@ -145,7 +145,9 @@ describe('Terminais por função do equipamento', () => {
     expect(cli.execute('do show vlan')).toContain('20');
     for (const command of ['ipconfig', 'wifi scan', 'router ospf 1.1.1.1', 'service http 80'])
       expect(cli.execute(command)).toContain('não se aplica');
-    expect(cli.execute('do show spanning-tree')).not.toMatch(/não se aplica|não reconhecido|Invalid input detected at/);
+    expect(cli.execute('do show spanning-tree')).not.toMatch(
+      /não se aplica|não reconhecido|Invalid input detected at/
+    );
   });
   it.each(['phone', 'printer', 'mqtt', 'proxy'])(
     '%s possui serviço próprio e rejeita os demais perfis',

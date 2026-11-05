@@ -90,9 +90,13 @@ for scenario in manifest['scenarios']:
         assert relay_request and relay_reply
     # Independent Wireshark dissection must identify every DHCP datagram and no
     # malformed frame. Compare its fields to Scapy and the native manifest.
+    # The capture goes through stdin: Ubuntu 26.04 confines tshark with an
+    # AppArmor profile that cannot open files in the workspace.
     def run(*args):
-        result = subprocess.run([tshark, '-n', '-r', str(path), *args], capture_output=True, text=True, check=True)
-        return result.stdout
+        result = subprocess.run([tshark, '-n', '-r', '-', *args], input=path.read_bytes(), capture_output=True)
+        if result.returncode:
+            raise RuntimeError(f'TShark exited with {result.returncode}: {result.stderr.decode(errors="replace").strip()}')
+        return result.stdout.decode('utf-8')
     assert not run('-Y', '_ws.malformed', '-T', 'fields', '-e', 'frame.number').strip()
     rows = run('-Y', 'dhcp', '-T', 'fields', '-e', 'frame.number', '-e', 'dhcp.id', '-e', 'dhcp.option.dhcp').splitlines()
     assert len(rows) == sum(messages.values())

@@ -20,14 +20,99 @@ export const dscpNumber = (v: string) => {
   return n;
 };
 export function registerMqc(r: CommandRegistry) {
-  r.register({pattern:/^(no )?match access-group(?: name)? ([\w-]{1,32})$/i,modes:['class-map'],run:(m,e,d,c)=>{const cm=mqc(d).classMaps.find(x=>x.name===c.name)!;cm.matches=[...cm.matches.filter(v=>v.acl!==m[2]),...(m[1]?[]:[{acl:m[2]}])];compileMqc(e,d);}});
-  r.register({pattern:/^no match (?:ip )?dscp(?: (.+))?$/i,modes:['class-map'],run:(_m,e,d,c)=>{const cm=mqc(d).classMaps.find(x=>x.name===c.name)!;cm.matches=cm.matches.filter(v=>v.dscps===undefined&&v.dscp===undefined);compileMqc(e,d);}});
-  r.register({pattern:/^no match protocol (icmp|tcp|udp)$/i,modes:['class-map'],run:(m,e,d,c)=>{const cm=mqc(d).classMaps.find(x=>x.name===c.name)!;cm.matches=cm.matches.filter(v=>v.protocol!==m[1].toLowerCase());compileMqc(e,d);}});
-  r.register({pattern:/^no (priority percent|bandwidth percent|bandwidth remaining percent|police|shape average|queue-limit|set dscp)$/i,modes:['policy-class'],run:(m,e,d,c)=>{const cl=mqc(d).policyMaps.find(x=>x.name===c.name)!.classes.find(x=>x.name===c.className)!;const field={'priority percent':'priorityPercent','bandwidth percent':'bandwidthPercent','bandwidth remaining percent':'bandwidthRemainingPercent',police:'policeMbps','shape average':'shapeMbps','queue-limit':'queueLimit','set dscp':'mark'} as const;delete cl[field[m[1].toLowerCase() as keyof typeof field]];compileMqc(e,d);}});
-  r.register({pattern:/^no class ([\w-]{1,32})$/i,modes:['policy-map'],run:(m,e,d,c)=>{const p=mqc(d).policyMaps.find(p=>p.name===c.name)!;p.classes=p.classes.filter(v=>v.name!==m[1]);compileMqc(e,d);}});
-  r.register({pattern:/^no class-map ([\w-]{1,32})$/i,modes:['config'],run:(m,e,d)=>{const s=mqc(d);if(s.policyMaps.some(p=>p.classes.some(c=>c.name===m[1])))throw new Error('Class-map is referenced by a policy.');s.classMaps=s.classMaps.filter(v=>v.name!==m[1]);compileMqc(e,d);}});
-  r.register({pattern:/^no policy-map ([\w-]{1,32})$/i,modes:['config'],run:(m,e,d)=>{const s=mqc(d);if(s.attachments.some(a=>a.policy===m[1])||s.policyMaps.some(p=>p.classes.some(c=>c.childPolicy===m[1])))throw new Error('Policy-map is attached or referenced.');s.policyMaps=s.policyMaps.filter(p=>p.name!==m[1]);compileMqc(e,d);}});
-  r.register({pattern:/^(no )?service-policy ([\w-]{1,32})$/i,modes:['policy-class'],run:(m,e,d,c)=>{const cl=mqc(d).policyMaps.find(p=>p.name===c.name)!.classes.find(p=>p.name===c.className)!;cl.childPolicy=m[1]?undefined:m[2];compileMqc(e,d);}});
+  r.register({
+    pattern: /^(no )?match access-group(?: name)? ([\w-]{1,32})$/i,
+    modes: ['class-map'],
+    run: (m, e, d, c) => {
+      const cm = mqc(d).classMaps.find((x) => x.name === c.name)!;
+      cm.matches = [...cm.matches.filter((v) => v.acl !== m[2]), ...(m[1] ? [] : [{ acl: m[2] }])];
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^no match (?:ip )?dscp(?: (.+))?$/i,
+    modes: ['class-map'],
+    run: (_m, e, d, c) => {
+      const cm = mqc(d).classMaps.find((x) => x.name === c.name)!;
+      cm.matches = cm.matches.filter((v) => v.dscps === undefined && v.dscp === undefined);
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^no match protocol (icmp|tcp|udp)$/i,
+    modes: ['class-map'],
+    run: (m, e, d, c) => {
+      const cm = mqc(d).classMaps.find((x) => x.name === c.name)!;
+      cm.matches = cm.matches.filter((v) => v.protocol !== m[1].toLowerCase());
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern:
+      /^no (priority percent|bandwidth percent|bandwidth remaining percent|police|shape average|queue-limit|set dscp)$/i,
+    modes: ['policy-class'],
+    run: (m, e, d, c) => {
+      const cl = mqc(d)
+        .policyMaps.find((x) => x.name === c.name)!
+        .classes.find((x) => x.name === c.className)!;
+      const field = {
+        'priority percent': 'priorityPercent',
+        'bandwidth percent': 'bandwidthPercent',
+        'bandwidth remaining percent': 'bandwidthRemainingPercent',
+        police: 'policeMbps',
+        'shape average': 'shapeMbps',
+        'queue-limit': 'queueLimit',
+        'set dscp': 'mark',
+      } as const;
+      delete cl[field[m[1].toLowerCase() as keyof typeof field]];
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^no class ([\w-]{1,32})$/i,
+    modes: ['policy-map'],
+    run: (m, e, d, c) => {
+      const p = mqc(d).policyMaps.find((p) => p.name === c.name)!;
+      p.classes = p.classes.filter((v) => v.name !== m[1]);
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^no class-map ([\w-]{1,32})$/i,
+    modes: ['config'],
+    run: (m, e, d) => {
+      const s = mqc(d);
+      if (s.policyMaps.some((p) => p.classes.some((c) => c.name === m[1])))
+        throw new Error('Class-map is referenced by a policy.');
+      s.classMaps = s.classMaps.filter((v) => v.name !== m[1]);
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^no policy-map ([\w-]{1,32})$/i,
+    modes: ['config'],
+    run: (m, e, d) => {
+      const s = mqc(d);
+      if (
+        s.attachments.some((a) => a.policy === m[1]) ||
+        s.policyMaps.some((p) => p.classes.some((c) => c.childPolicy === m[1]))
+      )
+        throw new Error('Policy-map is attached or referenced.');
+      s.policyMaps = s.policyMaps.filter((p) => p.name !== m[1]);
+      compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^(no )?service-policy ([\w-]{1,32})$/i,
+    modes: ['policy-class'],
+    run: (m, e, d, c) => {
+      const cl = mqc(d)
+        .policyMaps.find((p) => p.name === c.name)!
+        .classes.find((p) => p.name === c.className)!;
+      cl.childPolicy = m[1] ? undefined : m[2];
+      compileMqc(e, d);
+    },
+  });
   r.register({
     pattern: /^class-map(?: (match-any|match-all))? ([\w-]{1,32})$/i,
     modes: ['config'],
@@ -37,9 +122,8 @@ export function registerMqc(r: CommandRegistry) {
       if (!cm) {
         cm = { name: m[2], matchAny: m[1]?.toLowerCase() === 'match-any', matches: [] };
         s.classMaps.push(cm);
-      }
-      else if(m[1])cm.matchAny=m[1].toLowerCase()==='match-any';
-      compileMqc(_e,d);
+      } else if (m[1]) cm.matchAny = m[1].toLowerCase() === 'match-any';
+      compileMqc(_e, d);
       c.mode = 'class-map';
       c.name = cm.name;
     },
@@ -49,7 +133,10 @@ export function registerMqc(r: CommandRegistry) {
     modes: ['class-map'],
     run: (m, e, d, c) => {
       const cm = mqc(d).classMaps.find((x) => x.name === c.name)!;
-      cm.matches=[...cm.matches.filter(v=>v.dscps===undefined&&v.dscp===undefined),{ dscps: m[1].trim().split(/\s+/).map(dscpNumber) }];
+      cm.matches = [
+        ...cm.matches.filter((v) => v.dscps === undefined && v.dscp === undefined),
+        { dscps: m[1].trim().split(/\s+/).map(dscpNumber) },
+      ];
       compileMqc(e, d);
     },
   });
@@ -110,15 +197,23 @@ export function registerMqc(r: CommandRegistry) {
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c);
-      const direction=m[2].toLowerCase()==='input'?'in':'out';
+      const direction = m[2].toLowerCase() === 'input' ? 'in' : 'out';
       if (m[1]) {
-        if(!d.mqc?.attachments.some(a=>a.port===p.id&&(a.direction??'out')===direction&&a.policy===m[3]))throw new Error('The named service-policy is not attached in this direction.');
-        detachMqc(e, d, p.id,direction);
+        if (
+          !d.mqc?.attachments.some(
+            (a) => a.port === p.id && (a.direction ?? 'out') === direction && a.policy === m[3]
+          )
+        )
+          throw new Error('The named service-policy is not attached in this direction.');
+        detachMqc(e, d, p.id, direction);
         return;
       }
       const s = mqc(d);
       if (!s.policyMaps.some((x) => x.name === m[3])) throw new Error('Policy-map not configured.');
-      s.attachments = [...s.attachments.filter((a) => a.port !== p.id||(a.direction??'out')!==direction), { port: p.id, policy: m[3],direction }];
+      s.attachments = [
+        ...s.attachments.filter((a) => a.port !== p.id || (a.direction ?? 'out') !== direction),
+        { port: p.id, policy: m[3], direction },
+      ];
       compileMqc(e, d);
     },
   });
@@ -146,7 +241,7 @@ export function mqcDefinitions(d: Device) {
         ...(m.protocol ? [' match protocol ' + m.protocol] : []),
         ...(m.dscp !== undefined ? [' match ip dscp ' + m.dscp] : []),
         ...(m.dscps?.length ? [' match ip dscp ' + m.dscps.join(' ')] : []),
-        ...(m.acl?[' match access-group name '+m.acl]:[]),
+        ...(m.acl ? [' match access-group name ' + m.acl] : []),
       ]),
       'exit',
     ]),
@@ -163,18 +258,33 @@ export function mqcDefinitions(d: Device) {
         ...(c.shapeMbps ? ['  shape average ' + c.shapeMbps * 1e6] : []),
         ...(c.queueLimit ? ['  queue-limit ' + c.queueLimit] : []),
         ...(c.mark !== undefined ? ['  set dscp ' + c.mark] : []),
-        ...(c.childPolicy?['  service-policy '+c.childPolicy]:[]),
+        ...(c.childPolicy ? ['  service-policy ' + c.childPolicy] : []),
         ' exit',
       ]),
       'exit',
     ]),
   ];
 }
-function orderedPolicies(d:Device){const result:NonNullable<Device['mqc']>['policyMaps']=[],seen=new Set<string>();const visit=(p:typeof result[number],stack:string[])=>{if(stack.includes(p.name))throw new Error('Cyclic policy hierarchy.');if(seen.has(p.name))return;for(const c of p.classes){const child=d.mqc?.policyMaps.find(v=>v.name===c.childPolicy);if(child)visit(child,[...stack,p.name]);}seen.add(p.name);result.push(p);};for(const p of d.mqc?.policyMaps??[])visit(p,[]);return result;}
+function orderedPolicies(d: Device) {
+  const result: NonNullable<Device['mqc']>['policyMaps'] = [],
+    seen = new Set<string>();
+  const visit = (p: (typeof result)[number], stack: string[]) => {
+    if (stack.includes(p.name)) throw new Error('Cyclic policy hierarchy.');
+    if (seen.has(p.name)) return;
+    for (const c of p.classes) {
+      const child = d.mqc?.policyMaps.find((v) => v.name === c.childPolicy);
+      if (child) visit(child, [...stack, p.name]);
+    }
+    seen.add(p.name);
+    result.push(p);
+  };
+  for (const p of d.mqc?.policyMaps ?? []) visit(p, []);
+  return result;
+}
 export function mqcAttachments(d: Device) {
   return (d.mqc?.attachments ?? []).flatMap((a) => [
     'interface ' + d.interfaces.find((p) => p.id === a.port)!.name,
-    ' service-policy '+(a.direction==='in'?'input':'output')+' ' + a.policy,
+    ' service-policy ' + (a.direction === 'in' ? 'input' : 'output') + ' ' + a.policy,
     'exit',
   ]);
 }

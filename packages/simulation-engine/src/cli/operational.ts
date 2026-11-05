@@ -23,7 +23,11 @@ export function interfaceStatus(e: SimulationEngine, d: Device, p: NetworkInterf
         ? 'up'
         : 'down';
 }
-const shortName = (name: string) => name.replace(/^Vlan/, 'Vl').replace(/^Port-channel/, 'Po').replace(/^Loopback/, 'Lo');
+const shortName = (name: string) =>
+  name
+    .replace(/^Vlan/, 'Vl')
+    .replace(/^Port-channel/, 'Po')
+    .replace(/^Loopback/, 'Lo');
 function portType(p: NetworkInterface) {
   if (p.aggregate) return '';
   if (p.media === 'rj45') return p.speed >= 10000 ? '100/1000/2.5G/5G/10GBaseTX' : '10/100/1000BaseTX';
@@ -36,7 +40,11 @@ function portType(p: NetworkInterface) {
 export function showInterfacesStatus(e: SimulationEngine, d: Device, selected?: string) {
   const ports = d.interfaces.filter(
     (p) =>
-      (!p.logical && !p.loopback && !p.tunnel && !p.vxlan && !['wifi', 'console', 'mesh'].includes(p.media)) &&
+      !p.logical &&
+      !p.loopback &&
+      !p.tunnel &&
+      !p.vxlan &&
+      !['wifi', 'console', 'mesh'].includes(p.media) &&
       (!selected || p.name.toLowerCase() === interfaceName(selected).toLowerCase())
   );
   if (!ports.length) throw new Error('% Invalid input detected: interface not found.');
@@ -193,14 +201,11 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
       : r.protocol === 'RIP'
         ? 'R'
         : 'O' +
-          (r.pathType === 'inter'
-            ? ' IA'
-            : r.pathType && r.pathType !== 'intra'
-              ? ' ' + r.pathType
-              : '');
+          (r.pathType === 'inter' ? ' IA' : r.pathType && r.pathType !== 'intra' ? ' ' + r.pathType : '');
     const learnedAt = !('protocol' in r)
-      ? d.bgp?.rib.find((path) => path.peer === r.peer && path.network === r.network && path.prefix === r.prefix)
-          ?.learnedAt
+      ? d.bgp?.rib.find(
+          (path) => path.peer === r.peer && path.network === r.network && path.prefix === r.prefix
+        )?.learnedAt
       : undefined;
     rows.push({
       code,
@@ -270,7 +275,9 @@ const classfulPrefix = (network: string) => {
 function age(e: SimulationEngine, at?: number) {
   if (at === undefined) return undefined;
   const s = Math.max(0, Math.floor((e.state.clock - at) / 1000));
-  return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
+  return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60]
+    .map((n) => String(n).padStart(2, '0'))
+    .join(':');
 }
 function routeTail(e: SimulationEngine, r: RouteRow) {
   if (r.connected || (r.code === 'S' && !r.nextHop))
@@ -317,7 +324,8 @@ export function showRoutes(e: SimulationEngine, d: Device, vrf?: string) {
   for (const r of rows.filter((r) => r.prefix > 0)) {
     const classful = classfulPrefix(r.network);
     // Supernets are listed on their own, outside a classful network.
-    const key = r.prefix < classful ? 'supernet:' + r.network + '/' + r.prefix : subnet(r.network, classful).network;
+    const key =
+      r.prefix < classful ? 'supernet:' + r.network + '/' + r.prefix : subnet(r.network, classful).network;
     majors.set(key, [...(majors.get(key) ?? []), r]);
   }
   for (const [key, list] of [...majors].sort(([, a], [, b]) => order(a[0], b[0]))) {
@@ -339,5 +347,7 @@ export function showRoutes(e: SimulationEngine, d: Device, vrf?: string) {
   const gateway = defaults[0]
     ? `Gateway of last resort is ${defaults[0].nextHop ?? '0.0.0.0'} to network 0.0.0.0`
     : 'Gateway of last resort is not set';
-  return [...(vrf ? ['', 'Routing Table: ' + vrf] : []), ...ROUTE_CODES, '', gateway, '', ...lines].join('\n');
+  return [...(vrf ? ['', 'Routing Table: ' + vrf] : []), ...ROUTE_CODES, '', gateway, '', ...lines].join(
+    '\n'
+  );
 }

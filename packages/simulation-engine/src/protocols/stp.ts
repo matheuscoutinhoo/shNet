@@ -66,10 +66,16 @@ function forgetInfo(engine: SimulationEngine, device: Device, port: NetworkInter
   );
   if (port.spanningTree) delete port.spanningTree.received;
 }
-function expireInfo(engine:SimulationEngine,device:Device,port:NetworkInterface){
-  const current=port.spanningTree;
-  if(current?.operational&&!port.stpEdge&&(port.stpGuard==='loop'||device.loopGuardDefault)&&['root','alternate'].includes(current.role))current.guardInconsistent='loop';
-  forgetInfo(engine,device,port);
+function expireInfo(engine: SimulationEngine, device: Device, port: NetworkInterface) {
+  const current = port.spanningTree;
+  if (
+    current?.operational &&
+    !port.stpEdge &&
+    (port.stpGuard === 'loop' || device.loopGuardDefault) &&
+    ['root', 'alternate'].includes(current.role)
+  )
+    current.guardInconsistent = 'loop';
+  forgetInfo(engine, device, port);
 }
 
 function topologyChange(
@@ -189,16 +195,73 @@ function message(engine: SimulationEngine, device: Device, port: NetworkInterfac
       port.spanningTree!.role === 'designated' &&
       port.spanningTree!.state !== 'forwarding',
     agreement,
-    portState:port.spanningTree!.state,
+    portState: port.spanningTree!.state,
     role: port.spanningTree!.role,
     ...(tree.changeId && tree.changeUntil > engine.state.clock ? { changeId: tree.changeId } : {}),
   };
 }
-function mstMessage(e:SimulationEngine,d:Device,p:NetworkInterface,b:Bpdu):Bpdu['mst']{
- const c=d.multiSpanningTree;if(c?.mode!=='mstp')return;const tree=stpCommonTree(d)!,state=stpCommonPort(d,p)!,rootPort=d.interfaces.find(p=>p.id===tree.rootPort),received=rootPort&&stpCommonPort(d,rootPort)?.received,sameRegion=received?.bpdu.region===mstRegion(d),prior=sameRegion?received?.bpdu.mst?.cist:undefined;
- const flags=(s:NonNullable<NetworkInterface['spanningTree']>,t:NonNullable<Device['spanningTree']>,agree:boolean)=>({proposal:!agree&&s.role==='designated'&&s.state!=='forwarding'&&p.duplex==='full',agreement:agree,role:s.role,portState:s.state,change:!!t.changeId&&t.changeUntil>e.state.clock,...(t.changeId&&t.changeUntil>e.state.clock?{changeId:t.changeId}:{})});
- const external=rootPort?(sameRegion?prior?.cost??0:tree.cost):0;
- return {name:c.region,revision:c.revision,digest:JSON.parse(mstRegion(d)!)[2],cist:{root:tree.root,regionalRoot:prior?.regionalRoot??bridgeId({...d,spanningTree:tree}),cost:external,internalCost:Math.max(0,tree.cost-external),bridge:bridgeId({...d,spanningTree:tree}),portId:d.interfaces.indexOf(p)+1,age:Math.min(STP.maxAge,received?received.bpdu.age+e.state.clock-received.at+1000:0),remainingHops:prior?Math.max(1,prior.remainingHops-1):20,...flags(state,tree,stpScope(d)===0?b.agreement:!!state.agreed)},records:c.instances.flatMap(i=>{const s=stpScope(d)===i.id?p.spanningTree:p.spanningInstances?.find(x=>x.id===i.id)?.state,t=stpScope(d)===i.id?d.spanningTree!:i.tree;if(!s?.operational)return [];const rp=d.interfaces.find(p=>p.id===t.rootPort),previous=rp&&(stpScope(d)===i.id?rp.spanningTree:rp.spanningInstances?.find(x=>x.id===i.id)?.state)?.received?.bpdu.mst?.records.find(r=>r.instance===i.id);return [{instance:i.id,root:t.root,cost:t.cost,bridgePriority:t.priority,portPriority:128,remainingHops:previous?Math.max(1,previous.remainingHops-1):20,...flags(s,t,stpScope(d)===i.id?b.agreement:!!s.agreed)}];})};
+function mstMessage(e: SimulationEngine, d: Device, p: NetworkInterface, b: Bpdu): Bpdu['mst'] {
+  const c = d.multiSpanningTree;
+  if (c?.mode !== 'mstp') return;
+  const tree = stpCommonTree(d)!,
+    state = stpCommonPort(d, p)!,
+    rootPort = d.interfaces.find((p) => p.id === tree.rootPort),
+    received = rootPort && stpCommonPort(d, rootPort)?.received,
+    sameRegion = received?.bpdu.region === mstRegion(d),
+    prior = sameRegion ? received?.bpdu.mst?.cist : undefined;
+  const flags = (
+    s: NonNullable<NetworkInterface['spanningTree']>,
+    t: NonNullable<Device['spanningTree']>,
+    agree: boolean
+  ) => ({
+    proposal: !agree && s.role === 'designated' && s.state !== 'forwarding' && p.duplex === 'full',
+    agreement: agree,
+    role: s.role,
+    portState: s.state,
+    change: !!t.changeId && t.changeUntil > e.state.clock,
+    ...(t.changeId && t.changeUntil > e.state.clock ? { changeId: t.changeId } : {}),
+  });
+  const external = rootPort ? (sameRegion ? (prior?.cost ?? 0) : tree.cost) : 0;
+  return {
+    name: c.region,
+    revision: c.revision,
+    digest: JSON.parse(mstRegion(d)!)[2],
+    cist: {
+      root: tree.root,
+      regionalRoot: prior?.regionalRoot ?? bridgeId({ ...d, spanningTree: tree }),
+      cost: external,
+      internalCost: Math.max(0, tree.cost - external),
+      bridge: bridgeId({ ...d, spanningTree: tree }),
+      portId: d.interfaces.indexOf(p) + 1,
+      age: Math.min(STP.maxAge, received ? received.bpdu.age + e.state.clock - received.at + 1000 : 0),
+      remainingHops: prior ? Math.max(1, prior.remainingHops - 1) : 20,
+      ...flags(state, tree, stpScope(d) === 0 ? b.agreement : !!state.agreed),
+    },
+    records: c.instances.flatMap((i) => {
+      const s =
+          stpScope(d) === i.id ? p.spanningTree : p.spanningInstances?.find((x) => x.id === i.id)?.state,
+        t = stpScope(d) === i.id ? d.spanningTree! : i.tree;
+      if (!s?.operational) return [];
+      const rp = d.interfaces.find((p) => p.id === t.rootPort),
+        previous =
+          rp &&
+          (stpScope(d) === i.id
+            ? rp.spanningTree
+            : rp.spanningInstances?.find((x) => x.id === i.id)?.state
+          )?.received?.bpdu.mst?.records.find((r) => r.instance === i.id);
+      return [
+        {
+          instance: i.id,
+          root: t.root,
+          cost: t.cost,
+          bridgePriority: t.priority,
+          portPriority: 128,
+          remainingHops: previous ? Math.max(1, previous.remainingHops - 1) : 20,
+          ...flags(s, t, stpScope(d) === i.id ? b.agreement : !!s.agreed),
+        },
+      ];
+    }),
+  };
 }
 
 function send(
@@ -210,7 +273,7 @@ function send(
 ) {
   if (!port.spanningTree?.operational) return;
   const bpdu = { ...message(engine, device, port, agreement), ...(changeId ? { changeId } : {}) };
-  if(bpdu.domain==='mstp')bpdu.mst=mstMessage(engine,device,port,bpdu);
+  if (bpdu.domain === 'mstp') bpdu.mst = mstMessage(engine, device, port, bpdu);
   if (bpdu.age >= STP.maxAge) return;
   // Six BPDUs per one-second window, per instance/port. Coalesce deferred
   // announcements and construct them from current information at transmission.
@@ -270,7 +333,14 @@ function recompute(engine: SimulationEngine, device: Device) {
   for (const port of switchingPorts(device)) {
     const index = device.interfaces.indexOf(port);
     const received = port.spanningTree?.received;
-    if (port.stpGuard==='root'||port.spanningTree?.guardInconsistent==='loop'||!port.spanningTree?.operational || !received || received.expiresAt <= engine.state.clock) continue;
+    if (
+      port.stpGuard === 'root' ||
+      port.spanningTree?.guardInconsistent === 'loop' ||
+      !port.spanningTree?.operational ||
+      !received ||
+      received.expiresAt <= engine.state.clock
+    )
+      continue;
     const candidate: PriorityVector = {
       root: received.bpdu.root,
       cost: Math.min(4294967295, received.bpdu.cost + portCost(port)),
@@ -308,7 +378,8 @@ function recompute(engine: SimulationEngine, device: Device) {
     const index = device.interfaces.indexOf(port);
     const current = port.spanningTree!;
     const previousRole = current.role;
-    if(current.guardInconsistent==='loop'&&port.stpGuard!=='loop'&&!device.loopGuardDefault)delete current.guardInconsistent;
+    if (current.guardInconsistent === 'loop' && port.stpGuard !== 'loop' && !device.loopGuardDefault)
+      delete current.guardInconsistent;
     const received = current.received;
     let role: typeof current.role = !current.operational
       ? 'disabled'
@@ -325,10 +396,10 @@ function recompute(engine: SimulationEngine, device: Device) {
       };
       const remote = { ...received.bpdu, localPort: index + 1 };
       if (compareVector(local, remote) > 0) role = 'alternate';
-      if(port.stpGuard==='root'&&role==='alternate')current.guardInconsistent='root';else if(current.guardInconsistent==='root')delete current.guardInconsistent;
-    }
-    else if(current.guardInconsistent==='root')delete current.guardInconsistent;
-    if(current.guardInconsistent==='loop'&&current.operational)role='alternate';
+      if (port.stpGuard === 'root' && role === 'alternate') current.guardInconsistent = 'root';
+      else if (current.guardInconsistent === 'root') delete current.guardInconsistent;
+    } else if (current.guardInconsistent === 'root') delete current.guardInconsistent;
+    if (current.guardInconsistent === 'loop' && current.operational) role = 'alternate';
     current.role = role;
     if (role !== previousRole || (changedRoot && !port.stpEdge)) {
       changed = true;
@@ -360,7 +431,7 @@ function refreshDevice(engine: SimulationEngine, device: Device) {
     if (up !== current.operational) {
       changed = true;
       current.operational = up;
-      if(!up)delete current.guardInconsistent;
+      if (!up) delete current.guardInconsistent;
       expireInfo(engine, device, port);
       beginTransition(engine, device, port);
     }
@@ -453,7 +524,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
   )
     return;
   const current = port.spanningTree!;
-  if(current.guardInconsistent==='loop')delete current.guardInconsistent;
+  if (current.guardInconsistent === 'loop') delete current.guardInconsistent;
   engine.emit(
     'BPDU_RECEIVED',
     device.id,
@@ -661,7 +732,12 @@ export function syncPvstInstances(e: SimulationEngine, d: Device) {
     invalidateProtocolIndex(e.state);
     c.instances.push({ id, tree: structuredClone(d.spanningTree) });
     withStpInstance(d, id, () =>
-      configureClassic(e, d, c.protocol ?? 'rstp', c.priorities.find((p) => p.instance === id)?.priority ?? 32768)
+      configureClassic(
+        e,
+        d,
+        c.protocol ?? 'rstp',
+        c.priorities.find((p) => p.instance === id)?.priority ?? 32768
+      )
     );
     changed = true;
   }
@@ -772,11 +848,77 @@ export function receiveBpdu(e: SimulationEngine, d: Device, p: NetworkInterface,
     return;
   }
   if (!b || !d.spanningTree?.enabled) return;
-  if(b.mst){
-    const m=b.mst,region=JSON.stringify([m.name,m.revision,m.digest]),common=m.cist,boundary=d.multiSpanningTree?.mode!=='mstp'||region!==mstRegion(d);
-    if(d.multiSpanningTree?.mode==='mstp'&&p.mstBoundary!==boundary){p.mstBoundary=boundary;for(const id of stpInstances(d).filter(Boolean))withStpInstance(d,id,()=>refreshDevice(e,d));}
-    if(common.remainingHops>1)withStpInstance(d,0,()=>receiveClassic(e,d,p,{...f,bpdu:{mode:'rstp',root:common.root,cost:common.cost+common.internalCost,bridge:common.bridge,portId:common.portId,age:common.age,proposal:common.proposal,agreement:common.agreement,role:common.role,portState:common.portState,domain:'mstp',region,mst:m,...(common.change?{changeId:common.changeId??b.changeId??'mst-change-'+b.bridge.mac}:{} )}}));
-    if(!boundary)for(const record of m.records){if(record.remainingHops<=1||!d.multiSpanningTree?.instances.some(i=>i.id===record.instance))continue;withStpInstance(d,record.instance,()=>{if(p.spanningTree?.operational)receiveClassic(e,d,p,{...f,bpdu:{mode:'rstp',root:record.root,cost:record.cost,bridge:{priority:record.bridgePriority,mac:common.bridge.mac,instance:record.instance},portId:common.portId,age:common.age,proposal:record.proposal,agreement:record.agreement,role:record.role,portState:record.portState,domain:'mstp',region,instance:record.instance,mst:m,...(record.change?{changeId:record.changeId??b.changeId??'mst-change-'+b.bridge.mac}:{} )}});});}return;
+  if (b.mst) {
+    const m = b.mst,
+      region = JSON.stringify([m.name, m.revision, m.digest]),
+      common = m.cist,
+      boundary = d.multiSpanningTree?.mode !== 'mstp' || region !== mstRegion(d);
+    if (d.multiSpanningTree?.mode === 'mstp' && p.mstBoundary !== boundary) {
+      p.mstBoundary = boundary;
+      for (const id of stpInstances(d).filter(Boolean)) withStpInstance(d, id, () => refreshDevice(e, d));
+    }
+    if (common.remainingHops > 1)
+      withStpInstance(d, 0, () =>
+        receiveClassic(e, d, p, {
+          ...f,
+          bpdu: {
+            mode: 'rstp',
+            root: common.root,
+            cost: common.cost + common.internalCost,
+            bridge: common.bridge,
+            portId: common.portId,
+            age: common.age,
+            proposal: common.proposal,
+            agreement: common.agreement,
+            role: common.role,
+            portState: common.portState,
+            domain: 'mstp',
+            region,
+            mst: m,
+            ...(common.change
+              ? { changeId: common.changeId ?? b.changeId ?? 'mst-change-' + b.bridge.mac }
+              : {}),
+          },
+        })
+      );
+    if (!boundary)
+      for (const record of m.records) {
+        if (
+          record.remainingHops <= 1 ||
+          !d.multiSpanningTree?.instances.some((i) => i.id === record.instance)
+        )
+          continue;
+        withStpInstance(d, record.instance, () => {
+          if (p.spanningTree?.operational)
+            receiveClassic(e, d, p, {
+              ...f,
+              bpdu: {
+                mode: 'rstp',
+                root: record.root,
+                cost: record.cost,
+                bridge: {
+                  priority: record.bridgePriority,
+                  mac: common.bridge.mac,
+                  instance: record.instance,
+                },
+                portId: common.portId,
+                age: common.age,
+                proposal: record.proposal,
+                agreement: record.agreement,
+                role: record.role,
+                portState: record.portState,
+                domain: 'mstp',
+                region,
+                instance: record.instance,
+                mst: m,
+                ...(record.change
+                  ? { changeId: record.changeId ?? b.changeId ?? 'mst-change-' + b.bridge.mac }
+                  : {}),
+              },
+            });
+        });
+      }
+    return;
   }
   if (!b.instance) {
     if (d.multiSpanningTree?.mode === 'mstp') {

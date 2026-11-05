@@ -18,7 +18,13 @@ export function relayDhcpRequest(
   port: NetworkInterface,
   packet: UdpPacket
 ) {
-  if (packet.payload.protocol !== 'DHCP' || !routingEnabled(device) || !port.ip || !port.dhcpRelay?.length || !interfaceOperational(engine.state, device, port))
+  if (
+    packet.payload.protocol !== 'DHCP' ||
+    !routingEnabled(device) ||
+    !port.ip ||
+    !port.dhcpRelay?.length ||
+    !interfaceOperational(engine.state, device, port)
+  )
     return;
   const message = packet.payload.message;
   if (!['discover', 'request', 'decline'].includes(message.type) || packet.dst !== DHCP.broadcastIp) return;

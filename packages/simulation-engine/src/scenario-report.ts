@@ -8,6 +8,11 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 const ms = z.number().finite().nonnegative();
 const name = z.string().min(1).max(100);
+/**
+ * Reports carry the most recent diagnostics only. The engine may retain more (LIMITS.diagnostics);
+ * this bound keeps uploaded reports within the API's 2 MiB limit.
+ */
+export const SCENARIO_REPORT_DIAGNOSTICS = 4000;
 function finalDenialSemantics(contract?: string) {
   const parts = contract?.split('.').map(Number),
     boundary = [2026, 10, 15, 9];
@@ -134,7 +139,7 @@ export const scenarioReportSchema = z
           .strict()
       )
       .max(32),
-    diagnostics: z.array(eventSchema).max(4000),
+    diagnostics: z.array(eventSchema).max(SCENARIO_REPORT_DIAGNOSTICS),
     captureDropped: z.number().int().nonnegative(),
     actions: z
       .array(

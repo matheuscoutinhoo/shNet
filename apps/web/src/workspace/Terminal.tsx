@@ -221,7 +221,9 @@ export function Terminal({
         return;
       }
       if (data === '?' && !cli.secretInput) {
-        write('\r\n' + localized(cli.help(state.line)) + '\r\n' + coloredTerminalInput(cli.prompt, state.line));
+        write(
+          '\r\n' + localized(cli.help(state.line)) + '\r\n' + coloredTerminalInput(cli.prompt, state.line)
+        );
         return;
       }
       if (data === '\x1a') {

@@ -1,5 +1,5 @@
 import { canListenBgp } from './bgp';
-import {authenticTcp} from './tcp-auth';
+import { authenticTcp } from './tcp-auth';
 import type { SimulationEngine } from '../core/engine';
 import type { Action, Device } from '../model';
 import { portNumberSchema } from '../schemas';
@@ -265,7 +265,10 @@ export function receiveTcp(
   vrf?: string,
   scope?: string
 ) {
-  if(!authenticTcp(device,packet)){engine.drop(device,'TCP MD5 authentication failed.');return;}
+  if (!authenticTcp(device, packet)) {
+    engine.drop(device, 'TCP MD5 authentication failed.');
+    return;
+  }
   engine.emit(
     'TCP_RECEIVED',
     device.id,

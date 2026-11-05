@@ -7,7 +7,7 @@ export const mqcMatchSchema = z
     dscp: z.number().int().min(0).max(63).optional(),
     dscps: z.array(z.number().int().min(0).max(63)).max(64).optional(),
     destinationPort: z.number().int().min(1).max(65535).optional(),
-    acl:name.optional(),
+    acl: name.optional(),
   })
   .strict();
 export const mqcSchema = z
@@ -41,6 +41,8 @@ export const mqcSchema = z
           .strict()
       )
       .max(64),
-    attachments: z.array(z.object({ port: idSchema, policy: name, direction:z.enum(['in','out']).optional() }).strict()).max(96),
+    attachments: z
+      .array(z.object({ port: idSchema, policy: name, direction: z.enum(['in', 'out']).optional() }).strict())
+      .max(96),
   })
   .strict();

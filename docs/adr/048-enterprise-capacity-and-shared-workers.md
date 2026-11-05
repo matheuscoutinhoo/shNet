@@ -26,7 +26,7 @@ Expiração de MAC/ARP/DNS acompanha o próximo prazo e os aprendizados antecipa
 
 ## Concorrência da API
 
-Snapshots com mais de 200 dispositivos ou 1 MiB de JSON são validados em dois Workers compartilhados pelas instâncias de API do processo. A admissão limita o total a 32 tarefas e 128 MiB de JSON pendente; cada Worker tem limite de heap de 256 MiB e validação ativa de até 30 segundos. Saturação ou interrupção produz 503 recuperável; nenhum projeto é parcialmente salvo. Ownership e revisão são conferidos antes da validação cara e o UPDATE mantém a condição de revisão para cobrir alterações concorrentes.
+Snapshots com mais de 200 dispositivos ou 1 MiB de JSON são validados em dois Workers compartilhados pelas instâncias de API do processo. A admissão limita o total a 32 tarefas e 192 MiB de JSON pendente (128 MiB até 04/11/2026; ver revisão abaixo); cada Worker tem limite de heap de 256 MiB e validação ativa de até 30 segundos. Saturação ou interrupção produz 503 recuperável; nenhum projeto é parcialmente salvo. Ownership e revisão são conferidos antes da validação cara e o UPDATE mantém a condição de revisão para cobrir alterações concorrentes.
 
 O ensaio cria e remove seu próprio banco em PostgreSQL de testes em loopback. Usa HTTP/WebSocket reais, duas instâncias lógicas de API e um processo separado de clientes. Testa 20 donos, três rodadas de salvar/reabrir/listar, revisão obsoleta, acesso de outro dono e notificações entre instâncias sem cruzar donos. Não autentica usuários reais nem usa o banco de produção.
 
@@ -45,3 +45,13 @@ A CI adiciona gate de capacidade com PostgreSQL 18 e os dois tamanhos de projeto
 A [CI 38658476431](https://github.com/matheuscoutinhoo/shNet/actions/runs/38658476431), commit `bf875440ecb0bd6bd3be006cbcf6a2b964feb872`, concluiu todos os cinco jobs: 840 testes aprovados, zero falhas e um caso de captura universal ainda adiado; 60 testes de navegador por tema, sem skips, falhas ou flakiness; capacidade, containers Linux, TLS/WSS, backup/restore e rollback de imagem aprovados. A versão foi integrada por avanço da `main` em 15/10/2026. As evidências estão em [ci-qualified](../../artifacts/capacity-and-services-2026-10-14/ci-qualified/summary.json); os relatórios de navegador arquivados omitem logs de servidor e anexos, mantendo casos, status, tempos e repetições.
 
 O perfil final de 20 donos × 2.000 dispositivos teve 60 saves aprovados, p95 de 11,88 s, RSS máximo de aproximadamente 1.292 MiB e heap principal após GC de 67,91–68,00 MiB. O hash de fonte do motor qualificado é `3692ed429a3fc229276986268ff38e73a578f7699457efde4d54590e6f39d5b1`; o grafo do Worker é `7b8126f95e9e70a352fea7569362b0e0ad2eba943a84dbf1a7d490ad3e1f69cc`. Esses hashes são do contrato `.1`, não de incrementos posteriores de R10.
+
+## Revisão de 04/11/2026 — histórico maior por projeto
+
+O contrato `2026.10.31.1` ampliou o histórico retido no snapshot: 5.000 eventos (antes 1.500) e 10.000 diagnósticos (antes 4.000). O projeto de 2.000 dispositivos do ensaio passou de cerca de 5,7 MiB para 7,34 MiB de JSON (dispositivos 3,41; fila 1,04; eventos 1,75; diagnósticos 0,80 MiB). Com 20 saves simultâneos, cerca de 147 MiB ficavam pendentes, acima da admissão de 128 MiB: a CI de capacidade passou a receber 503 "Validação ocupada".
+
+- A admissão passou a 192 MiB de JSON pendente; tarefas (32), Workers (2), heap (256 MiB) e tempo de validação (30 s) não mudaram.
+- O pool PostgreSQL de cada processo continua com 10 conexões, mas espera até 15 s por uma conexão livre (antes 5 s). Com linhas de ~7 MiB, a espera chegava perto de 5 s e um GET ocasionalmente falhava com `timeout exceeded when trying to connect` (500); com espera de 1 s a falha era reproduzida em toda execução.
+- Relatórios de cenário levam os 4.000 diagnósticos mais recentes (`SCENARIO_REPORT_DIAGNOSTICS`), o mesmo conteúdo de antes da ampliação; o motor continua retendo 10.000. Isso mantém o relatório dentro do esquema e do limite de upload de 2 MiB da API.
+
+No PostgreSQL 18 local (Windows, cluster isolado), quatro execuções consecutivas de 20 donos × 2.000 dispositivos aprovaram todos os 60 saves, reaberturas e listagens de cada uma: p95 de save entre 24,0 e 27,0 s, RSS máximo entre 1.098 e 1.146 MiB e atraso de event loop com p95 entre 687 e 801 ms. Os tempos não são comparáveis aos da CI Linux acima; a garantia verificada continua sendo a ausência de falhas sob essa carga.

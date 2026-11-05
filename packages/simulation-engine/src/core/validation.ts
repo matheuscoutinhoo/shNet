@@ -273,8 +273,7 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
     s.probes.map((p) => p.id),
     'ID de probe'
   );
-  for (const p of s.probes)
-    if (!validatedDevice(s, p.device)) throw new Error('Probe sem origem');
+  for (const p of s.probes) if (!validatedDevice(s, p.device)) throw new Error('Probe sem origem');
   for (const q of s.queue) {
     if (q.at < s.clock || q.order > s.sequence) throw new Error('Relógio ou ordem de fila inválidos');
     const a = q.action;

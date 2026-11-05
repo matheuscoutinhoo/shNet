@@ -41,7 +41,9 @@ export const CONFIG_MODES: Mode[] = [
   'class-map',
   'policy-map',
   'policy-class',
-  'key-chain','key-chain-key','bfd-template',
+  'key-chain',
+  'key-chain-key',
+  'bfd-template',
 ];
 export const ALL_MODES: Mode[] = ['user', 'privileged', ...CONFIG_MODES];
 export const EXEC_MODES: Mode[] = ['user', 'privileged'];
@@ -171,7 +173,14 @@ export class CommandRegistry {
     }
     return { wrongMode };
   }
-  private run(command: Command, match: RegExpMatchArray, input: string, e: SimulationEngine, d: Device, c: Context) {
+  private run(
+    command: Command,
+    match: RegExpMatchArray,
+    input: string,
+    e: SimulationEngine,
+    d: Device,
+    c: Context
+  ) {
     if (c.ports?.length && c.mode === 'interface' && !/^interface\s/i.test(input)) {
       const [first, ...rest] = c.ports;
       const work: Context = { ...c, port: first, ports: undefined };
@@ -215,10 +224,12 @@ export class CommandRegistry {
         }
       }
     if (terminalIdentity(d).host) {
-      if (found.wrongMode) throw new Error('Comando indisponível neste modo. Use enable / configure terminal.');
+      if (found.wrongMode)
+        throw new Error('Comando indisponível neste modo. Use enable / configure terminal.');
       throw new Error('Comando não reconhecido. Digite help.');
     }
-    if (found.wrongMode) throw new Error('Command not available in this mode. Use enable or configure terminal.');
+    if (found.wrongMode)
+      throw new Error('Command not available in this mode. Use enable or configure terminal.');
     throw new Error("Invalid input detected at '^' marker.");
   }
 }
