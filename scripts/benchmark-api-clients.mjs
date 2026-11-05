@@ -42,7 +42,9 @@ process.once('message', async ({ actors, topology }) => {
         ']';
       (latencies[label] ??= []).push(performance.now() - started);
       if (response.status !== expected)
-        throw new Error(`Resposta inesperada: ${method} (${response.status}, esperado ${expected}).`);
+        throw new Error(
+          `Resposta inesperada: ${method} (${response.status}, esperado ${expected}). ${data.slice(0, 200)}`
+        );
       return data ? JSON.parse(data) : undefined;
     };
     for (let round = 0; round < 3; round++) {

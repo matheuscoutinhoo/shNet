@@ -38,7 +38,9 @@ function pgConnection(client: Pool | PoolClient): Database {
   };
 }
 export function createPostgres(url: string): Database {
-  const pool = new Pool({ connectionString: url, max: 10, connectionTimeoutMillis: 5000 });
+  // Bursts of large saves wait for a connection instead of failing: 20 concurrent
+  // 2,000-device projects moving ~7 MiB rows can occupy all 10 connections for several seconds.
+  const pool = new Pool({ connectionString: url, max: 10, connectionTimeoutMillis: 15000 });
   return {
     ...pgConnection(pool),
     async subscribe(channel, callback, status) {

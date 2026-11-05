@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { SimulationEngine, TerminalSession, validateSnapshot } from '../packages/simulation-engine/src';
+import {
+  SimulationEngine,
+  ScenarioRunner,
+  TerminalSession,
+  makeTemplate,
+  scenarioReportSchema,
+  validateSnapshot,
+} from '../packages/simulation-engine/src';
 import { DHCP_LIMITS, LIMITS } from '../packages/simulation-engine/src/model';
+import { SCENARIO_REPORT_DIAGNOSTICS } from '../packages/simulation-engine/src/scenario-report';
 
 const run = (t: TerminalSession, lines: string[]) => {
   for (const line of lines) expect(t.execute(line), line).not.toMatch(/^%/);
@@ -83,5 +91,37 @@ describe('scale limits for enterprise labs', () => {
   it('keeps more events and in-flight pings', () => {
     expect(LIMITS.events).toBeGreaterThanOrEqual(5000);
     expect(LIMITS.probes).toBeGreaterThanOrEqual(1000);
+  });
+
+  it('scenario reports keep the most recent diagnostics within the upload limit', () => {
+    const e = new SimulationEngine(makeTemplate('lan'));
+    const pc = e.state.devices.find((d) => d.type === 'pc')!;
+    // More diagnostics than a report may carry, but fewer than the engine retains.
+    for (let i = 0; i < SCENARIO_REPORT_DIAGNOSTICS + 500; i++)
+      e.emit('CONFIG_CHANGED', pc.id, 'Change ' + i);
+    expect(e.state.diagnostics!.length).toBeGreaterThan(SCENARIO_REPORT_DIAGNOSTICS);
+    expect(LIMITS.diagnostics).toBeGreaterThan(SCENARIO_REPORT_DIAGNOSTICS);
+    const runner = new ScenarioRunner(e.snapshot(), {
+      name: 'Long history',
+      durationMs: 2000,
+      intervalMs: 1000,
+      deadlineMs: 500,
+      flows: [
+        {
+          name: 'Ping',
+          source: pc.id,
+          target: '192.168.10.20',
+          protocol: 'icmp',
+          expect: 'allow',
+          maxLossPercent: 100,
+        },
+      ],
+      faults: [],
+    });
+    for (let i = 0; i < 1000 && !runner.step(200); i++);
+    const report = scenarioReportSchema.parse(runner.report());
+    expect(report.diagnostics).toHaveLength(SCENARIO_REPORT_DIAGNOSTICS);
+    expect(report.diagnostics.at(-1)).toEqual(runner.engine.state.diagnostics!.at(-1));
+    expect(Buffer.byteLength(JSON.stringify(report))).toBeLessThan(2 * 1024 * 1024);
   });
 });

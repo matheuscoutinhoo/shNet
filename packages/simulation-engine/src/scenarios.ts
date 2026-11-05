@@ -10,6 +10,7 @@ import { modbusRequest, decodeModbus, modbusFrameLength } from './protocols/modb
 export { scenarioSchema, type Scenario } from './scenarios-model';
 import { preflight } from './preflight';
 import { scenarioRecovery } from './scenario-metrics';
+import { SCENARIO_REPORT_DIAGNOSTICS } from './scenario-report';
 import { scenarioEvidence, type ScenarioEvidence } from './scenario-evidence';
 import { applyConfigurationPatch } from './configuration-patch';
 import type { ConfigurationPatch } from './configuration-patch-model';
@@ -455,7 +456,7 @@ export class ScenarioRunner {
         ...f,
         recovery: scenarioRecovery(this.scenario, this.samples, f.atMs, true),
       })),
-      diagnostics: this.engine.state.diagnostics ?? [],
+      diagnostics: (this.engine.state.diagnostics ?? []).slice(-SCENARIO_REPORT_DIAGNOSTICS),
       captureDropped: (this.engine.state.capture?.dropped ?? 0) + this.restoredCaptureDrops,
       ...(this.scenario.actions ? { actions: this.actionResults } : {}),
       ...(this.scenario.assertions ? { assertions: this.assertionResults } : {}),

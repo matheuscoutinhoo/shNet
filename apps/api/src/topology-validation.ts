@@ -45,9 +45,11 @@ class ValidationPool {
         );
       }
     }
+    // Admission bounds the JSON awaiting validation. 192 MiB admits 20 concurrent 2,000-device
+    // saves (about 7.3 MiB each with the retained event and diagnostic history).
     if (
       this.queue.length + this.slots.filter((s) => s.task).length >= 32 ||
-      this.bytes + bytes > 128 * 1048576
+      this.bytes + bytes > 192 * 1048576
     )
       return Promise.reject(
         failure(503, 'Validação ocupada. Seu trabalho pode ser salvo novamente em alguns segundos.')
