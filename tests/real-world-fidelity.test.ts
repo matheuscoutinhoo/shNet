@@ -1750,6 +1750,107 @@ describe('IOS exec commands and output modifiers', () => {
     );
   });
 });
+describe('IOS NAT pools and static PAT', () => {
+  it('translates through an ACL-bound pool, forwards a port to an inside server and survives reload', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [edge, isp],
+      terminals: [te, ti],
+      cable,
+      advance,
+    } = lab('router', 'router');
+    const web = e.addFactoryProfile('web', { x: 0, y: 200 }),
+      pc = e.addFactoryProfile('desktop', { x: 400, y: 200 });
+    for (const d of [web, pc]) e.setDevicePower(d.id, true);
+    e.disableDhcp(pc.id, e.device(pc.id).interfaces[0].id);
+    Object.assign(e.device(web.id).interfaces[0], { ip: '10.1.1.80', prefix: 24, gateway: '10.1.1.1' });
+    e.configureTcpService(web.id, { enabled: true, kind: 'http', port: 80, body: 'Intranet' });
+    Object.assign(e.device(pc.id).interfaces[0], { ip: '192.0.2.10', prefix: 24, gateway: '192.0.2.1' });
+    const port = (d: Device, name: string) => e.device(d.id).interfaces.find((p) => p.name === name)!.id;
+    e.connect(
+      { device: web.id, port: e.device(web.id).interfaces[0].id },
+      { device: edge.id, port: port(edge, 'Gi0/1') }
+    );
+    e.connect(
+      { device: pc.id, port: e.device(pc.id).interfaces[0].id },
+      { device: isp.id, port: port(isp, 'Gi0/2') }
+    );
+    cable(edge, 'Gi0/2', isp, 'Gi0/1');
+    ok(ti, [
+      'interface Gi0/1',
+      'ip address 198.51.100.1 255.255.255.252',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 192.0.2.1 255.255.255.0',
+      'no shutdown',
+      'interface Loopback0',
+      'ip address 8.8.8.8 255.255.255.255',
+      'exit',
+      // The provider routes the customer's public block to the edge.
+      'ip route 203.0.113.0 255.255.255.0 198.51.100.2',
+      'end',
+    ]);
+    ok(te, [
+      'ip access-list standard NAT-USERS',
+      'permit 10.1.1.0 0.0.0.255',
+      'exit',
+      'interface Gi0/1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'ip nat inside',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 198.51.100.2 255.255.255.252',
+      'ip nat outside',
+      'no shutdown',
+      'exit',
+      'ip route 0.0.0.0 0.0.0.0 198.51.100.1',
+      'ip nat pool PUB 203.0.113.10 203.0.113.20 netmask 255.255.255.0',
+      'ip nat inside source list NAT-USERS pool PUB overload',
+      'ip nat inside source static tcp 10.1.1.80 80 198.51.100.2 8080 extendable',
+      'end',
+    ]);
+    advance(5_000);
+    // Outbound: the pool address (not the interface) is the inside global.
+    e.ping(web.id, '8.8.8.8');
+    advance(5_000);
+    expect(e.state.probes.at(-1)?.status).toBe('success');
+    const translations = te.execute('show ip nat translations');
+    expect(translations).toMatch(/^icmp 203\.0\.113\.10:\d+\s+10\.1\.1\.80:\d+\s+8\.8\.8\.8:\d+/m);
+    expect(translations).toMatch(/^tcp {2}198\.51\.100\.2:8080 +10\.1\.1\.80:80 +--- +---$/m);
+    // Inbound port forwarding to the web server; the reply leaves with the forwarded port.
+    const request = e.httpGet(pc.id, '198.51.100.2', 8080);
+    advance(5_000);
+    expect(e.device(pc.id).tcpConnections!.find((c) => c.id === request)!.received).toContain('200 OK');
+    const statistics = te.execute('show ip nat statistics');
+    expect(statistics).toContain(
+      'Outside interfaces:\n  GigabitEthernet0/2\nInside interfaces: \n  GigabitEthernet0/1'
+    );
+    expect(statistics).toContain('[Id: 1] access-list NAT-USERS pool PUB refcount 1');
+    expect(statistics).toContain('\tstart 203.0.113.10 end 203.0.113.20');
+    ok(te, ['configure terminal']);
+    expect(te.execute('no ip nat pool PUB')).toBe('% Pool PUB in use, cannot destroy');
+    expect(te.execute('ip nat inside source static tcp 10.1.1.81 80 198.51.100.2 8080')).toBe(
+      '% similar static entry (198.51.100.2:8080) already exists'
+    );
+    ok(te, ['end', 'clear ip nat translation *']);
+    expect(e.device(edge.id).nat!.bindings).toEqual([]);
+    expect(te.execute('show ip nat translations')).toContain('Total number of translations: 1');
+    const running = te.execute('show running-config');
+    for (const line of [
+      'ip nat pool PUB 203.0.113.10 203.0.113.20 netmask 255.255.255.0',
+      'ip nat inside source list NAT-USERS pool PUB overload',
+      'ip nat inside source static tcp 10.1.1.80 80 198.51.100.2 8080 extendable',
+    ])
+      expect(running).toContain('\n' + line + '\n');
+    expect(running).not.toMatch(/^service nat$/m);
+    ok(te, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(te, ['enable']);
+    expect(te.execute('show running-config')).toBe(running);
+    expect(e.device(edge.id).bootLog).toEqual([]);
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {

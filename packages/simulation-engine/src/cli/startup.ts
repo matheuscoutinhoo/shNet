@@ -280,7 +280,17 @@ export function saveStartup(e: SimulationEngine, d: Device, registry: CommandReg
     rip: d.rip ? ripConfigSchema.parse(pick(d.rip, Object.keys(ripConfigSchema.shape))) : undefined,
     bgp: bgpConfig(d),
     nat: d.nat
-      ? pick(d.nat, ['enabled', 'hairpin', 'algSip', 'statics', 'pools', 'interfaceRules'])
+      ? pick(d.nat, [
+          'enabled',
+          'hairpin',
+          'algSip',
+          'statics',
+          'portStatics',
+          'pools',
+          'iosPools',
+          'poolRules',
+          'interfaceRules',
+        ])
       : undefined,
     accessLists: d.accessLists?.map((acl) => ({
       ...acl,

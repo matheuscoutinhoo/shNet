@@ -36,7 +36,7 @@ export function natIcmpInbound(
   );
   const poolContains = natPools(device).some(
     (pool) =>
-      pool.outside === port.id &&
+      staticNatOutside(pool.outside, port) &&
       ipNumber(packet.dst) >= ipNumber(pool.start) &&
       ipNumber(packet.dst) <= ipNumber(pool.end)
   );
@@ -48,7 +48,7 @@ export function natIcmpInbound(
       (entry) =>
         entry.global === packet.dst &&
         entry.expiresAt > engine.state.clock &&
-        natPools(device).some((pool) => pool.name === entry.pool && pool.outside === port.id) &&
+        natPools(device).some((pool) => pool.name === entry.pool && staticNatOutside(pool.outside, port)) &&
         matches(entry, quote, 'src')
     );
   const local =

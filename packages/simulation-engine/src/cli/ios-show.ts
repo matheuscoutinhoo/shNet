@@ -395,22 +395,39 @@ export function showVlan(d: Device, brief: boolean) {
 export function showNatTranslations(d: Device) {
   const nat = d.nat;
   const proto = (p: string) => (p === 'ip' ? '---' : p.toLowerCase());
+  // ICMP translations are keyed by the echo identifier, shown as a number like IOS.
+  const id = (protocol: string, token?: string) =>
+    protocol === 'ICMP' ? (token?.match(/(\d+)$/)?.[1] ?? '1') : token;
   const at = (ip: string, token?: string) => (token ? ip + ':' + token : ip);
-  return [
-    'Pro  Inside global         Inside local          Outside local         Outside global',
+  const rows = [
     ...(nat?.bindings ?? []).map((b) => {
-      const outside = b.remote ? at(b.remote, b.remotePort?.toString()) : '---';
+      const outside = b.remote
+        ? at(b.remote, b.protocol === 'ICMP' ? id(b.protocol, b.insideToken) : b.remotePort?.toString())
+        : '---';
       return (
         proto(b.protocol).padEnd(5) +
-        at(b.global, b.globalToken).padEnd(22) +
-        at(b.inside, b.insideToken).padEnd(22) +
+        at(b.global, id(b.protocol, b.globalToken)).padEnd(22) +
+        at(b.inside, id(b.protocol, b.insideToken)).padEnd(22) +
         outside.padEnd(22) +
         outside
       );
     }),
+    ...(nat?.portStatics ?? []).map(
+      (s) =>
+        s.protocol.padEnd(5) +
+        at(s.global, String(s.globalPort)).padEnd(22) +
+        at(s.inside, String(s.insidePort)).padEnd(22) +
+        '---'.padEnd(22) +
+        '---'
+    ),
     ...(nat?.statics ?? []).map(
       (s) => '---  ' + s.global.padEnd(22) + s.inside.padEnd(22) + '---'.padEnd(22) + '---'
     ),
+  ];
+  return [
+    'Pro  Inside global         Inside local          Outside local         Outside global',
+    ...rows,
+    'Total number of translations: ' + rows.length,
   ].join('\n');
 }
 

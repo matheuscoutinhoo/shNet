@@ -334,7 +334,42 @@ export const natSchema = z
     sipBindings: z.array(sipAlgBindingSchema).max(256).optional(),
     hairpins: z.array(hairpinBindingSchema).max(256).optional(),
     statics: z.array(z.object({ inside: ipv4Schema, global: ipv4Schema, outside: id }).strict()).max(128),
+    // IOS static PAT (port forwarding): "ip nat inside source static tcp|udp L LP G GP [extendable]".
+    portStatics: z
+      .array(
+        z
+          .object({
+            protocol: z.enum(['tcp', 'udp']),
+            inside: ipv4Schema,
+            insidePort: z.number().int().min(1).max(65535),
+            global: ipv4Schema,
+            globalPort: z.number().int().min(1).max(65535),
+            extendable: z.literal(true).optional(),
+          })
+          .strict()
+      )
+      .max(128)
+      .optional(),
     pools: z.array(natPoolSchema).max(8),
+    // IOS "ip nat pool NAME START END netmask|prefix-length": addresses for "source list ACL pool NAME".
+    iosPools: z
+      .array(
+        z
+          .object({
+            name: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
+            start: ipv4Schema,
+            end: ipv4Schema,
+            prefix: z.number().int().min(8).max(32),
+          })
+          .strict()
+      )
+      .max(16)
+      .optional(),
+    // IOS "ip nat inside source list ACL pool NAME [overload]".
+    poolRules: z
+      .array(z.object({ acl: z.string().max(32), pool: z.string().max(32), overload: z.boolean() }).strict())
+      .max(16)
+      .optional(),
     interfaceRules: z
       .array(z.object({ name: z.string().max(32), acl: z.string().max(32), outside: id }).strict())
       .max(8)

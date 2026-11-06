@@ -79,14 +79,19 @@ export function stateSyncCompatible(d: Device, peer: Device) {
             ...p,
             outside: translate && p.outside !== '*' ? mapped(x, p.outside) : p.outside,
           })),
-          pools: natPools(x).map((p) => ({ ...p, outside: translate ? mapped(x, p.outside) : p.outside })),
-          accessLists: x.nat.interfaceRules?.length
-            ? x.accessLists?.map((a) => ({
-                ...a,
-                implicitDrops: 0,
-                rules: a.rules.map((r) => ({ ...r, hits: 0 })),
-              }))
-            : undefined,
+          portStatics: x.nat.portStatics ?? [],
+          pools: natPools(x).map((p) => ({
+            ...p,
+            outside: translate && p.outside !== '*' ? mapped(x, p.outside) : p.outside,
+          })),
+          accessLists:
+            x.nat.interfaceRules?.length || x.nat.poolRules?.length
+              ? x.accessLists?.map((a) => ({
+                  ...a,
+                  implicitDrops: 0,
+                  rules: a.rules.map((r) => ({ ...r, hits: 0 })),
+                }))
+              : undefined,
         }
       : null;
   return (
