@@ -54,12 +54,15 @@ export function handleNtp(e: SimulationEngine, a: Extract<Action, { kind: 'ntp-t
     s.index = (s.index + 1) % s.servers.length;
     e.emit('NTP_STATE', d.id, 'Servidor sem resposta; próximo peer NTP.');
   }
-  if (
-    s.enabled &&
-    d.power &&
-    !s.pending &&
-    (s.lastSync === undefined || !s.synchronized || e.state.clock - s.lastSync >= s.intervalMs)
-  ) {
+  // Like IOS, the client polls once per poll interval whether or not it is synchronized: a round
+  // tries each configured server once (failing over on timeout), then waits for the next interval.
+  const due = !s.synchronized || s.lastSync === undefined || e.state.clock - s.lastSync >= s.intervalMs;
+  if (due && (s.roundAt === undefined || e.state.clock - s.roundAt >= s.intervalMs)) {
+    s.roundAt = e.state.clock;
+    s.roundTried = 0;
+  }
+  if (s.enabled && d.power && !s.pending && due && (s.roundTried ?? 0) < s.servers.length) {
+    s.roundTried = (s.roundTried ?? 0) + 1;
     const server = s.servers[s.index],
       route = resolveRoute(d, server);
     if (route?.port.ip) {
@@ -107,11 +110,15 @@ export function receiveNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
     return;
   const m = p.payload.message;
   if (m.mode === 'client') {
-    if (p.destinationPort !== 123 || !d.networkClock?.server || (d.ntp?.enabled && !d.ntp.synchronized)) {
+    // IOS answers NTP clients once it is synchronized itself, or as "ntp master" when it has no
+    // synchronized upstream (the master clock is the fallback reference).
+    const synced = !!d.ntp?.enabled && d.ntp.synchronized,
+      master = !!d.networkClock?.server;
+    if (p.destinationPort !== 123 || (!synced && !master)) {
       e.drop(d, 'NTP: servidor indisponível/não sincronizado.');
       return;
     }
-    const stratum = d.ntp?.enabled ? d.ntp.stratum : d.networkClock.stratum;
+    const stratum = synced ? d.ntp!.stratum : d.networkClock!.stratum;
     if (stratum > 15) return;
     const now = networkTime(e, d);
     e.sendIp(d.id, {
@@ -183,6 +190,8 @@ export function validateNtp(s: Snapshot) {
       n.servers.some((ip) => !isUnicast(ip) || d.interfaces.some((p) => p.ip === ip)) ||
       n.samples.some((x) => x.at > s.clock) ||
       (n.lastSync !== undefined && n.lastSync > s.clock) ||
+      (n.roundAt !== undefined && n.roundAt > s.clock) ||
+      (n.roundTried ?? 0) > n.servers.length ||
       (n.synchronized && (!n.lastSync || n.stratum >= 16 || !n.samples.length)) ||
       (n.pending &&
         (!n.enabled ||
@@ -209,5 +218,5 @@ export function stampNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
     m.originate = networkTime(e, d);
     d.ntp.pending.originate = m.originate;
   }
-  if (m.mode === 'server' && d.networkClock?.server) m.transmit = networkTime(e, d);
+  if (m.mode === 'server') m.transmit = networkTime(e, d);
 }

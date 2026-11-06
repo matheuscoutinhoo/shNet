@@ -100,6 +100,9 @@ export const ntpStateSchema = ntpConfigSchema
       .optional(),
     synchronized: z.boolean(),
     lastSync: timeSchema.optional(),
+    // Current poll round: every configured server is tried at most once per poll interval.
+    roundAt: timeSchema.optional(),
+    roundTried: z.number().int().min(0).max(8).optional(),
     stratum: z.number().int().min(1).max(16),
     samples: z
       .array(

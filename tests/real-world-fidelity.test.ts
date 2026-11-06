@@ -602,3 +602,65 @@ describe('IP SLA operations are independent of the ping history', () => {
     expect(r.monitoring!.tracks[0].state).toBe(true);
   });
 });
+
+describe('NTP like IOS', () => {
+  it('synchronized devices serve time down the hierarchy and ntp master still serves without its upstream', () => {
+    const {
+      devices: [r1, r2, r3],
+      terminals: [t1, t2, t3],
+      cable,
+      advance,
+      e,
+    } = lab('router', 'router', 'router');
+    cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    cable(r2, 'Gi0/2', r3, 'Gi0/1');
+    // R1's own upstream is unreachable; "ntp master 3" keeps it authoritative.
+    ok(t1, [
+      'interface Gi0/1',
+      'ip address 10.0.12.1 255.255.255.252',
+      'exit',
+      'ntp master 3',
+      'ntp server 203.0.113.1',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Gi0/1',
+      'ip address 10.0.12.2 255.255.255.252',
+      'interface Gi0/2',
+      'ip address 10.0.23.1 255.255.255.252',
+      'exit',
+      'ntp server 10.0.12.1',
+      'end',
+    ]);
+    ok(t3, [
+      'interface Gi0/1',
+      'ip address 10.0.23.2 255.255.255.252',
+      'exit',
+      'ntp server 10.0.23.1',
+      'end',
+    ]);
+    // R3 may poll R2 before R2 is synchronized; it then retries at the next poll interval (64 s).
+    advance(70000);
+    expect(e.device(r2.id).ntp).toMatchObject({ synchronized: true, stratum: 4 });
+    expect(e.device(r3.id).ntp).toMatchObject({ synchronized: true, stratum: 5 });
+    expect(e.device(r1.id).ntp?.synchronized).toBe(false);
+  });
+  it('an unanswered client keeps polling once per poll interval instead of every few seconds', () => {
+    const {
+      devices: [server, client],
+      terminals: [ts, tc],
+      cable,
+      advance,
+      e,
+    } = lab('router', 'router');
+    cable(server, 'Gi0/1', client, 'Gi0/1');
+    ok(ts, ['interface Gi0/1', 'ip address 10.0.0.1 255.255.255.252', 'end']);
+    ok(tc, ['interface Gi0/1', 'ip address 10.0.0.2 255.255.255.252', 'exit', 'ntp server 10.0.0.1', 'end']);
+    advance(300000);
+    const ntp = e.device(client.id).ntp!;
+    expect(ntp.synchronized).toBe(false);
+    // One request at start-up, then one per 64 s interval: 5 in 300 s (it was one every ~4 s).
+    expect(ntp.failures).toBeGreaterThanOrEqual(4);
+    expect(ntp.failures).toBeLessThanOrEqual(5);
+  });
+});

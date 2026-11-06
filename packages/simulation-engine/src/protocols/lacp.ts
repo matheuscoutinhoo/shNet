@@ -185,11 +185,15 @@ function send(e: SimulationEngine, d: Device, aggregate: NetworkInterface, membe
   e.sendFrame(d.id, member.id, frame);
 }
 export function refreshLacp(e: SimulationEngine) {
+  let next = Infinity;
   for (const d of protocolDevices(e.state, 'lacp'))
-    for (const port of d.interfaces.filter((p) => p.aggregate)) {
-      const agg = port.aggregate!,
-        selected = lacpMembers(e.state, d, port);
-      if (JSON.stringify(agg.selected) === JSON.stringify(selected)) continue;
+    for (const port of d.interfaces) {
+      const agg = port.aggregate;
+      if (!agg) continue;
+      for (const r of agg.received) if (r.expiresAt > e.state.clock && r.expiresAt < next) next = r.expiresAt;
+      const selected = lacpMembers(e.state, d, port);
+      if (selected.length === agg.selected.length && selected.every((id, i) => id === agg.selected[i]))
+        continue;
       agg.selected = selected;
       d.macTable = d.macTable.filter((m) => m.port !== port.id);
       e.emit(
@@ -199,6 +203,17 @@ export function refreshLacp(e: SimulationEngine) {
         { port: port.id }
       );
     }
+  lacpDeadlines.set(e.state, next);
+}
+// Earliest expiry of a received LACPDU as of the last full refresh, per simulation state.
+const lacpDeadlines = new WeakMap<Snapshot, number>();
+/**
+ * Whether bundle membership may have changed by time alone (a partner's LACPDU expired) since the
+ * last refresh; carrier and configuration changes are reported by their own events.
+ */
+export function lacpRefreshDue(s: Snapshot) {
+  const at = lacpDeadlines.get(s);
+  return at === undefined || s.clock >= at;
 }
 export function handleLacpTick(e: SimulationEngine, action: Extract<Action, { kind: 'lacp-tick' }>) {
   const d = e.device(action.device),

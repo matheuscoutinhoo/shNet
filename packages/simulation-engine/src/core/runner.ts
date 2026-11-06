@@ -57,7 +57,7 @@ export class SimulationRunner {
     invalidateBgpRefresh(this.engine.state);
     let processed = 0;
     while (processed < maxSteps && performance.now() - start < wallMs) {
-      if (!this.engine.step(false)) break;
+      if (!this.engine.step(false, processed === 0)) break;
       processed++;
     }
     for (const d of this.engine.state.devices)

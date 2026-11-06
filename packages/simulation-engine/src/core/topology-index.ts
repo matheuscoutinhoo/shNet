@@ -5,9 +5,16 @@ const ports = new WeakMap<
   Device,
   { array: NetworkInterface[]; length: number; map: Map<string, Entry<NetworkInterface>> }
 >();
+type Ends = { entries: Entry<Link>[]; values: Link[] };
 const links = new WeakMap<
   Snapshot,
-  { array: Link[]; length: number; ids: Map<string, Entry<Link>>; ends: Map<string, Entry<Link>[]> }
+  {
+    array: Link[];
+    length: number;
+    ids: Map<string, Entry<Link>>;
+    // device id → port id → cables at that port; nested maps avoid building a key per lookup.
+    ends: Map<string, Map<string, Ends>>;
+  }
 >();
 export function findDevice(s: Snapshot, id: string): Device | undefined {
   let cache = devices.get(s),
@@ -51,19 +58,26 @@ export function findPort(d: Device, id: string): NetworkInterface | undefined {
   }
   return item?.value;
 }
-const endKey = (device: string, port: string) => JSON.stringify([device, port]);
 function build(s: Snapshot) {
   const ids = new Map<string, Entry<Link>>(),
-    ends = new Map<string, Entry<Link>[]>();
+    ends = new Map<string, Map<string, Ends>>();
+  const at = (device: string, port: string) => {
+    let byPort = ends.get(device);
+    if (!byPort) ends.set(device, (byPort = new Map()));
+    let found = byPort.get(port);
+    if (!found) byPort.set(port, (found = { entries: [], values: [] }));
+    return found;
+  };
   // An unconnected, known port is a valid cached result. Otherwise every carrier
   // check on a spare port rebuilds the entire graph.
-  for (const d of s.devices) for (const p of d.interfaces) ends.set(endKey(d.id, p.id), []);
+  for (const d of s.devices) for (const p of d.interfaces) at(d.id, p.id);
   s.links.forEach((value, index) => {
     const entry = { value, index };
     ids.set(value.id, entry);
     for (const end of [value.a, value.b]) {
-      const key = endKey(end.device, end.port);
-      ends.set(key, [...(ends.get(key) ?? []), entry]);
+      const found = at(end.device, end.port);
+      found.entries.push(entry);
+      found.values.push(value);
     }
   });
   const cache = { array: s.links, length: s.links.length, ids, ends };
@@ -92,20 +106,24 @@ export function findLink(s: Snapshot, id: string): Link | undefined {
 }
 export function linksAt(s: Snapshot, device: string, port: string): Link[] {
   let cache = links.get(s),
-    entries = cache?.ends.get(endKey(device, port));
+    found = cache?.ends.get(device)?.get(port);
   if (
     !cache ||
     cache.array !== s.links ||
     cache.length !== s.links.length ||
-    !entries ||
-    entries.some(
+    !found ||
+    found.entries.some(
       (entry) =>
         s.links[entry.index] !== entry.value ||
-        ![entry.value.a, entry.value.b].some((end) => end.device === device && end.port === port)
+        !(
+          (entry.value.a.device === device && entry.value.a.port === port) ||
+          (entry.value.b.device === device && entry.value.b.port === port)
+        )
     )
   ) {
     cache = build(s);
-    entries = cache.ends.get(endKey(device, port));
+    found = cache.ends.get(device)?.get(port);
   }
-  return entries?.map((entry) => entry.value) ?? [];
+  // Callers only read the result; a shared array avoids an allocation per carrier check.
+  return found?.values ?? [];
 }

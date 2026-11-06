@@ -141,22 +141,25 @@ export function validateMedia(link: Link, a: NetworkInterface, b: NetworkInterfa
 export function linkOperational(state: Snapshot, link: Link) {
   if (link.cable === 'mesh') return meshOperational(state, link);
   if (link.cable === 'wireless') return wirelessAssociated(state, link);
+  if (!link.up) return false;
   const a = endpoint(state, link.a),
     b = endpoint(state, link.b);
+  // Cheap state checks first: this runs for every carrier check in the simulation loop.
+  if (
+    !a.device.power ||
+    !b.device.power ||
+    !a.port.adminUp ||
+    !b.port.adminUp ||
+    a.port.errDisabled ||
+    b.port.errDisabled ||
+    a.port.speed !== b.port.speed ||
+    (link.cable === 'console' && a.port.console?.baud !== b.port.console?.baud)
+  )
+    return false;
   try {
     validateMedia(link, a.port, b.port);
   } catch {
     return false;
   }
-  return (
-    link.up &&
-    a.device.power &&
-    b.device.power &&
-    a.port.adminUp &&
-    b.port.adminUp &&
-    !a.port.errDisabled &&
-    !b.port.errDisabled &&
-    a.port.speed === b.port.speed &&
-    (link.cable !== 'console' || a.port.console?.baud === b.port.console?.baud)
-  );
+  return true;
 }

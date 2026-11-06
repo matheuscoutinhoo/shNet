@@ -3,7 +3,7 @@ import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index
 import type { Device, NetworkInterface, Snapshot } from '../model';
 import { BROADCAST, LIMITS } from '../model';
 import { ipNumber, sameSubnet, subnet, resolveRoute } from './ipv4';
-import { interfaceOperational } from './layer3';
+import { interfaceOperational, withOperationalMemo } from './layer3';
 import { isUnicast } from './dhcp-config';
 import {
   VRRP,
@@ -292,6 +292,9 @@ export function configureVrrp(engine: SimulationEngine, device: Device, input: u
   );
 }
 export function refreshVrrp(engine: SimulationEngine) {
+  withOperationalMemo(() => refreshVrrpGroups(engine));
+}
+function refreshVrrpGroups(engine: SimulationEngine) {
   for (const device of protocolDevices(engine.state, 'vrrp'))
     for (const group of device.vrrp?.groups ?? []) {
       const effective = vrrpEffectivePriority(engine.state, device, group);

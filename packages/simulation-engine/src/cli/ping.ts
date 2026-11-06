@@ -12,7 +12,7 @@ function waitFor(e: SimulationEngine, done: () => boolean, timeoutMs: number, lo
   let steps = 0,
     checkedAt = e.state.clock;
   while (!done() && e.state.queue.length && e.state.queue[0].at <= deadline && steps++ < 500000) {
-    e.step(false);
+    e.step(false, steps === 1);
     // A lost echo is reported without simulating the rest of the timeout.
     if (lost && e.state.clock - checkedAt >= 100 && !done()) {
       checkedAt = e.state.clock;

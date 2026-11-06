@@ -17,7 +17,8 @@ import {
   type HsrpConfig,
   type HsrpGroup,
 } from './hsrp-model';
-import { interfaceOperational, routingEnabled } from './layer3';
+import { interfaceOperational, routingEnabled, withOperationalMemo } from './layer3';
+import { removeQueued } from '../core/queue';
 import { ipNumber, sameSubnet, subnet } from './ipv4';
 import { isUnicast } from './dhcp-config';
 import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
@@ -127,9 +128,10 @@ const priority = (s: Snapshot, d: Device, g: HsrpConfig) =>
 const rank = (a: { ip: string; priority: number }, b: { ip: string; priority: number }) =>
   b.priority - a.priority || ipNumber(b.ip) - ipNumber(a.ip);
 function cancel(e: SimulationEngine, d: Device, g: HsrpGroup) {
-  e.state.queue = e.state.queue.filter(
-    (q) => q.action.kind !== 'hsrp-tick' || q.action.device !== d.id || q.action.token !== g.token
-  );
+  // validateHsrp: a group has a queued tick exactly when tickAt is set, at that time.
+  if (g.tickAt === undefined) return;
+  const own = (a: Action) => a.kind === 'hsrp-tick' && a.device === d.id && a.token === g.token;
+  if (!removeQueued(e.state, g.tickAt, own)) e.state.queue = e.state.queue.filter((q) => !own(q.action));
   delete g.tickAt;
 }
 function send(e: SimulationEngine, d: Device, g: HsrpGroup, opcode: 'hello' | 'coup' | 'resign' = 'hello') {
@@ -220,15 +222,18 @@ function elect(e: SimulationEngine, d: Device, g: HsrpGroup) {
   transition(e, d, g, won ? 'ACTIVE' : candidates[1]?.ip === self.ip ? 'STANDBY' : 'LISTEN');
   if (!won) g.activeDeadline = now + g.holdMs;
 }
-function refreshGroup(e: SimulationEngine, d: Device, g: HsrpGroup) {
+function refreshGroup(e: SimulationEngine, d: Device, g: HsrpGroup, schedule = true, settled = false) {
   const p = d.interfaces.find((p) => p.id === g.port)!;
   if (!g.vip || !portUp(e.state, d, p)) {
     cancel(e, d, g);
     transition(e, d, g, 'INIT');
-    g.peers = [];
+    if (g.peers.length) g.peers = [];
     return;
   }
   const effective = priority(e.state, d, g);
+  // Hellos and the group's own timers run the election; between them only carrier and
+  // tracking changes (or leaving INIT) can change the outcome.
+  if (settled && g.state !== 'INIT' && effective === g.effectivePriority && g.tickAt !== undefined) return;
   if (effective !== g.effectivePriority) g.nextHello = e.state.clock;
   g.effectivePriority = effective;
   if (g.state === 'INIT') {
@@ -238,6 +243,7 @@ function refreshGroup(e: SimulationEngine, d: Device, g: HsrpGroup) {
     transition(e, d, g, 'SPEAK');
   }
   elect(e, d, g);
+  if (!schedule) return;
   const at = Math.max(
     e.state.clock + 0.001,
     Math.min(
@@ -287,15 +293,20 @@ export function configureHsrp(e: SimulationEngine, d: Device, input: unknown) {
   invalidateProtocolIndex(e.state);
   refreshHsrp(e);
 }
-export function refreshHsrp(e: SimulationEngine) {
-  for (const d of protocolDevices(e.state, 'hsrp')) for (const g of d.hsrp!.groups) refreshGroup(e, d, g);
+/** Re-evaluates every group; `settled` (after each simulation event) only reacts to carrier and tracking. */
+export function refreshHsrp(e: SimulationEngine, settled = false) {
+  withOperationalMemo(() => {
+    for (const d of protocolDevices(e.state, 'hsrp'))
+      for (const g of d.hsrp!.groups) refreshGroup(e, d, g, true, settled);
+  });
 }
 export function handleHsrpTick(e: SimulationEngine, a: Extract<Action, { kind: 'hsrp-tick' }>) {
   const d = e.device(a.device),
     g = d.hsrp?.groups.find((g) => g.token === a.token);
   if (!g) return;
   delete g.tickAt;
-  refreshGroup(e, d, g);
+  // Run the election first; the timer is rescheduled once, after the hello.
+  refreshGroup(e, d, g, false);
   if (g.state !== 'INIT' && g.state !== 'LISTEN' && g.nextHello <= e.state.clock) {
     send(e, d, g);
     g.nextHello = e.state.clock + g.helloMs;

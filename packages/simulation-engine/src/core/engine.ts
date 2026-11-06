@@ -154,6 +154,7 @@ import {
   removeLacp,
   handleLacpTick,
   lacpOutput,
+  lacpRefreshDue,
   receiveLacp,
   refreshLacp,
 } from '../protocols/lacp';
@@ -265,6 +266,53 @@ import {
   handleSyslogSend,
 } from '../protocols/syslog';
 
+// Events that only report traffic or table hits. They never change carrier, STP, bundles,
+// tracked objects or routes, so they do not require re-deriving network state.
+const TRAFFIC_EVENTS = new Set<NetworkEvent['type']>([
+  'FRAME_SENT',
+  'FRAME_RECEIVED',
+  'FRAME_FLOODED',
+  'MAC_LEARNED',
+  'ROUTE_SELECTED',
+  'PACKET_SENT',
+  'PACKET_RECEIVED',
+  'PACKET_DROPPED',
+  'ARP_REQUEST',
+  'ARP_REPLY',
+  'ARP_TABLE_UPDATED',
+  'PING_SUCCESS',
+  'PING_TIMEOUT',
+  'ACL_PERMIT',
+  'ACL_DENY',
+  'NAT_TRANSLATED',
+  'NAT_EXPIRED',
+  'FIREWALL_PERMIT',
+  'FIREWALL_DENY',
+  'FIREWALL_EXPIRED',
+  'QOS_ENQUEUE',
+  'QOS_DEQUEUE',
+  'QOS_DROP',
+  'QOS_MARK',
+  'MPLS_PUSH',
+  'MPLS_SWAP',
+  'MPLS_POP',
+  'VXLAN_ENCAP',
+  'VXLAN_DECAP',
+  'IP_FRAGMENT',
+  'IP_REASSEMBLED',
+  'APPLICATION_DATA',
+  'NTP_STATE',
+  'DNS_QUERY',
+  'DNS_RESPONSE',
+  'DNS_ANSWER',
+  'DNS_CACHE_HIT',
+  'DOT1X_DENY',
+  'HMI_SAMPLE',
+  'PLC_SCAN',
+]);
+const isTraffic = (type: NetworkEvent['type']) =>
+  TRAFFIC_EVENTS.has(type) || /_(?:SENT|RECEIVED|HELLO|QUEUED)$/.test(type);
+
 export class SimulationEngine {
   configureTcpSettings(deviceId: string, input: unknown) {
     configureTcpSettings(this, this.device(deviceId), input);
@@ -317,6 +365,8 @@ export class SimulationEngine {
   private lastMark?: StateMark;
   // Depth of deferRefresh() batches in progress.
   private refreshDeferred = 0;
+  // Set by every non-traffic event: carrier, STP, bundle, tracking or routing state may have changed.
+  private networkDirty = true;
   /** Compact rollback point that also records which devices a local edit changes (see StateMark). */
   mark(): StateMark {
     this.lastMark = markState(this.state, this.lastMark);
@@ -1324,18 +1374,24 @@ export class SimulationEngine {
       invalidateCacheExpiry(this.state);
       invalidateTraceIndex(this.state);
     }
+    const traffic = isTraffic(type);
+    if (!traffic) this.networkDirty = true;
+    // Protocol traffic (PDUs and keepalives sent or received) changes no carrier, bundle or
+    // routing input by itself; the resulting state changes are reported by their own events.
     if (
-      type === 'CONFIG_CHANGED' ||
-      type === 'LINK_UP' ||
-      type === 'LINK_DOWN' ||
-      /^(LACP_|WIFI_|WIRELESS_|MESH_|POE_|CAPWAP_|TUNNEL_|SNMP_|REMOTE_)/.test(type)
+      !traffic &&
+      (type === 'CONFIG_CHANGED' ||
+        type === 'LINK_UP' ||
+        type === 'LINK_DOWN' ||
+        /^(LACP_|WIFI_|WIRELESS_|MESH_|POE_|CAPWAP_|TUNNEL_|SNMP_|REMOTE_)/.test(type))
     )
       invalidateSpanningRefresh(this.state);
     if (
-      type === 'CONFIG_CHANGED' ||
-      /^(LINK_|STP_|LACP_|BOND_|WIFI_|WIRELESS_|MESH_|POE_|CAPWAP_|TUNNEL_|SNMP_|REMOTE_|TCP_|BGP_|OSPF_|RIP_|EVPN_|VRRP_|DOT1X_|UPS_|POWER_)/.test(
-        type
-      )
+      !traffic &&
+      (type === 'CONFIG_CHANGED' ||
+        /^(LINK_|STP_|LACP_|BOND_|WIFI_|WIRELESS_|MESH_|POE_|CAPWAP_|TUNNEL_|SNMP_|REMOTE_|TCP_|BGP_|OSPF_|RIP_|EVPN_|VRRP_|DOT1X_|UPS_|POWER_)/.test(
+          type
+        ))
     )
       invalidateBgpRefresh(this.state);
     const event: NetworkEvent = {
@@ -1766,20 +1822,25 @@ export class SimulationEngine {
     }
     return probe.id;
   }
-  step(refreshCaches = true) {
+  /**
+   * Processes the next queued event. Callers that step in a loop pass settle=false after the first
+   * event: the previous event's refresh already brought the state up to date.
+   */
+  step(refreshCaches = true, settle = true) {
+    return this.process(refreshCaches, settle);
+  }
+  /**
+   * Processes one queued event. `settle` first brings derived protocol state up to date with any
+   * outside edit; inside advanceTo/run the previous event's refresh already did that on this exact
+   * state, so repeating it would only rescan the whole network.
+   */
+  private process(refreshCaches: boolean, settle: boolean) {
     if (refreshCaches) {
       invalidateCacheExpiry(this.state);
       invalidateSpanningRefresh(this.state);
       invalidateBgpRefresh(this.state);
     }
-    refreshDot1x(this);
-    refreshWireless(this);
-    refreshLacp(this);
-    refreshSpanningTree(this);
-    refreshBonds(this);
-    refreshVrrp(this);
-    refreshHsrp(this);
-    refreshBgp(this);
+    if (settle) this.refreshNetwork(false);
     const item = this.state.queue.shift();
     if (!item) return false;
     this.state.clock = item.at;
@@ -1871,14 +1932,32 @@ export class SimulationEngine {
     else if (a.kind === 'dhcp-binding-expire')
       expireDhcpBinding(this, this.device(a.device), a.binding, a.expiresAt);
     else this.receive(a);
-    refreshDot1x(this);
-    refreshWireless(this);
-    refreshLacp(this);
-    refreshBonds(this);
-    refreshVrrp(this);
-    refreshHsrp(this);
-    refreshBgp(this);
+    this.refreshNetwork(true);
     return true;
+  }
+  /**
+   * Re-derives state that follows from carrier, STP and configuration (bundles, gateways, BGP).
+   * After a simulation event (`afterEvent`) the bundle and first-hop redundancy refreshes run only
+   * when an event reported a state change (or a LACPDU expired); their elections otherwise run on
+   * their own timers and received hellos. Changes made by the refreshes themselves are settled at
+   * the same instant, before the next event.
+   */
+  private refreshNetwork(afterEvent: boolean) {
+    for (let pass = 0; pass < 3; pass++) {
+      const dirty = !afterEvent || this.networkDirty;
+      this.networkDirty = false;
+      refreshDot1x(this);
+      refreshWireless(this, dirty);
+      if (dirty || lacpRefreshDue(this.state)) refreshLacp(this);
+      refreshSpanningTree(this);
+      refreshBonds(this);
+      if (dirty) {
+        refreshVrrp(this);
+        refreshHsrp(this, afterEvent);
+      }
+      refreshBgp(this);
+      if (!afterEvent || !this.networkDirty) return;
+    }
   }
   private receive(a: Extract<Action, { kind: 'deliver' }>) {
     const { device: d, port: physical } = endpoint(this.state, { device: a.device, port: a.port });
@@ -2099,7 +2178,8 @@ export class SimulationEngine {
       count < maxSteps &&
       (wallMs === undefined || count === 0 || performance.now() - started < wallMs)
     ) {
-      this.step(false);
+      // The refresh above (or, for a resumed slice, the first event's own) settles the state.
+      this.process(false, count === 0 && !refreshState);
       count++;
     }
     if (this.state.queue.length && this.state.queue[0].at <= time && wallMs !== undefined) return count;
@@ -2125,7 +2205,7 @@ export class SimulationEngine {
     invalidateCacheExpiry(this.state);
     invalidateSpanningRefresh(this.state);
     invalidateBgpRefresh(this.state);
-    while (count < maxSteps && this.step(false)) count++;
+    while (count < maxSteps && this.process(false, count === 0)) count++;
     if (this.state.queue.length) throw new Error('Orçamento de simulação esgotado; revise loops na rede.');
     return count;
   }

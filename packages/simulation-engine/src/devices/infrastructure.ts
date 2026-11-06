@@ -57,11 +57,16 @@ export function updateSystem(
   const target = ambient + (d.power ? 8 + cpu * 0.45 : 0);
   c.temperatureC = target + (c.temperatureC - target) * Math.exp(-elapsed / 30000);
   c.throttled = c.temperatureC >= c.thermalLimitC;
-  const state = { ...d };
-  delete state.system;
-  c.memoryKiB = 64 + Math.ceil(new TextEncoder().encode(JSON.stringify(state)).length / 1024);
+  const rollover = s.clock - c.windowAt >= 1000;
+  // Memory is the size of the device's tables. Like a memory poll it is sampled by the metrics
+  // refresh and once per CPU window; serializing the device for every packet is far too costly.
+  if (environment !== undefined || rollover) {
+    const state = { ...d };
+    delete state.system;
+    c.memoryKiB = 64 + Math.ceil(new TextEncoder().encode(JSON.stringify(state)).length / 1024);
+  }
   c.lastAt = s.clock;
-  if (s.clock - c.windowAt >= 1000) {
+  if (rollover) {
     c.windowAt = s.clock;
     c.work = 0;
   }

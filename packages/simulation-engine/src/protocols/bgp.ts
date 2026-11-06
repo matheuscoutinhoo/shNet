@@ -267,9 +267,8 @@ function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer,
     device,
     device.bgp!.neighbors.find((neighbor) => neighbor.ip === peer.ip)!
   );
-  const withdrawn = peer.advertised
-    .filter((route) => !desired.some((entry) => bgpPrefixKey(entry) === bgpPrefixKey(route)))
-    .slice(0, 32);
+  const wanted = new Set(desired.map((entry) => bgpPrefixKey(entry)));
+  const withdrawn = peer.advertised.filter((route) => !wanted.has(bgpPrefixKey(route))).slice(0, 32);
   if (
     withdrawn.length &&
     send(engine, device, connection, {
@@ -279,9 +278,8 @@ function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer,
     })
   )
     peer.advertised = peer.advertised.filter((route) => !withdrawn.includes(route));
-  const announcements = desired
-    .filter((route) => !peer.advertised.some((entry) => JSON.stringify(entry) === JSON.stringify(route)))
-    .slice(0, 16);
+  const announced = new Set(peer.advertised.map((route) => JSON.stringify(route)));
+  const announcements = desired.filter((route) => !announced.has(JSON.stringify(route))).slice(0, 16);
   for (const path of announcements) {
     if (!send(engine, device, connection, { type: 'UPDATE', announcements: [path], withdrawn: [] })) break;
     peer.advertised = [

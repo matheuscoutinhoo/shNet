@@ -121,27 +121,45 @@ export function createLogicalInterface(
   return port;
 }
 export function sviOperational(snapshot: Snapshot, device: Device, port: NetworkInterface) {
-  return (
-    device.power &&
-    port.adminUp &&
-    port.logical?.kind === 'svi' &&
-    device.vlans.some((v) => v.id === port.logical!.vlan) &&
-    device.interfaces.some(
-      (p) =>
-        !p.logical &&
-        !p.channel &&
-        p.mode !== 'routed' &&
-        p.adminUp &&
-        (!spanningPortState(device, p, port.logical!.vlan) ||
-          spanningPortState(device, p, port.logical!.vlan)?.state === 'forwarding') &&
-        (p.mode === 'trunk'
-          ? p.allowedVlans.includes(port.logical!.vlan)
-          : p.accessVlan === port.logical!.vlan) &&
-        interfaceOperational(snapshot, device, p)
+  const vlan = port.logical?.kind === 'svi' ? port.logical.vlan : undefined;
+  if (vlan === undefined || !device.power || !port.adminUp || !device.vlans.some((v) => v.id === vlan))
+    return false;
+  // Same conditions as before, cheapest first: VLAN membership, then STP state, then carrier.
+  return device.interfaces.some((p) => {
+    if (
+      p.logical ||
+      p.channel ||
+      p.mode === 'routed' ||
+      !p.adminUp ||
+      !(p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan)
     )
-  );
+      return false;
+    const stp = spanningPortState(device, p, vlan);
+    return (!stp || stp.state === 'forwarding') && interfaceOperational(snapshot, device, p);
+  });
 }
 export function interfaceOperational(snapshot: Snapshot, device: Device, port: NetworkInterface): boolean {
+  if (!operationalMemo) return computeOperational(snapshot, device, port);
+  let value = operationalMemo.get(port);
+  if (value === undefined) operationalMemo.set(port, (value = computeOperational(snapshot, device, port)));
+  return value;
+}
+let operationalMemo: Map<NetworkInterface, boolean> | undefined;
+/**
+ * Runs a pass that only reads carrier, STP and bundle state (e.g. re-evaluating every first-hop
+ * redundancy group) with each interface's operational status computed once. The pass must not
+ * change link, port, STP, LACP or power state.
+ */
+export function withOperationalMemo<T>(pass: () => T): T {
+  if (operationalMemo) return pass();
+  operationalMemo = new Map();
+  try {
+    return pass();
+  } finally {
+    operationalMemo = undefined;
+  }
+}
+function computeOperational(snapshot: Snapshot, device: Device, port: NetworkInterface): boolean {
   if (!device.power || !interfaceUp(device, port)) return false;
   if (port.loopback) return true;
   if (port.capwapPeer)
