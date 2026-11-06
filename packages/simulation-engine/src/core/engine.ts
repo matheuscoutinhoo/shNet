@@ -104,7 +104,7 @@ import { spanningPortState, frameVlan } from '../protocols/stp-scope';
 import { addFactoryProfile, addProfile } from '../devices/profiles';
 import { configureTelemetry, configureCollector, handleTelemetry } from '../protocols/telemetry';
 import { configureClock, configureNtp, handleNtp, stampNtp } from '../protocols/ntp';
-import { monitorTick } from '../protocols/monitoring';
+import { monitorTick, slaProbeIds } from '../protocols/monitoring';
 import { receiveUdld, udldTick } from '../protocols/udld';
 import { bfdTick } from '../protocols/bfd';
 import { configureRemote } from '../protocols/remote';
@@ -1723,7 +1723,8 @@ export class SimulationEngine {
       : (route?.port.ip ?? d.interfaces.find((i) => i.ip && i.vrf === vrf)?.ip);
     if (!source) throw new Error('Configure um endereço IPv4 na interface de origem');
     if (this.state.probes.length >= LIMITS.probes) {
-      const finished = this.state.probes.findIndex((p) => p.status !== 'pending');
+      const sla = slaProbeIds(this.state);
+      const finished = this.state.probes.findIndex((p) => p.status !== 'pending' && !sla.has(p.id));
       if (finished < 0) throw new Error('Muitos probes pendentes');
       const [old] = this.state.probes.splice(finished, 1);
       this.state.queue = this.state.queue.filter(

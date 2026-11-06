@@ -5,6 +5,12 @@ import { refreshHsrp } from './hsrp';
 export function monitoring(e: SimulationEngine, d: Device) {
   return (d.monitoring ??= { token: e.id('monitor'), operations: [], tracks: [] });
 }
+/** Ping records an IP SLA operation still has to read; ping history trimming must keep them. */
+export function slaProbeIds(s: Snapshot) {
+  return new Set(
+    s.devices.flatMap((d) => d.monitoring?.operations.flatMap((o) => (o.probe ? [o.probe] : [])) ?? [])
+  );
+}
 export function scheduleMonitoring(e: SimulationEngine, d: Device) {
   const s = monitoring(e, d);
   if (s.tickAt !== undefined) return;
@@ -19,13 +25,14 @@ export function monitorTick(e: SimulationEngine, d: Device, token: string) {
     if (!op.scheduled) continue;
     if (op.probe) {
       const p = e.state.probes.find((p) => p.id === op.probe);
-      if (
-        p?.status === 'success' ||
-        p?.status !== 'pending' ||
-        e.state.clock - (op.sentAt ?? 0) >= op.timeoutMs
-      ) {
-        op.status = p?.status === 'success' && (p.rtt ?? Infinity) <= op.timeoutMs ? 'up' : 'down';
-        op.rtt = p?.rtt;
+      if (!p) {
+        // The record was cleared from the ping history (e.g. by a scenario run), not lost on the
+        // network: like IOS, the operation keeps its last result and probes at the next interval.
+        delete op.probe;
+        delete op.sentAt;
+      } else if (p.status !== 'pending' || e.state.clock - (op.sentAt ?? 0) >= op.timeoutMs) {
+        op.status = p.status === 'success' && (p.rtt ?? Infinity) <= op.timeoutMs ? 'up' : 'down';
+        op.rtt = p.rtt;
         delete op.probe;
         delete op.sentAt;
       }

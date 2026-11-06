@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
+  LIMITS,
   SimulationEngine,
+  ScenarioRunner,
   TerminalSession,
   makeTemplate,
   type Device,
@@ -530,5 +532,73 @@ describe('zone-based firewall', () => {
     // Unsolicited traffic from OUTSIDE is still dropped by the default zone-pair policy.
     expect(ts.execute('ping 10.1.1.10')).toMatch(/Success rate is 0 percent/);
     expect(e.device(fw.id).firewall!.dropped).toBeGreaterThan(0);
+  });
+});
+
+describe('IP SLA operations are independent of the ping history', () => {
+  function slaLab() {
+    const e = new SimulationEngine(),
+      r = e.addProfile('router'),
+      target = e.addDevice('pc'),
+      t = new TerminalSession(e, r.id);
+    Object.assign(target.interfaces[0], { ip: '192.0.2.2', prefix: 24, gateway: '192.0.2.1' });
+    e.connect({ device: r.id, port: 'p0' }, { device: target.id, port: 'p0' });
+    ok(t, [
+      'enable',
+      'configure terminal',
+      'interface Gi0/1',
+      'ip address 192.0.2.1 255.255.255.0',
+      'exit',
+      'ip sla 10',
+      'icmp-echo 192.0.2.2 source-interface Gi0/1',
+      'timeout 500',
+      'frequency 1',
+      'exit',
+      'ip sla schedule 10 life forever start-time now',
+      'track 10 ip sla 10 reachability',
+      'ip route 198.51.100.0 255.255.255.0 192.0.2.2 track 10',
+      'end',
+    ]);
+    e.advanceTo(3000);
+    expect(r.monitoring!.tracks[0].state).toBe(true);
+    // A reply has arrived but the operation reads it on its next tick.
+    expect(r.monitoring!.operations[0].probe).toBeDefined();
+    return { e, r, target };
+  }
+  const trackDowns = (e: SimulationEngine) =>
+    e.state.events.filter((v) => v.reason.includes('Object track 10: Down'));
+  it('a scenario run does not take tracked SLAs down', () => {
+    const { e, r, target } = slaLab();
+    const runner = new ScenarioRunner(e.snapshot(), {
+      name: 'SLA keeps running',
+      durationMs: 5000,
+      intervalMs: 1000,
+      deadlineMs: 500,
+      flows: [
+        {
+          name: 'Ping',
+          source: target.id,
+          target: '192.0.2.1',
+          protocol: 'icmp',
+          expect: 'allow',
+          maxLossPercent: 0,
+        },
+      ],
+      faults: [],
+    });
+    for (let i = 0; i < 1000 && !runner.step(200); i++);
+    expect(trackDowns(runner.engine)).toEqual([]);
+    expect(runner.engine.device(r.id).monitoring!.tracks[0].state).toBe(true);
+  });
+  it('trimming the ping history keeps the result an SLA operation is waiting for', () => {
+    const { e, r } = slaLab();
+    // Overflow the ping history within one SLA interval, before the operation reads its reply.
+    for (let i = 0; i < LIMITS.probes + 50; i++) {
+      e.ping(r.id, '192.0.2.2');
+      e.advanceTo(e.state.clock + 0.5);
+    }
+    e.advanceTo(e.state.clock + 2000);
+    expect(trackDowns(e)).toEqual([]);
+    expect(r.monitoring!.tracks[0].state).toBe(true);
   });
 });
