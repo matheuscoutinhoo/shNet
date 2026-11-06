@@ -731,7 +731,8 @@ export const interfaceSchema = z
       .optional(),
     ospfAuthentication: z
       .object({
-        enabled: z.boolean(),
+        // true: "ip ospf authentication message-digest"; false: "... null"; unset: the area setting.
+        enabled: z.boolean().optional(),
         keyId: z.number().int().min(1).max(255).optional(),
         key: z.string().min(1).max(16).optional(),
       })

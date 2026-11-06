@@ -600,7 +600,11 @@ export function makeRegistry() {
                 ` ip ospf message-digest-key ${i.ospfAuthentication.keyId} md5 ${printSecret(d, i.ospfAuthentication.key)}`,
               ]
             : []),
-          ...(i.ospfAuthentication?.enabled ? [' ip ospf authentication message-digest'] : []),
+          ...(i.ospfAuthentication?.enabled === true
+            ? [' ip ospf authentication message-digest']
+            : i.ospfAuthentication?.enabled === false
+              ? [' ip ospf authentication null']
+              : []),
           ...(i.ipv4Mode === 'dhcp'
             ? [' ip address dhcp']
             : i.ip

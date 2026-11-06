@@ -2,7 +2,14 @@ import { lsaChecksum, ospfAuthenticator, ospfAreaType } from './ospf-security';
 import type { SimulationEngine } from '../core/engine';
 import type { Action, Device, NetworkInterface } from '../model';
 import { interfaceOperational } from './layer3';
-import { OSPF, ospfConfigSchema, lsaKey, type OspfPacket, type OspfNeighbor } from './ospf-model';
+import {
+  OSPF,
+  ospfConfigSchema,
+  lsaKey,
+  type OspfConfig,
+  type OspfPacket,
+  type OspfNeighbor,
+} from './ospf-model';
 import { ipNumber, sameSubnet, subnet } from './ipv4';
 import { synchronizeOspf } from './ospf-database';
 import { validateOspfLsa } from './ospf-validation';
@@ -23,14 +30,42 @@ import {
   sendOspfUpdate,
 } from './ospf-wire';
 
+/** The configuration part of a running OSPF state (what configureOspf accepts). */
+export function ospfConfigOf(state: NonNullable<Device['ospf']>): OspfConfig {
+  return ospfConfigSchema.parse(
+    Object.fromEntries(
+      Object.keys(ospfConfigSchema.shape)
+        .filter((key) => state[key as keyof typeof state] !== undefined)
+        .map((key) => [key, structuredClone(state[key as keyof typeof state])])
+    )
+  );
+}
+// Hello parameters: changing them drops the interface's adjacencies (IOS resets the neighbors).
+function adjacencyKey(config: OspfConfig, entry: OspfConfig['interfaces'][number]) {
+  const area = config.areas.find((a) => a.id === entry.area);
+  return JSON.stringify([
+    entry.area,
+    area?.type ?? 'normal',
+    entry.networkType,
+    entry.helloMs,
+    entry.deadMs,
+    entry.passive,
+    entry.authenticationMode,
+    entry.authenticationKey,
+    entry.authenticationKeyId,
+  ]);
+}
 export function configureOspf(engine: SimulationEngine, device: Device, input: unknown) {
   const config = ospfConfigSchema.parse(input);
   for (const p of config.interfaces) {
     const authentication = device.interfaces.find((i) => i.id === p.port)?.ospfAuthentication;
-    if (authentication) {
-      p.authenticationMode = authentication.enabled ? 'md5' : undefined;
-      p.authenticationKey = authentication.enabled ? authentication.key : undefined;
-      p.authenticationKeyId = authentication.enabled ? authentication.keyId : undefined;
+    const areaMd5 = config.areas.find((a) => a.id === p.area)?.authentication === 'message-digest';
+    if (authentication || areaMd5) {
+      // The interface setting (message-digest or null) overrides "area N authentication".
+      const md5 = authentication?.enabled ?? areaMd5;
+      p.authenticationMode = md5 ? 'md5' : undefined;
+      p.authenticationKey = md5 ? authentication?.key : undefined;
+      p.authenticationKeyId = md5 ? authentication?.keyId : undefined;
     }
     const override = config.passiveOverrides.find((o) => o.port === p.port);
     if (override) p.passive = override.passive;
@@ -68,6 +103,58 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
   )
     throw new Error('OSPF: áreas/rotas externas inválidas.');
   const previous = device.ospf;
+  const runtime = (entry: OspfConfig['interfaces'][number]) => ({
+    port: entry.port,
+    dr: '0.0.0.0',
+    bdr: '0.0.0.0',
+    waitUntil: engine.state.clock + (entry.networkType === 'broadcast' ? entry.deadMs : 0),
+    helloAt: engine.state.clock,
+    operational: false,
+    signature: '',
+  });
+  // Like IOS, an edit only resets the adjacencies whose hello parameters changed; a new router ID,
+  // process or enable state restarts the whole process.
+  if (
+    previous?.enabled &&
+    config.enabled &&
+    previous.routerId === config.routerId &&
+    previous.processId === config.processId
+  ) {
+    const before = ospfConfigOf(previous);
+    const kept = new Set(
+      config.interfaces
+        .filter((entry) => {
+          const old = before.interfaces.find((item) => item.port === entry.port);
+          return !!old && adjacencyKey(before, old) === adjacencyKey(config, entry);
+        })
+        .map((entry) => entry.port)
+    );
+    for (const neighbor of previous.neighbors.filter((entry) => !kept.has(entry.port)))
+      engine.emit(
+        'OSPF_NEIGHBOR_CHANGED',
+        device.id,
+        `${neighbor.routerId}: ${neighbor.state} → Down; configuração da interface alterada.`,
+        { port: neighbor.port }
+      );
+    engine.state.queue = engine.state.queue.filter(
+      ({ action }) => action.kind !== 'ospf-tick' || action.device !== device.id
+    );
+    device.ospf = {
+      ...previous,
+      ...config,
+      token: engine.id('ospf'),
+      tickAt: engine.state.clock + 0.001,
+      ports: config.interfaces.map((entry) =>
+        kept.has(entry.port) ? previous.ports.find((item) => item.port === entry.port)! : runtime(entry)
+      ),
+      neighbors: previous.neighbors.filter((entry) => kept.has(entry.port)),
+    };
+    engine.schedule(0.001, { kind: 'ospf-tick', device: device.id, token: device.ospf.token });
+    // Costs, ranges, redistribution and maximum-paths take effect at once (LSAs and SPF).
+    synchronizeOspf(engine, device);
+    engine.emit('CONFIG_CHANGED', device.id, `OSPF atualizado sem reiniciar adjacências inalteradas.`);
+    return;
+  }
   const withdrawals =
     previous?.lsdb
       .filter((lsa) => lsa.advertisingRouter === previous.routerId)
@@ -87,15 +174,7 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
     receivedSequences: [],
     token: engine.id('ospf'),
     tickAt: engine.state.clock + 0.001,
-    ports: config.interfaces.map((entry) => ({
-      port: entry.port,
-      dr: '0.0.0.0',
-      bdr: '0.0.0.0',
-      waitUntil: engine.state.clock + (entry.networkType === 'broadcast' ? entry.deadMs : 0),
-      helloAt: engine.state.clock,
-      operational: false,
-      signature: '',
-    })),
+    ports: config.interfaces.map(runtime),
     neighbors: [],
     lsdb: config.routerId === previous?.routerId ? withdrawals : [],
     routes: [],
@@ -170,39 +249,13 @@ export function refreshOspfConfiguration(e: SimulationEngine, d: Device) {
             }) as (typeof s.interfaces)[number]
       );
   }
-  if (id !== s.routerId || JSON.stringify(interfaces) !== JSON.stringify(s.interfaces)) {
-    const {
-      enabled,
-      routerId,
-      processId,
-      autoRouterId,
-      networks,
-      areas,
-      externalRoutes,
-      maximumPaths,
-      referenceBandwidth,
-      passiveDefault,
-      passiveOverrides,
-      summaryRanges,
-      defaultOriginate,
-    } = s;
+  if (id !== s.routerId || JSON.stringify(interfaces) !== JSON.stringify(s.interfaces))
     configureOspf(e, d, {
-      enabled: id !== '0.0.0.0' && (enabled || routerId === '0.0.0.0'),
+      ...ospfConfigOf(s),
+      enabled: id !== '0.0.0.0' && (s.enabled || s.routerId === '0.0.0.0'),
       routerId: id,
-      processId,
-      autoRouterId,
-      maximumPaths,
-      referenceBandwidth,
-      passiveDefault,
-      passiveOverrides,
-      summaryRanges,
-      defaultOriginate,
-      networks,
-      areas,
-      externalRoutes,
       interfaces,
     });
-  }
 }
 export function selectOspfRouterId(d: Device) {
   const loopbacks = d.interfaces.filter((p) => p.loopback && p.ip && p.adminUp);
@@ -217,6 +270,13 @@ function removeNeighbor(engine: SimulationEngine, device: Device, neighbor: Ospf
   engine.emit('OSPF_NEIGHBOR_CHANGED', device.id, `${neighbor.routerId}: ${neighbor.state} → Down; ${why}.`, {
     port: neighbor.port,
   });
+}
+/** OSPF registers with BFD on this interface: "ip ospf bfd", or "bfd all-interfaces" on an OSPF interface. */
+export function ospfUsesBfd(d: Device, p: NetworkInterface) {
+  return (
+    !!p.bfd &&
+    (p.bfd.ospf || (!!d.ospf?.bfdAllInterfaces && d.ospf.interfaces.some((entry) => entry.port === p.id)))
+  );
 }
 export function ospfBfdDown(e: SimulationEngine, d: Device, port: string, ip: string) {
   for (const n of [...(d.ospf?.neighbors ?? [])])
@@ -287,7 +347,10 @@ export function receiveOspf(
   const state = device.ospf,
     config = state?.interfaces.find((entry) => entry.port === port.id);
   if (!state?.enabled || !config || config.passive || !port.ip || port.prefix === undefined) return;
-  if (port.bfd?.ospf && port.bfd.sessions.some((s) => s.ip === packet.src && s.hadUp && s.state !== 'Up'))
+  if (
+    ospfUsesBfd(device, port) &&
+    port.bfd!.sessions.some((s) => s.ip === packet.src && s.hadUp && s.state !== 'Up')
+  )
     return;
   const reject = (reason: string) => engine.drop(device, `OSPF: ${reason}.`, port.id);
   if (

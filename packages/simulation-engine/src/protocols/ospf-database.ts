@@ -6,6 +6,7 @@ import { subnet, sameSubnet, bestRoute } from './ipv4';
 import { OSPF, lsaKey, type DynamicRoute, type OspfLsa } from './ospf-model';
 import { bestOspfRoutes, ospfSpf, ospfRouterPaths } from './ospf-spf';
 import { floodOspf } from './ospf-wire';
+import { ospfRedistributedRoutes } from './ospf-redistribution';
 
 function signature(lsa: OspfLsa) {
   return JSON.stringify([
@@ -132,7 +133,9 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
     publish(engine, device, routerLsa);
   }
   const abr = areas.includes(0) && areas.length > 1;
-  const eligible = state.externalRoutes.filter(
+  const totallyStubby = (area: number) =>
+    area !== 0 && !!state.areas.find((entry) => entry.id === area && entry.type !== 'normal')?.noSummary;
+  const configured = state.externalRoutes.filter(
     (r) =>
       device.routes.some((n) => !n.vrf && n.network === r.network && n.prefix === r.prefix) ||
       ripRoutes(device).some((n) => n.network === r.network && n.prefix === r.prefix) ||
@@ -144,6 +147,12 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
           state.ports.some((t) => t.port === p.id && t.operational)
       )
   );
+  const eligible = [
+    ...configured,
+    ...ospfRedistributedRoutes(device).filter(
+      (r) => !configured.some((entry) => entry.network === r.network && entry.prefix === r.prefix)
+    ),
+  ];
   if (state.defaultOriginate) {
     const route = bestRoute({ ...device, ospf: undefined }, '0.0.0.0', undefined, engine.state);
     if (state.defaultOriginate.always || route?.prefix === 0) {
@@ -222,7 +231,10 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
           publish(engine, device, summary);
         }
       }
-    for (const area of areas.filter((a) => ospfAreaType(device, a) === 'stub')) {
+    // Stub areas, and NSSAs with no-summary, receive a default summary from the ABR.
+    for (const area of areas.filter(
+      (a) => ospfAreaType(device, a) === 'stub' || (ospfAreaType(device, a) === 'nssa' && totallyStubby(a))
+    )) {
       const lsa: OspfLsa = {
         ...base(area),
         type: 'summary',
@@ -270,6 +282,8 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
         : [];
     });
     for (const area of areas) {
+      // "no-summary": a totally stubby area gets only the default summary, no inter-area routes.
+      if (totallyStubby(area)) continue;
       const candidates = bestOspfRoutes(
         [...local, ...routes].filter(
           (route) =>

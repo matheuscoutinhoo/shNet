@@ -4,7 +4,7 @@ import type { Device, NetworkInterface, UdpPacket, Snapshot } from '../model';
 import { interfaceOperational } from './layer3';
 import { sameSubnet } from './ipv4';
 import { sendWithArp } from './arp';
-import { ospfBfdDown } from './ospf';
+import { ospfBfdDown, ospfUsesBfd } from './ospf';
 import { bgpBfdDown } from './bgp';
 import { bgpNextHop } from './bgp-routing';
 import { bfdConfigSchema, type BfdConfig, type BfdSession, type BfdMessage } from './bfd-model';
@@ -113,7 +113,7 @@ function down(
 ) {
   if (s.state === 'Up' && s.hadUp) {
     e.emit('CONFIG_CHANGED', d.id, `BFD session Down: ${s.ip}; ${reason}.`, { port: p.id });
-    if (p.bfd?.ospf && s.clients.includes('ospf')) ospfBfdDown(e, d, p.id, s.ip);
+    if (ospfUsesBfd(d, p) && s.clients.includes('ospf')) ospfBfdDown(e, d, p.id, s.ip);
     if (s.clients.includes('bgp')) bgpBfdDown(e, d, p.id, s.ip);
   }
   s.state = 'Down';
@@ -139,7 +139,7 @@ function clients(e: SimulationEngine, d: Device, p: NetworkInterface) {
     }
     set.add(client);
   };
-  if (c.ospf && d.ospf?.enabled && d.ospf.interfaces.some((i) => i.port === p.id && !i.passive)) {
+  if (ospfUsesBfd(d, p) && d.ospf?.enabled && d.ospf.interfaces.some((i) => i.port === p.id && !i.passive)) {
     for (const n of d.ospf.neighbors.filter((n) => n.port === p.id)) add(n.ip, 'ospf');
     for (const s of c.sessions) if (s.clients.includes('ospf') || s.clients.length === 0) add(s.ip, 'ospf');
   }

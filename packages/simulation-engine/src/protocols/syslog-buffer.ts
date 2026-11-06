@@ -1,4 +1,5 @@
 import type { Device } from '../model';
+import { longInterfaceName } from './interface-name';
 
 // Events that IOS reports as syslog messages, with the severity and mnemonic they map to.
 // An empty mnemonic keeps only the events already worded as IOS messages (e.g. %PM-4-ERR_DISABLE).
@@ -25,8 +26,45 @@ function bgpAdjacency(d: Device | undefined, reason: string) {
   if (match[3] === 'Established') return 'neighbor ' + match[1] + ' Up';
   if (match[2] === 'Established') return 'neighbor ' + match[1] + ' Down';
 }
+const OSPF_STATES: Record<string, string> = {
+  Down: 'DOWN',
+  Init: 'INIT',
+  '2-Way': '2WAY',
+  ExStart: 'EXSTART',
+  Exchange: 'EXCHANGE',
+  Loading: 'LOADING',
+  Full: 'FULL',
+};
+// IOS explains each transition by the event that caused it.
+const OSPF_EVENTS: Record<string, string> = {
+  INIT: 'Received Hello',
+  '2WAY': '2-Way Received',
+  EXSTART: 'AdjOK?',
+  EXCHANGE: 'Negotiation Done',
+  LOADING: 'Exchange Done',
+  FULL: 'Loading Done',
+};
+const OSPF_DOWN: Record<string, string> = {
+  'Dead interval expirou': 'Dead timer expired',
+  'BFD Down': 'BFD node down',
+};
+/** "%OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on GigabitEthernet0/1 from LOADING to FULL, Loading Done". */
+function ospfAdjacency(d: Device | undefined, reason: string, port?: string) {
+  const match = /^([\d.]+)(?: em \S+)?: (\S+) → (\S+?)(?:; (.*))?\.$/.exec(reason);
+  const setting = d?.ospf?.logAdjacencyChanges;
+  if (!match || !d?.ospf || setting === false) return;
+  const from = OSPF_STATES[match[2]] ?? match[2].toUpperCase(),
+    to = OSPF_STATES[match[3]] ?? match[3].toUpperCase();
+  if (setting !== 'detail' && to !== 'FULL' && to !== 'DOWN') return;
+  const name = d.interfaces.find((p) => p.id === port)?.name ?? port ?? '';
+  const why =
+    to === 'DOWN'
+      ? 'Neighbor Down: ' + (OSPF_DOWN[match[4] ?? ''] ?? 'Interface down or detached')
+      : (OSPF_EVENTS[to] ?? 'Received Hello');
+  return `Process ${d.ospf.processId ?? 1}, Nbr ${match[1]} on ${longInterfaceName(name)} from ${from} to ${to}, ${why}`;
+}
 /** The IOS syslog message an engine event produces, if any. */
-export function iosSyslogMessage(type: string, reason: string, d?: Device) {
+export function iosSyslogMessage(type: string, reason: string, d?: Device, port?: string) {
   const kind = SYSLOG_EVENTS[type];
   if (!kind) return;
   const own = /^%[\w-]+-(\d)-\w+:/.exec(reason);
@@ -34,6 +72,10 @@ export function iosSyslogMessage(type: string, reason: string, d?: Device) {
   if (type === 'BGP_STATE_CHANGED') {
     const text = bgpAdjacency(d, reason);
     return text ? { severity: 5, text: '%BGP-5-ADJCHANGE: ' + text } : undefined;
+  }
+  if (type === 'OSPF_NEIGHBOR_CHANGED') {
+    const text = ospfAdjacency(d, reason, port);
+    return text ? { severity: 5, text: '%OSPF-5-ADJCHG: ' + text } : undefined;
   }
   return kind[1] ? { severity: kind[0], text: '%' + kind[1] + ': ' + reason } : undefined;
 }
@@ -44,8 +86,8 @@ export function loggingBuffer(d: Device) {
   return buffered === false ? undefined : (buffered ?? DEFAULT_LOG_BUFFER);
 }
 /** Stores a syslog message in the circular logging buffer; the oldest messages give way when full. */
-export function bufferSyslog(d: Device, clock: number, type: string, reason: string) {
-  const message = iosSyslogMessage(type, reason, d);
+export function bufferSyslog(d: Device, clock: number, type: string, reason: string, port?: string) {
+  const message = iosSyslogMessage(type, reason, d, port);
   const buffer = message && loggingBuffer(d);
   if (!message || !buffer || message.severity > buffer.level) return;
   const lines = (d.syslogBuffer ??= []);

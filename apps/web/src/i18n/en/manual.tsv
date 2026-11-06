@@ -151,3 +151,5 @@ gy8ovewh	Invalid IOS tunnel interface.
 wy5r4038	Static route to Null0 (/{0}) discards the packet for {1}.
 kcxjttuc	{0}: route {1}/{2} via {3} does not resolve in the VRF routing table.
 6jqdyukf	Check the address, mask, VRF and the protocol that should advertise the next hop. Recursive routes need a connected, static or dynamic route to the next hop.
+58ijy40c	{0}: {1} → Down; interface configuration changed.
+3ud6lw7o	OSPF updated without resetting unchanged adjacencies.

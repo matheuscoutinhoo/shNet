@@ -1515,7 +1515,7 @@ export class SimulationEngine {
         refreshVrrp(this);
       d.logs.push((this.state.clock.toFixed(3) + ' ' + type + ' ' + reason).slice(0, 300));
       if (d.logs.length > 100) d.logs.shift();
-      bufferSyslog(d, this.state.clock, type, reason);
+      bufferSyslog(d, this.state.clock, type, reason, details.port);
       forwardSyslogEvent(this, d, event);
     }
     return event;

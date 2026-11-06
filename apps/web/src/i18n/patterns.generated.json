@@ -260,6 +260,10 @@
   "Equipamento inexistente ou repetido na proposta: {0}"
  ],
  [
+  "58ijy40c",
+  "{0}: {1} → Down; configuração da interface alterada."
+ ],
+ [
   "5a3gccgc",
   "{0}: regras NAT sem interface {1}; nada é traduzido."
  ],

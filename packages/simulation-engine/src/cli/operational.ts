@@ -233,7 +233,8 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
   for (const r of resolveDefaultRoutes(d, vrf).filter((r) => interfaceOperational(e.state, d, r.port))) {
     const dhcp = r.port.ipv4Mode === 'dhcp';
     rows.push({
-      code: dhcp ? 'D' : 'S',
+      // IOS shows a DHCP-learned default as a static route with distance 254.
+      code: 'S',
       network: '0.0.0.0',
       prefix: 0,
       // IOS installs a DHCP-learned default route with distance 254.
@@ -306,7 +307,8 @@ export function showRoutes(e: SimulationEngine, d: Device, vrf?: string) {
   const lines: string[] = [];
   const render = (r: RouteRow, indent: number, continuation: boolean) => {
     const target = `${r.network}/${r.prefix} `;
-    const code = r.prefix === 0 ? r.code.replace(/^(\S+)/, '$1*') : r.code;
+    // IOS marks the candidate default right after the protocol code: S*, O*IA, O*E2.
+    const code = r.prefix === 0 ? r.code.replace(/^(\S+) ?/, '$1*') : r.code;
     lines.push(
       continuation
         ? ' '.repeat(indent + target.length) + routeTail(e, r)

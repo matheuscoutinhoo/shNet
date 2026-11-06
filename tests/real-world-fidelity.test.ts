@@ -1499,6 +1499,115 @@ describe('IOS BGP neighbor and address-family commands', () => {
     expect(e.device(r1.id).bootLog).toEqual([]);
   });
 });
+describe('IOS OSPF router commands', () => {
+  it('runs totally stubby areas, area authentication and redistribution without resetting adjacencies', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [r1, r2, r3],
+      terminals: [t1, t2, t3],
+      cable,
+      advance,
+    } = lab('router', 'router', 'router');
+    cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    cable(r1, 'Gi0/2', r3, 'Gi0/1');
+    ok(t1, [
+      'interface Loopback0',
+      'ip address 1.1.1.1 255.255.255.255',
+      'interface Gi0/1',
+      'ip address 10.12.0.1 255.255.255.0',
+      'ip ospf message-digest-key 1 md5 Area0-Key',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 10.13.0.1 255.255.255.0',
+      'no shutdown',
+      'router ospf 1',
+      'log-adjacency-changes detail',
+      'area 0 authentication message-digest',
+      'area 1 stub no-summary',
+      'network 10.12.0.0 0.0.0.255 area 0',
+      'network 10.13.0.0 0.0.0.255 area 1',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Loopback0',
+      'ip address 2.2.2.2 255.255.255.255',
+      'ip ospf 1 area 0',
+      'interface Gi0/1',
+      'ip address 10.12.0.2 255.255.255.0',
+      'ip ospf message-digest-key 1 md5 Area0-Key',
+      'no shutdown',
+      'exit',
+      'ip route 172.20.0.0 255.255.0.0 Null0',
+      'router ospf 1',
+      'area 0 authentication message-digest',
+      'redistribute static subnets',
+      'network 10.12.0.0 0.0.0.255 area 0',
+      'end',
+    ]);
+    ok(t3, [
+      'interface Loopback0',
+      'ip address 3.3.3.3 255.255.255.255',
+      'ip ospf 1 area 1',
+      'interface Gi0/1',
+      'ip address 10.13.0.3 255.255.255.0',
+      'no shutdown',
+      'router ospf 1',
+      'area 1 stub',
+      'network 10.13.0.0 0.0.0.255 area 1',
+      'end',
+    ]);
+    advance(90_000);
+    const r1Routes = t1.execute('show ip route');
+    expect(r1Routes).toMatch(/^O E2\s+172\.20\.0\.0\/16 \[110\/20\] via 10\.12\.0\.2/m);
+    expect(r1Routes).toMatch(/^O\s+2\.2\.2\.2(?:\/32)? /m);
+    // Totally stubby: area 1 learns only the ABR default, no inter-area or external routes.
+    const r3Routes = t3.execute('show ip route');
+    expect(r3Routes).toMatch(/^O\*IA\s+0\.0\.0\.0\/0 \[110\/\d+\] via 10\.13\.0\.1/m);
+    expect(r3Routes).not.toMatch(/2\.2\.2\.2|172\.20\.0\.0|10\.12\.0\.0/);
+    expect(t1.execute('show logging')).toContain(
+      '%OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on GigabitEthernet0/1 from LOADING to FULL, Loading Done'
+    );
+    // A wrong area key keeps the adjacency down.
+    const downs = () =>
+      e.state.events.filter((ev) => ev.type === 'OSPF_NEIGHBOR_CHANGED' && / → Down;/.test(ev.reason)).length;
+    const before = downs();
+    ok(t1, [
+      'configure terminal',
+      'router ospf 1',
+      'timers throttle spf 50 200 5000',
+      'bfd all-interfaces',
+      'auto-cost reference-bandwidth 10000',
+      'interface Gi0/2',
+      'ip ospf cost 50',
+      'end',
+    ]);
+    advance(15_000);
+    expect(downs()).toBe(before);
+    expect(t1.execute('show ip route')).toMatch(/^O\s+3\.3\.3\.3(?:\/32)? \[110\/51\]/m);
+    const running = t1.execute('show running-config');
+    expect(running).toContain(
+      [
+        'router ospf 1',
+        ' log-adjacency-changes detail',
+        ' auto-cost reference-bandwidth 10000',
+        ' area 0 authentication message-digest',
+        ' area 1 stub no-summary',
+        ' timers throttle spf 50 200 5000',
+        ' network 10.12.0.0 0.0.0.255 area 0',
+        ' network 10.13.0.0 0.0.0.255 area 1',
+        ' bfd all-interfaces',
+      ].join('\n')
+    );
+    expect(t2.execute('show running-config')).toContain('\n redistribute static\n');
+    expect(running).not.toMatch(/service ospf/);
+    ok(t1, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t1, ['enable']);
+    expect(t1.execute('show running-config')).toBe(running);
+    expect(e.device(r1.id).bootLog).toEqual([]);
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {
