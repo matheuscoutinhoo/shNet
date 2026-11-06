@@ -85,17 +85,21 @@ export function validateAaa(s: Snapshot) {
         (a &&
           (d.type !== 'switch' ||
             p.mode !== 'access' ||
-            !isUnicast(a.server) ||
-            !d.interfaces.some(
-              (w) =>
-                w.id === a.underlay &&
-                w !== p &&
-                w.mode === 'routed' &&
-                w.ip &&
-                !w.vrf &&
-                !w.vxlan &&
-                !w.tunnel
-            ) ||
+            (a.aaa
+              ? a.server !== undefined || a.key !== undefined || a.underlay !== undefined
+              : !a.server ||
+                !a.key ||
+                !isUnicast(a.server) ||
+                !d.interfaces.some(
+                  (w) =>
+                    w.id === a.underlay &&
+                    w !== p &&
+                    w.mode === 'routed' &&
+                    w.ip &&
+                    !w.vrf &&
+                    !w.vxlan &&
+                    !w.tunnel
+                )) ||
             !d.vlans.some((v) => v.id === a.baseVlan) ||
             p.accessVlan !== (a.assignedVlan ?? a.baseVlan) ||
             (a.phase === 'authorized' &&

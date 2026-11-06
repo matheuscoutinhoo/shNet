@@ -124,6 +124,7 @@ import {
   handleDot1xTick,
   receiveEapol,
   permitDot1x,
+  removeDot1x,
 } from '../protocols/dot1x';
 import { configureVxlan, sendVxlanFrame } from '../protocols/vxlan';
 import { configureQos, enqueueQos, handleQosTick, permitIngressQos } from '../protocols/qos';
@@ -539,6 +540,10 @@ export class SimulationEngine {
   configureDot1x(deviceId: string, portId: string, input: unknown) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
     configureDot1x(this, device, port, input);
+  }
+  removeDot1x(deviceId: string, portId: string) {
+    const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
+    removeDot1x(this, device, port);
   }
   configureSupplicant(deviceId: string, portId: string, input: unknown) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });

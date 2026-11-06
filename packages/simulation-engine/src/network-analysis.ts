@@ -208,8 +208,11 @@ export function networkAnalysis(s: Snapshot, view: string): AnalysisRow[] {
         for (const ip of p.dns ?? []) dependency('DNS ' + p.name, ip);
         if (p.tunnel) dependency('Underlay ' + p.name, p.tunnel.remote);
         for (const ip of p.vxlan?.peers ?? []) dependency('VTEP ' + p.vxlan!.vni, ip);
-        if (p.dot1x) dependency('RADIUS ' + p.name, p.dot1x.server);
+        if (p.dot1x?.server) dependency('RADIUS ' + p.name, p.dot1x.server);
       }
+      for (const server of d.iosSystem?.aaaServers ?? [])
+        if (server.address)
+          dependency((server.kind === 'radius' ? 'RADIUS ' : 'TACACS+ ') + server.name, server.address);
       for (const r of d.routes) dependency('Rota ' + r.network + '/' + r.prefix, r.nextHop);
       for (const p of d.bgp?.peers ?? []) dependency('Peer BGP', p.ip);
       for (const ip of d.ntp?.servers ?? []) dependency('NTP', ip);

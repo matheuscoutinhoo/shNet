@@ -927,6 +927,125 @@ describe('IOS day-0 management plane', () => {
   });
 });
 
+describe('802.1X on a Layer 2 access switch', () => {
+  /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
+  function campus() {
+    const {
+      e,
+      devices: [sw, r],
+      terminals: [ts, tr],
+      cable,
+      advance,
+    } = lab('access', 'router');
+    cable(sw, 'Gi0/24', r, 'Gi0/1');
+    const pc = e.addDevice('pc', { x: 0, y: 200 }),
+      radius = e.addDevice('server', { x: 400, y: 200 });
+    Object.assign(pc.interfaces[0], { ip: '10.1.0.11', prefix: 24 });
+    pc.gateway = '10.1.0.1';
+    Object.assign(radius.interfaces[0], { ip: '10.2.50.41', prefix: 24 });
+    radius.gateway = '10.2.50.1';
+    e.connect(
+      { device: pc.id, port: pc.interfaces[0].id },
+      { device: sw.id, port: e.device(sw.id).interfaces.find((p) => p.name === 'Gi0/1')!.id }
+    );
+    e.connect(
+      { device: radius.id, port: radius.interfaces[0].id },
+      { device: r.id, port: e.device(r.id).interfaces.find((p) => p.name === 'Gi0/2')!.id }
+    );
+    e.configureAaaServer(radius.id, {
+      enabled: true,
+      radius: true,
+      tacacs: false,
+      key: 'Rad-Key-1',
+      clients: [],
+      users: [{ username: 'alice', password: 'Alice-Pass1' }],
+    });
+    e.configureSupplicant(pc.id, pc.interfaces[0].id, {
+      enabled: true,
+      username: 'alice',
+      password: 'Alice-Pass1',
+    });
+    ok(tr, [
+      'interface Gi0/1',
+      'ip address 10.1.0.1 255.255.255.0',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 10.2.50.1 255.255.255.0',
+      'no shutdown',
+      'end',
+    ]);
+    // Management SVI and default gateway: the switch itself does not route.
+    ok(ts, [
+      'interface Vlan1',
+      'ip address 10.1.0.2 255.255.255.0',
+      'no shutdown',
+      'exit',
+      'ip default-gateway 10.1.0.1',
+      'spanning-tree portfast default',
+      'interface Gi0/1',
+      'switchport mode access',
+      'exit',
+    ]);
+    const port = () => e.device(sw.id).interfaces.find((p) => p.name === 'Gi0/1')!;
+    return { e, sw, pc, ts, port, advance };
+  }
+  it('authenticates with the IOS method list through ip default-gateway and keeps the port closed until then', () => {
+    const { e, sw, pc, ts, port, advance } = campus();
+    ok(ts, [
+      'aaa new-model',
+      'aaa authentication dot1x default group radius',
+      'dot1x system-auth-control',
+      'radius server NPS-1',
+      'address ipv4 10.2.50.41 auth-port 1812 acct-port 1813',
+      'key Rad-Key-1',
+      'interface Gi0/1',
+      'authentication port-control auto',
+      'dot1x pae authenticator',
+      'end',
+    ]);
+    expect(port().dot1x).toMatchObject({ enabled: true, aaa: true });
+    advance(6000);
+    expect(port().dot1x?.phase).toBe('authorized');
+    expect(e.device(pc.id).interfaces[0].supplicant?.phase).toBe('authorized');
+    // The Access-Request left from the management SVI towards the default gateway.
+    expect(e.device(sw.id).aaaQueries?.at(-1)).toMatchObject({ sourceIp: '10.1.0.2', status: 'accepted' });
+    const running = ts.execute('show running-config');
+    expect(running).toMatch(/ authentication port-control auto\n dot1x pae authenticator\n/);
+    expect(running).not.toMatch(/dot1x configure|aaa client configure/);
+    // The configuration survives a reload and the client authenticates again.
+    ok(ts, ['write memory', 'reload', '']);
+    advance(60_000);
+    ok(ts, ['enable']);
+    expect(ts.execute('show running-config')).toBe(running);
+    advance(10_000);
+    expect(port().dot1x?.phase).toBe('authorized');
+    // Without a reachable RADIUS server the method list fails and the port stays unauthorized.
+    ok(ts, [
+      'configure terminal',
+      'no ip default-gateway',
+      'interface Gi0/1',
+      'shutdown',
+      'no shutdown',
+      'end',
+    ]);
+    advance(10_000);
+    expect(port().dot1x?.phase).not.toBe('authorized');
+  });
+  it('the simulator AAA client binding also reaches RADIUS through ip default-gateway', () => {
+    const { pc, e, ts, port, advance } = campus();
+    ok(ts, [
+      'dot1x system-auth-control',
+      'aaa client configure {"method":"radius","server":"10.2.50.41","key":"Rad-Key-1"}',
+      'interface Gi0/1',
+      'authentication port-control auto',
+      'end',
+    ]);
+    advance(6000);
+    expect(port().dot1x?.phase).toBe('authorized');
+    expect(e.device(pc.id).interfaces[0].supplicant?.phase).toBe('authorized');
+  });
+});
+
 describe('simulation fast paths keep results exact', () => {
   it('incremental worker deltas keep a large lab mirror valid, and sync() makes it exact', () => {
     const snapshot = makeTemplate('factory');

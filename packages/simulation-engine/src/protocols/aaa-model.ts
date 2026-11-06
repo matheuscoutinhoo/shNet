@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { idSchema, ipv4Schema, timeSchema, portNumberSchema } from '../schemas';
 const username = z.string().regex(/^[a-zA-Z0-9_.@-]{1,64}$/);
 const password = z.string().min(1).max(64);
-const key = z.string().min(8).max(64);
+// RADIUS/TACACS+ shared secrets: IOS accepts any non-empty key.
+const key = z.string().min(1).max(64);
 const proof = z.string().regex(/^[0-9a-f]{32}$/);
 const mac = z.string().regex(/^(?:[0-9a-f]{2}:){5}[0-9a-f]{2}$/);
 const vlan = z.number().int().min(1).max(4094);
@@ -136,9 +137,12 @@ export const aaaQuerySchema = z
 export const dot1xConfigSchema = z
   .object({
     enabled: z.boolean(),
-    server: ipv4Schema,
-    key,
-    underlay: idSchema,
+    // A fixed RADIUS binding (server, key, source interface), or "aaa": IOS "aaa authentication
+    // dot1x default group ..." chooses the server and the routing table the source.
+    server: ipv4Schema.optional(),
+    key: key.optional(),
+    underlay: idSchema.optional(),
+    aaa: z.literal(true).optional(),
     reauthMs: lifetime.default(60000),
   })
   .strict();

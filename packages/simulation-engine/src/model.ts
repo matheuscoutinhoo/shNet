@@ -621,6 +621,11 @@ export const interfaceSchema = z
     ingressQos: qosStateSchema.optional(),
     dot1x: dot1xStateSchema.optional(),
     authenticationControl: z.enum(['auto', 'force-authorized', 'force-unauthorized']).optional(),
+    // "dot1x pae authenticator": with "authentication port-control auto" the port runs 802.1X.
+    dot1xPae: z.literal('authenticator').optional(),
+    // "authentication periodic" / "authentication timer reauthenticate N|server".
+    authenticationPeriodic: z.boolean().optional(),
+    reauthenticate: z.union([z.number().int().min(1).max(65535), z.literal('server')]).optional(),
     udld: udldStateSchema.optional(),
     bfd: bfdStateSchema.optional(),
     supplicant: supplicantStateSchema.optional(),

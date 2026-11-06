@@ -121,9 +121,11 @@ function sendRadius(e: SimulationEngine, d: Device, q: AaaQuery) {
     bytes: 28 + m.wire.length / 2,
     payload: { protocol: 'RADIUS', message: m },
   };
-  if (q.port) {
-    const auth = d.interfaces.find((p) => p.id === q.port)?.dot1x,
-      wan = d.interfaces.find((p) => p.id === auth?.underlay),
+  // A fixed 802.1X binding leaves through its underlay; otherwise the routing table (or
+  // "ip default-gateway" on a Layer 2 switch) forwards the request, as for any IOS-originated packet.
+  const auth = q.port ? d.interfaces.find((p) => p.id === q.port)?.dot1x : undefined;
+  if (auth?.underlay) {
+    const wan = d.interfaces.find((p) => p.id === auth.underlay),
       route = wan && resolveUnderlay(d, wan, q.server);
     if (wan && route) sendWithArp(e, d, wan, route.nextHop, packet);
     else e.drop(d, 'RADIUS: underlay sem rota.');

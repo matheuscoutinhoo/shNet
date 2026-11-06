@@ -16,7 +16,8 @@ interface Unit {
 const NEEDS_INTERFACES =
   /^(?:(?:no )?ipv6 route |tunnel configure |no tunnel |(?:no )?service tunnel |sdwan |no sdwan |(?:no )?service sdwan|vxlan configure |(?:no )?service vxlan |no vxlan )/;
 // Interface sub-commands whose simulator form references another interface's address or route.
-const NEEDS_ALL_INTERFACES = /^ (?:dot1x configure|supplicant configure|authentication port-control) /;
+const NEEDS_ALL_INTERFACES =
+  /^ (?:dot1x configure|supplicant configure|authentication (?:port-control|periodic|timer)|dot1x pae) /;
 function units(lines: string[]) {
   const out: Unit[] = [];
   let open = false;
