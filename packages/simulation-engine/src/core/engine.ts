@@ -206,6 +206,7 @@ import {
   sviOperational,
 } from '../protocols/layer3';
 import { bestRoute, ipNumber, receiveIp, resolveRoute } from '../protocols/ipv4';
+import { bufferSyslog } from '../protocols/syslog-buffer';
 import { configureDhcpPool, configureDhcpRelay, refreshDhcpPools } from '../protocols/dhcp-config';
 import {
   configureDhcpHaPair,
@@ -1514,6 +1515,7 @@ export class SimulationEngine {
         refreshVrrp(this);
       d.logs.push((this.state.clock.toFixed(3) + ' ' + type + ' ' + reason).slice(0, 300));
       if (d.logs.length > 100) d.logs.shift();
+      bufferSyslog(d, this.state.clock, type, reason);
       forwardSyslogEvent(this, d, event);
     }
     return event;

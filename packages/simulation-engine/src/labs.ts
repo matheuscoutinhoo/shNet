@@ -116,6 +116,7 @@ export function freshSimulation(snapshot: Snapshot) {
     device.pending = [];
     device.arpResolutions = [];
     device.logs = [];
+    delete device.syslogBuffer;
     delete device.dnsQueries;
     delete device.dnsCache;
     delete device.remoteQueries;

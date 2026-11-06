@@ -4,6 +4,7 @@ import { ALL_MODES, type CommandRegistry } from './registry';
 import { iosTimestamp } from './ios-time';
 import { levelName } from './ios-management';
 import { interfaceOperational } from '../protocols/layer3';
+import { loggingBuffer } from '../protocols/syslog-buffer';
 
 const ERRDISABLE_REASONS = [
   'arp-inspection',
@@ -17,41 +18,20 @@ const ERRDISABLE_REASONS = [
   'storm-control',
   'udld',
 ];
-// Events that IOS reports as syslog messages, with the facility-severity-mnemonic they map to.
-const SYSLOG_EVENTS: Record<string, [number, string]> = {
-  LINK_DOWN: [3, 'LINK-3-UPDOWN'],
-  LINK_UP: [3, 'LINK-3-UPDOWN'],
-  OSPF_NEIGHBOR_CHANGED: [5, 'OSPF-5-ADJCHG'],
-  BGP_STATE_CHANGED: [5, 'BGP-5-ADJCHANGE'],
-  VRRP_STATE_CHANGED: [6, 'VRRP-6-STATECHANGE'],
-  HSRP_STATE_CHANGED: [5, 'HSRP-5-STATECHANGE'],
-  STP_ROOT_CHANGED: [6, 'SPANTREE-6-ROOTCHANGE'],
-  STP_TOPOLOGY_CHANGED: [6, 'SPANTREE-6-TOPOCHANGE'],
-  // Only the configuration events already worded as IOS messages (storm control, UDLD...).
-  CONFIG_CHANGED: [5, ''],
-};
 /** The device's syslog messages, oldest first, as IOS keeps them in the logging buffer. */
-function bufferedMessages(d: Device, level: number) {
-  return d.logs.flatMap((line) => {
-    const match = /^(\d+(?:\.\d+)?) (\S+) (.*)$/.exec(line);
-    const kind = match && SYSLOG_EVENTS[match[2]];
-    if (!match || !kind) return [];
-    // Messages already in IOS form (e.g. %PM-4-ERR_DISABLE) carry their own severity.
-    const own = /^%[\w-]+-(\d)-\w+:/.exec(match[3]);
-    if (!own && !kind[1]) return [];
-    const severity = own ? Number(own[1]) : kind[0];
-    if (severity > level) return [];
-    const at = Number(match[1]) * 1000;
-    return [iosTimestamp(at) + ': ' + (own ? match[3] : '%' + kind[1] + ': ' + match[3])];
+function bufferedMessages(d: Device) {
+  return (d.syslogBuffer ?? []).flatMap((line) => {
+    const match = /^(\d+(?:\.\d+)?) (.*)$/.exec(line);
+    return match ? [iosTimestamp(Number(match[1])) + ': ' + match[2]] : [];
   });
 }
 function showLogging(d: Device) {
   const s = d.iosSystem?.logging,
     syslog = d.syslogClient,
-    buffered = s?.buffered,
+    buffered = loggingBuffer(d),
     level = (value: number | false | undefined, fallback: number) =>
       value === false ? 'disabled' : 'level ' + levelName(value ?? fallback);
-  const messages = bufferedMessages(d, buffered?.level ?? 7);
+  const messages = bufferedMessages(d);
   const hosts = syslog?.enabled ? [syslog.server, ...(syslog.additional ?? [])] : [];
   return [
     'Syslog logging: enabled (0 messages dropped, 0 messages rate-limited, 0 flushes, 0 overruns, xml disabled, filtering disabled)',

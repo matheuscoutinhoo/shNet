@@ -37,6 +37,9 @@ function configuration(value: unknown): unknown {
   if (!value || typeof value !== 'object') return value;
   const volatile = new Set([
     'logs',
+    'syslogBuffer',
+    'loggedAt',
+    'logPending',
     'booted',
     'bootStartedAt',
     'learned',

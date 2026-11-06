@@ -235,9 +235,12 @@ export const iosSystemSchema = z
       .optional(),
     logging: z
       .object({
+        // IOS buffers messages by default (4096 bytes, debugging); false is "no logging buffered".
         buffered: z
-          .object({ size: z.number().int().min(4096).max(2147483647), level })
-          .strict()
+          .union([
+            z.object({ size: z.number().int().min(4096).max(2147483647), level }).strict(),
+            z.literal(false),
+          ])
           .optional(),
         console: z.union([level, z.literal(false)]).optional(),
         monitor: z.union([level, z.literal(false)]).optional(),

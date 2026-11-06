@@ -766,7 +766,10 @@ export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
       'Os gateways virtuais são 192.168.10.1 e 192.168.20.1. R-PRIMARY começa ACTIVE (150); R-BACKUP fica BACKUP (100). Faça ping/HTTP de PC-01 para WEB-01, desligue R-PRIMARY e avance 4 s. Repita o tráfego e confira o MAC virtual no ARP. Ao religar, preempt devolve a função ao primário. Rotas estáticas de apoio atendem shutdown administrativo de apenas uma porta. Sessões NAT/firewall não são replicadas.';
     engine.advanceTo(4500);
     engine.state.events = [];
-    for (const device of engine.state.devices) device.logs = [];
+    for (const device of engine.state.devices) {
+      device.logs = [];
+      delete device.syslogBuffer;
+    }
     return engine.snapshot();
   }
   if (template === 'firewall-zones') {

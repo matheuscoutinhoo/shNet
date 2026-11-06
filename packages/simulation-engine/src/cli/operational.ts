@@ -257,17 +257,8 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
   return installed.filter((r) => !seen.has(r.legacy) && !!seen.add(r.legacy));
 }
 
-/** IOS uses full interface names in routing output. */
-export function longInterfaceName(name: string) {
-  return name
-    .replace(/^Gi(?=\d)/, 'GigabitEthernet')
-    .replace(/^Te(?=\d)/, 'TenGigabitEthernet')
-    .replace(/^Fo(?=\d)/, 'FortyGigabitEthernet')
-    .replace(/^Hu(?=\d)/, 'HundredGigE')
-    .replace(/^Fa(?=\d)/, 'FastEthernet')
-    .replace(/^Se(?=\d)/, 'Serial')
-    .replace(/^Po(?=\d)/, 'Port-channel');
-}
+import { longInterfaceName } from '../protocols/interface-name';
+export { longInterfaceName };
 const ROUTE_CODES = [
   'Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP',
   '       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area ',

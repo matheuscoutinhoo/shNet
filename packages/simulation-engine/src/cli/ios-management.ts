@@ -848,7 +848,7 @@ export function registerIosManagementCommands(r: CommandRegistry) {
     run: (m, _e, d) => {
       const logging = (sys(d).logging ??= {});
       if (m[1]) {
-        delete logging.buffered;
+        logging.buffered = false;
         return;
       }
       // "logging buffered warnings" (level only) is also valid.
@@ -1440,9 +1440,15 @@ export function iosManagementHead(d: Device) {
     ...Object.entries(services)
       .filter(([name]) => !name.startsWith('ip-'))
       .map(([name, on]) => (on ? '' : 'no ') + 'service ' + name),
-    ...(s.logging?.buffered
-      ? ['logging buffered ' + s.logging.buffered.size + ' ' + levelName(s.logging.buffered.level)]
-      : []),
+    ...(s.logging?.buffered === false
+      ? ['no logging buffered']
+      : s.logging?.buffered
+        ? [
+            'logging buffered ' +
+              s.logging.buffered.size +
+              (s.logging.buffered.level === 7 ? '' : ' ' + levelName(s.logging.buffered.level)),
+          ]
+        : []),
     ...(s.logging?.console === false
       ? ['no logging console']
       : s.logging?.console !== undefined

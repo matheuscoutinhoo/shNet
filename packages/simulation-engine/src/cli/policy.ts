@@ -2,7 +2,7 @@ import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort } from './registr
 import { showAccessLists, showNatTranslations } from './ios-show';
 import { type Device, type NatConfig } from '../model';
 import { parsePrefix, sameSubnet } from '../protocols/ipv4';
-import { registerNativeAclCommands, aclAddress } from './acl';
+import { registerNativeAclCommands, aclRunningLines } from './acl';
 import { interfaceName } from './operational';
 
 export function policyNetwork(value: string) {
@@ -205,13 +205,7 @@ export function policyRunningConfig(device: Device) {
   return [
     ...(device.accessLists?.flatMap((acl) => [
       `ip access-list ${acl.kind ?? 'extended'} ${acl.name}`,
-      ...acl.rules.map(
-        (rule) =>
-          ` ${rule.sequence} ${rule.action} ` +
-          (acl.kind === 'standard'
-            ? aclAddress(rule.source, rule.sourceWildcard)
-            : `${rule.protocol} ${aclAddress(rule.source, rule.sourceWildcard)}${rule.sourcePort ? ' eq ' + rule.sourcePort : ''} ${aclAddress(rule.destination, rule.destinationWildcard)}${rule.destinationPort ? ' eq ' + rule.destinationPort : ''}${rule.established ? ' established' : ''}`)
-      ),
+      ...aclRunningLines(acl),
       'exit',
     ]) ?? []),
     ...(device.nat ? [device.nat.enabled ? 'service nat' : 'no service nat'] : []),

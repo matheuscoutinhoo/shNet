@@ -242,6 +242,8 @@ export type CanvasItem = z.infer<typeof canvasItemSchema>;
 export const subnetSchema = z
   .object({ network: ipv4Schema, prefix: z.number().int().min(0).max(32) })
   .strict();
+const aclPort = z.number().int().min(0).max(65535);
+const aclRemarks = z.array(z.string().min(1).max(100)).max(8).optional();
 export const aclRuleSchema = z
   .object({
     sequence: z.number().int().min(1).max(65535),
@@ -251,9 +253,22 @@ export const aclRuleSchema = z
     destination: subnetSchema,
     sourceWildcard: ipv4Schema.optional(),
     destinationWildcard: ipv4Schema.optional(),
-    sourcePort: z.number().int().min(1).max(65535).optional(),
-    destinationPort: z.number().int().min(1).max(65535).optional(),
+    sourcePort: aclPort.optional(),
+    destinationPort: aclPort.optional(),
+    // IOS port operators besides "eq" (the default): neq, gt, lt and "range LOW HIGH".
+    sourcePortOp: z.enum(['neq', 'gt', 'lt', 'range']).optional(),
+    sourcePortEnd: aclPort.optional(),
+    destinationPortOp: z.enum(['neq', 'gt', 'lt', 'range']).optional(),
+    destinationPortEnd: aclPort.optional(),
+    icmpType: z.number().int().min(0).max(255).optional(),
+    icmpCode: z.number().int().min(0).max(255).optional(),
     established: z.boolean().optional(),
+    log: z.enum(['log', 'log-input']).optional(),
+    // "remark" lines shown before this entry in the running-config.
+    remarks: aclRemarks,
+    // IOS logs the first match at once, then a packet count every 5 minutes.
+    loggedAt: finite.nonnegative().optional(),
+    logPending: z.number().int().nonnegative().optional(),
     hits: z.number().int().nonnegative().default(0),
   })
   .strict()
@@ -261,7 +276,18 @@ export const aclRuleSchema = z
     (rule) =>
       (!rule.established || rule.protocol === 'tcp') &&
       (['udp', 'tcp'].includes(rule.protocol) ||
-        (rule.sourcePort === undefined && rule.destinationPort === undefined)),
+        (rule.sourcePort === undefined && rule.destinationPort === undefined)) &&
+      (rule.icmpType === undefined || rule.protocol === 'icmp') &&
+      (rule.icmpCode === undefined || rule.icmpType !== undefined) &&
+      (['source', 'destination'] as const).every((side) => {
+        const port = rule[`${side}Port`],
+          op = rule[`${side}PortOp`],
+          end = rule[`${side}PortEnd`];
+        return (
+          (op === undefined || port !== undefined) &&
+          (op === 'range' ? end !== undefined && port !== undefined && end >= port : end === undefined)
+        );
+      }),
     'Portas exigem protocolo UDP ou TCP.'
   );
 export const aclSchema = z
@@ -269,6 +295,8 @@ export const aclSchema = z
     name: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
     kind: z.enum(['standard', 'extended']).optional(),
     rules: z.array(aclRuleSchema).max(256),
+    // Remarks typed after the last entry; they attach to the next entry added.
+    remarks: aclRemarks,
     implicitDrops: z.number().int().nonnegative().default(0),
   })
   .strict();
@@ -1177,6 +1205,8 @@ export const deviceSchema = z
       .max(256)
       .optional(),
     logs: z.array(z.string().max(300)).max(100),
+    // IOS logging buffer: "<clock> <message>" lines, trimmed to the "logging buffered" size.
+    syslogBuffer: z.array(z.string().max(320)).max(2000).optional(),
     dropped: z.number().int().nonnegative(),
   })
   .strict();

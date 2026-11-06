@@ -278,7 +278,13 @@ export function saveStartup(e: SimulationEngine, d: Device, registry: CommandReg
     accessLists: d.accessLists?.map((acl) => ({
       ...acl,
       implicitDrops: 0,
-      rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
+      // Counters and the ACL log rate-limit state are runtime data, not configuration.
+      rules: acl.rules.map((rule) => {
+        const saved = { ...rule, hits: 0 };
+        delete saved.loggedAt;
+        delete saved.logPending;
+        return saved;
+      }),
     })),
     privateConfig: privateConfig(d),
   };

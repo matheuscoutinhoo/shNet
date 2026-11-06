@@ -10,8 +10,10 @@ import {
   makeTemplate,
   preflight,
   type Device,
+  type Packet,
 } from '../packages/simulation-engine/src';
 import { type7Decode, type7Encode } from '../packages/simulation-engine/src/cli/secrets';
+import { matchingAclRule } from '../packages/simulation-engine/src/protocols/acl';
 import { decodePcap, exportPcap } from '../packages/simulation-engine/src/wire/pcap';
 
 const ok = (t: TerminalSession, lines: string[]) => {
@@ -1289,6 +1291,98 @@ describe('static routes like IOS (Null0 summaries, recursive next hops)', () => 
     expect(t1.execute('no ip route 10.9.0.0 255.255.0.0')).toMatch(/No matching route to delete/);
     ok(t1, ['no ip route 10.1.0.0 255.255.0.0 Null0', 'end']);
     expect(t1.execute('show running-config')).not.toContain('Null0');
+  });
+});
+describe('IOS access lists (remarks, port operators, ICMP types, logging)', () => {
+  it('matches and logs like IOS and keeps remarks across write memory and reload', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [r1, r2, r3],
+      terminals: [t1, t2, t3],
+      cable,
+      advance,
+    } = lab('router', 'router', 'router');
+    cable(r2, 'Gi0/1', r1, 'Gi0/1');
+    cable(r1, 'Gi0/2', r3, 'Gi0/1');
+    ok(t2, ['interface Gi0/1', 'ip address 10.1.1.10 255.255.255.0', 'no shutdown', 'exit']);
+    ok(t2, ['ip route 0.0.0.0 0.0.0.0 10.1.1.1', 'end']);
+    ok(t3, ['interface Gi0/1', 'ip address 10.2.2.10 255.255.255.0', 'no shutdown', 'exit']);
+    ok(t3, ['ip route 0.0.0.0 0.0.0.0 10.2.2.1', 'end']);
+    ok(t1, [
+      'access-list 10 remark NOC jump hosts and management VLANs',
+      'access-list 10 permit 10.2.50.0 0.0.0.255',
+      'access-list 10 deny any log',
+      'ip access-list extended GUEST-IN',
+      'remark Guests: DHCP and DNS, then Internet only',
+      'permit udp any any eq bootps',
+      'permit udp any host 10.2.2.10 eq domain',
+      'permit tcp any host 10.2.2.10 range 8000 8080',
+      'deny icmp any any echo log',
+      'deny ip any 10.0.0.0 0.255.255.255 log-input',
+      'permit ip any any',
+      'interface Gi0/1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'ip access-group GUEST-IN in',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 10.2.2.1 255.255.255.0',
+      'no shutdown',
+      'end',
+    ]);
+    advance(5_000);
+    const tcp = (destinationPort: number) =>
+      ({
+        src: '10.1.1.10',
+        dst: '10.2.2.10',
+        ttl: 64,
+        protocol: 'TCP',
+        sourcePort: 40000,
+        destinationPort,
+        flags: ['SYN'],
+      }) as unknown as Packet;
+    expect(matchingAclRule(e.device(r1.id), 'GUEST-IN', tcp(8080))?.sequence).toBe(30);
+    expect(matchingAclRule(e.device(r1.id), 'GUEST-IN', tcp(9000))?.sequence).toBe(50);
+    // ICMP echo is denied and logged once; later matches are counted for the next message.
+    expect(t2.execute('ping 10.2.2.10')).toContain('Success rate is 0 percent (0/5)');
+    const logs = () => t1.execute('show logging').match(/%SEC-6-IPACCESSLOG\w+: .*$/gm) ?? ([] as string[]);
+    expect(logs()).toEqual([
+      '%SEC-6-IPACCESSLOGDP: list GUEST-IN denied icmp 10.1.1.10 -> 10.2.2.10 (8/0), 1 packet',
+    ]);
+    advance(300_000);
+    t2.execute('ping 10.2.2.10');
+    expect(logs()[1]).toBe(
+      '%SEC-6-IPACCESSLOGDP: list GUEST-IN denied icmp 10.1.1.10 -> 10.2.2.10 (8/0), 5 packets'
+    );
+    expect(t1.execute('show access-lists GUEST-IN')).toContain(
+      '    30 permit tcp any host 10.2.2.10 range 8000 8080\n    40 deny icmp any any echo log (10 matches)'
+    );
+    const running = t1.execute('show running-config');
+    expect(running).toContain(
+      [
+        'ip access-list standard 10',
+        ' remark NOC jump hosts and management VLANs',
+        ' 10 permit 10.2.50.0 0.0.0.255',
+        ' 20 deny any log',
+      ].join('\n')
+    );
+    expect(running).toContain(
+      [
+        'ip access-list extended GUEST-IN',
+        ' remark Guests: DHCP and DNS, then Internet only',
+        ' 10 permit udp any any eq bootps',
+        ' 20 permit udp any host 10.2.2.10 eq domain',
+        ' 30 permit tcp any host 10.2.2.10 range 8000 8080',
+        ' 40 deny icmp any any echo log',
+        ' 50 deny ip any 10.0.0.0 0.255.255.255 log-input',
+        ' 60 permit ip any any',
+      ].join('\n')
+    );
+    ok(t1, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t1, ['enable']);
+    expect(t1.execute('show running-config')).toBe(running);
+    expect(e.device(r1.id).bootLog).toEqual([]);
   });
 });
 describe('802.1X on a Layer 2 access switch', () => {

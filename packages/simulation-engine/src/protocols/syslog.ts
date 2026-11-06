@@ -90,6 +90,12 @@ export function sendSyslog(
 export function forwardSyslogEvent(engine: SimulationEngine, device: Device, event: NetworkEvent) {
   if (!device.syslogClient?.enabled || !device.syslogClient.automatic || !device.power) return;
   if (!managementEnabled(device)) return;
+  // Messages already worded by IOS (e.g. %SEC-6-IPACCESSLOGP) carry their own severity.
+  const own = /^%[\w-]+-(\d)-\w+:/.exec(event.reason);
+  if (own && /^(ACL_PERMIT|ACL_DENY|CONFIG_CHANGED)$/.test(event.type)) {
+    sendSyslog(engine, device, event.reason.slice(0, 300), Number(own[1]));
+    return;
+  }
   const severity =
     event.type === 'LINK_DOWN'
       ? 4

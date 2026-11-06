@@ -7,7 +7,7 @@ import { bridgeId, portCost } from '../protocols/stp-election';
 import { edgePort } from '../protocols/stp-scope';
 import { ipNumber, ipString, mask } from '../protocols/ipv4';
 import { interfaceOperational } from '../protocols/layer3';
-import { aclAddress } from './acl';
+import { aclEntryText } from './acl';
 import { longInterfaceName } from './operational';
 
 const clock = (ms: number) => {
@@ -381,10 +381,7 @@ export function showAccessLists(d: Device, name?: string) {
         `${kind === 'standard' ? 'Standard' : 'Extended'} IP access list ${acl.name}`,
         ...acl.rules.map(
           (rule) =>
-            `    ${rule.sequence} ${rule.action} ` +
-            (kind === 'standard'
-              ? standard(rule.source, rule.sourceWildcard)
-              : `${rule.protocol} ${aclAddress(rule.source, rule.sourceWildcard)}${rule.sourcePort ? ' eq ' + rule.sourcePort : ''} ${aclAddress(rule.destination, rule.destinationWildcard)}${rule.destinationPort ? ' eq ' + rule.destinationPort : ''}${rule.established ? ' established' : ''}`) +
+            `    ${rule.sequence} ${aclEntryText(rule, kind, standard)}` +
             (rule.hits ? ` (${rule.hits} match${rule.hits === 1 ? '' : 'es'})` : '')
         ),
       ].join('\n');
