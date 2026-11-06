@@ -20,6 +20,8 @@ const SYSLOG_EVENTS: Record<string, [number, string]> = {
   BGP_ROUTE_REJECTED: [4, ''],
   // %FW-6-DROP_PKT of zone-pair classes configured with "drop log".
   FIREWALL_DENY: [6, ''],
+  // Drops worded as IOS messages, such as %HSRP-4-BADAUTH.
+  PACKET_DROPPED: [4, ''],
 };
 /** "10.0.0.2: OpenConfirm → Established." becomes "neighbor 10.0.0.2 Up" (IOS logs only Up/Down). */
 function bgpAdjacency(d: Device | undefined, reason: string) {

@@ -3,6 +3,7 @@ import type { Device, Frame, NetworkInterface, Snapshot } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { portCarriesVlan } from './stp-scope';
 import { isUnicast } from './dhcp-config';
+import { scheduleErrdisableRecovery } from './errdisable';
 
 export function configureDhcpSnooping(e: SimulationEngine, d: Device, input: unknown) {
   if (d.type !== 'switch') throw new Error('DHCP snooping exige switch.');
@@ -12,24 +13,53 @@ export function configureDhcpSnooping(e: SimulationEngine, d: Device, input: unk
   e.emit('CONFIG_CHANGED', d.id, 'DHCP snooping configurado; tabelas reaprendidas por REQUEST/ACK.');
 }
 function validateConfig(d: Device, c: ReturnType<typeof dhcpSnoopingConfigSchema.parse>) {
+  const switchport = (id: string) => d.interfaces.some((p) => p.id === id && p.mode !== 'routed');
   if (
     new Set(c.vlans).size !== c.vlans.length ||
     new Set(c.trustedPorts).size !== c.trustedPorts.length ||
-    [...c.sourceGuardPorts, ...c.arpTrustedPorts].some(
-      (id) => !d.interfaces.some((p) => p.id === id && p.mode !== 'routed')
-    ) ||
+    [...c.sourceGuardPorts, ...c.arpTrustedPorts].some((id) => !switchport(id)) ||
     c.trustedPorts.some(
       (id) => !d.interfaces.some((p) => p.id === id && !p.logical && !p.channel && p.mode !== 'routed')
     ) ||
-    c.staticBindings.some(
-      (b) =>
-        !c.vlans.includes(b.vlan) ||
-        !isUnicast(b.ip) ||
-        !d.interfaces.some((p) => p.id === b.port && portCarriesVlan(p, b.vlan))
-    ) ||
-    new Set(c.staticBindings.map((b) => b.vlan + ':' + b.ip)).size !== c.staticBindings.length
+    // IOS keeps static bindings whatever the snooping VLANs or the port's current VLAN.
+    c.staticBindings.some((b) => !isUnicast(b.ip) || !switchport(b.port)) ||
+    new Set(c.staticBindings.map((b) => b.vlan + ':' + b.ip)).size !== c.staticBindings.length ||
+    new Set(c.rateLimits.map((r) => r.port)).size !== c.rateLimits.length ||
+    c.rateLimits.some((r) => !switchport(r.port))
   )
     throw new Error('Configuração DHCP snooping, VLAN, porta ou binding inválido.');
+}
+/** "ip dhcp snooping limit rate": too many DHCP packets in one second err-disable the interface. */
+function withinRate(e: SimulationEngine, d: Device, p: NetworkInterface, f: Frame) {
+  const c = d.dhcpSnooping!,
+    limit = c.rateLimits.find((r) => r.port === p.id)?.pps;
+  if (!limit) return true;
+  const at = Math.floor(e.state.clock / 1000) * 1000;
+  let rate = c.rates?.find((r) => r.port === p.id);
+  if (!rate || rate.at !== at) {
+    rate = { port: p.id, at, count: 0 };
+    c.rates = [...(c.rates ?? []).filter((r) => r.port !== p.id), rate];
+  }
+  if (++rate.count <= limit) return true;
+  c.dropped++;
+  p.errDisabled = { reason: 'dhcp-rate-limit', at: e.state.clock };
+  d.macTable = d.macTable.filter((entry) => entry.port !== p.id);
+  scheduleErrdisableRecovery(e, d, p);
+  e.emit(
+    'CONFIG_CHANGED',
+    d.id,
+    `%DHCP_SNOOPING-4-DHCP_SNOOPING_ERRDISABLE_WARNING: DHCP Snooping received ${rate.count} DHCP packets on interface ${p.name}`,
+    { port: p.id, frame: f }
+  );
+  e.emit(
+    'LINK_DOWN',
+    d.id,
+    `%PM-4-ERR_DISABLE: dhcp-rate-limit error detected on ${p.name}, putting ${p.name} in err-disable state`,
+    { port: p.id }
+  );
+  e.drop(d, `DHCP snooping: limite de ${limit} pps excedido em ${p.name}.`, p.id, f);
+  e.refreshSpanningTree();
+  return false;
 }
 export function permitDhcpSnooping(
   e: SimulationEngine,
@@ -59,6 +89,7 @@ export function permitDhcpSnooping(
   const packet = f.packet;
   if (packet?.protocol === 'UDP' && packet.payload.protocol === 'DHCP') {
     if (!c.enabled || !c.vlans.includes(vlan)) return true;
+    if (!withinRate(e, d, p, f)) return false;
     const m = packet.payload.message,
       server = ['offer', 'ack', 'nak'].includes(m.type);
     if (server) {

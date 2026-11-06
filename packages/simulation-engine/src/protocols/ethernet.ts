@@ -1,4 +1,5 @@
 import { permitDhcpSnooping } from './dhcp-snooping';
+import { trunkAllows } from './trunk';
 import { noteCacheExpiry } from '../core/cache-expiry';
 import { evpnPort, observeEvpnFrame } from './evpn';
 import { BROADCAST, LIMITS, type Device, type Frame, type NetworkInterface } from '../model';
@@ -30,7 +31,7 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
   }
   if (
     (input.mode === 'access' && frame.vlan !== undefined && frame.vlan !== input.voiceVlan) ||
-    (input.mode === 'trunk' && !input.allowedVlans.includes(vlan)) ||
+    (input.mode === 'trunk' && !trunkAllows(input, vlan)) ||
     !d.vlans.some((v) => v.id === vlan)
   ) {
     e.drop(d, 'Frame rejeitado: VLAN não permitida na porta de entrada.', input.id, frame);
@@ -78,7 +79,7 @@ export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vla
       p.mode !== 'routed' &&
       p.adminUp &&
       (!spanningPortState(d, p, vlan) || spanningPortState(d, p, vlan)?.state === 'forwarding') &&
-      (p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan || p.voiceVlan === vlan) &&
+      (p.mode === 'trunk' ? trunkAllows(p, vlan) : p.accessVlan === vlan || p.voiceVlan === vlan) &&
       !(monitored && spanDestination(d, p))
   );
   const ports = known ? candidates.filter((p) => p.id === known.port) : candidates;

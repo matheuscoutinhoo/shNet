@@ -1,5 +1,6 @@
 import { receiveFragment } from './fragment';
 import { spanningPortState } from './stp-scope';
+import { trunkAllows } from './trunk';
 import { lacpMembers } from './lacp-members';
 import { bondActive } from './bond-members';
 import { interfaceSchema, type Device, type Frame, type NetworkInterface, type Snapshot } from '../model';
@@ -132,7 +133,7 @@ export function sviOperational(snapshot: Snapshot, device: Device, port: Network
       p.channel ||
       p.mode === 'routed' ||
       !p.adminUp ||
-      !(p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan)
+      !(p.mode === 'trunk' ? trunkAllows(p, vlan) : p.accessVlan === vlan)
     )
       return false;
     const stp = spanningPortState(device, p, vlan);

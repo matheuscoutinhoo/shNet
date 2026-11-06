@@ -156,6 +156,8 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     if (p.portSecurity) {
       p.portSecurity.learned = [];
       p.portSecurity.violations = 0;
+      delete p.portSecurity.ages;
+      delete p.portSecurity.lastSource;
     }
     delete p.ipv6;
     delete p.dhcp6;

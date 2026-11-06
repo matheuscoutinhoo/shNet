@@ -5,6 +5,15 @@ import { multiStpConfig, updateSpanningTreePort } from '../protocols/stp';
 import { edgePort } from '../protocols/stp-scope';
 import { showSpanningTree } from './ios-show';
 
+function vlanIds(value: string) {
+  return value.split(',').flatMap((part) => {
+    const [a, b] = part.split('-').map(Number);
+    if (!(a >= 1 && a <= 4094) || (b !== undefined && !(b >= a && b <= 4094)))
+      throw new Error('Invalid VLAN range');
+    return Array.from({ length: (b ?? a) - a + 1 }, (_, i) => a + i);
+  });
+}
+
 export function registerStpCommands(registry: CommandRegistry) {
   registry.register({
     pattern: /^(no )?spanning-tree guard (root|loop)$/i,
@@ -144,12 +153,7 @@ export function registerStpCommands(registry: CommandRegistry) {
     syntax: 'spanning-tree vlan <vlans> priority <priority>',
     modes: CONFIG_MODES,
     run: (m, e, d) => {
-      const ids = m[1].split(',').flatMap((part) => {
-        const [a, b] = part.split('-').map(Number);
-        if (a < 1 || a > 4094 || (b !== undefined && (b < a || b > 4094)))
-          throw new Error('Invalid VLAN range');
-        return Array.from({ length: (b ?? a) - a + 1 }, (_, i) => a + i);
-      });
+      const ids = vlanIds(m[1]);
       const c = multiStpConfig(d);
       if (c?.mode === 'mstp') throw new Error('Use MST instance priority in MST mode.');
       e.configureMultiSpanningTree(d.id, {
@@ -158,6 +162,43 @@ export function registerStpCommands(registry: CommandRegistry) {
           ...(c?.priorities ?? []).filter((p) => !ids.includes(p.instance)),
           ...ids.map((instance) => ({ instance, priority: Number(m[2]) })),
         ],
+      });
+    },
+  });
+  // IOS macro: it computes a bridge priority, and running-config keeps only that priority.
+  registry.register({
+    pattern: /^(no )?spanning-tree vlan ([\d,-]+) root(?: (primary|secondary))?$/i,
+    syntax: [
+      'spanning-tree vlan <vlans> root primary',
+      'spanning-tree vlan <vlans> root secondary',
+      'no spanning-tree vlan <vlans> root',
+    ],
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      if (!m[1] && !m[3]) throw new Error('% Incomplete command.');
+      const ids = vlanIds(m[2]);
+      const c = multiStpConfig(d);
+      if (c?.mode === 'mstp') throw new Error('Use spanning-tree mst <instance> root in MST mode.');
+      const priorities = new Map((c?.priorities ?? []).map((p) => [p.instance, p.priority]));
+      const mac = bridgeId(d).mac;
+      for (const id of ids) {
+        if (m[1]) priorities.delete(id);
+        else if (m[3].toLowerCase() === 'secondary') priorities.set(id, 28672);
+        else {
+          const tree = d.multiSpanningTree?.instances.find((i) => i.id === id)?.tree,
+            root = tree?.enabled ? tree.root : undefined,
+            own = priorities.get(id) ?? 32768;
+          // 24576 when that wins the election, otherwise 4096 below the current root.
+          if (!root || root.mac === mac) priorities.set(id, Math.min(own, 24576));
+          else if (24576 < root.priority || (24576 === root.priority && mac < root.mac))
+            priorities.set(id, 24576);
+          else if (root.priority < 4096) throw new Error(`% Failed to make the bridge root for vlan ${id}`);
+          else priorities.set(id, root.priority - 4096);
+        }
+      }
+      e.configureMultiSpanningTree(d.id, {
+        ...(c ?? { mode: 'pvst', protocol: 'rstp', mappings: [] }),
+        priorities: [...priorities].map(([instance, priority]) => ({ instance, priority })),
       });
     },
   });

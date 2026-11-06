@@ -264,6 +264,10 @@
   "{0}: {1} → Down; configuração da interface alterada."
  ],
  [
+  "5a1r7oyu",
+  "DHCP snooping: limite de {0} pps excedido em {1}."
+ ],
+ [
   "5a3gccgc",
   "{0}: regras NAT sem interface {1}; nada é traduzido."
  ],
@@ -1396,6 +1400,10 @@
   "Relógio de rede configurado; offset {0} ms."
  ],
  [
+  "pz2n7z0e",
+  "% Failed to make the bridge root for vlan {0}"
+ ],
+ [
   "q1lkd6bi",
   "Datagrama {0} incompleto expirou."
  ],
@@ -1454,6 +1462,10 @@
  [
   "qyf3avek",
   "{0}-cenarios"
+ ],
+ [
+  "r29dfwez",
+  "HSRP {0}: autenticação divergente de {1}."
  ],
  [
   "r3cvn4ot",

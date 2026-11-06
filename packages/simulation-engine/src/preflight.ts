@@ -1,5 +1,6 @@
 import type { NetworkInterface, Snapshot } from './model';
 import type { OspfInterface } from './protocols/ospf-model';
+import { trunkAllows, trunkVlans } from './protocols/trunk';
 import { bgpCandidates } from './protocols/bgp-routing';
 import { bgpPrefixKey } from './protocols/bgp-model';
 import { linkOperational } from './links/physical';
@@ -652,8 +653,8 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'Use a mesma VLAN nas duas pontas ou um trunk; CDP do IOS reportaria native VLAN mismatch.'
         );
       else if (a.mode === 'trunk') {
-        const onlyA = a.allowedVlans.filter((v) => !b.allowedVlans.includes(v)),
-          onlyB = b.allowedVlans.filter((v) => !a.allowedVlans.includes(v));
+        const onlyA = trunkVlans(da, a).filter((v) => !trunkAllows(b, v)),
+          onlyB = trunkVlans(db, b).filter((v) => !trunkAllows(a, v));
         if (onlyA.length || onlyB.length)
           add(
             'TRUNK_ALLOWED_MISMATCH',

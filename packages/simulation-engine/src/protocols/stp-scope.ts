@@ -3,6 +3,7 @@ import type { SimulationEngine } from '../core/engine';
 import { md5 } from '@noble/hashes/legacy.js';
 import { hmac } from '@noble/hashes/hmac.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
+import { trunkAllows } from './trunk';
 
 type StpAction = Extract<
   Action,
@@ -83,7 +84,7 @@ export function stpVlanInstance(d: Device, vlan: number) {
   return c?.mode === 'pvst' ? vlan : (c?.mappings.find((m) => m.vlan === vlan)?.instance ?? 0);
 }
 export function portCarriesVlan(p: NetworkInterface, vlan: number) {
-  return p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan || p.voiceVlan === vlan;
+  return p.mode === 'trunk' ? trunkAllows(p, vlan) : p.accessVlan === vlan || p.voiceVlan === vlan;
 }
 export function instancePort(d: Device, p: NetworkInterface) {
   const instance = stpScope(d);

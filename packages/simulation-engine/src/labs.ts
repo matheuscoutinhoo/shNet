@@ -23,6 +23,7 @@ import { vrrpConfigGroups } from './protocols/vrrp';
 import { SimulationEngine } from './core/engine';
 import { makeTemplate } from './templates';
 import { sameSubnet } from './protocols/ipv4';
+import { trunkAllows } from './protocols/trunk';
 import type { Snapshot } from './model';
 
 import { labs, type LabId } from './catalog-labs';
@@ -375,7 +376,7 @@ export function evaluateLab(id: LabId, snapshot: Snapshot): LabEvaluation {
       'Permitir VLAN 20 nos trunks',
       switches.length >= 2 &&
         switches.every(
-          (device) => device.interfaces[1].mode === 'trunk' && device.interfaces[1].allowedVlans.includes(20)
+          (device) => device.interfaces[1].mode === 'trunk' && trunkAllows(device.interfaces[1], 20)
         )
     );
   } else if (id === 'nat-boundary') {

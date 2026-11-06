@@ -196,7 +196,8 @@ export function showIosMacTable(d: Device, args: string) {
     else throw new Error('Invalid input detected at: ' + tokens[i]);
   }
   const secure = (p: NetworkInterface | undefined, mac: string) =>
-    !!p?.portSecurity?.enabled && [...p.portSecurity.macs, ...p.portSecurity.learned].includes(mac);
+    !!p?.portSecurity?.enabled &&
+    [...p.portSecurity.macs, ...(p.portSecurity.stickyMacs ?? []), ...p.portSecurity.learned].includes(mac);
   const entries = d.macTable.map((entry) => {
     const p = d.interfaces.find((i) => i.id === entry.port);
     return {

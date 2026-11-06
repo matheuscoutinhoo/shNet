@@ -15,6 +15,7 @@ import {
 import { type7Decode, type7Encode } from '../packages/simulation-engine/src/cli/secrets';
 import { matchingAclRule } from '../packages/simulation-engine/src/protocols/acl';
 import { decodePcap, exportPcap } from '../packages/simulation-engine/src/wire/pcap';
+import { decodeHsrp, encodeHsrp } from '../packages/simulation-engine/src/wire/hsrp-codec';
 
 const ok = (t: TerminalSession, lines: string[]) => {
   for (const line of lines) expect(t.execute(line), line).not.toMatch(/^%/m);
@@ -2054,6 +2055,330 @@ describe('IOS zone-based policy firewall', () => {
     expect(ping(inside, '192.0.2.10')).toBe('success');
     expect(ping(outside, '10.1.1.10')).not.toBe('success');
     expect(http(outside, '172.20.1.80')).toContain('200 OK');
+  });
+});
+describe('IOS campus features', () => {
+  const dotted = (mac: string) => mac.replace(/:/g, '').replace(/(.{4})(?=.)/g, '$1.');
+  it('elects the root with the root primary/secondary macro over a static EtherChannel', () => {
+    const {
+      e,
+      devices: [a, b],
+      terminals: [ta, tb],
+      cable,
+      advance,
+    } = lab('access', 'access');
+    cable(a, 'Gi0/1', b, 'Gi0/1');
+    cable(a, 'Gi0/2', b, 'Gi0/2');
+    const hosts = [a, b].map((sw, i) => {
+      const pc = e.addFactoryProfile('desktop', { x: i * 200, y: 200 });
+      e.setDevicePower(pc.id, true);
+      e.disableDhcp(pc.id, pc.interfaces[0].id);
+      Object.assign(e.device(pc.id).interfaces[0], { ip: `10.0.0.${i + 1}`, prefix: 24 });
+      e.connect(
+        { device: pc.id, port: pc.interfaces[0].id },
+        { device: sw.id, port: e.device(sw.id).interfaces.find((p) => p.name === 'Gi0/5')!.id }
+      );
+      return pc;
+    });
+    for (const t of [ta, tb])
+      ok(t, [
+        'vlan 10',
+        'exit',
+        'interface range Gi0/1 - 2',
+        'switchport mode trunk',
+        'channel-group 1 mode on',
+        'end',
+      ]);
+    ok(ta, [
+      'configure terminal',
+      'spanning-tree vlan 1,10 root primary',
+      'port-channel load-balance src-dst-mac',
+      'end',
+    ]);
+    ok(tb, ['configure terminal', 'spanning-tree vlan 1,10 root secondary', 'end']);
+    advance(40_000);
+    const stp = ta.execute('show spanning-tree vlan 10');
+    expect(stp).toContain('This bridge is the root');
+    expect(stp).toContain('Bridge ID  Priority    24586  (priority 24576 sys-id-ext 10)');
+    expect(tb.execute('show spanning-tree vlan 10')).toContain('Root ID    Priority    24586');
+    expect(ta.execute('show etherchannel summary')).toMatch(
+      /^1\s+Po1\(SU\)\s+-\s+Gi0\/1\(P\)\s+Gi0\/2\(P\)$/m
+    );
+    // Trunks carry every VLAN unless an allowed list is configured (IOS default).
+    const trunk = ta.execute('show interfaces trunk');
+    expect(trunk).toMatch(/^Po1 {9}on {15}802\.1q {9}trunking {6}1$/m);
+    expect(trunk).toMatch(/^Port {8}Vlans allowed on trunk\nPo1 {9}1-4094$/m);
+    expect(trunk).toMatch(/^Port {8}Vlans allowed and active in management domain\nPo1 {9}1,10$/m);
+    expect(ta.execute('show etherchannel load-balance')).toContain(
+      'EtherChannel Load-Balancing Configuration:\n        src-dst-mac\n'
+    );
+    const id = e.ping(hosts[0].id, '10.0.0.2');
+    advance(3_000);
+    expect(e.state.probes.find((p) => p.id === id)!.status).toBe('success');
+    const runningA = ta.execute('show running-config');
+    expect(runningA).toContain('\nspanning-tree vlan 1,10 priority 24576\n');
+    expect(runningA).toContain('\nport-channel load-balance src-dst-mac\n');
+    expect(tb.execute('show running-config')).toContain('\nspanning-tree vlan 1,10 priority 28672\n');
+    // The macro takes the root back from the current root: 24576 when that wins, else 4096 below it.
+    const lower =
+      e.device(b.id).interfaces[0].mac.toLowerCase() < e.device(a.id).interfaces[0].mac.toLowerCase();
+    ok(tb, ['configure terminal', 'spanning-tree vlan 10 root primary', 'end']);
+    expect(tb.execute('show running-config')).toContain(
+      `\nspanning-tree vlan 10 priority ${lower ? 24576 : 20480}\n`
+    );
+    advance(10_000);
+    expect(tb.execute('show spanning-tree vlan 10')).toContain('This bridge is the root');
+    // Static and LACP members cannot share a group; LACP never bundles with a static partner.
+    ok(ta, ['configure terminal', 'interface Gi0/3']);
+    expect(ta.execute('channel-group 1 mode active')).toBe(
+      '% Command rejected (Po1, Gi0/3): Invalid etherchnl mode'
+    );
+    ok(ta, ['end']);
+    ok(tb, [
+      'configure terminal',
+      'interface range Gi0/1 - 2',
+      'no channel-group',
+      'channel-group 1 mode active',
+      'end',
+    ]);
+    advance(10_000);
+    expect(tb.execute('show etherchannel summary')).toMatch(
+      /^1\s+Po1\(SD\)\s+LACP\s+Gi0\/1\(I\)\s+Gi0\/2\(I\)$/m
+    );
+  });
+  it('authenticates HSRP hellos (text/MD5 TLVs) and delays preemption', () => {
+    const {
+      devices: [sw, r1, r2],
+      terminals: [ts, t1, t2],
+      cable,
+      advance,
+    } = lab('access', 'router', 'router');
+    cable(sw, 'Gi0/1', r1, 'Gi0/1');
+    cable(sw, 'Gi0/2', r2, 'Gi0/1');
+    ok(ts, ['interface range Gi0/1 - 2', 'spanning-tree portfast', 'end']);
+    ok(t1, [
+      'interface Gi0/1',
+      'ip address 10.1.1.2 255.255.255.0',
+      'standby 1 ip 10.1.1.1',
+      'standby 1 authentication md5 key-string Key-One',
+      'no shutdown',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Gi0/1',
+      'ip address 10.1.1.3 255.255.255.0',
+      'standby 1 ip 10.1.1.1',
+      'standby 1 priority 110',
+      'standby 1 preempt delay minimum 30',
+      'standby 1 authentication md5 key-string Key-Two',
+      'no shutdown',
+      'end',
+    ]);
+    advance(15_000);
+    // Each router discards the other's hellos, so both claim the virtual address.
+    for (const t of [t1, t2])
+      expect(t.execute('show standby brief')).toMatch(/Gi0\/1\s+1\s+\d+\s+P?\s*Active\s+local/);
+    expect(t1.execute('show logging')).toMatch(
+      /%HSRP-4-BADAUTH: Bad authentication from 10\.1\.1\.3, group 1, remote state (?:Speak|Standby|Active)\n/
+    );
+    ok(t2, [
+      'configure terminal',
+      'interface Gi0/1',
+      'standby 1 authentication md5 key-string Key-One',
+      'end',
+    ]);
+    advance(5_000);
+    expect(t1.execute('show standby brief')).toMatch(
+      /Gi0\/1\s+1\s+100\s+Standby\s+10\.1\.1\.3\s+local\s+10\.1\.1\.1/
+    );
+    // After its interface comes back, R2 waits the preempt delay before taking over again.
+    ok(t2, ['configure terminal', 'interface Gi0/1', 'shutdown', 'end']);
+    advance(12_000);
+    expect(t1.execute('show standby brief')).toMatch(/Active\s+local/);
+    ok(t2, ['configure terminal', 'interface Gi0/1', 'no shutdown', 'end']);
+    advance(15_000);
+    expect(t2.execute('show standby brief')).toMatch(/110 P Standby/);
+    advance(20_000);
+    expect(t2.execute('show standby brief')).toMatch(/110 P Active/);
+    const detail = t2.execute('show standby');
+    for (const line of [
+      'GigabitEthernet0/1 - Group 1',
+      '  State is Active',
+      '  Virtual IP address is 10.1.1.1',
+      '  Authentication MD5, key-string',
+      '  Preemption enabled, delay min 30 secs',
+      '  Active router is local',
+      '  Priority 110 (configured 110)',
+      '  Group name is "hsrp-Gi0/1-1" (default)',
+    ])
+      expect(detail).toContain(line);
+    const running = t2.execute('show running-config');
+    for (const line of [
+      ' standby 1 ip 10.1.1.1',
+      ' standby 1 priority 110',
+      ' standby 1 preempt delay minimum 30',
+      ' standby 1 authentication md5 key-string Key-One',
+    ])
+      expect(running).toContain('\n' + line + '\n');
+    expect(t1.execute('show running-config')).not.toMatch(
+      /standby 1 (?:priority 100|timers)|no standby 1 preempt/
+    );
+    // The authentication data travels in the IOS wire format.
+    for (const message of [
+      { version: 1, md5: 'ab'.repeat(16) },
+      { version: 2, md5: 'cd'.repeat(16) },
+      { version: 2, authText: 'Secret1' },
+      { version: 1, authText: 'Secret1' },
+    ] as const) {
+      const m = {
+        group: 1,
+        opcode: 'hello',
+        state: 'ACTIVE',
+        priority: 110,
+        helloMs: 3000,
+        holdMs: 10000,
+        vip: '10.1.1.1',
+        ...message,
+      } as const;
+      expect(decodeHsrp(encodeHsrp(m, '00:11:22:33:44:55'))).toEqual(m);
+    }
+  });
+  it('err-disables a DHCP flood with limit rate and keeps static source bindings', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [sw],
+      terminals: [t],
+      advance,
+    } = lab('access');
+    const pc = e.addFactoryProfile('desktop', { x: 0, y: 200 });
+    e.setDevicePower(pc.id, true);
+    const access = e.device(sw.id).interfaces.find((p) => p.name === 'Gi0/3')!;
+    e.connect({ device: pc.id, port: pc.interfaces[0].id }, { device: sw.id, port: access.id });
+    ok(t, [
+      // IOS accepts a static binding before the snooping VLAN or the port's VLAN exist.
+      'ip source binding 0050.7966.6801 vlan 10 10.1.10.50 interface Gi0/5',
+      'ip dhcp snooping vlan 1',
+      'ip dhcp snooping',
+      'no ip dhcp snooping information option',
+      'interface Gi0/3',
+      'spanning-tree portfast',
+      'ip dhcp snooping limit rate 5',
+      'end',
+    ]);
+    advance(1_000);
+    for (let i = 0; i < 10; i++) e.requestDhcp(pc.id, pc.interfaces[0].id);
+    advance(500);
+    expect(e.device(sw.id).interfaces.find((p) => p.id === access.id)!.errDisabled?.reason).toBe(
+      'dhcp-rate-limit'
+    );
+    const log = t.execute('show logging');
+    expect(log).toContain(
+      '%DHCP_SNOOPING-4-DHCP_SNOOPING_ERRDISABLE_WARNING: DHCP Snooping received 6 DHCP packets on interface Gi0/3'
+    );
+    expect(log).toContain(
+      '%PM-4-ERR_DISABLE: dhcp-rate-limit error detected on Gi0/3, putting Gi0/3 in err-disable state'
+    );
+    const show = t.execute('show ip dhcp snooping');
+    expect(show).toContain('Switch DHCP snooping is enabled\n');
+    expect(show).toContain('Insertion of option 82 is disabled\n');
+    expect(show).toContain('GigabitEthernet0/3         no         no              5');
+    expect(t.execute('show ip dhcp snooping binding')).toContain(
+      '00:50:79:66:68:01   10.1.10.50       infinite    static         10    GigabitEthernet0/5'
+    );
+    const running = t.execute('show running-config');
+    for (const line of [
+      'no ip dhcp snooping information option',
+      ' ip dhcp snooping limit rate 5',
+      'ip source binding 0050.7966.6801 vlan 10 10.1.10.50 interface Gi0/5',
+    ])
+      expect(running).toContain('\n' + line + '\n');
+    ok(t, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t, ['enable']);
+    expect(e.device(sw.id).bootLog).toEqual([]);
+    expect(t.execute('show running-config')).toBe(running);
+  });
+  it('ages dynamic secure MACs, keeps sticky ones in running-config and logs violations like IOS', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [sw],
+      terminals: [t],
+      advance,
+    } = lab('access');
+    const pc = e.addFactoryProfile('desktop', { x: 0, y: 200 });
+    e.setDevicePower(pc.id, true);
+    e.disableDhcp(pc.id, pc.interfaces[0].id);
+    Object.assign(e.device(pc.id).interfaces[0], { ip: '10.0.0.10', prefix: 24 });
+    const access = e.device(sw.id).interfaces.find((p) => p.name === 'Gi0/3')!;
+    e.connect({ device: pc.id, port: pc.interfaces[0].id }, { device: sw.id, port: access.id });
+    ok(t, [
+      'interface Gi0/3',
+      'spanning-tree portfast',
+      'switchport port-security',
+      'switchport port-security violation restrict',
+      'switchport port-security aging time 1',
+      'switchport port-security aging type inactivity',
+      'end',
+    ]);
+    const send = () => {
+      e.ping(pc.id, '10.0.0.99');
+      advance(1_500);
+    };
+    send();
+    const first = e.device(pc.id).interfaces[0].mac;
+    expect(t.execute('show port-security address')).toMatch(
+      new RegExp(`^ {3}1 {4}${dotted(first)} {4}SecureDynamic\\s+Gi0/3\\s+1$`, 'm')
+    );
+    // A second station behind the port is dropped and logged; restrict keeps the port up.
+    e.device(pc.id).interfaces[0].mac = '00:50:79:66:68:99';
+    send();
+    expect(t.execute('show logging')).toContain(
+      '%PORT_SECURITY-2-PSECURE_VIOLATION: Security violation occurred, caused by MAC address 0050.7966.6899 on port GigabitEthernet0/3.'
+    );
+    expect(t.execute('show port-security')).toMatch(/^ {6}Gi0\/3 {14}1 {12}1 +[1-9]\d* +Restrict$/m);
+    // A minute without frames from the first address ages it out; the new one is then learned.
+    advance(61_000);
+    send();
+    const detail = t.execute('show port-security interface Gi0/3');
+    for (const line of [
+      'Port Security              : Enabled',
+      'Port Status                : Secure-up',
+      'Violation Mode             : Restrict',
+      'Aging Time                 : 1 mins',
+      'Aging Type                 : Inactivity',
+      'Total MAC Addresses        : 1',
+      'Last Source Address:Vlan   : 0050.7966.6899:1',
+    ])
+      expect(detail).toContain(line);
+    ok(t, ['configure terminal', 'interface Gi0/3', 'switchport port-security mac-address sticky', 'end']);
+    const running = t.execute('show running-config');
+    expect(running).toMatch(
+      /\n switchport port-security\n switchport port-security violation restrict\n switchport port-security aging time 1\n switchport port-security aging type inactivity\n switchport port-security mac-address sticky\n switchport port-security mac-address sticky 0050\.7966\.6899\n/
+    );
+    ok(t, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t, ['enable']);
+    expect(t.execute('show running-config')).toBe(running);
+    expect(t.execute('show port-security interface Gi0/3')).toContain('Sticky MAC Addresses       : 1');
+  });
+  it('accepts fair-queue on router interfaces, exclusive with an output service-policy', () => {
+    const {
+      terminals: [t],
+    } = lab('router');
+    ok(t, [
+      'policy-map SHAPE',
+      'class class-default',
+      'shape average 10000000',
+      'exit',
+      'exit',
+      'interface Gi0/1',
+      'fair-queue',
+    ]);
+    expect(t.execute('service-policy output SHAPE')).toBe('% Must remove fair-queue configuration first.');
+    ok(t, ['end']);
+    expect(t.execute('show running-config')).toMatch(/\ninterface Gi0\/1\n(?: .+\n)* fair-queue\n/);
   });
 });
 describe('802.1X on a Layer 2 access switch', () => {

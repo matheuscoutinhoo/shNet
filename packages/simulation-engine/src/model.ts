@@ -134,7 +134,7 @@ import {
 } from './protocols/wireless-model';
 export * from './protocols/wireless-model';
 import { bgpStateSchema, bgpTimerSchema, bgpConfigSchema } from './protocols/bgp-model';
-import { aggregateSchema, lacpPduSchema, lacpTimerSchema } from './protocols/lacp-model';
+import { aggregateSchema, lacpPduSchema, lacpTimerSchema, loadBalanceSchema } from './protocols/lacp-model';
 import { bondStateSchema, bondTimerSchema } from './protocols/bond-model';
 export * from './protocols/lacp-model';
 export * from './protocols/bgp-model';
@@ -732,6 +732,8 @@ export const interfaceSchema = z
     accessVlan: vlan,
     nativeVlan: vlan,
     allowedVlans: z.array(vlan).max(4094),
+    // IOS default: a trunk carries every VLAN while no explicit allowed list is configured.
+    allVlansAllowed: z.boolean().optional(),
     ip: ipv4Schema.optional(),
     prefix: z.number().int().min(0).max(32).optional(),
     ipv6: ipv6InterfaceSchema.optional(),
@@ -759,8 +761,24 @@ export const interfaceSchema = z
         violation: z.enum(['shutdown', 'restrict', 'protect']).default('shutdown'),
         sticky: z.boolean().default(false),
         macs: z.array(mac).max(1024).default([]),
+        // Learned with "mac-address sticky": kept in running-config, never aged.
+        stickyMacs: z.array(mac).max(1024).default([]),
         learned: z.array(mac).max(1024).default([]),
         violations: z.number().int().nonnegative().default(0),
+        // "switchport port-security aging time N [type inactivity]" for dynamic secure MACs.
+        aging: z
+          .object({
+            minutes: z.number().int().min(1).max(1440),
+            type: z.enum(['absolute', 'inactivity']),
+          })
+          .strict()
+          .optional(),
+        // When each dynamic secure MAC was learned (absolute aging) or last seen (inactivity).
+        ages: z
+          .array(z.object({ mac, at: z.number().finite().nonnegative() }).strict())
+          .max(1024)
+          .optional(),
+        lastSource: z.string().max(32).optional(),
       })
       .strict()
       .optional(),
@@ -785,13 +803,15 @@ export const interfaceSchema = z
       .strict()
       .optional(),
     bpduGuard: z.boolean().optional(),
+    // "fair-queue": weighted fair queueing on the output queue (links only queue under QoS shaping).
+    fairQueue: z.boolean().optional(),
     cdpEnabled: z.boolean().optional(),
     hsrpVersion: z.union([z.literal(1), z.literal(2)]).optional(),
     lldpTransmit: z.boolean().optional(),
     lldpReceive: z.boolean().optional(),
     errDisabled: z
       .object({
-        reason: z.enum(['bpduguard', 'psecure-violation', 'udld', 'storm-control']),
+        reason: z.enum(['bpduguard', 'psecure-violation', 'udld', 'storm-control', 'dhcp-rate-limit']),
         at: finite.nonnegative(),
       })
       .strict()
@@ -1096,6 +1116,8 @@ export const deviceSchema = z
     // startup-config lines rejected during the last boot (IOS prints them on the console).
     bootLog: z.array(z.string().max(400)).max(64).optional(),
     loopGuardDefault: z.boolean().optional(),
+    // "port-channel load-balance"; unset is the Catalyst default (src-dst-ip).
+    portChannelLoadBalance: loadBalanceSchema.optional(),
     iosSystem: iosSystemSchema.optional(),
     crypto: cryptoConfigSchema.optional(),
     monitoring: monitoringSchema.optional(),

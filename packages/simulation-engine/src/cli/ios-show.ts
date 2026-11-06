@@ -4,7 +4,9 @@ import { bgpCandidates, bestBgpPaths } from '../protocols/bgp-routing';
 import { bgpPrefixKey } from '../protocols/bgp-model';
 import { connectedPort, singleHopEbgp } from '../protocols/bgp';
 import { bridgeId, portCost } from '../protocols/stp-election';
-import { edgePort } from '../protocols/stp-scope';
+import { edgePort, spanningPortState } from '../protocols/stp-scope';
+import { allVlansAllowed, trunkAllows, trunkVlans, vlanRangeText } from '../protocols/trunk';
+import { shortInterfaceName } from '../protocols/interface-name';
 import { ipNumber, ipString, mask, sameSubnet } from '../protocols/ipv4';
 import { interfaceOperational } from '../protocols/layer3';
 import { aclEntryText } from './acl';
@@ -280,7 +282,7 @@ export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) 
   const c = d.multiSpanningTree;
   if (!d.spanningTree?.enabled) return 'No spanning tree instance exists.';
   const member = (p: NetworkInterface, vlans: number[]) =>
-    p.mode === 'trunk' ? vlans.some((v) => p.allowedVlans.includes(v)) : vlans.includes(p.accessVlan);
+    p.mode === 'trunk' ? vlans.some((v) => trunkAllows(p, v)) : vlans.includes(p.accessVlan);
   if (!c) {
     const ports = d.interfaces
       .filter((p) => p.spanningTree)
@@ -332,6 +334,39 @@ export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) 
 }
 
 /** show vlan [brief] */
+/** show interfaces trunk: operational trunks, their allowed, active and forwarding VLANs. */
+export function showInterfacesTrunk(e: SimulationEngine, d: Device) {
+  const trunks = d.interfaces.filter(
+    (p) => p.mode === 'trunk' && !p.logical && !p.channel && interfaceOperational(e.state, d, p)
+  );
+  const name = (p: NetworkInterface) => shortInterfaceName(p.name).padEnd(12);
+  const active = (p: NetworkInterface) => trunkVlans(d, p).filter((v) => d.vlans.some((x) => x.id === v));
+  const list = (ids: number[]) => vlanRangeText(ids) || 'none';
+  return [
+    'Port        Mode             Encapsulation  Status        Native vlan',
+    ...trunks.map(
+      (p) => name(p) + 'on'.padEnd(17) + '802.1q'.padEnd(15) + 'trunking'.padEnd(14) + p.nativeVlan
+    ),
+    '',
+    'Port        Vlans allowed on trunk',
+    ...trunks.map((p) => name(p) + (allVlansAllowed(p) ? '1-4094' : list(p.allowedVlans))),
+    '',
+    'Port        Vlans allowed and active in management domain',
+    ...trunks.map((p) => name(p) + list(active(p))),
+    '',
+    'Port        Vlans in spanning tree forwarding state and not pruned',
+    ...trunks.map(
+      (p) =>
+        name(p) +
+        list(
+          active(p).filter((v) => {
+            const stp = spanningPortState(d, p, v);
+            return !stp || stp.state === 'forwarding';
+          })
+        )
+    ),
+  ].join('\n');
+}
 export function showVlan(d: Device, brief: boolean) {
   const access = (id: number) =>
     d.interfaces

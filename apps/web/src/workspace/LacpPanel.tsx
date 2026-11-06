@@ -8,7 +8,9 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
     <div className="lacp-panel protocol-panel">
       <p className="muted">
         LACP negocia membros por frames de controle. Active inicia; passive responde. Pelo menos um lado deve
-        ser active. O hash por fluxo escolhe um membro; a falha redistribui os fluxos entre os restantes.
+        ser active. O modo on agrega sem negociar e exige on dos dois lados. O hash do port-channel
+        load-balance (padrão src-dst-ip nos switches) escolhe um membro; a falha redistribui os fluxos entre
+        os restantes.
       </p>
       <section className="table-section">
         <h4>EtherChannels</h4>
@@ -73,7 +75,7 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
             e.configureLacp(
               device.id,
               Number(f.get('number')),
-              String(f.get('mode')) as 'active' | 'passive',
+              String(f.get('mode')) as 'active' | 'passive' | 'on',
               f.getAll('members').map(String),
               Number(f.get('minLinks'))
             )
@@ -95,10 +97,11 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
             />
           </label>
           <label>
-            Modo LACP
+            Modo EtherChannel
             <select name="mode" defaultValue={selected?.aggregate?.mode ?? 'active'}>
               <option>active</option>
               <option>passive</option>
+              <option>on</option>
             </select>
           </label>
         </div>

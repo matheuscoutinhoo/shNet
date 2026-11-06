@@ -221,7 +221,7 @@ Referências: [TCP RFC 9293](https://www.rfc-editor.org/rfc/rfc9293.html), [RTO 
 | Recurso    | Implementação                                                              | Limite                                                  |
 | ---------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
 | Ethernet   | unicast/broadcast, source learning, MAC aging, flooding por VLAN           | FCS e multicast especializado não modelados             |
-| 802.1Q     | access, trunk, allowed, native VLAN                                        | sem DTP, QinQ, SVI ou subinterfaces                     |
+| 802.1Q     | access, trunk, allowed (padrão IOS: todas as VLANs), native VLAN           | sem DTP, QinQ, SVI ou subinterfaces                     |
 | ARP        | broadcast request, unicast reply, cache por porta, pending queue e timeout | sem retransmissões, proxy ARP ou gratuitous ARP         |
 | IPv4       | validação, CIDR, máscaras contíguas, redes /0–/32                          | fragmentação/reassembly IPv4; DF gera ICMP MTU          |
 | ICMP       | echo request/reply, time-exceeded, RTT                                     | não emite todas as variantes de Destination Unreachable |
@@ -261,6 +261,16 @@ show running-config
 `spanning-tree mode stp` seleciona o modo clássico; `no spanning-tree` desabilita a árvore; `no spanning-tree cost` restaura o custo automático e `no spanning-tree portfast` remove a configuração edge. Snapshots com portas bloqueadas em forwarding, timers ausentes ou referências inconsistentes são rejeitados.
 
 Switches do catálogo seguem o padrão do Catalyst IOS XE: no primeiro boot e após reload sem configuração de STP, executam Rapid PVST+ em todas as VLANs (`spanning-tree mode rapid-pvst` no `show running-config`). Portas para hosts sem PortFast levam 2 × forward delay (30 s) até encaminhar. `no spanning-tree vlan 1-4094` desabilita a árvore e aparece na configuração; `spanning-tree vlan 1-4094` a reativa. PVST e MST são exibidos na forma IOS (`spanning-tree vlan N priority P`, `spanning-tree mst configuration`).
+
+`spanning-tree vlan N root primary` é a macro do IOS: usa 24576 se isso vence a eleição atual, senão 4096 abaixo da prioridade do root corrente; `root secondary` usa 28672 e `no spanning-tree vlan N root` volta a 32768. Como no IOS, o running-config guarda apenas a prioridade calculada. Trunks transportam todas as VLANs enquanto não houver `switchport trunk allowed vlan` (o running-config omite esse padrão); `show interfaces trunk` mostra as VLANs permitidas, ativas e em forwarding no formato IOS.
+
+## EtherChannel, HSRP e segurança de acesso
+
+- **EtherChannel:** `channel-group N mode active|passive` (LACP) ou `mode on` (estático, sem LACPDUs; exige `on` nas duas pontas). Misturar `on` e LACP no mesmo grupo é recusado (`Invalid etherchnl mode`); um lado LACP diante de um lado `on` não agrega (membros `I`). `port-channel load-balance` escolhe os campos do hash (padrão src-dst-ip nos switches). `show etherchannel summary`, `show etherchannel load-balance` e `show lacp neighbor` seguem o formato IOS. PAgP (desirable/auto) não é modelado.
+- **HSRP:** `standby N preempt delay minimum S [reload S] [sync S]` adia a preempção após a interface subir (ou após o boot, com reload); `standby N authentication md5 key-string CHAVE` ou `authentication text|<string>` (padrão "cisco") vão no pacote como no IOS (TLV MD5/texto) e divergências geram `%HSRP-4-BADAUTH` e dois Active; `standby N name NOME`. `show standby [brief]` e o running-config omitem os padrões do IOS. HSRP IPv6 (`standby N ipv6`) não é modelado.
+- **DHCP snooping:** `ip dhcp snooping limit rate N` coloca a porta em err-disable (`dhcp-rate-limit`, com `%DHCP_SNOOPING-4-DHCP_SNOOPING_ERRDISABLE_WARNING` e `%PM-4-ERR_DISABLE`) quando chegam mais de N pacotes DHCP por segundo; `errdisable recovery cause dhcp-rate-limit` a recupera. `ip source binding` é aceito antes da VLAN ou do snooping, como no IOS. `[no] ip dhcp snooping information option` é registrado, mas a inserção da opção 82 não é modelada (equivale a `no ... information option`). `show ip dhcp snooping [binding]` usa o formato IOS.
+- **Port security:** `switchport port-security aging time N` e `aging type absolute|inactivity` removem endereços dinâmicos; `mac-address sticky` converte os aprendidos em `mac-address sticky MAC` no running-config, que sobrevivem ao reload. Violações geram `%PORT_SECURITY-2-PSECURE_VIOLATION` (e `%PM-4-ERR_DISABLE` no modo shutdown). `show port-security [interface X | address]` e `clear port-security all|dynamic|sticky|configured` seguem o IOS. Endereços dinâmicos não são apagados quando o enlace cai.
+- **fair-queue:** aceito em interfaces físicas de roteador e exclusivo com `service-policy output`. Sem política de QoS, os enlaces não formam fila, então WFQ e FIFO se comportam igual.
 
 ## UDP e DHCPv4
 

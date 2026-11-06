@@ -11,6 +11,21 @@ export const hsrpGroupConfigSchema = z
     vip: ipv4Schema.optional(),
     priority: z.number().int().min(0).max(255).default(100),
     preempt: z.boolean().default(false),
+    // "standby N preempt delay minimum S [reload S] [sync S]", in milliseconds.
+    preemptDelayMs: z.number().int().min(0).max(3600000).optional(),
+    preemptReloadMs: z.number().int().min(0).max(3600000).optional(),
+    preemptSyncMs: z.number().int().min(0).max(3600000).optional(),
+    // "standby N authentication": text (IOS default "cisco") or MD5 key-string.
+    authentication: z
+      .union([
+        z.object({ mode: z.literal('text'), key: z.string().regex(/^[\x21-\x7e]{1,8}$/) }).strict(),
+        z.object({ mode: z.literal('md5'), key: z.string().min(1).max(64) }).strict(),
+      ])
+      .optional(),
+    name: z
+      .string()
+      .regex(/^[\w.-]{1,25}$/)
+      .optional(),
     objectTrack: z
       .array(
         z
@@ -41,6 +56,15 @@ export const hsrpMessageSchema = z
     helloMs: z.number().int().min(15).max(254000),
     holdMs: z.number().int().min(50).max(255000),
     vip: ipv4Schema,
+    // Text authentication data when it is not the default "cisco", or the keyed MD5 digest.
+    authText: z
+      .string()
+      .regex(/^[\x21-\x7e]{1,8}$/)
+      .optional(),
+    md5: z
+      .string()
+      .regex(/^[a-f0-9]{32}$/)
+      .optional(),
   })
   .strict();
 export const hsrpGroupSchema = hsrpGroupConfigSchema

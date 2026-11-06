@@ -25,7 +25,8 @@ export const lacpPduSchema = z
 export const aggregateSchema = z
   .object({
     number,
-    mode: z.enum(['active', 'passive']),
+    // "on" bundles statically, without LACPDUs.
+    mode: z.enum(['active', 'passive', 'on']),
     members: z.array(idSchema).min(1).max(8),
     minLinks: z.number().int().min(1).max(8),
     token: idSchema,
@@ -40,3 +41,17 @@ export const lacpTimerSchema = z
   .object({ kind: z.literal('lacp-tick'), device: idSchema, port: idSchema, token: idSchema })
   .strict();
 export type LacpPdu = z.infer<typeof lacpPduSchema>;
+/** "port-channel load-balance": the frame fields hashed to pick a member link. */
+export const LOAD_BALANCE_METHODS = [
+  'src-mac',
+  'dst-mac',
+  'src-dst-mac',
+  'src-ip',
+  'dst-ip',
+  'src-dst-ip',
+  'src-port',
+  'dst-port',
+  'src-dst-port',
+  'src-dst-mixed-ip-port',
+] as const;
+export const loadBalanceSchema = z.enum(LOAD_BALANCE_METHODS);

@@ -22,7 +22,7 @@ export function configureLacp(
   e: SimulationEngine,
   d: Device,
   number: number,
-  mode: 'active' | 'passive',
+  mode: 'active' | 'passive' | 'on',
   members: string[],
   minLinks = 1
 ) {
@@ -32,7 +32,7 @@ export function configureLacp(
     !Number.isInteger(number) ||
     number < 1 ||
     number > 64 ||
-    !['active', 'passive'].includes(mode) ||
+    !['active', 'passive', 'on'].includes(mode) ||
     !Number.isInteger(minLinks) ||
     minLinks < 1 ||
     minLinks > 8 ||
@@ -162,6 +162,7 @@ function send(e: SimulationEngine, d: Device, aggregate: NetworkInterface, membe
   if (
     !d.power ||
     !aggregate.adminUp ||
+    agg.mode === 'on' ||
     !carrier(e.state, d, member.id) ||
     (agg.mode === 'passive' && !received)
   )
@@ -264,14 +265,36 @@ export function lacpOutput(e: SimulationEngine, d: Device, port: NetworkInterfac
     e.drop(d, 'LACP: grupo sem mínimo de membros sincronizados.', port.id, frame);
     return;
   }
-  const packet = frame.packet ?? frame.ipv6;
-  const key = packet
-    ? `${packet.src}|${packet.dst}|${packet.protocol}|${'sourcePort' in packet ? packet.sourcePort : ''}|${'destinationPort' in packet ? packet.destinationPort : ''}`
-    : `${frame.src}|${frame.dst}|${frame.vlan ?? ''}`;
+  const key = loadBalanceKey(d, frame);
   let hash = 2166136261;
   for (const c of key) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619) >>> 0;
   port.tx++;
   e.sendFrame(d.id, members[hash % members.length], frame);
+}
+/**
+ * The frame fields hashed to choose a member: "port-channel load-balance" on switches (Catalyst
+ * default src-dst-ip; non-IP frames use the MAC addresses), per-flow addresses and ports on routers.
+ */
+function loadBalanceKey(d: Device, frame: Frame) {
+  const packet = frame.packet ?? frame.ipv6;
+  const method = d.type === 'router' ? 'src-dst-mixed-ip-port' : (d.portChannelLoadBalance ?? 'src-dst-ip');
+  if (method === 'src-mac') return frame.src;
+  if (method === 'dst-mac') return frame.dst;
+  if (!packet || method === 'src-dst-mac')
+    return method === 'src-ip' || method === 'src-port'
+      ? frame.src
+      : method === 'dst-ip' || method === 'dst-port'
+        ? frame.dst
+        : `${frame.src}|${frame.dst}|${frame.vlan ?? ''}`;
+  const ports = 'sourcePort' in packet && 'destinationPort' in packet;
+  if (method === 'src-ip' || (method === 'src-port' && !ports)) return packet.src;
+  if (method === 'dst-ip' || (method === 'dst-port' && !ports)) return packet.dst;
+  if (method === 'src-dst-ip' || (method === 'src-dst-port' && !ports)) return `${packet.src}|${packet.dst}`;
+  if (method === 'src-port') return String((packet as { sourcePort: number }).sourcePort);
+  if (method === 'dst-port') return String((packet as { destinationPort: number }).destinationPort);
+  if (method === 'src-dst-port')
+    return `${(packet as { sourcePort: number }).sourcePort}|${(packet as { destinationPort: number }).destinationPort}`;
+  return `${packet.src}|${packet.dst}|${packet.protocol}|${'sourcePort' in packet ? packet.sourcePort : ''}|${'destinationPort' in packet ? packet.destinationPort : ''}`;
 }
 export function validateLacp(snapshot: Snapshot) {
   for (const link of snapshot.links)

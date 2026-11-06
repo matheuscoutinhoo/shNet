@@ -380,7 +380,6 @@ ldcpl578	Changes not yet evaluated
 6wcevlya	Lab complete
 6rn6f4eh	Evaluation unavailable.
 c107xwwh	Validate lab
-9py7bwzz	LACP negotiates members using control frames. Active initiates; passive responds. At least one side must be active. The per-flow hash selects a member; a failure redistributes the flows among the remaining members.
 nb2rqjbh	Group
 jhh57s61	Members / state
 uv1h6ykf	· minimum
@@ -388,7 +387,6 @@ uv1h6ykf	· minimum
 hhriz70a	Edit group
 hzkfjqha	Create group
 zv6zt90l	EtherChannel number
-00utsdyw	LACP mode
 74cb6ngp	Minimum members
 k8n6zjqh	Physical interfaces in the group
 dvecf9r9	Members need the same speed, full duplex, and no IP stack or policy configuration. Configure VLAN/trunk or IPv4 on the Port-channel interface from the Ports tab. To diagnose a failure, shut down a physical member and advance the simulation.

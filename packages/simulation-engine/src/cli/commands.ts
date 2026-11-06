@@ -24,7 +24,6 @@ import { registerPolicyCommands, policyRunningConfig } from './policy';
 import { registerTcpCommands, tcpRunningConfig } from './tcp';
 import { registerOspfCommands, ospfRunningConfig } from './ospf';
 import { registerRipCommands, ripRunningConfig } from './rip';
-import { interfaceOperational } from '../protocols/layer3';
 import { syncPvstInstances } from '../protocols/stp';
 import { hardwareSpeed } from '../links/physical';
 import { registerManagementCommands, managementRunningConfig } from './management';
@@ -55,7 +54,8 @@ import { edgePort } from '../protocols/stp-scope';
 import { registerMonitoring, monitoringRunning } from './monitoring';
 import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
 import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
-import { showVlan } from './ios-show';
+import { showInterfacesTrunk, showVlan } from './ios-show';
+import { allVlansAllowed, vlanRangeText } from '../protocols/trunk';
 import { registerPingCommands } from './ping';
 import { registerConfigDiff } from './config-diff';
 import { composeRunningConfig } from './running-config';
@@ -452,20 +452,22 @@ export function makeRegistry() {
     run: (m, _e, d, c) => {
       if (d.type !== 'switch') throw new Error('Comando exclusivo de switch');
       const p = currentPort(d, c),
-        list =
-          m[2].toLowerCase() === 'all'
-            ? Array.from({ length: 4094 }, (_, i) => i + 1)
-            : m[2].toLowerCase() === 'none'
-              ? []
-              : vlanList(m[2]);
-      p.allowedVlans =
-        m[1]?.toLowerCase() === 'add'
-          ? [...new Set([...p.allowedVlans, ...list])].sort((a, b) => a - b)
-          : m[1]?.toLowerCase() === 'remove'
-            ? p.allowedVlans.filter((v) => !list.includes(v))
-            : m[1]?.toLowerCase() === 'except'
-              ? Array.from({ length: 4094 }, (_, i) => i + 1).filter((v) => !list.includes(v))
+        every = Array.from({ length: 4094 }, (_, i) => i + 1),
+        current = allVlansAllowed(p) ? every : p.allowedVlans,
+        verb = m[1]?.toLowerCase(),
+        word = m[2].toLowerCase(),
+        list = word === 'all' ? every : word === 'none' ? [] : vlanList(m[2]);
+      const next =
+        verb === 'add'
+          ? [...new Set([...current, ...list])].sort((a, b) => a - b)
+          : verb === 'remove'
+            ? current.filter((v) => !list.includes(v))
+            : verb === 'except'
+              ? every.filter((v) => !list.includes(v))
               : list;
+      // The full range is the IOS default ("all"), kept without listing 4094 VLANs.
+      p.allVlansAllowed = next.length === 4094;
+      p.allowedVlans = next.length === 4094 ? [] : next;
       d.macTable = [];
     },
   });
@@ -481,17 +483,7 @@ export function makeRegistry() {
     ],
     modes: all,
     run: (m, e, d) => {
-      if (m[2]?.toLowerCase() === 'trunk')
-        return (
-          'Port           Status        Native vlan  Vlans allowed on trunk\n' +
-          d.interfaces
-            .filter((p) => p.mode === 'trunk')
-            .map(
-              (p) =>
-                `${p.name.padEnd(15)}${(interfaceOperational(e.state, d, p) ? 'trunking' : 'not-trunking').padEnd(14)}${p.nativeVlan}            ${p.allowedVlans.join(',')}`
-            )
-            .join('\n')
-        );
+      if (m[2]?.toLowerCase() === 'trunk') return showInterfacesTrunk(e, d);
       if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'status')
         return showInterfacesStatus(e, d);
       if (m[1].toLowerCase() === 'interfaces' && m[2]?.toLowerCase() === 'description')
@@ -648,8 +640,10 @@ export function makeRegistry() {
                 ' switchport mode ' + i.mode,
                 ' switchport access vlan ' + i.accessVlan,
                 ' switchport trunk native vlan ' + i.nativeVlan,
-                ' switchport trunk allowed vlan ' +
-                  (i.allowedVlans.length ? i.allowedVlans.join(',') : 'none'),
+                // IOS does not print the default "switchport trunk allowed vlan all".
+                ...(allVlansAllowed(i)
+                  ? []
+                  : [' switchport trunk allowed vlan ' + (vlanRangeText(i.allowedVlans) || 'none')]),
                 ...(i.nonegotiate ? [' switchport nonegotiate'] : []),
               ]
             : []),

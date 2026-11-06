@@ -4,6 +4,17 @@ import { findPort, linksAt } from '../core/topology-index';
 export function lacpMembers(snapshot: Snapshot, device: Device, port: NetworkInterface) {
   const agg = port.aggregate;
   if (!agg || !device.power || !port.adminUp) return [];
+  // Static EtherChannel ("mode on"): every member with an operational link is bundled.
+  if (agg.mode === 'on') {
+    const up = agg.members
+      .filter(
+        (id) =>
+          findPort(device, id)?.channel === port.id &&
+          linksAt(snapshot, device.id, id).some((l) => linkOperational(snapshot, l))
+      )
+      .sort();
+    return up.length >= agg.minLinks ? up : [];
+  }
   const candidates = agg.received
     .filter((r) => {
       const member = findPort(device, r.port),

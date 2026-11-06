@@ -136,7 +136,10 @@ describe('LACP por PDUs e encaminhamento EtherChannel', () => {
     ])
       expect(cli.execute(command)).not.toMatch(/Erro|%/);
     expect(cli.execute('show running-config')).toContain('channel-group 1 mode active');
-    expect(cli.execute('show etherchannel summary')).toContain('min-links=2');
+    expect(cli.execute('show running-config')).toContain('\n lacp min-links 2\n');
+    expect(cli.execute('show etherchannel summary')).toMatch(
+      /^1\s+Po1\(SD\)\s+LACP\s+Gi0\/1\(D\)\s+Gi0\/2\(D\)$/m
+    );
     expect(sw.interfaces[0].channel).toBe('po1');
     cli.execute('conf t');
     cli.execute('interface Gi0/1');

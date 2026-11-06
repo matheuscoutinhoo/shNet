@@ -21,6 +21,80 @@ import {
 } from '../protocols/dhcp-config';
 import { ipNumber, ipString, mask, parsePrefix, sameSubnet, subnet } from '../protocols/ipv4';
 import { dhcpHaStatus } from '../protocols/dhcp-ha';
+import { dottedMac, longInterfaceName } from '../protocols/interface-name';
+
+function vlanRanges(ids: number[]) {
+  const sorted = [...new Set(ids)].sort((a, b) => a - b),
+    parts: string[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    let j = i;
+    while (j + 1 < sorted.length && sorted[j + 1] === sorted[j] + 1) j++;
+    parts.push(j > i ? sorted[i] + '-' + sorted[j] : String(sorted[i]));
+    i = j;
+  }
+  return parts.join(',') || 'none';
+}
+function showDhcpSnooping(d: Device) {
+  const c = d.dhcpSnooping,
+    vlans = c?.vlans ?? [];
+  const ports = d.interfaces.filter(
+    (p) => c?.trustedPorts.includes(p.id) || c?.rateLimits?.some((r) => r.port === p.id)
+  );
+  return [
+    `Switch DHCP snooping is ${c?.enabled ? 'enabled' : 'disabled'}`,
+    'Switch DHCP gleaning is disabled',
+    'DHCP snooping is configured on following VLANs:',
+    vlanRanges(vlans),
+    'DHCP snooping is operational on following VLANs:',
+    vlanRanges(c?.enabled ? vlans.filter((id) => d.vlans.some((v) => v.id === id)) : []),
+    'DHCP snooping is configured on the following L3 Interfaces:',
+    '',
+    `Insertion of option 82 is ${c?.informationOption === false ? 'disabled' : 'enabled'}`,
+    '   circuit-id default format: vlan-mod-port',
+    `   remote-id: ${dottedMac(d.interfaces[0]?.mac ?? '')} (MAC)`,
+    'Option 82 on untrusted port is not allowed',
+    'Verification of hwaddr field is enabled',
+    'Verification of giaddr field is enabled',
+    'DHCP snooping trust/rate is configured on the following Interfaces:',
+    '',
+    'Interface                  Trusted    Allow option    Rate limit (pps)',
+    '-----------------------    -------    ------------    ----------------',
+    ...ports.flatMap((p) => {
+      const trusted = !!c?.trustedPorts.includes(p.id);
+      return [
+        longInterfaceName(p.name).padEnd(27) +
+          (trusted ? 'yes' : 'no').padEnd(11) +
+          (trusted ? 'yes' : 'no').padEnd(16) +
+          String(c?.rateLimits?.find((r) => r.port === p.id)?.pps ?? 'unlimited'),
+        '  Custom circuit-ids:',
+      ];
+    }),
+  ].join('\n');
+}
+function showDhcpSnoopingBindings(d: Device, now: number) {
+  const c = d.dhcpSnooping;
+  const colon = (mac: string) => mac.toUpperCase();
+  const rows = [
+    ...(c?.bindings ?? [])
+      .filter((b) => b.expiresAt > now)
+      .map((b) => ({ ...b, lease: String(Math.floor((b.expiresAt - now) / 1000)), type: 'dhcp-snooping' })),
+    ...(c?.staticBindings ?? []).map((b) => ({ ...b, lease: 'infinite', type: 'static' })),
+  ];
+  return [
+    'MacAddress          IpAddress        Lease(sec)  Type           VLAN  Interface',
+    '------------------  ---------------  ----------  -------------  ----  --------------------',
+    ...rows.map(
+      (b) =>
+        colon(b.mac).padEnd(20) +
+        b.ip.padEnd(17) +
+        b.lease.padEnd(12) +
+        b.type.padEnd(15) +
+        String(b.vlan).padEnd(6) +
+        longInterfaceName(d.interfaces.find((p) => p.id === b.port)?.name ?? b.port)
+    ),
+    'Total number of bindings: ' + rows.length,
+  ].join('\n');
+}
 
 // IOS default lease: one day.
 const IOS_LEASE_MS = 86400000;
@@ -183,8 +257,15 @@ export function registerDhcpCommands(registry: CommandRegistry) {
   });
   registry.register({
     pattern: /^show ip dhcp snooping$/i,
+    syntax: 'show ip dhcp snooping',
     modes: ALL_MODES,
-    run: (_m, _e, d) => JSON.stringify(d.dhcpSnooping ?? { enabled: false }, null, 2),
+    run: (_m, _e, d) => showDhcpSnooping(d),
+  });
+  registry.register({
+    pattern: /^show ip dhcp snooping binding$/i,
+    syntax: 'show ip dhcp snooping binding',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showDhcpSnoopingBindings(d, e.state.clock),
   });
   registry.register({
     pattern: /^(no )?ip dhcp conflict-detection$/i,
@@ -603,6 +684,7 @@ export function dhcpRunningConfig(device: Device): string[] {
     ? [
         (c.enabled ? '' : 'no ') + 'ip dhcp snooping',
         ...(c.vlans.length ? ['ip dhcp snooping vlan ' + c.vlans.join(',')] : []),
+        ...(c.informationOption === false ? ['no ip dhcp snooping information option'] : []),
         ...(c.arpInspectionVlans.length || c.arpInspection
           ? [
               'ip arp inspection vlan ' +
@@ -615,11 +697,15 @@ export function dhcpRunningConfig(device: Device): string[] {
               c.trustedPorts.includes(p.id) ||
               c.arpTrustedPorts.includes(p.id) ||
               c.sourceGuardPorts.includes(p.id) ||
+              c.rateLimits?.some((r) => r.port === p.id) ||
               (c.sourceGuard && p.mode !== 'routed')
           )
           .flatMap((p) => [
             'interface ' + p.name,
             ...(c.trustedPorts.includes(p.id) ? [' ip dhcp snooping trust'] : []),
+            ...(c.rateLimits ?? [])
+              .filter((r) => r.port === p.id)
+              .map((r) => ' ip dhcp snooping limit rate ' + r.pps),
             ...(c.arpTrustedPorts.includes(p.id) || (c.arpInspection && c.trustedPorts.includes(p.id))
               ? [' ip arp inspection trust']
               : []),
@@ -630,7 +716,7 @@ export function dhcpRunningConfig(device: Device): string[] {
           ]),
         ...c.staticBindings.map(
           (b) =>
-            `ip source binding ${b.mac} vlan ${b.vlan} ${b.ip} interface ${device.interfaces.find((p) => p.id === b.port)!.name}`
+            `ip source binding ${dottedMac(b.mac)} vlan ${b.vlan} ${b.ip} interface ${device.interfaces.find((p) => p.id === b.port)!.name}`
         ),
       ]
     : [];
