@@ -75,8 +75,21 @@ export function remoteRunningConfig(d: Device) {
       : []),
     ...(d.ntp
       ? d.ntp.enabled && d.ntp.intervalMs === 64000
-        ? d.ntp.servers.map((s) => 'ntp server ' + s)
+        ? d.ntp.servers.map((s) => ntpServerLine(d, s))
         : ['ntp configure ' + printSecretsJson(d, ntpConfig(d))]
       : []),
   ];
+}
+function ntpServerLine(d: Device, server: string) {
+  const ntp = d.iosSystem?.ntp,
+    o = ntp?.serverOptions?.find((x) => x.address === server);
+  return (
+    'ntp server ' +
+    server +
+    (o?.key !== undefined ? ' key ' + o.key : '') +
+    (o?.version !== undefined ? ' version ' + o.version : '') +
+    (o?.source ? ' source ' + o.source : '') +
+    (ntp?.prefer === server ? ' prefer' : '') +
+    (o?.iburst ? ' iburst' : '')
+  );
 }

@@ -118,3 +118,23 @@ t6lkurft	neighbor <ip|peer-group> ebgp-multihop [ttl]
 p6nn27p5	no neighbor <ip|peer-group> ebgp-multihop
 k02q96wv	neighbor {0} ebgp-multihop {1}
 p0ivef5b	eBGP neighbor interface went down (fast-external-fallover)
+gukkmzf7	SSH Disabled - version 1.99 %Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).
+ilzaacya	show storm-control multicast
+t7zpou4d	mail
+zlqtulxg	crypto key generate rsa modulus <bits>
+2vnpkbkf	crypto key generate rsa general-keys modulus <bits>
+789s5fbx	Please define a hostname other than {0}.
+ejkqdsb9	Please define a domain-name first.
+ua3w7duu	The modulus must be 360-4096 bits.
+qio7vpuq	Buffer size is 4096-2147483647 bytes.
+94v143gz	% A maximum of 8 logging hosts is supported.
+fdeddiah	SNMPv3 hosts need auth, noauth or priv.
+7ta523gs	Security levels apply to SNMPv3.
+3qyd54lw	At most 16 notification hosts.
+cppp3ysi	snmp-server enable traps
+d16syq4s	snmp-server enable traps snmp linkdown linkup coldstart
+ljuf0d51	SNMPv3 passwords need at least 8 characters.
+mukegxkb	At most 16 SNMPv3 users.
+y7di8f4v	storm-control multicast level <percent>
+klfksdii	snmp-server enable traps {0}
+dylfq7f9	multicast

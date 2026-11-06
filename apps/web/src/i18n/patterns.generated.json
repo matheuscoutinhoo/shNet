@@ -388,6 +388,10 @@
   "DHCP: comprimento inválido da opção {0}."
  ],
  [
+  "789s5fbx",
+  "Please define a hostname other than {0}."
+ ],
+ [
   "78jilqdp",
   "{0} {1} pelo underlay {2}."
  ],
@@ -1098,6 +1102,10 @@
  [
   "kifp4ido",
   "Porta UDP {0} sem serviço ativo."
+ ],
+ [
+  "klfksdii",
+  "snmp-server enable traps {0}"
  ],
  [
   "knopv5gz",

@@ -668,6 +668,265 @@ describe('NTP like IOS', () => {
   });
 });
 
+describe('IOS day-0 management plane', () => {
+  const RELOAD_MS = 60_000;
+  const portOf = (e: SimulationEngine, d: Device, name: string) =>
+    e.device(d.id).interfaces.find((p) => p.name === name)!;
+  /** PCs addressed in 10.1.1.0/24, one per switch port. */
+  function hosts(e: SimulationEngine, sw: Device, ports: string[]) {
+    return ports.map((name, i) => {
+      const pc = e.addDevice('pc', { x: i * 100, y: 200 });
+      Object.assign(pc.interfaces[0], { ip: '10.1.1.' + (11 + i), prefix: 24 });
+      e.connect(
+        { device: pc.id, port: pc.interfaces[0].id },
+        { device: sw.id, port: portOf(e, sw, name).id }
+      );
+      return pc;
+    });
+  }
+  it('accepts a complete day-0 configuration and keeps it, keys and SNMPv3 users across reload', () => {
+    const {
+      e,
+      devices: [r],
+      terminals: [t],
+      advance,
+    } = lab('router');
+    ok(t, [
+      'hostname HQ-WAN-01',
+      'service timestamps log datetime msec',
+      'service password-encryption',
+      'ip domain name globex.example',
+      'username admin privilege 15 secret Adm1n-Pass',
+      'aaa new-model',
+      'aaa group server tacacs+ ISE',
+      'server name ISE-1',
+      'ip tacacs source-interface Loopback0',
+      'aaa authentication login default group ISE local',
+      'aaa authorization exec default group ISE local if-authenticated',
+      'aaa accounting commands 15 default start-stop group ISE',
+      'tacacs server ISE-1',
+      'address ipv4 10.2.50.40',
+      'key Tac-Key-123',
+      'ip ssh version 2',
+      'line con 0',
+      'exec-timeout 5 0',
+      'logging synchronous',
+      'line vty 0 4',
+      'access-class MGMT in',
+      'transport input ssh',
+      'line vty 5 15',
+      'access-class MGMT in',
+      'transport input ssh',
+      'banner motd #',
+      'Authorized access only',
+      '',
+      'Disconnect now',
+      '#',
+      'logging buffered 64000 informational',
+      'logging trap warnings',
+      'logging source-interface Loopback0',
+      'logging host 10.2.50.30',
+      'logging host 10.3.50.30',
+      'snmp-server location HQ MDF rack 4',
+      'snmp-server contact noc@globex.example',
+      'snmp-server group V3GROUP v3 priv',
+      'snmp-server user monitor V3GROUP v3 auth sha Auth-Pass-1 priv aes 128 Priv-Pass-1',
+      'ntp authentication-key 1 md5 Ntp-Key-1',
+      'ntp trusted-key 1',
+      'ntp authenticate',
+      'ntp source Loopback0',
+      'ntp server 10.2.50.123 key 1 prefer',
+      'ip access-list standard MGMT',
+      'permit 10.2.0.0 0.0.255.255',
+      'interface Loopback0',
+      'ip address 10.255.0.1 255.255.255.255',
+      'end',
+    ]);
+    ok(t, ['configure terminal']);
+    expect(t.execute('crypto key generate rsa modulus 2048')).toMatch(/Generating 2048 bit RSA keys/);
+    ok(t, ['end']);
+    const running = t.execute('show running-config');
+    for (const line of [
+      'aaa new-model',
+      'aaa authentication login default group ISE local',
+      'tacacs server ISE-1',
+      ' key 7 ' + type7Encode('Tac-Key-123'),
+      'line vty 0 4',
+      ' transport input ssh',
+      'banner motd ^C\nAuthorized access only\n\nDisconnect now\n^C',
+      'logging trap warnings',
+      'logging host 10.2.50.30\nlogging host 10.3.50.30',
+      'snmp-server location HQ MDF rack 4',
+      'ntp server 10.2.50.123 key 1 prefer',
+    ])
+      expect(running).toContain(line);
+    // The SNMPv3 user and the RSA key pair are private configuration: never printed.
+    expect(running).not.toMatch(/snmp-server user|Auth-Pass-1|crypto key/);
+    expect(t.execute('show ip ssh')).toMatch(/^SSH Enabled - version 2\.0/);
+    expect(new TerminalSession(e, r.id).banners).toBe('\nAuthorized access only\n\nDisconnect now\n');
+    ok(t, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t, ['enable']);
+    expect(t.execute('show running-config')).toBe(running);
+    expect(e.device(r.id).bootLog).toEqual([]);
+    expect(t.execute('show ip ssh')).toMatch(/^SSH Enabled - version 2\.0/);
+    expect(t.execute('show snmp user')).toMatch(/User name: monitor[\s\S]*Group-name: V3GROUP/);
+  });
+  it('portfast and BPDU Guard defaults protect access ports, and errdisable recovery brings them back', () => {
+    const {
+      e,
+      devices: [a, b],
+      terminals: [ta, tb],
+      cable,
+      advance,
+    } = lab('access', 'access');
+    ok(ta, [
+      'spanning-tree portfast default',
+      'spanning-tree portfast bpduguard default',
+      'errdisable recovery cause bpduguard',
+      'errdisable recovery interval 30',
+      'interface Gi0/24',
+      'switchport mode trunk',
+      'end',
+    ]);
+    cable(a, 'Gi0/5', b, 'Gi0/5');
+    cable(a, 'Gi0/24', b, 'Gi0/24');
+    advance(5000);
+    // The access port is an edge port by default and receives BPDUs: err-disabled. The trunk is not edge.
+    const port = portOf(e, a, 'Gi0/5');
+    expect(port.errDisabled?.reason).toBe('bpduguard');
+    expect(ta.execute('show spanning-tree')).toMatch(/Gi0\/24\s+\S+\s+\S+\s+\d+\s+\S+\s+P2p\s*$/m);
+    expect(ta.execute('show errdisable recovery')).toMatch(
+      /bpduguard\s+Enabled[\s\S]*Gi0\/5\s+bpduguard\s+\d+/
+    );
+    // The neighbor port is shut, so no more BPDUs: after the interval the port recovers.
+    ok(tb, ['interface Gi0/5', 'shutdown', 'end']);
+    advance(31000);
+    expect(portOf(e, a, 'Gi0/5').errDisabled).toBeUndefined();
+    expect(e.device(a.id).logs.some((l) => l.includes('%PM-4-ERR_RECOVER'))).toBe(true);
+    // "spanning-tree portfast disable" opts a port out of the default and is printed as such.
+    ok(ta, ['configure terminal', 'interface Gi0/6', 'spanning-tree portfast disable', 'end']);
+    expect(ta.execute('show running-config')).toMatch(
+      /interface Gi0\/6\n(?: .*\n)* spanning-tree portfast disable\n/
+    );
+  });
+  it('storm-control filters a broadcast storm and action shutdown err-disables the port', () => {
+    const {
+      e,
+      devices: [sw],
+      terminals: [t],
+      advance,
+    } = lab('access');
+    const [pc1, pc2] = hosts(e, sw, ['Gi0/1', 'Gi0/2']);
+    ok(t, ['spanning-tree portfast default', 'interface Gi0/1', 'storm-control broadcast level 0.00', 'end']);
+    e.ping(pc1.id, '10.1.1.12');
+    advance(5000);
+    // Level 0 suppresses all broadcasts: the ARP request never reaches PC2.
+    expect(e.device(pc1.id).arpTable.some((x) => x.ip === '10.1.1.12')).toBe(false);
+    expect(t.execute('show storm-control')).toMatch(/Gi0\/1\s+(?:Blocking|Forwarding)\s+0\.00%/);
+    ok(t, ['configure terminal', 'interface Gi0/1', 'storm-control action shutdown', 'end']);
+    e.ping(pc1.id, '10.1.1.12');
+    advance(5000);
+    expect(portOf(e, sw, 'Gi0/1').errDisabled?.reason).toBe('storm-control');
+    ok(t, [
+      'configure terminal',
+      'interface Gi0/1',
+      'no storm-control broadcast level',
+      'shutdown',
+      'no shutdown',
+      'end',
+    ]);
+    e.ping(pc1.id, '10.1.1.12');
+    advance(5000);
+    expect(e.device(pc1.id).arpTable.some((x) => x.ip === '10.1.1.12')).toBe(true);
+    expect(e.device(pc2.id).arpTable.some((x) => x.ip === '10.1.1.11')).toBe(true);
+  });
+  it('SPAN copies a source port to the destination port, which no longer switches traffic', () => {
+    const {
+      e,
+      devices: [sw],
+      terminals: [t],
+      advance,
+    } = lab('access');
+    const [pc1, , sniffer] = hosts(e, sw, ['Gi0/1', 'Gi0/2', 'Gi0/3']);
+    ok(t, [
+      'spanning-tree portfast default',
+      'monitor session 1 source interface Gi0/1',
+      'monitor session 1 destination interface Gi0/3',
+      'end',
+    ]);
+    expect(t.execute('show monitor session 1')).toMatch(/Both\s+: Gi0\/1[\s\S]*Destination Ports\s+: Gi0\/3/);
+    const seen = () =>
+      e.state.events.filter((ev) => ev.device === sniffer.id && ev.frame?.packet?.protocol === 'ICMP').length;
+    e.ping(pc1.id, '10.1.1.12');
+    advance(5000);
+    // Echo request (rx on Gi0/1) and reply (tx on Gi0/1) both reach the analyzer.
+    expect(seen()).toBeGreaterThanOrEqual(2);
+    expect(e.state.probes.at(-1)?.status).toBe('success');
+    // A SPAN destination does not forward what it receives.
+    e.ping(sniffer.id, '10.1.1.11');
+    advance(5000);
+    expect(e.state.probes.at(-1)?.status).not.toBe('success');
+  });
+  it('NTP authentication, source interfaces and SNMP system strings behave like IOS', () => {
+    const {
+      e,
+      devices: [r1, r2],
+      terminals: [t1, t2],
+      cable,
+      advance,
+    } = lab('router', 'router');
+    cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    ok(t1, [
+      'interface Gi0/1',
+      'ip address 10.0.0.1 255.255.255.252',
+      'exit',
+      'ip route 10.255.0.2 255.255.255.255 10.0.0.2',
+      'ntp authentication-key 1 md5 Ntp-Key-1',
+      'ntp master 3',
+      'service syslog',
+      'snmp-server community GLOBEX-RO RO',
+      'snmp-server location HQ MDF',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Gi0/1',
+      'ip address 10.0.0.2 255.255.255.252',
+      'interface Loopback0',
+      'ip address 10.255.0.2 255.255.255.255',
+      'exit',
+      'ntp authentication-key 1 md5 Wrong-Key',
+      'ntp trusted-key 1',
+      'ntp authenticate',
+      'ntp source Loopback0',
+      'ntp server 10.0.0.1 key 1',
+      'logging source-interface Loopback0',
+      'logging host 10.0.0.1',
+      'end',
+    ]);
+    advance(70000);
+    // The server's reply is signed with a different key: not a valid sync source.
+    expect(e.device(r2.id).ntp?.synchronized).toBe(false);
+    ok(t2, ['configure terminal', 'ntp authentication-key 1 md5 Ntp-Key-1', 'end']);
+    advance(70000);
+    expect(e.device(r2.id).ntp).toMatchObject({ synchronized: true, stratum: 4 });
+    expect(e.device(r2.id).ntp?.samples.at(-1)?.server).toBe('10.0.0.1');
+    // Syslog leaves from the loopback address.
+    ok(t2, ['configure terminal', 'interface Gi0/2', 'shutdown', 'end']);
+    advance(2000);
+    const entries = e.device(r1.id).syslogServer!.entries;
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries.every((x) => x.source === '10.255.0.2')).toBe(true);
+    expect(t2.execute('show logging')).toMatch(
+      /Logging to 10\.0\.0\.1[\s\S]*Logging Source-Interface[\s\S]*Loopback0/
+    );
+    // sysLocation is served by the SNMP agent.
+    t2.execute('snmp get 10.0.0.1 GLOBEX-RO 1.3.6.1.2.1.1.6.0');
+    advance(2000);
+    expect(t2.execute('show snmp queries')).toContain('1.3.6.1.2.1.1.6.0 OctetString = HQ MDF');
+  });
+});
+
 describe('simulation fast paths keep results exact', () => {
   it('incremental worker deltas keep a large lab mirror valid, and sync() makes it exact', () => {
     const snapshot = makeTemplate('factory');

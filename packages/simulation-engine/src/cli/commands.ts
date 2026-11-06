@@ -42,6 +42,15 @@ import { registerHsrpCommands, hsrpRunningConfig } from './hsrp';
 import { registerLocalSecurityCommands } from './local-security';
 import { registerCampusCommands, campusRunningConfig } from './campus';
 import { registerIosOperations, iosSystemRunning } from './ios-operations';
+import {
+  registerIosManagementCommands,
+  iosManagementHead,
+  iosManagementTail,
+  stormControlRunningConfig,
+} from './ios-management';
+import { bannerRunningConfig } from './banner';
+import { registerIosManagementShow } from './ios-management-show';
+import { edgePort } from '../protocols/stp-scope';
 import { registerMonitoring, monitoringRunning } from './monitoring';
 import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
 import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
@@ -77,6 +86,9 @@ export function makeRegistry() {
   registerHsrpCommands(r);
   registerLocalSecurityCommands(r);
   registerCampusCommands(r);
+  // Before the simulator's legacy management forms, so the IOS syntax wins.
+  registerIosManagementCommands(r);
+  registerIosManagementShow(r);
   registerIosOperations(r);
   registerConfigDiff(r);
   registerMonitoring(r);
@@ -576,6 +588,7 @@ export function makeRegistry() {
         [
           'hostname ' + d.hostname,
           ...iosSystemRunning(d),
+          ...iosManagementHead(d),
           ...monitoringRunning(d),
           ...routingPolicyRunning(d),
           ...mqcDefinitions(d),
@@ -623,7 +636,11 @@ export function makeRegistry() {
               ? [' ip address ' + i.ip + ' ' + ipString(mask(i.prefix!))]
               : []),
           ...(i.ipv4Mode !== 'dhcp' && i.dns?.length ? [' ip name-server ' + i.dns.join(' ')] : []),
-          ...(i.stpEdge ? [' spanning-tree portfast'] : []),
+          ...(i.stpEdge
+            ? [' spanning-tree portfast']
+            : i.stpEdge === false && edgePort(d, { ...i, stpEdge: undefined })
+              ? [' spanning-tree portfast disable']
+              : []),
           ...(i.stpGuard ? [' spanning-tree guard ' + i.stpGuard] : []),
           ...(i.bpduGuard !== undefined
             ? [' spanning-tree bpduguard ' + (i.bpduGuard ? 'enable' : 'disable')]
@@ -631,13 +648,16 @@ export function makeRegistry() {
           ...(i.stpCost ? [' spanning-tree cost ' + i.stpCost] : []),
           ...(d.type === 'switch' && !i.logical && i.mode !== 'routed'
             ? [
+                ...(i.trunkEncapsulation ? [' switchport trunk encapsulation ' + i.trunkEncapsulation] : []),
                 ' switchport mode ' + i.mode,
                 ' switchport access vlan ' + i.accessVlan,
                 ' switchport trunk native vlan ' + i.nativeVlan,
                 ' switchport trunk allowed vlan ' +
                   (i.allowedVlans.length ? i.allowedVlans.join(',') : 'none'),
+                ...(i.nonegotiate ? [' switchport nonegotiate'] : []),
               ]
             : []),
+          ...stormControlRunningConfig(i),
           'exit',
         ]),
         [
@@ -678,8 +698,9 @@ export function makeRegistry() {
           ...ripRunningConfig(d),
           ...vrrpRunningConfig(d),
           ...bgpRunningConfig(d),
-          ...remoteRunningConfig(d),
           ...managementRunningConfig(d),
+          ...iosManagementTail(d, bannerRunningConfig(d)),
+          ...remoteRunningConfig(d),
           ...stpRunningConfig(d),
           ...discoveryRunningConfig(d),
           ...hsrpRunningConfig(d),

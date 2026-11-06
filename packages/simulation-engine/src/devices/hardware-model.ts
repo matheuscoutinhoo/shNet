@@ -69,6 +69,8 @@ export const consoleSessionsSchema = z
               'key-chain',
               'key-chain-key',
               'bfd-template',
+              'aaa-server',
+              'aaa-group',
             ]),
             port: idSchema.optional(),
             vlan: z.number().int().min(1).max(4094).optional(),
@@ -79,6 +81,27 @@ export const consoleSessionsSchema = z
             acl: z.string().max(32).optional(),
             aclType: z.enum(['standard', 'extended']).optional(),
             line: z.enum(['console', 'vty']).optional(),
+            lineRange: z
+              .object({
+                kind: z.enum(['con', 'aux', 'vty']),
+                first: z.number().int().min(0).max(1023),
+                last: z.number().int().min(0).max(1023),
+              })
+              .strict()
+              .optional(),
+            aaaKind: z.enum(['tacacs', 'radius']).optional(),
+            banner: z
+              .object({
+                kind: z.enum(['motd', 'login', 'exec']),
+                delimiter: z.string().min(1).max(2),
+                text: z.array(z.string().max(512)).max(40),
+              })
+              .strict()
+              .optional(),
+            confirm: z
+              .object({ kind: z.enum(['save', 'reload']) })
+              .strict()
+              .optional(),
             vrf: z.string().max(32).optional(),
             sla: z.number().int().positive().optional(),
             name: z.string().max(32).optional(),

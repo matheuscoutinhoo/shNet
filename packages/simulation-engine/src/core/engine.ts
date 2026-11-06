@@ -100,11 +100,12 @@ import { expireSipAlg } from '../protocols/nat-sip';
 import { handleHairpinExpiry, hairpinError } from '../protocols/nat-hairpin';
 import { fragmentFrame, receiveFragment, handleFragmentAction } from '../protocols/fragment';
 import { configureDhcpSnooping } from '../protocols/dhcp-snooping';
-import { spanningPortState, frameVlan } from '../protocols/stp-scope';
+import { spanningPortState, frameVlan, edgePort } from '../protocols/stp-scope';
 import { addFactoryProfile, addProfile } from '../devices/profiles';
 import { configureTelemetry, configureCollector, handleTelemetry } from '../protocols/telemetry';
 import { configureClock, configureNtp, handleNtp, stampNtp } from '../protocols/ntp';
 import { monitorTick, slaProbeIds } from '../protocols/monitoring';
+import { handleErrdisableRecovery } from '../protocols/errdisable';
 import { receiveUdld, udldTick } from '../protocols/udld';
 import { bfdTick } from '../protocols/bfd';
 import { configureRemote } from '../protocols/remote';
@@ -951,7 +952,8 @@ export class SimulationEngine {
   rebuildSpanningTree(deviceId: string) {
     rebuildSpanningTree(this, this.device(deviceId));
   }
-  setSpanningTreePort(deviceId: string, portId: string, options: { edge?: boolean; cost?: number }) {
+  /** edge: true/false sets PortFast on the port; null returns it to "spanning-tree portfast default". */
+  setSpanningTreePort(deviceId: string, portId: string, options: { edge?: boolean | null; cost?: number }) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
     if (device.type !== 'switch') throw new Error('STP exige switch.');
     if (
@@ -959,8 +961,10 @@ export class SimulationEngine {
       (!Number.isInteger(options.cost) || options.cost < 1 || options.cost > 200000000)
     )
       throw new Error('Custo STP inválido.');
-    const edgeChanged = options.edge !== undefined && Boolean(port.stpEdge) !== options.edge;
-    if (options.edge !== undefined) port.stpEdge = options.edge;
+    const wasEdge = edgePort(device, port);
+    if (options.edge === null) delete port.stpEdge;
+    else if (options.edge !== undefined) port.stpEdge = options.edge;
+    const edgeChanged = wasEdge !== edgePort(device, port);
     if (Object.hasOwn(options, 'cost')) {
       if (options.cost === undefined) delete port.stpCost;
       else port.stpCost = options.cost;
@@ -1869,6 +1873,7 @@ export class SimulationEngine {
     else if (a.kind === 'ntp-tick') handleNtp(this, a);
     else if (a.kind === 'monitoring-tick') monitorTick(this, this.device(a.device), a.token);
     else if (a.kind === 'device-boot') completeReload(this, a.device, a.token);
+    else if (a.kind === 'errdisable-recovery') handleErrdisableRecovery(this, a);
     else if (a.kind === 'udld-tick') {
       const d = this.device(a.device),
         p = d.interfaces.find((p) => p.id === a.port);

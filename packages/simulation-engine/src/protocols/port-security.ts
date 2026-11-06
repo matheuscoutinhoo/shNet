@@ -1,5 +1,6 @@
 import type { Device, Frame, NetworkInterface } from '../model';
 import type { SimulationEngine } from '../core/engine';
+import { scheduleErrdisableRecovery } from './errdisable';
 export function permitPortSecurity(e: SimulationEngine, d: Device, p: NetworkInterface, f: Frame) {
   const c = p.portSecurity;
   if (!c?.enabled) return true;
@@ -12,6 +13,7 @@ export function permitPortSecurity(e: SimulationEngine, d: Device, p: NetworkInt
   if (c.violation === 'shutdown') {
     p.errDisabled = { reason: 'psecure-violation', at: e.state.clock };
     d.macTable = d.macTable.filter((m) => m.port !== p.id);
+    scheduleErrdisableRecovery(e, d, p);
   }
   if (c.violation !== 'protect')
     e.emit(

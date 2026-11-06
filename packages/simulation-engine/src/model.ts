@@ -131,7 +131,7 @@ import { bondStateSchema, bondTimerSchema } from './protocols/bond-model';
 export * from './protocols/lacp-model';
 export * from './protocols/bgp-model';
 import { z } from 'zod';
-import { iosSystemSchema } from './protocols/ios-system-model';
+import { iosSnmpUserSchema, iosSystemSchema, iosVtpSchema } from './protocols/ios-system-model';
 import { monitoringSchema, monitoringTimerSchema } from './protocols/monitoring-model';
 import { udldStateSchema, udldMessageSchema, udldTimerSchema } from './protocols/udld-model';
 import { bfdStateSchema, bfdMessageSchema, bfdTimerSchema, bfdTemplatesSchema } from './protocols/bfd-model';
@@ -689,7 +689,38 @@ export const interfaceSchema = z
     lldpTransmit: z.boolean().optional(),
     lldpReceive: z.boolean().optional(),
     errDisabled: z
-      .object({ reason: z.enum(['bpduguard', 'psecure-violation', 'udld']), at: finite.nonnegative() })
+      .object({
+        reason: z.enum(['bpduguard', 'psecure-violation', 'udld', 'storm-control']),
+        at: finite.nonnegative(),
+      })
+      .strict()
+      .optional(),
+    // "switchport nonegotiate" (no DTP frames) and "switchport trunk encapsulation dot1q".
+    nonegotiate: z.boolean().optional(),
+    trunkEncapsulation: z.enum(['dot1q', 'negotiate']).optional(),
+    // "storm-control broadcast|multicast|unicast level N" (% of bandwidth) and its action.
+    stormControl: z
+      .object({
+        broadcast: z.number().min(0).max(100).optional(),
+        multicast: z.number().min(0).max(100).optional(),
+        unicast: z.number().min(0).max(100).optional(),
+        action: z.enum(['shutdown', 'trap']).optional(),
+        // Bytes counted in the current one-second interval, per traffic class; "filtered" lists the
+        // classes already over their level in this interval (logged once, like IOS).
+        window: z
+          .object({
+            at: finite.nonnegative(),
+            broadcast: z.number().int().nonnegative(),
+            multicast: z.number().int().nonnegative(),
+            unicast: z.number().int().nonnegative(),
+            filtered: z
+              .array(z.enum(['broadcast', 'multicast', 'unicast']))
+              .max(3)
+              .optional(),
+          })
+          .strict()
+          .optional(),
+      })
       .strict()
       .optional(),
     stpCost: z.number().int().min(1).max(200000000).optional(),
@@ -916,6 +947,16 @@ export const startupConfigurationSchema = z
         bgp: bgpConfigSchema.optional(),
         nat: natSchema.omit({ bindings: true, sipBindings: true, hairpins: true }).optional(),
         accessLists: z.array(aclSchema).max(32).optional(),
+        // IOS private configuration: kept in NVRAM but never shown in running-config.
+        privateConfig: z
+          .object({
+            rsaModulus: z.number().int().min(360).max(4096).optional(),
+            snmpUsers: z.array(iosSnmpUserSchema).max(16).optional(),
+            // VTP lives in vlan.dat, not in startup-config.
+            vtp: iosVtpSchema.optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
@@ -1346,6 +1387,10 @@ export const actionSchema = z.discriminatedUnion('kind', [
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('device-boot'), device: id, token: id }).strict(),
+  // "errdisable recovery": re-enable a port err-disabled at "since" once the interval elapses.
+  z
+    .object({ kind: z.literal('errdisable-recovery'), device: id, port: id, since: finite.nonnegative() })
+    .strict(),
   z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('quorum-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('database-client-tick'), device: id, token: id }).strict(),

@@ -19,6 +19,8 @@ export const syslogClientSchema = z
   .object({
     enabled: z.boolean(),
     server: ipv4Schema,
+    // Further "logging host" collectors: every message goes to each of them.
+    additional: z.array(ipv4Schema).max(7).optional(),
     severity: z.number().int().min(0).max(7).default(6),
     facility: z.number().int().min(0).max(23).default(23),
     automatic: z.boolean().default(true),

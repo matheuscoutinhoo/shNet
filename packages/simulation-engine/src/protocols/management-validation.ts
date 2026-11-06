@@ -66,7 +66,12 @@ export function validateManagement(snapshot: Snapshot) {
           throw new Error('Resposta SNMP inconsistente com os OIDs consultados.');
       } else if (query.varbinds.length) throw new Error('Consulta SNMP incompleta com dados de resposta.');
     }
-    if (device.syslogClient && !isUnicast(device.syslogClient.server))
+    if (
+      device.syslogClient &&
+      [device.syslogClient.server, ...(device.syslogClient.additional ?? [])].some(
+        (server, index, all) => !isUnicast(server) || all.indexOf(server) !== index
+      )
+    )
       throw new Error('Coletor syslog inválido.');
     if (
       device.syslogServer &&
@@ -108,7 +113,7 @@ export function validateManagement(snapshot: Snapshot) {
       throw new Error('Envio syslog sem origem válida.');
     if (action.kind === 'syslog-send') {
       const count = (syslogPending.get(action.device) ?? 0) + 1;
-      const key = action.device + ':' + action.message.id;
+      const key = action.device + ':' + action.message.id + ':' + action.server;
       if (count > 64 || syslogIds.has(key) || at !== action.message.timestamp + 0.001)
         throw new Error('Fila syslog inconsistente.');
       syslogPending.set(action.device, count);

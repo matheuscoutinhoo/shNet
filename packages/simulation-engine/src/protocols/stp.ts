@@ -12,7 +12,10 @@ import {
   instancePort,
   portCarriesVlan,
   stpVlanInstance,
+  edgePort,
+  bpduGuardEnabled,
 } from './stp-scope';
+import { scheduleErrdisableRecovery } from './errdisable';
 import { switchingPorts } from './lacp-members';
 import { interfaceOperational } from './layer3';
 import {
@@ -70,7 +73,7 @@ function expireInfo(engine: SimulationEngine, device: Device, port: NetworkInter
   const current = port.spanningTree;
   if (
     current?.operational &&
-    !port.stpEdge &&
+    !edgePort(device, port) &&
     (port.stpGuard === 'loop' || device.loopGuardDefault) &&
     ['root', 'alternate'].includes(current.role)
   )
@@ -148,7 +151,10 @@ function setState(
   engine.emit('STP_PORT_CHANGED', device.id, port.name + ': ' + current.role + ' / ' + state + '.', {
     port: port.id,
   });
-  if (!port.stpEdge && (state === 'forwarding' || (device.spanningTree!.mode === 'stp' && wasForwarding)))
+  if (
+    !edgePort(device, port) &&
+    (state === 'forwarding' || (device.spanningTree!.mode === 'stp' && wasForwarding))
+  )
     topologyChange(engine, device);
 }
 
@@ -160,7 +166,7 @@ function beginTransition(engine: SimulationEngine, device: Device, port: Network
   current.proposed = device.spanningTree!.mode === 'rstp';
   setState(engine, device, port, 'discarding');
   if (!current.operational || current.role === 'alternate' || current.role === 'disabled') return;
-  if (port.stpEdge && !current.received) {
+  if (edgePort(device, port) && !current.received) {
     setState(engine, device, port, 'forwarding');
     return;
   }
@@ -401,7 +407,7 @@ function recompute(engine: SimulationEngine, device: Device) {
     } else if (current.guardInconsistent === 'root') delete current.guardInconsistent;
     if (current.guardInconsistent === 'loop' && current.operational) role = 'alternate';
     current.role = role;
-    if (role !== previousRole || (changedRoot && !port.stpEdge)) {
+    if (role !== previousRole || (changedRoot && !edgePort(device, port))) {
       changed = true;
       beginTransition(engine, device, port);
       engine.emit('STP_PORT_CHANGED', device.id, port.name + ': papel ' + role + '.', { port: port.id });
@@ -571,7 +577,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     if (changedTopology) advertise(engine, device);
     return;
   }
-  const wasEdge = port.stpEdge && !current.received;
+  const wasEdge = edgePort(device, port) && !current.received;
   forgetInfo(engine, device, port);
   current.received = {
     bpdu: structuredClone(bpdu),
@@ -596,7 +602,7 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     if (current.role === 'root' && bpdu.proposal) {
       if (!current.agreed)
         for (const other of switchingPorts(device)) {
-          if (other.id !== port.id && other.spanningTree?.role === 'designated' && !other.stpEdge)
+          if (other.id !== port.id && other.spanningTree?.role === 'designated' && !edgePort(device, other))
             beginTransition(engine, device, other);
         }
       cancelTransition(engine, device, port);
@@ -760,14 +766,14 @@ export function updateSpanningTreePort(
       if (
         p.spanningTree.operational &&
         !p.spanningTree.received &&
-        p.stpEdge &&
+        edgePort(d, p) &&
         p.spanningTree.state !== 'forwarding'
       )
         beginTransition(e, d, p);
       else if (
         edgeChanged &&
         p.spanningTree.operational &&
-        !p.stpEdge &&
+        !edgePort(d, p) &&
         !p.spanningTree.received &&
         p.spanningTree.state === 'forwarding'
       )
@@ -839,9 +845,10 @@ export function receiveBpdu(e: SimulationEngine, d: Device, p: NetworkInterface,
   // IOS routed (no switchport) interfaces do not run spanning tree: BPDUs are discarded
   // and BPDU Guard does not apply.
   if (p.mode === 'routed') return;
-  if (b && p.bpduGuard && !p.errDisabled && p.adminUp) {
+  if (b && bpduGuardEnabled(d, p) && !p.errDisabled && p.adminUp) {
     p.errDisabled = { reason: 'bpduguard', at: e.state.clock };
     d.macTable = d.macTable.filter((entry) => entry.port !== p.id);
+    scheduleErrdisableRecovery(e, d, p);
     e.emit(
       'LINK_DOWN',
       d.id,

@@ -11,6 +11,7 @@ import { CONFIG_MODES } from './registry';
 import { verifyIosSecret } from './local-security';
 import { refreshInterfacePat } from '../protocols/nat';
 import { beginReload, saveStartup } from './startup';
+import { sessionBanners } from './ios-management';
 export class TerminalSession {
   context: Context = { mode: 'user' };
   history: string[] = [];
@@ -30,6 +31,9 @@ export class TerminalSession {
       return this.context.confirm.kind === 'save'
         ? 'System configuration has been modified. Save? [yes/no]:'
         : 'Proceed with reload? [confirm]';
+    // Banner text lines are typed without a prompt until the delimiter.
+    if (this.context.banner) return '';
+    const tacacs = this.context.aaaKind === 'tacacs';
     const suffix = {
       user: this.identity.host ? '$' : '>',
       privileged: '#',
@@ -52,6 +56,8 @@ export class TerminalSession {
       'key-chain': '(config-keychain)#',
       'key-chain-key': '(config-keychain-key)#',
       'bfd-template': '(config-bfd)#',
+      'aaa-server': tacacs ? '(config-server-tacacs)#' : '(config-radius-server)#',
+      'aaa-group': tacacs ? '(config-sg-tacacs+)#' : '(config-sg-radius)#',
     }[this.context.mode];
     return (
       this.engine.device(this.deviceId).hostname +
@@ -60,6 +66,10 @@ export class TerminalSession {
   }
   get secretInput() {
     return !!this.context.auth;
+  }
+  /** Text IOS shows when this session opens: the MOTD banner, then the exec banner. */
+  get banners() {
+    return sessionBanners(this.engine.device(this.deviceId)).join('\n');
   }
   displayInput(input: string) {
     if (this.secretInput) return '';
@@ -152,22 +162,25 @@ export class TerminalSession {
     }
     if (this.context.confirm) return this.answerReload(input.trim().toLowerCase());
     let line = input.trim();
-    if (!line) return '';
+    // Inside a multi-line banner every line is literal text until the delimiter.
+    const banner = !!this.context.banner;
+    if (!line && !banner) return '';
     if (line.length > 512 || [...line].some((c) => c.charCodeAt(0) < 32)) return '% Entrada inválida';
-    if (line.startsWith('!')) return '';
-    if (line.endsWith('?')) return this.help(line.slice(0, -1).trimEnd());
+    if (!banner && line.startsWith('!')) return '';
+    if (!banner && line.endsWith('?')) return this.help(line.slice(0, -1).trimEnd());
     const context = { ...this.context };
     let before: StateMark | undefined;
     try {
       const d = this.engine.device(this.deviceId);
-      const filter = /\s*\|\s*(include|exclude|begin)\s+(.+)$/i.exec(line);
+      const filter = banner ? null : /\s*\|\s*(include|exclude|begin)\s+(.+)$/i.exec(line);
       if (filter) line = line.slice(0, filter.index).trimEnd();
-      line = this.registry.normalize(line, d, this.context);
+      if (!banner) line = this.registry.normalize(line, d, this.context);
       const safe = redactNetworkSecrets(line);
       this.history.push(safe === line ? input.trim() : safe);
       if (this.history.length > 200) this.history.shift();
       const authorized = line.replace(/^do\s+/i, '');
       if (
+        !banner &&
         d.aaaClient?.enforceCli &&
         !/^(show|help|\?|aaa (?:login|logout)|ping|traceroute|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit)(?:\s|$)/i.test(
           authorized
@@ -176,6 +189,7 @@ export class TerminalSession {
       )
         throw new Error('AAA: configuração exige login de rede com privilégio 15.');
       if (
+        !banner &&
         d.aaaClient?.enforceCli &&
         d.networkAuth &&
         d.networkAuth.expiresAt > this.engine.state.clock &&
@@ -189,7 +203,7 @@ export class TerminalSession {
       )
         throw new Error('AAA: comando não autorizado pela política do servidor.');
       // Reads and mode changes need no rollback point, protocol refresh or revalidation.
-      const readOnly = READ_ONLY.test(authorized);
+      const readOnly = !banner && READ_ONLY.test(authorized);
       if (!readOnly) before = this.engine.mark();
       let result = this.registry.execute(line, this.engine, this.engine.device(this.deviceId), this.context);
       if (!readOnly) refreshInterfacePat(this.engine, this.engine.device(this.deviceId));
@@ -216,6 +230,7 @@ export class TerminalSession {
       const changed = changedSince(before!, this.engine.state);
       validateSnapshot(this.engine.state, changed ? { changed } : { trustedLogs: true });
       if (
+        !banner &&
         !/^(ipconfig(?: \/all)?$|ip (?:addr|address|link|route) show$|route print$|arp -a$|wifi scan$)/i.test(
           authorized
         ) &&
@@ -243,7 +258,7 @@ export class TerminalSession {
   }
   /** Whether a line only reads state, so callers can skip undo checkpoints and revalidation. */
   readOnly(input: string) {
-    if (this.secretInput || this.context.confirm) return false;
+    if (this.secretInput || this.context.confirm || this.context.banner) return false;
     const line = input.trim().replace(/\s*\|\s*(?:include|exclude|begin)\s+.+$/i, '');
     if (!line || line.startsWith('!') || line.endsWith('?')) return true;
     try {

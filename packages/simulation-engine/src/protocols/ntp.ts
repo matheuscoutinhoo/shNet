@@ -4,8 +4,19 @@ import { clockConfigSchema, ntpConfigSchema } from './telemetry-model';
 import { resolveRoute } from './ipv4';
 import { isUnicast } from './dhcp-config';
 import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
+import { hmacHex } from './security-crypto';
+import { sourceInterfaceAddress } from './source-interface';
 export const networkTime = (e: SimulationEngine, d: Device) =>
   e.state.clock + (d.networkClock?.offsetMs ?? 0);
+const NTP_BYTES = 76,
+  NTP_AUTH_BYTES = 96;
+const ntpServerOptions = (d: Device, server: string) =>
+  d.iosSystem?.ntp?.serverOptions?.find((o) => o.address === server);
+const ntpKey = (d: Device, id?: number) =>
+  id === undefined ? undefined : d.iosSystem?.ntp?.keys?.find((k) => k.id === id)?.key;
+/** MAC of an NTP packet (keyed digest over the exchange and the packet mode). */
+const ntpMac = (key: string, mode: 'client' | 'server', id: string) =>
+  hmacHex(key, mode + ':' + id).slice(0, 32);
 export function configureClock(e: SimulationEngine, d: Device, input: unknown) {
   const c = clockConfigSchema.parse(input);
   d.networkClock = c;
@@ -60,12 +71,19 @@ export function handleNtp(e: SimulationEngine, a: Extract<Action, { kind: 'ntp-t
   if (due && (s.roundAt === undefined || e.state.clock - s.roundAt >= s.intervalMs)) {
     s.roundAt = e.state.clock;
     s.roundTried = 0;
+    // "ntp server X prefer": each round starts with the preferred server.
+    const preferred = s.servers.indexOf(d.iosSystem?.ntp?.prefer ?? '');
+    if (preferred >= 0 && !s.pending) s.index = preferred;
   }
   if (s.enabled && d.power && !s.pending && due && (s.roundTried ?? 0) < s.servers.length) {
     s.roundTried = (s.roundTried ?? 0) + 1;
     const server = s.servers[s.index],
-      route = resolveRoute(d, server);
-    if (route?.port.ip) {
+      route = resolveRoute(d, server),
+      options = ntpServerOptions(d, server),
+      source =
+        sourceInterfaceAddress(e.state, d, options?.source ?? d.iosSystem?.ntp?.sourceInterface) ??
+        route?.port.ip;
+    if (route && source) {
       let port = 52000;
       while (
         d.aaaQueries?.some((q) => q.status === 'pending' && q.sourcePort === port) ||
@@ -76,22 +94,29 @@ export function handleNtp(e: SimulationEngine, a: Extract<Action, { kind: 'ntp-t
       s.pending = {
         id: e.id('ntp-request'),
         server,
-        source: route.port.ip,
+        source,
         port,
         originate: networkTime(e, d),
         at: e.state.clock,
       };
+      const key = ntpKey(d, options?.key);
       e.sendIp(d.id, {
         protocol: 'UDP',
-        src: route.port.ip,
+        src: source,
         dst: server,
         sourcePort: port,
         destinationPort: 123,
         ttl: 64,
-        bytes: 76,
+        // 48-byte NTP header, plus key ID and 16-byte digest when authenticated.
+        bytes: key ? NTP_AUTH_BYTES : NTP_BYTES,
         payload: {
           protocol: 'NTP',
-          message: { mode: 'client', id: s.pending.id, originate: s.pending.originate },
+          message: {
+            mode: 'client',
+            id: s.pending.id,
+            originate: s.pending.originate,
+            ...(key ? { keyId: options!.key, mac: ntpMac(key, 'client', s.pending.id) } : {}),
+          },
         },
       });
       e.emit('NTP_SENT', d.id, 'Consulta NTP a ' + server + '; timestamp marcado na transmissão.');
@@ -106,9 +131,9 @@ export function handleNtp(e: SimulationEngine, a: Extract<Action, { kind: 'ntp-t
   e.schedule(1000, { kind: 'ntp-tick', device: d.id, token: s.token });
 }
 export function receiveNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
-  if (p.payload.protocol !== 'NTP' || !isUnicast(p.src) || !isUnicast(p.dst) || p.bytes !== 76 || !p.ttl)
-    return;
+  if (p.payload.protocol !== 'NTP' || !isUnicast(p.src) || !isUnicast(p.dst) || !p.ttl) return;
   const m = p.payload.message;
+  if (p.bytes !== (m.mac ? NTP_AUTH_BYTES : NTP_BYTES)) return;
   if (m.mode === 'client') {
     // IOS answers NTP clients once it is synchronized itself, or as "ntp master" when it has no
     // synchronized upstream (the master clock is the fallback reference).
@@ -120,7 +145,10 @@ export function receiveNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
     }
     const stratum = synced ? d.ntp!.stratum : d.networkClock!.stratum;
     if (stratum > 15) return;
-    const now = networkTime(e, d);
+    const now = networkTime(e, d),
+      // A request MAC that verifies with the same key ID is answered with an authenticated reply.
+      key = ntpKey(d, m.keyId),
+      authentic = !!key && m.mac === ntpMac(key, 'client', m.id);
     e.sendIp(d.id, {
       protocol: 'UDP',
       src: p.dst,
@@ -128,10 +156,18 @@ export function receiveNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
       sourcePort: 123,
       destinationPort: p.sourcePort,
       ttl: 64,
-      bytes: 76,
+      bytes: authentic ? NTP_AUTH_BYTES : NTP_BYTES,
       payload: {
         protocol: 'NTP',
-        message: { mode: 'server', id: m.id, originate: m.originate, receive: now, transmit: now, stratum },
+        message: {
+          mode: 'server',
+          id: m.id,
+          originate: m.originate,
+          receive: now,
+          transmit: now,
+          stratum,
+          ...(authentic ? { keyId: m.keyId, mac: ntpMac(key, 'server', m.id) } : {}),
+        },
       },
     });
     return;
@@ -151,6 +187,21 @@ export function receiveNtp(e: SimulationEngine, d: Device, p: UdpPacket) {
   ) {
     e.drop(d, 'NTP: resposta sem pedido/timestamps correspondentes.');
     return;
+  }
+  // "ntp authenticate": only a reply signed with the configured, trusted key can be a sync source.
+  const auth = d.iosSystem?.ntp;
+  if (auth?.authenticate) {
+    const keyId = ntpServerOptions(d, p.src)?.key,
+      key = ntpKey(d, keyId);
+    if (
+      !key ||
+      !auth.trustedKeys?.includes(keyId!) ||
+      m.keyId !== keyId ||
+      m.mac !== ntpMac(key, 'server', m.id)
+    ) {
+      e.drop(d, 'NTP: authentication failed for server ' + p.src + '; it cannot be a sync source.');
+      return;
+    }
   }
   const t4 = networkTime(e, d),
     delay = t4 - m.originate - (m.transmit - m.receive),

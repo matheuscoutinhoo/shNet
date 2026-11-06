@@ -4,6 +4,7 @@ import { bgpCandidates, bestBgpPaths } from '../protocols/bgp-routing';
 import { bgpPrefixKey } from '../protocols/bgp-model';
 import { connectedPort, singleHopEbgp } from '../protocols/bgp';
 import { bridgeId, portCost } from '../protocols/stp-election';
+import { edgePort } from '../protocols/stp-scope';
 import { ipNumber, ipString, mask } from '../protocols/ipv4';
 import { interfaceOperational } from '../protocols/layer3';
 import { aclAddress } from './acl';
@@ -219,7 +220,7 @@ function stpBlock(
           String(portCost(port)).padEnd(10) +
           ('128.' + (d.interfaces.indexOf(port) + 1)).padEnd(9) +
           'P2p' +
-          (port.stpEdge ? ' Edge' : '')
+          (edgePort(d, port) ? ' Edge' : '')
       ),
   ].join('\n');
 }

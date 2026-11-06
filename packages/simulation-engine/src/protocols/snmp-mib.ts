@@ -21,7 +21,17 @@ export function snmpMib(engine: SimulationEngine, device: Device): SnmpVarbind[]
       type: 'TimeTicks',
       value: Math.floor((engine.state.clock - (device.snmpAgent?.startedAt ?? 0)) / 10) % 4294967296,
     },
+    {
+      oid: '1.3.6.1.2.1.1.4.0',
+      type: 'OctetString',
+      value: (device.iosSystem?.snmp?.contact ?? '').slice(0, 255),
+    },
     { oid: '1.3.6.1.2.1.1.5.0', type: 'OctetString', value: device.hostname },
+    {
+      oid: '1.3.6.1.2.1.1.6.0',
+      type: 'OctetString',
+      value: (device.iosSystem?.snmp?.location ?? '').slice(0, 255),
+    },
     { oid: '1.3.6.1.2.1.2.1.0', type: 'Integer', value: device.interfaces.length },
     // 32473 is the documentation/example enterprise. These are shLab counters, not IF-MIB unicast counters.
     { oid: '1.3.6.1.4.1.32473.1.3.0', type: 'Counter64', value: device.dropped },

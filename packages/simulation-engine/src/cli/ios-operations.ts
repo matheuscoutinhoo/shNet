@@ -2,6 +2,7 @@ import type { Device } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
 import { showRoutes, showInterfacesStatus } from './operational';
+import { interfaceReference } from './ios-management';
 export function archiveRunning(e: SimulationEngine, d: Device, r: CommandRegistry) {
   const a = d.iosSystem?.archive;
   if (!a) throw new Error('Configure archive first.');
@@ -24,14 +25,41 @@ export function registerIosOperations(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^(no )?ntp server ([\d.]+)$/i,
+    pattern: /^(no )?ntp server ([\d.]+)((?: (?:prefer|iburst|burst|key \d+|version [1-4]|source \S+))*)$/i,
+    syntax: [
+      'ntp server <address>',
+      'ntp server <address> prefer',
+      'ntp server <address> key <id>',
+      'ntp server <address> source <interface>',
+    ],
     modes: CONFIG_MODES,
     run: (m, e, d) => {
-      const servers = [...(d.ntp?.servers ?? []).filter((s) => s !== m[2]), ...(m[1] ? [] : [m[2]])];
+      const address = m[2],
+        servers = [...(d.ntp?.servers ?? []).filter((s) => s !== address), ...(m[1] ? [] : [address])];
       if (!servers.length) {
         if (d.ntp)
           e.configureNtp(d.id, { enabled: false, servers: d.ntp.servers, intervalMs: d.ntp.intervalMs });
       } else e.configureNtp(d.id, { enabled: true, servers, intervalMs: d.ntp?.intervalMs ?? 64000 });
+      // Re-entering a server replaces its options, as on IOS.
+      const ntp = ((d.iosSystem ??= {}).ntp ??= {});
+      ntp.serverOptions = ntp.serverOptions?.filter((o) => o.address !== address);
+      if (ntp.prefer === address) delete ntp.prefer;
+      if (!m[1]) {
+        const words = m[3].trim().split(/\s+/).filter(Boolean),
+          option: NonNullable<typeof ntp.serverOptions>[number] = { address };
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i].toLowerCase();
+          if (word === 'prefer') ntp.prefer = address;
+          else if (word === 'iburst' || word === 'burst') option.iburst = true;
+          else if (word === 'key') option.key = Number(words[++i]);
+          else if (word === 'version') option.version = Number(words[++i]);
+          else if (word === 'source') option.source = interfaceReference(d, words[++i]);
+        }
+        if (option.key !== undefined && (option.key < 1 || option.key > 65535))
+          throw new Error('NTP key ID is 1-65535.');
+        if (Object.keys(option).length > 1) (ntp.serverOptions ??= []).push(option);
+      }
+      if (!ntp.serverOptions?.length) delete ntp.serverOptions;
     },
   });
   r.register({

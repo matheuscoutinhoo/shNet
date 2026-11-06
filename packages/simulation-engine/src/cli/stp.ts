@@ -2,6 +2,7 @@ import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort } from './registr
 import { bridgeId, bridgeLabel, portCost } from '../protocols/stp-election';
 import type { Device } from '../model';
 import { multiStpConfig, updateSpanningTreePort } from '../protocols/stp';
+import { edgePort } from '../protocols/stp-scope';
 import { showSpanningTree } from './ios-show';
 
 export function registerStpCommands(registry: CommandRegistry) {
@@ -199,8 +200,11 @@ export function registerStpCommands(registry: CommandRegistry) {
   registry.register({
     pattern: /^(no )?spanning-tree portfast$/i,
     modes: ['interface'],
+    // "no spanning-tree portfast" removes the port setting: the global default applies again.
     run: (match, engine, device, context) =>
-      engine.setSpanningTreePort(device.id, currentPort(device, context).id, { edge: !match[1] }),
+      engine.setSpanningTreePort(device.id, currentPort(device, context).id, {
+        edge: match[1] ? null : true,
+      }),
   });
   registry.register({
     pattern: /^spanning-tree cost (\d+)$/i,
@@ -257,7 +261,7 @@ export function registerStpCommands(registry: CommandRegistry) {
               state.role.padEnd(13) +
               state.state.padEnd(13) +
               String(portCost(port)).padEnd(6) +
-              (port.stpEdge ? 'yes' : 'no') +
+              (edgePort(device, port) ? 'yes' : 'no') +
               (port.mstBoundary ? ' boundary' : '') +
               (state.guardInconsistent ? ' ' + state.guardInconsistent + '-inconsistent' : '')
             );

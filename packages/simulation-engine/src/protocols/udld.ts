@@ -1,6 +1,7 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface, Frame, Snapshot } from '../model';
 import { interfaceOperational } from './layer3';
+import { scheduleErrdisableRecovery } from './errdisable';
 const destination = '01:00:0c:cc:cc:cc';
 function transmit(
   e: SimulationEngine,
@@ -70,6 +71,7 @@ export function receiveUdld(e: SimulationEngine, d: Device, p: NetworkInterface,
   if (m.device === d.id) {
     p.errDisabled = { reason: 'udld', at: e.state.clock };
     s.state = 'disabled';
+    scheduleErrdisableRecovery(e, d, p);
     e.refreshSpanningTree();
     return;
   }
@@ -124,6 +126,7 @@ export function udldTick(e: SimulationEngine, d: Device, p: NetworkInterface, to
     if (s.retryAt !== undefined && e.state.clock >= s.retryAt + 8000) {
       s.state = 'disabled';
       p.errDisabled = { reason: 'udld', at: e.state.clock };
+      scheduleErrdisableRecovery(e, d, p);
       e.emit('CONFIG_CHANGED', d.id, 'UDLD detected a unidirectional link; interface error-disabled.', {
         port: p.id,
       });

@@ -211,6 +211,11 @@ function replay(
   (saved?.commands ?? []).forEach((raw, index) => {
     const command = raw.trim(),
       label = `line ${index + 1}: ${command.slice(0, 120)}`;
+    // An open multi-line banner takes its text verbatim, blank and "!" lines included.
+    if (context.banner) {
+      transaction(label, () => registry.execute(raw, e, e.device(id), context));
+      return;
+    }
     if (!command || command.startsWith('!')) return;
     if (/^(?:(?:do\s+)*(?:copy|write|reload|erase|startup))(?:\s|$)/i.test(command)) {
       rejected.push(`${label}\n% Exec command ignored in startup-config.`);
@@ -225,7 +230,25 @@ function replay(
   if (protocols?.ospf) transaction('router ospf', () => e.configureOspf(id, protocols.ospf));
   if (protocols?.rip) transaction('router rip', () => e.configureRip(id, protocols.rip));
   if (protocols?.bgp) transaction('router bgp', () => e.configureBgp(id, protocols.bgp));
+  // Private configuration (RSA keys, SNMPv3 users) and vlan.dat (VTP) are not in the text.
+  const hidden = protocols?.privateConfig;
+  if (hidden) {
+    const s = (e.device(id).iosSystem ??= {});
+    if (hidden.rsaModulus) s.rsaModulus = hidden.rsaModulus;
+    if (hidden.snmpUsers?.length) (s.snmp ??= {}).users = structuredClone(hidden.snmpUsers);
+    if (hidden.vtp && !s.vtp) s.vtp = structuredClone(hidden.vtp);
+  }
   return rejected;
+}
+/** NVRAM data IOS keeps outside the config text: RSA keys, SNMPv3 users and vlan.dat (VTP). */
+function privateConfig(d: Device) {
+  const s = d.iosSystem,
+    hidden = {
+      ...(s?.rsaModulus ? { rsaModulus: s.rsaModulus } : {}),
+      ...(s?.snmp?.users?.length ? { snmpUsers: structuredClone(s.snmp.users) } : {}),
+      ...(s?.vtp ? { vtp: structuredClone(s.vtp) } : {}),
+    };
+  return Object.keys(hidden).length ? hidden : undefined;
 }
 /** "write memory": NVRAM receives the running-config text, exactly what show running-config prints. */
 export function saveStartup(e: SimulationEngine, d: Device, registry: CommandRegistry) {
@@ -255,6 +278,7 @@ export function saveStartup(e: SimulationEngine, d: Device, registry: CommandReg
       implicitDrops: 0,
       rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
     })),
+    privateConfig: privateConfig(d),
   };
   d.startupConfig = startupConfigurationSchema.parse({ version: 1, interfaces, commands, protocols });
   d.bootManaged = true;

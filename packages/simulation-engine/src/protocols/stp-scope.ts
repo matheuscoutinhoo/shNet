@@ -97,6 +97,12 @@ export function spanningPortState(d: Device, p: NetworkInterface, vlan?: number)
   const instance = vlan === undefined || p.mstBoundary ? 0 : stpVlanInstance(d, vlan);
   return instance ? p.spanningInstances?.find((i) => i.id === instance)?.state : p.spanningTree;
 }
+/** PortFast (edge): the port's own setting, else "spanning-tree portfast default" on access ports. */
+export const edgePort = (d: Device, p: NetworkInterface) =>
+  p.stpEdge ?? (!!d.iosSystem?.portfastDefault && p.mode === 'access' && !p.logical);
+/** BPDU Guard: the port's own setting, else "spanning-tree portfast bpduguard default" on edge ports. */
+export const bpduGuardEnabled = (d: Device, p: NetworkInterface) =>
+  p.bpduGuard ?? (!!d.iosSystem?.bpduguardDefault && edgePort(d, p));
 export const frameVlan = (p: NetworkInterface, vlan?: number) =>
   p.mode === 'trunk'
     ? (vlan ?? p.nativeVlan)

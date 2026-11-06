@@ -131,6 +131,7 @@ export function Terminal({
     };
     resultRef.current = result;
     if (!state.initialized) {
+      const banners = cli.banners;
       appendTerminalOutput(
         state,
         '\x1b[36m' +
@@ -141,7 +142,8 @@ export function Terminal({
           tr('Terminal simulado') +
           '\x1b[0m\r\n' +
           tr('Digite help para ver os comandos disponíveis.') +
-          '\r\n\r\n'
+          '\r\n\r\n' +
+          (banners ? banners.replace(/\r?\n/g, '\r\n') + '\r\n\r\n' : '')
       );
       state.initialized = true;
     }

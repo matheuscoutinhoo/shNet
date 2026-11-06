@@ -2,6 +2,7 @@ import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface } from '../model';
 import { commandSupported, terminalIdentity } from './device-commands';
 import { expandCommand, nextKeywords, type Syntax } from './syntax';
+import { continueBanner } from './banner';
 export type Mode =
   | 'user'
   | 'privileged'
@@ -23,7 +24,9 @@ export type Mode =
   | 'policy-class'
   | 'key-chain'
   | 'key-chain-key'
-  | 'bfd-template';
+  | 'bfd-template'
+  | 'aaa-server'
+  | 'aaa-group';
 export const CONFIG_MODES: Mode[] = [
   'config',
   'interface',
@@ -44,12 +47,14 @@ export const CONFIG_MODES: Mode[] = [
   'key-chain',
   'key-chain-key',
   'bfd-template',
+  'aaa-server',
+  'aaa-group',
 ];
 export const ALL_MODES: Mode[] = ['user', 'privileged', ...CONFIG_MODES];
 export const EXEC_MODES: Mode[] = ['user', 'privileged'];
 /** IOS global configuration commands: typed in a sub-mode, they run in and return to (config). */
 export const GLOBAL_ONLY =
-  /^(?:no )?(?:hostname|ip route|ipv6 route|ip name-server|ip domain|ip default-gateway|ip routing|ipv6 unicast-routing|ip multicast-routing|ip cef|ip ssh|ip http|ip dhcp (?:excluded-address|snooping(?: vlan|$))|ip nat (?:inside|outside) source|ip nat pool|ip sla schedule|access-list|enable (?:secret|password|algorithm-type)|username|banner|service |logging |snmp-server|ntp |clock |cdp run|lldp run|vtp |track |spanning-tree (?:mode|vlan|mst \d|loopguard default|portfast (?:default|bpduguard)|extend))/i;
+  /^(?:no )?(?:hostname|ip route|ipv6 route|ip name-server|ip domain|ip default-gateway|ip routing|ipv6 unicast-routing|ip multicast-routing|ip cef|ip ssh|ip scp|ip http|ip dhcp (?:excluded-address|snooping(?: vlan|$))|ip nat (?:inside|outside) source|ip nat pool|ip sla schedule|access-list|enable (?:secret|password|algorithm-type)|username|banner|service |logging (?!synchronous)|snmp-server|ntp |clock |cdp run|lldp run|vtp |track |aaa (?:new-model|authentication|authorization|accounting|group|session-id)|tacacs|radius|crypto key|errdisable|login (?:block-for|on-|quiet|delay)|udld (?:enable|aggressive)|monitor session|spanning-tree (?:mode|vlan|mst \d|loopguard default|portfast (?:default|bpduguard)|extend))/i;
 export interface Context {
   mode: Mode;
   port?: string;
@@ -61,6 +66,12 @@ export interface Context {
   acl?: string;
   aclType?: 'standard' | 'extended';
   line?: 'console' | 'vty';
+  // "line con 0" / "line vty 0 4": the lines the sub-commands apply to.
+  lineRange?: { kind: 'con' | 'aux' | 'vty'; first: number; last: number };
+  // tacacs server / radius server / aaa group server sub-mode.
+  aaaKind?: 'tacacs' | 'radius';
+  // Multi-line "banner motd ^C" being typed: following lines are text until the delimiter.
+  banner?: { kind: 'motd' | 'login' | 'exec'; delimiter: string; text: string[] };
   vrf?: string;
   sla?: number;
   name?: string;
@@ -191,7 +202,7 @@ export class CommandRegistry {
         return output;
       }
       if (GLOBAL_ONLY.test(input)) {
-        replaceContext(c, { mode: 'config' });
+        replaceContext(c, { mode: 'config', ...(work.banner ? { banner: work.banner } : {}) });
         return output;
       }
       for (const id of rest) command.run(match, e, d, { ...c, port: id, ports: undefined });
@@ -201,10 +212,12 @@ export class CommandRegistry {
     const output = command.run(match, e, d, c) ?? 'OK';
     // IOS executes a global command typed in a sub-mode in global configuration mode.
     if (mode !== 'config' && c.mode === mode && CONFIG_MODES.includes(mode) && GLOBAL_ONLY.test(input))
-      replaceContext(c, { mode: 'config' });
+      replaceContext(c, { mode: 'config', ...(c.banner ? { banner: c.banner } : {}) });
     return output;
   }
   execute(input: string, e: SimulationEngine, d: Device, c: Context): string {
+    // Lines typed inside a multi-line banner are text, not commands.
+    if (c.banner) return continueBanner(d, c, input);
     if (/^do\s+/i.test(input)) {
       if (terminalIdentity(d).host || !CONFIG_MODES.includes(c.mode))
         throw new Error('do is available in configuration modes only.');
