@@ -390,7 +390,13 @@ function validateClient(port: NetworkInterface) {
   if (client.status === 'requesting' && !client.offer)
     throw new Error('DHCP Request sem oferta selecionada.');
   if (!client.lease) {
-    if (port.ip || port.gateway || port.dns?.length)
+    // Without a lease only a self-assigned APIPA address may be present.
+    const apipa =
+      !!client.autoconfig &&
+      port.ip === client.autoconfig &&
+      port.prefix === 16 &&
+      sameSubnet(client.autoconfig, '169.254.0.0', 16);
+    if ((port.ip && !apipa) || port.gateway || port.dns?.length)
       throw new Error('Cliente DHCP sem lease não pode manter configuração IPv4.');
     if (!client.pendingLease) return;
   }

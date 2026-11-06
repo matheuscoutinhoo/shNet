@@ -927,6 +927,64 @@ describe('IOS day-0 management plane', () => {
   });
 });
 
+describe('endpoints obtain an address automatically', () => {
+  it('a new desktop gets a lease once powered and cabled, uses APIPA without a server, and retries on reconnect', () => {
+    const {
+      e,
+      devices: [sw, r],
+      terminals: [ts, tr],
+      cable,
+      advance,
+    } = lab('access', 'router');
+    cable(sw, 'Gi0/24', r, 'Gi0/1');
+    ok(tr, [
+      'interface Gi0/1',
+      'ip address 10.1.0.1 255.255.255.0',
+      'no shutdown',
+      'exit',
+      'ip dhcp excluded-address 10.1.0.1 10.1.0.9',
+      'ip dhcp pool USERS',
+      'network 10.1.0.0 255.255.255.0',
+      'default-router 10.1.0.1',
+      'end',
+    ]);
+    ok(ts, [
+      'spanning-tree portfast default',
+      'vlan 20',
+      'exit',
+      'interface Gi0/2',
+      'switchport access vlan 20',
+      'end',
+    ]);
+    const swPort = (name: string) => e.device(sw.id).interfaces.find((p) => p.name === name)!.id;
+    const [pc1, pc2] = [0, 1].map((i) => e.addFactoryProfile('desktop', { x: i * 100, y: 300 }));
+    const link1 = e.connect({ device: pc1.id, port: 'p0' }, { device: sw.id, port: swPort('Gi0/1') });
+    const link2 = e.connect({ device: pc2.id, port: 'p0' }, { device: sw.id, port: swPort('Gi0/2') });
+    // Nothing is sent before the hosts are switched on.
+    expect(e.device(pc1.id).interfaces[0].dhcp?.status).toBe('init');
+    for (const pc of [pc1, pc2]) e.setDevicePower(pc.id, true);
+    advance(3000);
+    const nic1 = e.device(pc1.id).interfaces[0];
+    expect(nic1.dhcp?.status).toBe('bound');
+    expect(nic1.ip).toMatch(/^10\.1\.0\.(?:[1-9]\d|\d{3})$/);
+    expect(nic1.gateway).toBe('10.1.0.1');
+    // VLAN 20 has no DHCP server: after the discovery attempts the PC uses APIPA.
+    advance(60_000);
+    const nic2 = () => e.device(pc2.id).interfaces[0];
+    expect(nic2().dhcp?.status).toBe('failed');
+    expect(nic2().ip).toMatch(/^169\.254\./);
+    expect(nic2().prefix).toBe(16);
+    // Moving the cable to a port in the right VLAN triggers discovery at once (media connect).
+    e.removeLink(link2.id);
+    expect(nic2().dhcp?.status).toBe('init');
+    e.connect({ device: pc2.id, port: 'p0' }, { device: sw.id, port: swPort('Gi0/3') });
+    advance(3000);
+    expect(nic2().dhcp?.status).toBe('bound');
+    expect(nic2().ip).toMatch(/^10\.1\.0\./);
+    expect(link1.up).toBe(true);
+    expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {

@@ -840,6 +840,10 @@
   "{0}/{1} tarefas{2}"
  ],
  [
+  "fb5dx6cn",
+  "Nova tentativa em {0} s."
+ ],
+ [
   "fbsbi3jb",
   "Quorum {0}, termo {1}."
  ],
@@ -1638,6 +1642,10 @@
  [
   "vb6ceudd",
   "{0}: root {1}, custo {2}."
+ ],
+ [
+  "vfxqd8cz",
+  "Endereço APIPA {0}/16 em uso."
  ],
  [
   "viapbb9h",

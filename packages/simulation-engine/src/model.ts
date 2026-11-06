@@ -482,6 +482,8 @@ const dhcpLeaseSchema = z
 const dhcpClientSchema = z
   .object({
     status: z.enum([
+      // RFC 2131 INIT: "obtain an address automatically", waiting for power and a link.
+      'init',
       'selecting',
       'requesting',
       'probing',
@@ -500,6 +502,8 @@ const dhcpClientSchema = z
     lease: dhcpLeaseSchema.optional(),
     pendingLease: dhcpLeaseSchema.optional(),
     probeAt: finite.nonnegative().optional(),
+    // APIPA (169.254.0.0/16) address a host gives itself while no DHCP server answers.
+    autoconfig: ipv4Schema.optional(),
   })
   .strict();
 export const DHCP_MAX_LEASE_MS = 365 * 86400000;
@@ -1640,6 +1644,8 @@ export const DHCP = {
   retryMs: 4000,
   offerMs: 30000,
   attempts: 4,
+  // After a failed discovery, hosts keep trying in the background (Windows: every 5 minutes).
+  backgroundRetryMs: 300000,
 } as const;
 export const LIMITS = {
   queue: 100000,

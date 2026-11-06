@@ -17,6 +17,7 @@ import { DhcpHaPanel } from './DhcpHaPanel';
 
 const clientStates: Record<DhcpClient['status'] | 'static', string> = {
   static: 'Estático',
+  init: 'Aguardando enlace',
   selecting: 'Buscando servidor',
   requesting: 'Solicitando endereço',
   probing: 'Verificando conflitos por ARP',

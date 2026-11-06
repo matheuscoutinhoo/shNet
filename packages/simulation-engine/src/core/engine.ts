@@ -210,7 +210,9 @@ import {
 } from '../protocols/dhcp-ha';
 import {
   disableDhcp,
+  enableDhcpClient,
   handleDhcpClientTimer,
+  refreshDhcpClients,
   releaseDhcp,
   renewDhcp,
   startDhcp,
@@ -1009,6 +1011,7 @@ export class SimulationEngine {
     refreshVrrp(this);
     refreshHsrp(this);
     refreshBgp(this);
+    refreshDhcpClients(this);
   }
   configureWlc(device: string, input: unknown) {
     configureWlc(this, this.device(device), input);
@@ -1212,6 +1215,14 @@ export class SimulationEngine {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
     if (port.dhcp?.lease) renewDhcp(this, device, port);
     else startDhcp(this, device, port);
+  }
+  /** "Obtain an address automatically": discovery starts once the device is on and linked. */
+  enableDhcpClient(deviceId: string, portId: string) {
+    const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
+    if (device.type === 'switch' || port.mode !== 'routed')
+      throw new Error('DHCP requer uma interface routed de endpoint.');
+    enableDhcpClient(this, device, port);
+    refreshDhcpClients(this);
   }
   configureDhcpHaPair(deviceA: string, deviceB: string, input: unknown) {
     configureDhcpHaPair(this, this.device(deviceA), this.device(deviceB), input);
@@ -1980,6 +1991,7 @@ export class SimulationEngine {
       if (dirty) {
         refreshVrrp(this);
         refreshHsrp(this, afterEvent);
+        refreshDhcpClients(this);
       }
       refreshBgp(this);
       if (!afterEvent || !this.networkDirty) return;
@@ -2196,6 +2208,7 @@ export class SimulationEngine {
       refreshVrrp(this);
       refreshHsrp(this);
       refreshBgp(this);
+      refreshDhcpClients(this);
     }
     let count = 0;
     while (

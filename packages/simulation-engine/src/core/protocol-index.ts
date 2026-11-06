@@ -1,6 +1,17 @@
 import type { Device, Snapshot } from '../model';
 type Feature =
-  'bgp' | 'vrrp' | 'wireless' | 'lacp' | 'bond' | 'dot1x' | 'stp' | 'ups' | 'rack' | 'discovery' | 'hsrp';
+  | 'bgp'
+  | 'vrrp'
+  | 'wireless'
+  | 'lacp'
+  | 'bond'
+  | 'dot1x'
+  | 'stp'
+  | 'ups'
+  | 'rack'
+  | 'discovery'
+  | 'hsrp'
+  | 'dhcp-client';
 const caches = new WeakMap<
   Snapshot,
   { array: Device[]; length: number; features: Map<Feature, { device: Device; index: number }[]> }
@@ -12,13 +23,15 @@ const participates = (d: Device, key: Feature) =>
       ? d.interfaces.some((p) => p.bond)
       : key === 'dot1x'
         ? d.interfaces.some((p) => p.dot1x || p.supplicant)
-        : key === 'stp'
-          ? Boolean(d.spanningTree || d.multiSpanningTree)
-          : key === 'ups'
-            ? d.infrastructure?.kind === 'ups'
-            : key === 'rack'
-              ? d.infrastructure?.kind === 'rack'
-              : Boolean(d[key]);
+        : key === 'dhcp-client'
+          ? d.interfaces.some((p) => p.ipv4Mode === 'dhcp')
+          : key === 'stp'
+            ? Boolean(d.spanningTree || d.multiSpanningTree)
+            : key === 'ups'
+              ? d.infrastructure?.kind === 'ups'
+              : key === 'rack'
+                ? d.infrastructure?.kind === 'rack'
+                : Boolean(d[key]);
 /** Engine configuration APIs invalidate membership; state fields remain live references. */
 export function invalidateProtocolIndex(s: Snapshot) {
   caches.delete(s);

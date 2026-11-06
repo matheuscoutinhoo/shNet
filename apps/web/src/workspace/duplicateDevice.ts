@@ -224,7 +224,7 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       };
       e.schedule(100, { kind: 'bond-tick', device: copy.id, port: p.id, token: p.bond.token });
     }
-    if (p.ipv4Mode === 'dhcp') e.requestDhcp(copy.id, p.id);
+    if (p.ipv4Mode === 'dhcp') e.enableDhcpClient(copy.id, p.id);
   });
   copy.vlans = structuredClone(d.vlans);
   copy.routes = structuredClone(d.routes).map((route) => ({

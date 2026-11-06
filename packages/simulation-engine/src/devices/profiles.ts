@@ -2,6 +2,7 @@ import { interfaceSchema, type Device, type NetworkInterface } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { wirelessConfig } from '../protocols/wireless';
 import { configureModbus } from '../protocols/modbus';
+import { enableDhcpClient } from '../protocols/dhcp-client';
 export interface DeviceProfile {
   id: string;
   type: Device['type'];
@@ -617,8 +618,14 @@ export function addFactoryProfile(e: SimulationEngine, id: string, position = { 
   }
   if (id === 'smartphone') d.interfaces = d.interfaces.filter((p) => p.media === 'wifi');
   if (f === 'wlc') d.interfaces[0].mode = 'routed';
+  // Client endpoints ship set to obtain an address automatically (DHCP), as real hosts do.
+  if (CLIENT_ENDPOINTS.includes(id))
+    for (const p of d.interfaces)
+      if (p.mode === 'routed' && !p.logical && ['rj45', 'sfp', 'wifi'].includes(p.media))
+        enableDhcpClient(e, d, p);
   return d;
 }
+const CLIENT_ENDPOINTS = ['desktop', 'laptop', 'smartphone', 'printer', 'phone', 'iot'];
 
 /** Provisioned profiles retained for explicit demonstrations and prepared lab fixtures. */
 export function addProfile(e: SimulationEngine, id: string, position = { x: 100, y: 100 }) {

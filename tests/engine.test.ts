@@ -937,13 +937,32 @@ describe('DHCP sobre UDP e Ethernet', () => {
     networkSwitch.interfaces[0].accessVlan = 20;
     engine.requestDhcp(client.id, port.id);
     engine.advanceTo(61000);
-    expect(port.ip).toBeUndefined();
+    // Like Windows, the PC falls back to an APIPA address while no server answers.
+    expect(port.ip).toMatch(/^169\.254\.\d+\.\d+$/);
+    expect(port.prefix).toBe(16);
+    expect(port.gateway).toBeUndefined();
     expect(port.dhcp?.status).toBe('failed');
     expect(server.dhcpServer?.bindings).toHaveLength(0);
     networkSwitch.interfaces[0].accessVlan = 1;
     engine.renewDhcp(client.id, port.id);
     engine.advanceTo(61100);
     expect(port.dhcp?.status).toBe('bound');
+    expect(port.ip).toBe('192.168.50.10');
+  });
+
+  it('keeps discovering in the background after a failure and binds once a server answers', () => {
+    const { engine, client, networkSwitch, port } = dhcpLan();
+    networkSwitch.vlans.push({ id: 20, name: 'ISOLATED' });
+    networkSwitch.interfaces[0].accessVlan = 20;
+    engine.requestDhcp(client.id, port.id);
+    engine.advanceTo(61000);
+    expect(port.dhcp?.status).toBe('failed');
+    networkSwitch.interfaces[0].accessVlan = 1;
+    // No user action: the next background attempt (5 minutes after the failure) gets a lease.
+    engine.advanceTo(61000 + 300000);
+    expect(port.dhcp?.status).toBe('bound');
+    expect(port.ip).toBe('192.168.50.10');
+    expect(() => validateSnapshot(engine.snapshot())).not.toThrow();
   });
 
   it('reinicia descoberta após NAK quando o pool muda durante DORA', () => {
