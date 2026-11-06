@@ -110,7 +110,7 @@ export function BgpPanel({ lab, device }: { lab: LabController; device: Device }
             required
             min="3"
             max="180"
-            defaultValue={(state?.holdMs ?? 90000) / 1000}
+            defaultValue={(state?.holdMs ?? 180000) / 1000}
           />
         </label>
         <label>

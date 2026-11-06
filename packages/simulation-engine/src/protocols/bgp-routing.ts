@@ -1,7 +1,17 @@
 import type { Device, Snapshot } from '../model';
 import { ipNumber, sameSubnet, subnet, resolveRoute, staticRouteInstalled } from './ipv4';
-import { BGP, bgpPrefixKey, type BgpNeighbor, type BgpPath, type BgpState } from './bgp-model';
+import {
+  BGP,
+  bgpNeighborActive,
+  bgpPrefixKey,
+  type BgpNeighbor,
+  type BgpPath,
+  type BgpRedistribution,
+  type BgpState,
+} from './bgp-model';
 import { applyRouteMap, prefixListPermits } from './routing-policy';
+import { interfaceUp } from './layer3';
+import { ripRoutes } from './rip';
 
 export function validBgpPrefix(path: { network: string; prefix: number }) {
   return subnet(path.network, path.prefix).network === path.network && ipNumber(path.network) < 0xe0000000;
@@ -60,22 +70,59 @@ export type BgpCandidate = BgpPath & {
   external: boolean;
   remoteId: string;
 };
+/** Prefixes "redistribute SOURCE" brings into BGP, with the source metric (IOS copies it to the MED). */
+function redistributedRoutes(device: Device, r: BgpRedistribution) {
+  const plain = { ...device, bgp: undefined };
+  const routes =
+    r.source === 'connected'
+      ? device.interfaces
+          .filter((p) => !p.vrf && p.ip && p.prefix !== undefined && interfaceUp(device, p))
+          .map((p) => ({ network: subnet(p.ip!, p.prefix!).network, prefix: p.prefix!, metric: 0 }))
+      : r.source === 'static'
+        ? device.routes
+            .filter((route) => !route.vrf && staticRouteInstalled(plain, route))
+            .map((route) => ({ network: route.network, prefix: route.prefix, metric: 0 }))
+        : r.source === 'ospf'
+          ? // Without "match external", IOS redistributes only intra- and inter-area OSPF routes.
+            device.ospf?.enabled && (r.process === undefined || (device.ospf.processId ?? 1) === r.process)
+            ? device.ospf.routes.filter(
+                (route) => !route.pathType || ['intra', 'inter'].includes(route.pathType)
+              )
+            : []
+          : ripRoutes(device);
+  const unique = new Map(routes.map((route) => [bgpPrefixKey(route), route]));
+  return [...unique.values()].map((route) => ({
+    network: route.network,
+    prefix: route.prefix,
+    metric: r.metric ?? route.metric,
+  }));
+}
 /** Locally originated and accepted (policy-permitted, resolvable) paths: the "valid" BGP paths. */
 export function bgpCandidates(device: Device): BgpCandidate[] {
   const state = device.bgp;
   if (!state?.enabled || !device.power) return [];
+  const local = (prefix: { network: string; prefix: number }, origin: BgpPath['origin'], med = 0) => ({
+    network: prefix.network,
+    prefix: prefix.prefix,
+    nextHop: state.routerId,
+    asPath: [] as number[],
+    origin,
+    localPref: 100,
+    med,
+    external: false,
+    remoteId: state.routerId,
+  });
   const paths: BgpCandidate[] = state.networks
     .filter((prefix) => isOriginated(device, prefix))
-    .map((prefix) => ({
-      ...prefix,
-      nextHop: state.routerId,
-      asPath: [],
-      origin: 'IGP',
-      localPref: 100,
-      med: 0,
-      external: false,
-      remoteId: state.routerId,
-    }));
+    .map((prefix) => local(prefix, 'IGP'));
+  for (const r of state.redistribute ?? [])
+    for (const route of redistributedRoutes(device, r)) {
+      if (!validBgpPrefix(route) || paths.some((path) => bgpPrefixKey(path) === bgpPrefixKey(route)))
+        continue;
+      const path = local(route, 'INCOMPLETE', route.metric);
+      const mapped = r.routeMap ? applyRouteMap(device, r.routeMap, path) : path;
+      if (mapped) paths.push({ ...path, ...mapped });
+    }
   // Many paths share a next hop; resolve each one once per selection.
   const nextHops = new Map<string, ReturnType<typeof bgpNextHop>>();
   for (const path of state.rib) {
@@ -100,6 +147,18 @@ export function bgpCandidates(device: Device): BgpCandidate[] {
       gateway: resolved.nextHop,
       external: config.remoteAs !== state.asn,
       remoteId: peer.remoteId!,
+    });
+  }
+  // "aggregate-address": originated while at least one more specific path is in the BGP table.
+  for (const aggregate of state.aggregates ?? []) {
+    const contributors = paths.filter(
+      (path) =>
+        path.prefix > aggregate.prefix && sameSubnet(path.network, aggregate.network, aggregate.prefix)
+    );
+    if (!contributors.length) continue;
+    paths.push({
+      ...local(aggregate, 'IGP'),
+      asPath: aggregate.asSet ? [...new Set(contributors.flatMap((path) => path.asPath))].slice(0, 32) : [],
     });
   }
   return paths;
@@ -155,9 +214,25 @@ export function installedBgpRoutes(device: Device): BgpState['routes'] {
 export function exportedBgpPaths(device: Device, neighbor: BgpNeighbor): BgpPath[] {
   const state = device.bgp!,
     external = state.asn !== neighbor.remoteAs;
+  if (!bgpNeighborActive(state, neighbor)) return [];
   const source = bgpNextHop(device, neighbor.ip)?.port.ip;
   if (!source) return [];
-  return bestBgpPaths(device).flatMap((original) => {
+  const best = bestBgpPaths(device);
+  // "summary-only" aggregates suppress their more specific paths toward every neighbor.
+  const summaries = (state.aggregates ?? []).filter(
+    (aggregate) =>
+      aggregate.summaryOnly && best.some((path) => bgpPrefixKey(path) === bgpPrefixKey(aggregate))
+  );
+  const exported = best.flatMap((original) => {
+    if (
+      summaries.some(
+        (aggregate) =>
+          original.prefix > aggregate.prefix &&
+          sameSubnet(original.network, aggregate.network, aggregate.prefix)
+      ) ||
+      (neighbor.defaultOriginate && original.prefix === 0)
+    )
+      return [];
     const mapped = applyRouteMap(device, neighbor.exportRouteMap, original);
     if (!mapped) return [];
     const path = { ...original, ...mapped };
@@ -171,7 +246,9 @@ export function exportedBgpPaths(device: Device, neighbor: BgpNeighbor): BgpPath
     const reflection = !external && learned?.remoteAs === state.asn;
     if (reflection && !learned?.reflectorClient && !neighbor.reflectorClient) return [];
     const asPath = external ? [...Array(1 + neighbor.prepend).fill(state.asn), ...path.asPath] : path.asPath;
-    if (asPath.length > 32 || (external && asPath.includes(neighbor.remoteAs))) return [];
+    // Like IOS, a path is sent even if it contains the neighbor's AS: the receiver drops it unless
+    // it uses "allowas-in" (or the provider "as-override").
+    if (asPath.length > 32) return [];
     const clusterList = reflection ? [...(path.clusterList ?? []), state.routerId] : path.clusterList;
     if ((clusterList?.length ?? 0) > 16) return [];
     return [
@@ -190,4 +267,23 @@ export function exportedBgpPaths(device: Device, neighbor: BgpNeighbor): BgpPath
       },
     ];
   });
+  // "neighbor X default-originate [route-map M]": a default route regardless of the local table,
+  // or only while the route-map matches a path in it.
+  const condition = neighbor.defaultOriginate;
+  const originate =
+    condition === true ||
+    (!!condition && best.some((path) => applyRouteMap(device, condition.routeMap, path) !== undefined));
+  if (!originate) return exported;
+  return [
+    {
+      network: '0.0.0.0',
+      prefix: 0,
+      nextHop: source,
+      asPath: external ? Array(1 + neighbor.prepend).fill(state.asn) : [],
+      origin: 'IGP',
+      localPref: 100,
+      med: 0,
+    },
+    ...exported,
+  ];
 }

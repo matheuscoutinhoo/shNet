@@ -392,7 +392,6 @@ j021381x	Three switches, a common spanning tree, and an alternate path.
 g2lvk305	Specify NETWORK/PREFIX.
 ljigefjv	Misaligned BGP prefix.
 900pwt61	Specify permit|deny NETWORK/PREFIX.
-ghf1ollz	BGP not configured.
 8fk5npsr	The variable table must have a "hostname" column.
 hg8av45r	Table row {0}{1} has {2} columns; expected {3}.
 bds1638r	Variable with no value: {0}

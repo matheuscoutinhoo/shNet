@@ -15,13 +15,26 @@ const SYSLOG_EVENTS: Record<string, [number, string]> = {
   // "%SEC-6-IPACCESSLOG..." messages of ACL entries configured with "log".
   ACL_PERMIT: [6, ''],
   ACL_DENY: [6, ''],
+  // %BGP-4-MAXPFX and %BGP-3-MAXPFXEXCEED.
+  BGP_ROUTE_REJECTED: [4, ''],
 };
+/** "10.0.0.2: OpenConfirm → Established." becomes "neighbor 10.0.0.2 Up" (IOS logs only Up/Down). */
+function bgpAdjacency(d: Device | undefined, reason: string) {
+  const match = /^([\d.]+): (\S+) → (\S+)\.$/.exec(reason);
+  if (!match || d?.bgp?.logNeighborChanges === false) return;
+  if (match[3] === 'Established') return 'neighbor ' + match[1] + ' Up';
+  if (match[2] === 'Established') return 'neighbor ' + match[1] + ' Down';
+}
 /** The IOS syslog message an engine event produces, if any. */
-export function iosSyslogMessage(type: string, reason: string) {
+export function iosSyslogMessage(type: string, reason: string, d?: Device) {
   const kind = SYSLOG_EVENTS[type];
   if (!kind) return;
   const own = /^%[\w-]+-(\d)-\w+:/.exec(reason);
   if (own) return { severity: Number(own[1]), text: reason };
+  if (type === 'BGP_STATE_CHANGED') {
+    const text = bgpAdjacency(d, reason);
+    return text ? { severity: 5, text: '%BGP-5-ADJCHANGE: ' + text } : undefined;
+  }
   return kind[1] ? { severity: kind[0], text: '%' + kind[1] + ': ' + reason } : undefined;
 }
 // IOS default: "logging buffered 4096 debugging".
@@ -32,7 +45,7 @@ export function loggingBuffer(d: Device) {
 }
 /** Stores a syslog message in the circular logging buffer; the oldest messages give way when full. */
 export function bufferSyslog(d: Device, clock: number, type: string, reason: string) {
-  const message = iosSyslogMessage(type, reason);
+  const message = iosSyslogMessage(type, reason, d);
   const buffer = message && loggingBuffer(d);
   if (!message || !buffer || message.severity > buffer.level) return;
   const lines = (d.syslogBuffer ??= []);

@@ -1385,6 +1385,120 @@ describe('IOS access lists (remarks, port operators, ICMP types, logging)', () =
     expect(e.device(r1.id).bootLog).toEqual([]);
   });
 });
+describe('IOS BGP neighbor and address-family commands', () => {
+  it('applies policy without resetting sessions, aggregates, redistributes and originates a default', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [r1, r2],
+      terminals: [t1, t2],
+      cable,
+      advance,
+    } = lab('router', 'router');
+    cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    ok(t1, [
+      'interface Gi0/1',
+      'ip address 192.0.2.1 255.255.255.252',
+      'no shutdown',
+      'interface Loopback1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'interface Loopback2',
+      'ip address 10.1.2.1 255.255.255.0',
+      'interface Loopback3',
+      'ip address 172.16.9.1 255.255.255.0',
+      'exit',
+      'ip prefix-list LOOPBACKS seq 5 permit 10.1.0.0/16 le 24',
+      'route-map CONNECTED-TO-BGP permit 10',
+      'match ip address prefix-list LOOPBACKS',
+      'router bgp 65001',
+      'bgp router-id 1.1.1.1',
+      'neighbor 192.0.2.2 remote-as 65002',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Gi0/1',
+      'ip address 192.0.2.2 255.255.255.252',
+      'no shutdown',
+      'exit',
+      'router bgp 65002',
+      'bgp router-id 2.2.2.2',
+      'neighbor 192.0.2.1 remote-as 65001',
+      'end',
+    ]);
+    advance(30_000);
+    expect(t1.execute('show ip bgp summary')).toMatch(/192\.0\.2\.2\s.*\s0$/m);
+    const downs = () =>
+      e.state.events.filter((ev) => ev.type === 'BGP_STATE_CHANGED' && / → Idle\.$/.test(ev.reason)).length;
+    const before = downs();
+    ok(t1, [
+      'configure terminal',
+      'router bgp 65001',
+      'neighbor 192.0.2.2 description ISP-B transit',
+      'address-family ipv4 unicast',
+      'redistribute connected route-map CONNECTED-TO-BGP',
+      'aggregate-address 10.1.0.0 255.255.0.0 summary-only',
+      'neighbor 192.0.2.2 activate',
+      'neighbor 192.0.2.2 send-community both',
+      'neighbor 192.0.2.2 soft-reconfiguration inbound',
+      'neighbor 192.0.2.2 default-originate',
+      'neighbor 192.0.2.2 maximum-prefix 1000 80 warning-only',
+      'exit-address-family',
+      'end',
+    ]);
+    advance(10_000);
+    // Description, policy and address-family settings never drop the session.
+    expect(downs()).toBe(before);
+    const routes = t2.execute('show ip route');
+    expect(routes).toMatch(/^B\*\s+0\.0\.0\.0\/0 \[20\/0\] via 192\.0\.2\.1/m);
+    expect(routes).toMatch(
+      /^B\s+10\.1\.0\.0 \[20\/0\] via 192\.0\.2\.1|^B\s+10\.1\.0\.0\/16 \[20\/0\] via 192\.0\.2\.1/m
+    );
+    // summary-only suppresses the /24s; the route-map keeps 172.16.9.0/24 out of BGP.
+    expect(routes).not.toMatch(/10\.1\.[12]\.0/);
+    expect(routes).not.toContain('172.16.9.0');
+    expect(t2.execute('show logging')).toMatch(/%BGP-5-ADJCHANGE: neighbor 192\.0\.2\.1 Up/);
+    const table = t1.execute('show ip bgp');
+    expect(table).toMatch(/^ \*> {2}10\.1\.0\.0\/16\s+0\.0\.0\.0\s.* 32768 i$/m);
+    expect(table).toMatch(/^ s> {2}10\.1\.1\.0\/24\s+0\.0\.0\.0\s.* 32768 \?$/m);
+    const advertised = t1.execute('show ip bgp neighbors 192.0.2.2 advertised-routes');
+    expect(advertised).toContain('Total number of prefixes 1');
+    expect(advertised).toMatch(/10\.1\.0\.0\/16/);
+    expect(t2.execute('show ip bgp neighbors 192.0.2.1 received-routes')).toBe(
+      '% Inbound soft reconfiguration not enabled on 192.0.2.1'
+    );
+    const neighbor = t1.execute('show ip bgp neighbors 192.0.2.2');
+    expect(neighbor).toContain(' Description: ISP-B transit');
+    expect(neighbor).toContain('hold time is 180, keepalive interval is 60 seconds');
+    const running = t1.execute('show running-config');
+    expect(running).toContain(
+      [
+        'router bgp 65001',
+        ' bgp router-id 1.1.1.1',
+        ' bgp log-neighbor-changes',
+        ' neighbor 192.0.2.2 remote-as 65002',
+        ' neighbor 192.0.2.2 description ISP-B transit',
+        ' !',
+        ' address-family ipv4',
+        '  aggregate-address 10.1.0.0 255.255.0.0 summary-only',
+        '  redistribute connected route-map CONNECTED-TO-BGP',
+        '  neighbor 192.0.2.2 activate',
+        '  neighbor 192.0.2.2 send-community both',
+        '  neighbor 192.0.2.2 default-originate',
+        '  neighbor 192.0.2.2 soft-reconfiguration inbound',
+        '  neighbor 192.0.2.2 maximum-prefix 1000 80 warning-only',
+        ' exit-address-family',
+      ].join('\n')
+    );
+    expect(running).not.toMatch(/bgp hold-time|service bgp|neighbor \S+ (passive|local-preference|metric)/);
+    ok(t1, ['configure terminal']);
+    expect(t1.execute('router bgp 65009')).toBe('% BGP is already running; AS is 65001');
+    ok(t1, ['end', 'write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t1, ['enable']);
+    expect(t1.execute('show running-config')).toBe(running);
+    expect(e.device(r1.id).bootLog).toEqual([]);
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {
