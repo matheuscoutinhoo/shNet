@@ -1064,6 +1064,10 @@
   "Editar pool {0}"
  ],
  [
+  "k02q96wv",
+  "neighbor {0} ebgp-multihop {1}"
+ ],
+ [
   "k6pfs7m3",
   "Amostra {0} de {1} recebida."
  ],
@@ -1210,6 +1214,10 @@
  [
   "n1nl3oc5",
   "Interface {0} removida."
+ ],
+ [
+  "n2a3acfw",
+  "Recarga solicitada pelo console; o equipamento reinicia em {0} s."
  ],
  [
   "n3kg0uks",
@@ -1690,6 +1698,10 @@
  [
   "w9l71gxn",
   "{0} cabos"
+ ],
+ [
+  "wbnh1gf0",
+  "Inicializado a partir da startup-config; {0} linha(s) rejeitada(s)."
  ],
  [
   "wbxbflyi",

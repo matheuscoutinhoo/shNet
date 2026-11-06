@@ -8,6 +8,15 @@ export const firewallUnicast = (ip: string) => (ip.includes(':') ? unicast6(ip) 
 export function firewallZone(device: Device, port: string) {
   return device.firewall?.zonePolicy?.zones.find((zone) => zone.ports.includes(port))?.name;
 }
+/**
+ * Zone-based firewall sessions belong to a zone pair, so return traffic may use any interface of
+ * the same zones (dual uplinks, ECMP). Without zones, sessions stay bound to their interfaces.
+ */
+function sameSide(device: Device, a: string, b: string) {
+  if (a === b) return true;
+  const zone = firewallZone(device, a);
+  return !!zone && zone === firewallZone(device, b);
+}
 export function firewallRule(
   device: Device,
   input: string,
@@ -30,6 +39,7 @@ export function firewallRule(
     );
 }
 export function sessionDirection(
+  device: Device,
   session: FirewallSession,
   input: string,
   output: string,
@@ -44,8 +54,8 @@ export function sessionDirection(
     return;
   for (const outbound of [true, false]) {
     if (
-      session.inside === (outbound ? input : output) &&
-      session.outside === (outbound ? output : input) &&
+      sameSide(device, session.inside, outbound ? input : output) &&
+      sameSide(device, session.outside, outbound ? output : input) &&
       session.clientIp === (outbound ? packet.src : packet.dst) &&
       session.serverIp === (outbound ? packet.dst : packet.src) &&
       (session.protocol === 'ICMP' && packet.protocol === 'ICMP'
@@ -72,8 +82,8 @@ export function relatedSession(device: Device, input: string, output: string, pa
     // The quoted flow travels in the opposite direction to the error.
     for (const outbound of [true, false]) {
       if (
-        session.inside !== (outbound ? output : input) ||
-        session.outside !== (outbound ? input : output) ||
+        !sameSide(device, session.inside, outbound ? output : input) ||
+        !sameSide(device, session.outside, outbound ? input : output) ||
         session.clientIp !== (outbound ? quote.src : quote.dst) ||
         session.serverIp !== (outbound ? quote.dst : quote.src)
       )

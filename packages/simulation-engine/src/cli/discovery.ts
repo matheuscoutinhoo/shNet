@@ -140,9 +140,11 @@ export function discoveryRunningConfig(d: Device): string[] {
         ? []
         : [
             'interface ' + p.name,
-            ...(p.cdpEnabled === undefined ? [] : [p.cdpEnabled ? 'cdp enable' : 'no cdp enable']),
-            ...(p.lldpTransmit === undefined ? [] : [p.lldpTransmit ? 'lldp transmit' : 'no lldp transmit']),
-            ...(p.lldpReceive === undefined ? [] : [p.lldpReceive ? 'lldp receive' : 'no lldp receive']),
+            ...(p.cdpEnabled === undefined ? [] : [p.cdpEnabled ? ' cdp enable' : ' no cdp enable']),
+            ...(p.lldpTransmit === undefined
+              ? []
+              : [p.lldpTransmit ? ' lldp transmit' : ' no lldp transmit']),
+            ...(p.lldpReceive === undefined ? [] : [p.lldpReceive ? ' lldp receive' : ' no lldp receive']),
             'exit',
           ]
     ),

@@ -2,6 +2,7 @@ import type { Device } from '../model';
 import type { KeyChainKey } from '../protocols/key-chain-model';
 import { keyChainTime, keyValid, validateKeyChains } from '../protocols/key-chain';
 import { ALL_MODES, type CommandRegistry } from './registry';
+import { printSecret, readSecret } from './secrets';
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const offset = (d: Device) => {
   const t = d.iosSystem?.timezone;
@@ -77,10 +78,10 @@ export function registerKeyChainCommands(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^key-string(?: 0)? (.+)$/i,
+    pattern: /^key-string(?: ([07]))? (.+)$/i,
     modes: ['key-chain-key'],
     run: (m, _e, d, c) => {
-      key(d, c.name, c.sequence).keyString = m[1];
+      key(d, c.name, c.sequence).keyString = readSecret(m[1], m[2]);
     },
   });
   r.register({
@@ -149,7 +150,7 @@ export function keyChainRunningConfig(d: Device) {
       .sort((a, b) => a.id - b.id)
       .flatMap((k) => [
         ' key ' + k.id,
-        ...(k.keyString ? ['  key-string 0 ' + k.keyString] : []),
+        ...(k.keyString ? ['  key-string ' + printSecret(d, k.keyString)] : []),
         ...lifetimes(d, k),
         ' exit',
       ]),

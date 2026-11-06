@@ -4,15 +4,17 @@ import { aaaServerConfig } from '../protocols/aaa';
 import { dot1xConfig, supplicantConfig } from '../protocols/dot1x';
 import { resolveRoute } from '../protocols/ipv4';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { parseConfigJson, printSecretsJson } from './secrets';
 export function redactNetworkSecrets(text: string) {
   return text
     .replace(/^(console \S+) .+$/i, '$1 [redacted]')
     .replace(/^((?:do )?enable(?: algorithm-type (?:sha256|scrypt))? secret)(?: .*)?$/i, '$1 [redacted]')
     .replace(/("(?:key|password)"\s*:\s*)"[^"]*"/gi, '$1"[redacted]"')
-    .replace(/((?:wifi connect|wireless (?:ap|client)) .+? key) \S+/i, '$1 [redacted]')
+    .replace(/((?:wifi connect|wireless (?:ap|client)) .+? key)(?: [07])? \S+/i, '$1 [redacted]')
     .replace(/^(aaa login \S+) \S+$/i, '$1 [redacted]')
-    .replace(/^((?:do )?neighbor \S+ password(?: [07])?) .+$/i, '$1 [redacted]')
-    .replace(/^((?:do )?ip ospf message-digest-key \d+ md5(?: 0)?) .+$/i, '$1 [redacted]');
+    .replace(/^((?:do )?neighbor \S+ password)(?: [07])? .+$/i, '$1 [redacted]')
+    .replace(/^((?:do )?ip ospf message-digest-key \d+ md5)(?: [07])? .+$/i, '$1 [redacted]')
+    .replace(/^((?:do )?key-string)(?: [07])? .+$/i, '$1 [redacted]');
 }
 export function registerAaaCommands(r: CommandRegistry) {
   r.register({
@@ -50,27 +52,27 @@ export function registerAaaCommands(r: CommandRegistry) {
   r.register({
     pattern: /^firewall application configure (\{.+\})$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureInspection(d.id, JSON.parse(m[1])),
+    run: (m, e, d) => e.configureInspection(d.id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^aaa server configure (\{.+\})$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureAaaServer(d.id, JSON.parse(m[1])),
+    run: (m, e, d) => e.configureAaaServer(d.id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^aaa client configure (\{.+\})$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureAaaClient(d.id, JSON.parse(m[1])),
+    run: (m, e, d) => e.configureAaaClient(d.id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^dot1x configure (\{.+\})$/i,
     modes: ['interface'],
-    run: (m, e, d, c) => e.configureDot1x(d.id, currentPort(d, c).id, JSON.parse(m[1])),
+    run: (m, e, d, c) => e.configureDot1x(d.id, currentPort(d, c).id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^supplicant configure (\{.+\})$/i,
     modes: ['interface'],
-    run: (m, e, d, c) => e.configureSupplicant(d.id, currentPort(d, c).id, JSON.parse(m[1])),
+    run: (m, e, d, c) => e.configureSupplicant(d.id, currentPort(d, c).id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^no (dot1x|supplicant)$/i,
@@ -120,18 +122,17 @@ export function aaaRunningConfig(d: Device) {
     ...(d.dot1xSystemAuthControl !== undefined
       ? [(d.dot1xSystemAuthControl ? '' : 'no ') + 'dot1x system-auth-control']
       : []),
-    ...(d.aaaServer ? ['aaa server configure ' + JSON.stringify(aaaServerConfig(d))] : []),
-    ...(d.aaaClient ? ['aaa client configure ' + JSON.stringify(d.aaaClient)] : []),
-    ...d.interfaces.flatMap((p) => [
-      ...(p.authenticationControl
-        ? ['interface ' + p.name, ' authentication port-control ' + p.authenticationControl, 'exit']
-        : []),
-      ...(p.dot1x
-        ? ['interface ' + p.name, ' dot1x configure ' + JSON.stringify(dot1xConfig(p)), 'exit']
-        : []),
-      ...(p.supplicant
-        ? ['interface ' + p.name, ' supplicant configure ' + JSON.stringify(supplicantConfig(p)), 'exit']
-        : []),
-    ]),
-  ].map(redactNetworkSecrets);
+    ...(d.aaaServer ? ['aaa server configure ' + printSecretsJson(d, aaaServerConfig(d))] : []),
+    ...(d.aaaClient ? ['aaa client configure ' + printSecretsJson(d, d.aaaClient)] : []),
+    // The 802.1X definition precedes port-control so replay does not derive a new one.
+    ...d.interfaces
+      .filter((p) => p.dot1x || p.supplicant || p.authenticationControl)
+      .flatMap((p) => [
+        'interface ' + p.name,
+        ...(p.dot1x ? [' dot1x configure ' + printSecretsJson(d, dot1xConfig(p))] : []),
+        ...(p.supplicant ? [' supplicant configure ' + printSecretsJson(d, supplicantConfig(p))] : []),
+        ...(p.authenticationControl ? [' authentication port-control ' + p.authenticationControl] : []),
+        'exit',
+      ]),
+  ];
 }

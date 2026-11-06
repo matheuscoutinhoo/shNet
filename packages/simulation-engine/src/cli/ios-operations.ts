@@ -14,6 +14,16 @@ export function archiveRunning(e: SimulationEngine, d: Device, r: CommandRegistr
 }
 export function registerIosOperations(r: CommandRegistry) {
   r.register({
+    pattern: /^(no )?service password-encryption$/i,
+    syntax: ['service password-encryption', 'no service password-encryption'],
+    modes: CONFIG_MODES,
+    run: (m, _e, d) => {
+      d.iosSystem ??= {};
+      if (m[1]) delete d.iosSystem.passwordEncryption;
+      else d.iosSystem.passwordEncryption = true;
+    },
+  });
+  r.register({
     pattern: /^(no )?ntp server ([\d.]+)$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) => {
@@ -141,6 +151,7 @@ export function iosSystemRunning(d: Device) {
   const t = d.iosSystem?.timezone,
     a = d.iosSystem?.archive;
   return [
+    ...(d.iosSystem?.passwordEncryption ? ['service password-encryption'] : []),
     ...(t ? [`clock timezone ${t.name} ${t.hours} ${t.minutes}`] : []),
     ...(a
       ? [

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 export const iosSystemSchema = z
   .object({
+    // "service password-encryption": reversible secrets are shown as type 7.
+    passwordEncryption: z.boolean().optional(),
     timezone: z
       .object({
         name: z.string().regex(/^[\w+-]{1,16}$/),

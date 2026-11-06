@@ -109,3 +109,12 @@ bee1z17d	{0}/{1}: access port in VLAN {2}, which does not exist on the switch.
 cbg7mum2	{0} / {1} configured over {2}.
 qkx1rli0	{0} / VLAN {1} / A/B access
 gm0ohrwg	{0} · Delete closes the tab
+wbnh1gf0	Booted from startup-config; {0} line(s) rejected.
+8devdqnw	Booted from startup-config; sessions and counters reset.
+n2a3acfw	Reload requested from the console; the device restarts in {0} s.
+prhk2bo3	Reload inconsistent with the boot timer.
+vf97i7xb	Boot timer without a matching reload.
+t6lkurft	neighbor <ip|peer-group> ebgp-multihop [ttl]
+p6nn27p5	no neighbor <ip|peer-group> ebgp-multihop
+k02q96wv	neighbor {0} ebgp-multihop {1}
+p0ivef5b	eBGP neighbor interface went down (fast-external-fallover)

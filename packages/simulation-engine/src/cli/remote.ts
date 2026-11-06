@@ -4,21 +4,22 @@ import { telemetryConfig } from '../protocols/telemetry';
 import { ntpConfig } from '../protocols/ntp';
 import { redactNetworkSecrets } from './aaa';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { parseConfigJson, printSecretsJson } from './secrets';
 export function registerRemoteCommands(r: CommandRegistry) {
   r.register({
     pattern: /^management configure (\{.+\})$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureRemote(d.id, JSON.parse(m[1])),
+    run: (m, e, d) => e.configureRemote(d.id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^management request (\{.+\})$/i,
     modes: ALL_MODES,
-    run: (m, e, d) => 'RPC [' + e.requestRemote(d.id, JSON.parse(m[1])) + '] pending.',
+    run: (m, e, d) => 'RPC [' + e.requestRemote(d.id, parseConfigJson(m[1])) + '] pending.',
   });
   r.register({
     pattern: /^automation run (\{.+\})$/i,
     modes: ALL_MODES,
-    run: (m, e, d) => 'JOB [' + e.runAutomation(d.id, JSON.parse(m[1])) + '] running.',
+    run: (m, e, d) => 'JOB [' + e.runAutomation(d.id, parseConfigJson(m[1])) + '] running.',
   });
   r.register({
     pattern: /^automation clear$/i,
@@ -32,7 +33,7 @@ export function registerRemoteCommands(r: CommandRegistry) {
       pattern: new RegExp('^' + item + ' configure (\\{.+\\})$', 'i'),
       modes: CONFIG_MODES,
       run: (m, e, d) => {
-        const input = JSON.parse(m[1]);
+        const input = parseConfigJson(m[1]);
         if (item === 'telemetry') e.configureTelemetry(d.id, input);
         else if (item === 'collector') e.configureCollector(d.id, input);
         else if (item === 'ntp') e.configureNtp(d.id, input);
@@ -60,12 +61,12 @@ export function registerRemoteCommands(r: CommandRegistry) {
 }
 export function remoteRunningConfig(d: Device) {
   return [
-    ...(d.remoteManagement ? ['management configure ' + JSON.stringify(remoteConfig(d))] : []),
-    ...(d.telemetry ? ['telemetry configure ' + JSON.stringify(telemetryConfig(d))] : []),
+    ...(d.remoteManagement ? ['management configure ' + printSecretsJson(d, remoteConfig(d))] : []),
+    ...(d.telemetry ? ['telemetry configure ' + printSecretsJson(d, telemetryConfig(d))] : []),
     ...(d.telemetryCollector
       ? [
           'collector configure ' +
-            JSON.stringify({ enabled: d.telemetryCollector.enabled, key: d.telemetryCollector.key }),
+            printSecretsJson(d, { enabled: d.telemetryCollector.enabled, key: d.telemetryCollector.key }),
         ]
       : []),
     // The clock offset is runtime state (like "clock set"); only the NTP server role is configuration.
@@ -75,7 +76,7 @@ export function remoteRunningConfig(d: Device) {
     ...(d.ntp
       ? d.ntp.enabled && d.ntp.intervalMs === 64000
         ? d.ntp.servers.map((s) => 'ntp server ' + s)
-        : ['ntp configure ' + JSON.stringify(ntpConfig(d))]
+        : ['ntp configure ' + printSecretsJson(d, ntpConfig(d))]
       : []),
-  ].map(redactNetworkSecrets);
+  ];
 }

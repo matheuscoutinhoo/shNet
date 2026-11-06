@@ -48,6 +48,10 @@ import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
 import { showVlan } from './ios-show';
 import { registerPingCommands } from './ping';
 import { registerConfigDiff } from './config-diff';
+import { composeRunningConfig } from './running-config';
+import { printSecret } from './secrets';
+import { bfdInterfaceRunningConfig, bfdTemplateRunningConfig } from './bfd';
+import { keyChainRunningConfig } from './key-chain';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -567,25 +571,30 @@ export function makeRegistry() {
     syntax: 'show running-config',
     modes: all,
     run: (_m, _e, d) =>
-      [
-        'hostname ' + d.hostname,
-        ...iosSystemRunning(d),
-        ...monitoringRunning(d),
-        ...routingPolicyRunning(d),
-        ...mqcDefinitions(d),
-        ...(d.enableSecret ? ['enable secret ' + d.enableSecret[1] + ' ' + d.enableSecret] : []),
-        ...layer3RunningConfig(d),
-        ...lacpRunningConfig(d),
-        ...ipv6RunningConfig(d),
-        ...wirelessRunningConfig(d),
-        ...tunnelRunningConfig(d),
-        ...forwardingRunningConfig(d),
-        ...aaaRunningConfig(d),
-        ...vxlanRunningConfig(d),
-        ...policyRunningConfig(d).filter((line) => !/^(?:no )?(?:ip nat|service nat)/.test(line)),
-        ...stateSyncRunningConfig(_e.state, d),
-        ...(d.type === 'switch' ? d.vlans.flatMap((v) => ['vlan ' + v.id, ' name ' + v.name, 'exit']) : []),
-        ...d.interfaces.flatMap((i) => [
+      composeRunningConfig(
+        d,
+        [
+          'hostname ' + d.hostname,
+          ...iosSystemRunning(d),
+          ...monitoringRunning(d),
+          ...routingPolicyRunning(d),
+          ...mqcDefinitions(d),
+          ...keyChainRunningConfig(d),
+          ...bfdTemplateRunningConfig(d),
+          ...(d.enableSecret ? ['enable secret ' + d.enableSecret[1] + ' ' + d.enableSecret] : []),
+          ...layer3RunningConfig(d),
+          ...lacpRunningConfig(d),
+          ...ipv6RunningConfig(d),
+          ...wirelessRunningConfig(d),
+          ...tunnelRunningConfig(d),
+          ...forwardingRunningConfig(d),
+          ...aaaRunningConfig(d),
+          ...vxlanRunningConfig(d),
+          ...policyRunningConfig(d).filter((line) => !/^(?:no )?(?:ip nat|service nat)/.test(line)),
+          ...stateSyncRunningConfig(_e.state, d),
+          ...(d.type === 'switch' ? d.vlans.flatMap((v) => ['vlan ' + v.id, ' name ' + v.name, 'exit']) : []),
+        ],
+        d.interfaces.flatMap((i) => [
           'interface ' + i.name,
           ...(i.description ? [' description ' + i.description] : []),
           // Loopbacks use a 9216-byte MTU by default; only explicit changes are configuration.
@@ -601,14 +610,11 @@ export function makeRegistry() {
           ...(i.aclOut ? [' ip access-group ' + i.aclOut + ' out'] : []),
           ...(i.natRole ? [' ip nat ' + i.natRole] : []),
           ...(i.udld ? [' udld port' + (i.udld.mode === 'aggressive' ? ' aggressive' : '')] : []),
-          ...(i.bfd
-            ? [
-                ` bfd interval ${i.bfd.intervalMs} min_rx ${i.bfd.minRxMs} multiplier ${i.bfd.multiplier}`,
-                ...(i.bfd.ospf ? [' ip ospf bfd'] : []),
-              ]
-            : []),
+          ...bfdInterfaceRunningConfig(i),
           ...(i.ospfAuthentication?.key
-            ? [` ip ospf message-digest-key ${i.ospfAuthentication.keyId} md5 0 ${i.ospfAuthentication.key}`]
+            ? [
+                ` ip ospf message-digest-key ${i.ospfAuthentication.keyId} md5 ${printSecret(d, i.ospfAuthentication.key)}`,
+              ]
             : []),
           ...(i.ospfAuthentication?.enabled ? [' ip ospf authentication message-digest'] : []),
           ...(i.ipv4Mode === 'dhcp'
@@ -634,49 +640,51 @@ export function makeRegistry() {
             : []),
           'exit',
         ]),
-        ...campusRunningConfig(d),
-        ...mqcAttachments(d),
-        ...(d.loopGuardDefault ? ['spanning-tree loopguard default'] : []),
-        ...(d.gateway ? ['ip default-gateway ' + d.gateway] : []),
-        ...policyRunningConfig(d).filter((line) => /^(?:no )?(?:ip nat|service nat)/.test(line)),
-        ...d.routes.map(
-          (r) =>
-            'ip route ' +
-            (r.vrf ? 'vrf ' + r.vrf + ' ' : '') +
-            r.network +
-            ' ' +
-            ipString(mask(r.prefix)) +
-            ' ' +
-            (r.port
-              ? d.interfaces.find((p) => p.id === r.port)!.name +
-                (r.nextHop === '0.0.0.0' ? '' : ' ' + r.nextHop)
-              : r.nextHop) +
-            (r.distance !== undefined ? ' ' + r.distance : '') +
-            (r.track ? ' track ' + r.track : '')
-        ),
-        ...dhcpRunningConfig(d),
-        ...dnsRunningConfig(d),
-        ...tcpRunningConfig(d),
-        ...(d.firewall?.application
-          ? [
-              'firewall application configure ' +
-                JSON.stringify({
-                  ...d.firewall.application,
-                  flows: [],
-                  rules: d.firewall.application.rules.map((r) => ({ ...r, hits: 0 })),
-                }),
-            ]
-          : []),
-        ...ospfRunningConfig(d),
-        ...ripRunningConfig(d),
-        ...vrrpRunningConfig(d),
-        ...bgpRunningConfig(d),
-        ...remoteRunningConfig(d),
-        ...managementRunningConfig(d),
-        ...stpRunningConfig(d),
-        ...discoveryRunningConfig(d),
-        ...hsrpRunningConfig(d),
-      ].join('\n'),
+        [
+          ...campusRunningConfig(d),
+          ...mqcAttachments(d),
+          ...(d.loopGuardDefault ? ['spanning-tree loopguard default'] : []),
+          ...(d.gateway ? ['ip default-gateway ' + d.gateway] : []),
+          ...policyRunningConfig(d).filter((line) => /^(?:no )?(?:ip nat|service nat)/.test(line)),
+          ...d.routes.map(
+            (r) =>
+              'ip route ' +
+              (r.vrf ? 'vrf ' + r.vrf + ' ' : '') +
+              r.network +
+              ' ' +
+              ipString(mask(r.prefix)) +
+              ' ' +
+              (r.port
+                ? d.interfaces.find((p) => p.id === r.port)!.name +
+                  (r.nextHop === '0.0.0.0' ? '' : ' ' + r.nextHop)
+                : r.nextHop) +
+              (r.distance !== undefined ? ' ' + r.distance : '') +
+              (r.track ? ' track ' + r.track : '')
+          ),
+          ...dhcpRunningConfig(d),
+          ...dnsRunningConfig(d),
+          ...tcpRunningConfig(d),
+          ...(d.firewall?.application
+            ? [
+                'firewall application configure ' +
+                  JSON.stringify({
+                    ...d.firewall.application,
+                    flows: [],
+                    rules: d.firewall.application.rules.map((r) => ({ ...r, hits: 0 })),
+                  }),
+              ]
+            : []),
+          ...ospfRunningConfig(d),
+          ...ripRunningConfig(d),
+          ...vrrpRunningConfig(d),
+          ...bgpRunningConfig(d),
+          ...remoteRunningConfig(d),
+          ...managementRunningConfig(d),
+          ...stpRunningConfig(d),
+          ...discoveryRunningConfig(d),
+          ...hsrpRunningConfig(d),
+        ]
+      ).join('\n'),
   });
   // Synchronous ping/traceroute advance the simulation until replies arrive (IOS and host formats).
   registerPingCommands(r);
@@ -690,7 +698,11 @@ export function makeRegistry() {
     pattern: /^show startup-config$/i,
     syntax: 'show startup-config',
     modes: ['privileged'],
-    run: (_m, _e, d) => d.startupConfig?.commands.join('\n') ?? 'startup-config is not present',
+    run: (_m, _e, d) => {
+      if (!d.startupConfig) return 'startup-config is not present';
+      const text = d.startupConfig.commands.join('\n');
+      return `Using ${new TextEncoder().encode(text).length} out of 33554432 bytes\n${text}`;
+    },
   });
   r.register({
     pattern: /^(erase startup-config|write erase)$/i,

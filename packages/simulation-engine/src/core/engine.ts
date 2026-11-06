@@ -13,7 +13,7 @@ import {
   acceptsHsrpAddress,
 } from '../protocols/hsrp';
 import { hsrpMulticast } from '../protocols/hsrp-model';
-import { reloadStartup } from '../cli/startup';
+import { completeReload, reloadStartup } from '../cli/startup';
 import { makeRegistry } from '../cli/commands';
 import {
   configureQuorumLab,
@@ -315,6 +315,8 @@ export class SimulationEngine {
     return copy;
   }
   private lastMark?: StateMark;
+  // Depth of deferRefresh() batches in progress.
+  private refreshDeferred = 0;
   /** Compact rollback point that also records which devices a local edit changes (see StateMark). */
   mark(): StateMark {
     this.lastMark = markState(this.state, this.lastMark);
@@ -322,6 +324,14 @@ export class SimulationEngine {
   }
   restore(mark: StateMark) {
     this.state = materializeMark(mark);
+  }
+  /** Drop derived caches after replacing a device object or bulk-editing state in place. */
+  invalidateIndexes() {
+    invalidateProtocolIndex(this.state);
+    invalidateCacheExpiry(this.state);
+    invalidateTraceIndex(this.state);
+    invalidateSpanningRefresh(this.state);
+    invalidateBgpRefresh(this.state);
   }
   configurePlcProcess(deviceId: string, input: unknown) {
     configurePlcProcess(this, this.device(deviceId), input);
@@ -896,6 +906,7 @@ export class SimulationEngine {
     if (device.spanningTree?.enabled) updateSpanningTreePort(this, device, port, edgeChanged);
   }
   refreshSpanningTree() {
+    if (this.refreshDeferred) return;
     refreshDiscovery(this);
     refreshHsrp(this);
     for (const d of this.state.devices) {
@@ -962,6 +973,14 @@ export class SimulationEngine {
   }
   setDevicePower(device: string, power: boolean) {
     const previous = this.device(device);
+    // A manual power change replaces any reload in progress.
+    if (previous.reloading) {
+      const token = previous.reloading.token;
+      delete previous.reloading;
+      this.state.queue = this.state.queue.filter(
+        (q) => !(q.action.kind === 'device-boot' && q.action.device === device && q.action.token === token)
+      );
+    }
     const wasPowered = previous.power;
     const boot = power && !previous.power && previous.bootManaged;
     const loadStartup = previous.booted || !!previous.startupConfig;
@@ -1184,8 +1203,21 @@ export class SimulationEngine {
     configureOspf(this, this.device(deviceId), input);
   }
   refreshBgp() {
+    if (this.refreshDeferred) return;
     invalidateBgpRefresh(this.state);
     refreshBgp(this);
+  }
+  /**
+   * Applies a batch of edits (e.g. a startup-config replay) with the network-wide protocol
+   * refresh postponed; the caller refreshes once afterwards.
+   */
+  deferRefresh<T>(change: () => T): T {
+    this.refreshDeferred++;
+    try {
+      return change();
+    } finally {
+      this.refreshDeferred--;
+    }
   }
   configureBgp(deviceId: string, input: unknown) {
     configureBgp(this, this.device(deviceId), input);
@@ -1758,6 +1790,7 @@ export class SimulationEngine {
     else if (a.kind === 'telemetry-tick') handleTelemetry(this, a);
     else if (a.kind === 'ntp-tick') handleNtp(this, a);
     else if (a.kind === 'monitoring-tick') monitorTick(this, this.device(a.device), a.token);
+    else if (a.kind === 'device-boot') completeReload(this, a.device, a.token);
     else if (a.kind === 'udld-tick') {
       const d = this.device(a.device),
         p = d.interfaces.find((p) => p.id === a.port);

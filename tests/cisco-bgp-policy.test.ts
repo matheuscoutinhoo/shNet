@@ -6,6 +6,7 @@ import {
   validateSnapshot,
   exportPcap,
   decodePcap,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 const run = (t: TerminalSession, lines: string[]) => {
   for (const line of lines) expect(t.execute(line), line).not.toMatch(/^%/);
@@ -33,17 +34,10 @@ describe('native BGP policy and transport authentication', () => {
       'end',
     ]);
     expect(d.bgp?.neighbors.map((n) => n.maximumPrefix)).toEqual([10, 50]);
-    expect(t.execute('show running-config')).toContain('neighbor WAN password 0 group-key');
-    run(t, [
-      'write memory',
-      'reload',
-      '',
-      'en',
-      'conf t',
-      'router bgp 65001',
-      'neighbor WAN maximum-prefix 60',
-      'end',
-    ]);
+    expect(t.execute('show running-config')).toContain('neighbor WAN password group-key');
+    run(t, ['write memory', 'reload', '']);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    run(t, ['en', 'conf t', 'router bgp 65001', 'neighbor WAN maximum-prefix 60', 'end']);
     expect(e.device(d.id).bgp?.neighbors.map((n) => n.maximumPrefix)).toEqual([10, 60]);
     validateSnapshot(e.snapshot());
   });
@@ -66,8 +60,10 @@ describe('native BGP policy and transport authentication', () => {
     e.advanceTo(20000);
     expect(a.bgp?.routes.find((r) => r.network === '192.168.20.0')?.nextHop).toBe('10.0.12.2');
     validateSnapshot(e.snapshot());
-    run(t, ['write memory', 'reload', '', 'en']);
-    e.advanceTo(40000);
+    run(t, ['write memory', 'reload', '']);
+    // The router boots after the reload and relearns the route through the saved policy.
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS + 40000);
+    run(t, ['en']);
     expect(e.device(a.id).bgp?.routes.find((r) => r.network === '192.168.20.0')?.nextHop).toBe('10.0.12.2');
   });
   it('peer groups inherit remote AS and maximum-prefix shuts down the offending peer', () => {

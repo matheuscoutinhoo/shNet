@@ -170,11 +170,13 @@ export function permitFirewall(
   }
   if (!zoned && !trustedIn && !trustedOut) return deny('trânsito entre interfaces não confiáveis');
   const existing = config.sessions.find(
-    (entry) => sessionDirection(entry, input.id, output.id, packet) !== undefined
+    (entry) => sessionDirection(device, entry, input.id, output.id, packet) !== undefined
   );
   // Validate a copy: rejected ACK/flags must never change the tracked state.
   let session = existing && structuredClone(existing);
-  let outbound = existing ? sessionDirection(existing, input.id, output.id, packet)! : zoned || trustedIn;
+  let outbound = existing
+    ? sessionDirection(device, existing, input.id, output.id, packet)!
+    : zoned || trustedIn;
   if (session && session.expiresAt <= engine.state.clock) {
     removeSession(engine, device, session);
     session = undefined;

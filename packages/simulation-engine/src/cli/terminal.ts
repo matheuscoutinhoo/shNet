@@ -10,7 +10,7 @@ import { terminalIdentity } from './device-commands';
 import { CONFIG_MODES } from './registry';
 import { verifyIosSecret } from './local-security';
 import { refreshInterfacePat } from '../protocols/nat';
-import { reloadStartup, saveStartup } from './startup';
+import { beginReload, saveStartup } from './startup';
 export class TerminalSession {
   context: Context = { mode: 'user' };
   history: string[] = [];
@@ -117,7 +117,7 @@ export class TerminalSession {
       delete this.context.confirm;
       // As on IOS, Enter or "y" confirms; any other answer cancels.
       if (answer && !/^(?:y|yes|confirm)$/.test(answer)) return '';
-      const output = reloadStartup(this.engine, d, this.registry);
+      const output = beginReload(this.engine, d);
       this.context = { mode: 'user' };
       return output;
     } catch (error) {
@@ -128,6 +128,18 @@ export class TerminalSession {
   }
   execute(input: string) {
     this.lastMark = undefined;
+    const reloading = this.engine.device(this.deviceId).reloading;
+    if (reloading) {
+      // The console only shows boot progress until the reload finishes.
+      this.context = { mode: 'user' };
+      return (
+        '% ' +
+        this.engine.device(this.deviceId).hostname +
+        ' is reloading; it boots from startup-config in ' +
+        Math.max(1, Math.ceil((reloading.at - this.engine.state.clock) / 1000)) +
+        ' s of simulated time.'
+      );
+    }
     if (this.context.auth) {
       const secret = this.engine.device(this.deviceId).enableSecret;
       if (secret && verifyIosSecret(input, secret)) {

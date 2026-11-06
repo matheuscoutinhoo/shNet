@@ -2,6 +2,7 @@ import type { Device } from '../model';
 import { bgpConfig, clearBgpPeers } from '../protocols/bgp';
 import { bgpNeighborSchema, type BgpConfig } from '../protocols/bgp-model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { printSecret, readSecret } from './secrets';
 import { showBgpNeighbors, showBgpSummary, showBgpTable } from './ios-show';
 import { parsePrefix, subnet, ipString, mask } from '../protocols/ipv4';
 import { selectOspfRouterId } from '../protocols/ospf';
@@ -56,12 +57,47 @@ export function registerBgpCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^(no )?neighbor ([\w.-]+) password(?: 0)?(?: (\S+))?$/i,
+    pattern: /^(no )?neighbor ([\w.-]+) ebgp-multihop(?: (\d+))?$/i,
+    syntax: ['neighbor <ip|peer-group> ebgp-multihop [ttl]', 'no neighbor <ip|peer-group> ebgp-multihop'],
+    modes: ['router'],
+    run: (m, e, d, c) => {
+      if (c.router !== 'bgp') throw new Error('Requires BGP router mode.');
+      const ttl = Number(m[3] ?? 255);
+      if (!m[1] && (ttl < 1 || ttl > 255)) throw new Error('Invalid TTL: use 1-255.');
+      const value = config(d);
+      patchNeighbor(value, m[2], { ebgpMultihop: m[1] ? undefined : ttl });
+      e.configureBgp(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?neighbor ([\w.-]+) disable-connected-check$/i,
+    modes: ['router'],
+    run: (m, e, d, c) => {
+      if (c.router !== 'bgp') throw new Error('Requires BGP router mode.');
+      const value = config(d);
+      patchNeighbor(value, m[2], { disableConnectedCheck: m[1] ? undefined : true });
+      e.configureBgp(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?bgp fast-external-fallover$/i,
+    syntax: ['bgp fast-external-fallover', 'no bgp fast-external-fallover'],
+    modes: ['router'],
+    run: (m, e, d, c) => {
+      if (c.router !== 'bgp') throw new Error('Requires BGP router mode.');
+      const value = config(d);
+      if (m[1]) value.fastExternalFallover = false;
+      else delete value.fastExternalFallover;
+      e.configureBgp(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?neighbor ([\w.-]+) password(?: ([07]))?(?: (\S+))?$/i,
     modes: ['router'],
     run: (m, e, d) => {
       const value = config(d);
-      if (!m[1] && !m[3]) throw new Error('Password is required.');
-      patchNeighbor(value, m[2], { password: m[1] ? undefined : m[3] });
+      if (!m[1] && !m[4]) throw new Error('Password is required.');
+      patchNeighbor(value, m[2], { password: m[1] ? undefined : readSecret(m[3], m[4]) });
       e.configureBgp(d.id, value);
     },
   });
@@ -154,6 +190,9 @@ export function registerBgpCommands(registry: CommandRegistry) {
         routerId,
         autoRouterId: old?.autoRouterId ?? true,
         holdMs: old?.holdMs ?? 90000,
+        ...(old?.fastExternalFallover !== undefined
+          ? { fastExternalFallover: old.fastExternalFallover }
+          : {}),
         networks: old?.networks ?? [],
         neighbors: old?.neighbors ?? [],
         peerGroups: old?.peerGroups,
@@ -333,8 +372,10 @@ export function bgpRunningConfig(device: Device) {
     ...(p.updateSource
       ? [`neighbor ${name} update-source ${device.interfaces.find((i) => i.id === p.updateSource)!.name}`]
       : []),
+    ...(p.ebgpMultihop ? [`neighbor ${name} ebgp-multihop ${p.ebgpMultihop}`] : []),
+    ...(p.disableConnectedCheck ? [`neighbor ${name} disable-connected-check`] : []),
     ...(p.maximumPrefix ? [`neighbor ${name} maximum-prefix ${p.maximumPrefix}`] : []),
-    ...(p.password ? [`neighbor ${name} password 0 ${p.password}`] : []),
+    ...(p.password ? [`neighbor ${name} password ${printSecret(device, p.password)}`] : []),
     ...(['import', 'export'] as const).flatMap((direction) => {
       const prefix = p[`${direction}PrefixList`],
         map = p[`${direction}RouteMap`],
@@ -370,6 +411,7 @@ export function bgpRunningConfig(device: Device) {
         `router bgp ${state.asn}`,
         `bgp router-id ${state.routerId}`,
         `bgp hold-time ${state.holdMs / 1000}`,
+        ...(state.fastExternalFallover === false ? ['no bgp fast-external-fallover'] : []),
         ...(state.peerGroups ?? []).flatMap((g) => [
           `neighbor ${g.name} peer-group`,
           ...options(g.name, g.settings),

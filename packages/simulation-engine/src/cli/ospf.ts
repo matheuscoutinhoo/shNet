@@ -1,6 +1,7 @@
 import type { Device, NetworkInterface, OspfConfig } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { readSecret } from './secrets';
 import { showOspfNeighbors } from './ios-show';
 import { defaultOspfNetworkType, newOspfInterfaceSettings, selectOspfRouterId } from '../protocols/ospf';
 import { OSPF } from '../protocols/ospf-model';
@@ -73,7 +74,7 @@ export function registerOspfCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^(no )?ip ospf message-digest-key (\d+)(?: md5(?: 0)? (\S+))?$/i,
+    pattern: /^(no )?ip ospf message-digest-key (\d+)(?: md5(?: ([07]))? (\S+))?$/i,
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c),
@@ -83,9 +84,10 @@ export function registerOspfCommands(registry: CommandRegistry) {
         if (p.ospfAuthentication?.keyId === keyId)
           p.ospfAuthentication = { enabled: p.ospfAuthentication.enabled };
       } else {
-        if (!m[3] || new TextEncoder().encode(m[3]).length > 16)
+        const key = m[4] ? readSecret(m[3], m[4]) : undefined;
+        if (!key || new TextEncoder().encode(key).length > 16)
           throw new Error('MD5 key must contain 1..16 bytes.');
-        p.ospfAuthentication = { enabled: p.ospfAuthentication?.enabled ?? false, keyId, key: m[3] };
+        p.ospfAuthentication = { enabled: p.ospfAuthentication?.enabled ?? false, keyId, key };
       }
       if (d.ospf) e.configureOspf(d.id, configuration(d));
     },

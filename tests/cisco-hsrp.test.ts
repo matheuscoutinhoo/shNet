@@ -4,6 +4,7 @@ import {
   TerminalSession,
   validateSnapshot,
   configurationDiff,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 import { hsrpMac } from '../packages/simulation-engine/src/protocols/hsrp-model';
 import { cloneTopology } from '../apps/web/src/workspace/cloneTopology';
@@ -169,7 +170,9 @@ describe('HSRP over simulated UDP', () => {
     commands(cli, ['write memory']);
     const restored = new SimulationEngine(e.snapshot()),
       rcli = new TerminalSession(restored, a.id);
-    commands(rcli, ['en', 'reload', '', 'en']);
+    commands(rcli, ['en', 'reload', '']);
+    restored.advanceTo(restored.state.clock + RELOAD_BOOT_MS);
+    commands(rcli, ['en']);
     expect(rcli.execute('show standby')).toContain('Group 4095 (version 2)');
     expect(restored.device(a.id).hsrp!.groups[0].state).toBe('SPEAK');
     validateSnapshot(restored.snapshot());

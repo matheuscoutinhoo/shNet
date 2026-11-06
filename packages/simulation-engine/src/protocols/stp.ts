@@ -523,7 +523,8 @@ function receiveClassic(engine: SimulationEngine, device: Device, port: NetworkI
     bpdu.age >= STP.maxAge
   )
     return;
-  const current = port.spanningTree!;
+  const current = port.spanningTree;
+  if (!current) return;
   if (current.guardInconsistent === 'loop') delete current.guardInconsistent;
   engine.emit(
     'BPDU_RECEIVED',
@@ -835,6 +836,9 @@ export function configureMultiSpanningTree(e: SimulationEngine, d: Device, input
 }
 export function receiveBpdu(e: SimulationEngine, d: Device, p: NetworkInterface, f: Frame) {
   const b = f.bpdu;
+  // IOS routed (no switchport) interfaces do not run spanning tree: BPDUs are discarded
+  // and BPDU Guard does not apply.
+  if (p.mode === 'routed') return;
   if (b && p.bpduGuard && !p.errDisabled && p.adminUp) {
     p.errDisabled = { reason: 'bpduguard', at: e.state.clock };
     d.macTable = d.macTable.filter((entry) => entry.port !== p.id);

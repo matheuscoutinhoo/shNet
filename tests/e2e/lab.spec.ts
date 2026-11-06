@@ -90,8 +90,19 @@ test('Cisco CLI: edição, ajuda, senha oculta e startup sobrevivem à restaura�
   await command('no');
   await expect(terminal).toContainText('[confirm]');
   await command('');
-  await command('en');
-  await expect(terminal).toContainText('Password:');
+  await expect(terminal).toContainText('Reload requested');
+  // The router is down while it boots from NVRAM (60 s of simulated time): step to the boot event.
+  const nextEvent = page.getByRole('button', { name: 'Próximo evento', exact: true });
+  await expect
+    .poll(
+      async () => {
+        if (await nextEvent.isEnabled()) await nextEvent.click();
+        await command('en');
+        return (await terminal.textContent())?.includes('Password:');
+      },
+      { timeout: 20000 }
+    )
+    .toBe(true);
   await page.keyboard.type('never-display-this-password');
   await expect(terminal).not.toContainText('never-display-this-password');
   await page.keyboard.press('Enter');

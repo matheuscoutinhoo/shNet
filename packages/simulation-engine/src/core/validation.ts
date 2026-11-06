@@ -147,6 +147,26 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   for (const device of s.devices) if (checkDevice(device.id)) validateAcls(device);
   validateNatSnapshot(s);
   validateSpanningTree(s);
+  // A reload in progress keeps the device off with exactly one boot timer for its token.
+  const boots = s.queue.filter((q) => q.action.kind === 'device-boot');
+  for (const d of s.devices) {
+    if (!checkDevice(d.id) || !d.reloading) continue;
+    const timers = boots.filter((q) => 'device' in q.action && q.action.device === d.id);
+    if (
+      d.power ||
+      timers.length !== 1 ||
+      timers[0].at !== d.reloading.at ||
+      (timers[0].action as { token: string }).token !== d.reloading.token
+    )
+      throw new Error('Recarga inconsistente com o temporizador de inicialização.');
+  }
+  for (const q of boots) {
+    const action = q.action as { device: string; token: string };
+    if (!checkDevice(action.device)) continue;
+    const d = s.devices.find((entry) => entry.id === action.device);
+    if (!d?.reloading || d.reloading.token !== action.token)
+      throw new Error('Temporizador de inicialização sem recarga correspondente.');
+  }
   const unique = (values: string[], label: string) => {
     if (new Set(values).size !== values.length) throw new Error(label + ' duplicado');
   };

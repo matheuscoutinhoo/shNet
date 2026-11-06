@@ -4,6 +4,7 @@ import {
   TerminalSession,
   validateSnapshot,
   configurationDiff,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 import { releaseDhcp } from '../packages/simulation-engine/src/protocols/dhcp-client';
 
@@ -37,7 +38,9 @@ describe('Cisco enterprise audit regressions', () => {
     expect(t.context.mode).toBe('vrf');
     commands(t, ['address-family ipv6', 'exit', 'exit']);
     expect(t.context.mode).toBe('config');
-    commands(t, ['end', 'write memory', 'reload', '', 'en']);
+    commands(t, ['end', 'write memory', 'reload', '']);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    commands(t, ['en']);
     expect(e.device(d.id).vrfs).toEqual(['CORP']);
   });
   it('reports device uptime from boot and reload rather than the lab clock', () => {
@@ -52,9 +55,12 @@ describe('Cisco enterprise audit regressions', () => {
     e.advanceTo(62000);
     expect(t.execute('show version')).toContain('uptime: 2.000');
     expect(configurationDiff(before, e.snapshot())).toEqual([]);
-    commands(t, ['reload', 'no', '', 'en']);
+    commands(t, ['reload', 'no', '']);
+    // Uptime restarts when the reload finishes booting.
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    commands(t, ['en']);
     expect(t.execute('show version')).toContain('uptime: 0.000');
-    expect(e.state.clock).toBe(62000);
+    expect(e.state.clock).toBe(62000 + RELOAD_BOOT_MS);
   });
   it('relays DHCP on multilayer SVIs only through active HSRP and recovers after primary failure', () => {
     const e = new SimulationEngine(),

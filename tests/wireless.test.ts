@@ -175,7 +175,13 @@ describe('Rádio, autenticação e associação wireless', () => {
     ])
       expect(t.execute(cmd)).not.toMatch(/^%/);
     expect(t.execute('show wireless radio')).toContain('canal=36');
-    expect(t.execute('show running-config')).toContain('key [configured]');
+    // Clear text by default (as IOS); type 7 once service password-encryption is enabled.
+    expect(t.execute('show running-config')).toContain('key Wireless-123 channel 36');
+    t.execute('conf t');
+    t.execute('service password-encryption');
+    t.execute('end');
+    expect(t.execute('show running-config')).toMatch(/key 7 \d{2}[0-9A-F]+ channel 36/);
+    expect(t.execute('show running-config')).not.toContain('Wireless-123');
     expect(d.logs.join(' ')).not.toContain('Wireless-123');
     expect(e.state.events.map((v) => v.reason).join(' ')).not.toContain('Wireless-123');
     t.execute('conf t');

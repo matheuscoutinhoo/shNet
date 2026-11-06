@@ -288,7 +288,10 @@ export function receiveTcp(
     ack = packet.flags.includes('ACK');
   if (!connection) {
     const service =
-      !packet.family && !vrf && packet.destinationPort === 179 && canListenBgp(device, packet.src)
+      !packet.family &&
+      !vrf &&
+      packet.destinationPort === 179 &&
+      canListenBgp(device, packet.src, engine.state)
         ? { kind: 'bgp' as const, body: '' }
         : !vrf && packet.destinationPort === 53 && device.dnsServer?.enabled
           ? { kind: 'dns' as const, body: '' }

@@ -5,13 +5,14 @@ import type { Device, Snapshot } from '../model';
 import { tcpBytes, tcpFinished, type TcpConnection, TCP } from './tcp-model';
 import { openTcp, closeTcp, writeTcp } from './tcp';
 import { isUnicast } from './dhcp-config';
-import { ipNumber } from './ipv4';
+import { ipNumber, sameSubnet } from './ipv4';
 import {
   BGP,
   bgpConfigSchema,
   bgpMessageSchema,
   bgpPrefixKey,
   type BgpMessage,
+  type BgpNeighbor,
   type BgpPeer,
   type BgpTimer,
 } from './bgp-model';
@@ -30,6 +31,9 @@ export function bgpConfig(device: Device) {
         routerId: state.routerId,
         ...(state.autoRouterId !== undefined ? { autoRouterId: state.autoRouterId } : {}),
         holdMs: state.holdMs,
+        ...(state.fastExternalFallover !== undefined
+          ? { fastExternalFallover: state.fastExternalFallover }
+          : {}),
         networks: structuredClone(state.networks),
         neighbors: structuredClone(state.neighbors),
         peerGroups: structuredClone(state.peerGroups),
@@ -223,13 +227,32 @@ export function configureBgp(engine: SimulationEngine, device: Device, input: un
     `BGP AS ${config.asn} ${config.enabled ? 'ativado' : 'desativado'}.`
   );
 }
-export function canListenBgp(device: Device, ip: string) {
+export function canListenBgp(device: Device, ip: string, snapshot: Snapshot) {
+  const neighbor = device.bgp?.neighbors.find((n) => n.ip === ip);
   return (
     device.bgp?.enabled &&
-    device.bgp.neighbors.some((neighbor) => neighbor.ip === ip) &&
+    !!neighbor &&
     !device.bgp.peers.find((p) => p.ip === ip)?.maximumPrefixExceeded &&
-    (!device.bgp.neighbors.find((n) => n.ip === ip)?.bfd ||
-      bfdPeerAvailable(device, ip, device.bgp.neighbors.find((n) => n.ip === ip)?.bfdStrict))
+    (!singleHopEbgp(device.bgp, neighbor) || !!connectedPort(snapshot, device, ip)) &&
+    (!neighbor.bfd || bfdPeerAvailable(device, ip, neighbor.bfdStrict))
+  );
+}
+/** eBGP without ebgp-multihop or disable-connected-check: IOS requires a directly connected peer. */
+export function singleHopEbgp(state: NonNullable<Device['bgp']>, neighbor: BgpNeighbor) {
+  return (
+    neighbor.remoteAs !== state.asn && (neighbor.ebgpMultihop ?? 1) <= 1 && !neighbor.disableConnectedCheck
+  );
+}
+/** The operational interface whose subnet contains the peer address, if any. */
+export function connectedPort(snapshot: Snapshot, device: Device, ip: string) {
+  return device.interfaces.find(
+    (p) =>
+      !p.vrf &&
+      p.ip &&
+      p.ip !== ip &&
+      p.prefix !== undefined &&
+      sameSubnet(p.ip, ip, p.prefix) &&
+      interfaceOperational(snapshot, device, p)
   );
 }
 export function bgpBfdDown(engine: SimulationEngine, device: Device, port: string, ip: string) {
@@ -280,13 +303,26 @@ export function refreshBgp(engine: SimulationEngine) {
     if (!device.bgp?.enabled) continue;
     for (const peer of device.bgp.peers) {
       const connection = device.tcpConnections?.find((entry) => entry.id === peer.connection);
-      const route = bgpNextHop(device, peer.ip, engine.state);
-      const usable = route && interfaceOperational(engine.state, device, route.port);
+      const neighbor = device.bgp.neighbors.find((n) => n.ip === peer.ip);
+      const direct = !!neighbor && singleHopEbgp(device.bgp, neighbor);
+      const route = direct ? undefined : bgpNextHop(device, peer.ip, engine.state);
+      const usable = direct
+        ? !!connectedPort(engine.state, device, peer.ip)
+        : !!route && interfaceOperational(engine.state, device, route.port);
+      // Without fast-external-fallover a directly connected eBGP session waits for its hold timer.
+      const lost = connection && !usable && (!direct || device.bgp.fastExternalFallover !== false);
       if (
-        (!device.power || (connection && !connectionOpen(connection)) || (connection && !usable)) &&
+        (!device.power || (connection && !connectionOpen(connection)) || lost) &&
         (peer.state !== 'Idle' || connections(device, peer.ip).length)
       )
-        resetPeer(engine, device, peer, 'Energia, interface ou TCP indisponível');
+        resetPeer(
+          engine,
+          device,
+          peer,
+          lost && direct
+            ? 'Interface do vizinho eBGP caiu (fast-external-fallover)'
+            : 'Energia, interface ou TCP indisponível'
+        );
     }
     synchronize(engine, device);
   }
@@ -337,6 +373,10 @@ export function handleBgpTick(engine: SimulationEngine, action: BgpTimer) {
         peer.keepaliveAt = engine.state.clock + peer.holdMs! / 3;
     } else if (!active.length && !config.passive && peer.retryAt <= engine.state.clock) {
       peer.retryAt = engine.state.clock + BGP.retryMs;
+      if (singleHopEbgp(state, config) && !connectedPort(engine.state, device, peer.ip)) {
+        peerState(engine, device, peer, 'Active');
+        continue;
+      }
       try {
         const source = config.updateSource
           ? device.interfaces.find((p) => p.id === config.updateSource)

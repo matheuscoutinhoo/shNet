@@ -36,6 +36,9 @@ export const bgpNeighborSchema = z
     bfdStrict: z.boolean().optional(),
     peerGroup: z.string().max(32).optional(),
     peerGroupOverrides: z.array(z.string().max(32)).max(32).optional(),
+    // eBGP peers must share a connected subnet unless multihop (TTL > 1) or the check is disabled.
+    ebgpMultihop: z.number().int().min(1).max(255).optional(),
+    disableConnectedCheck: z.boolean().optional(),
   })
   .strict();
 const configShape = {
@@ -44,6 +47,8 @@ const configShape = {
   routerId: ipv4Schema,
   autoRouterId: z.boolean().optional(),
   holdMs: z.number().int().min(3000).max(180000).multipleOf(1000).default(90000),
+  // IOS default (undefined): a directly connected eBGP session drops as soon as its link goes down.
+  fastExternalFallover: z.boolean().optional(),
   networks: z.array(prefix).max(128),
   neighbors: z.array(bgpNeighborSchema).max(32),
   peerGroups: z

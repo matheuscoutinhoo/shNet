@@ -941,6 +941,10 @@ export const deviceSchema = z
     bootManaged: z.boolean().optional(),
     booted: z.boolean().optional(),
     bootStartedAt: finite.nonnegative().optional(),
+    // "reload" in progress: the device is off until the boot timer fires at "at".
+    reloading: z.object({ token: id, at: finite.nonnegative() }).strict().optional(),
+    // startup-config lines rejected during the last boot (IOS prints them on the console).
+    bootLog: z.array(z.string().max(400)).max(64).optional(),
     loopGuardDefault: z.boolean().optional(),
     iosSystem: iosSystemSchema.optional(),
     monitoring: monitoringSchema.optional(),
@@ -1341,6 +1345,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   tcpTimerSchema,
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
+  z.object({ kind: z.literal('device-boot'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('quorum-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('database-client-tick'), device: id, token: id }).strict(),

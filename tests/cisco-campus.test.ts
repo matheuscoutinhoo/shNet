@@ -3,6 +3,7 @@ import {
   SimulationEngine,
   TerminalSession,
   validateSnapshot,
+  RELOAD_BOOT_MS,
   type Frame,
 } from '../packages/simulation-engine/src';
 import { permitPacket } from '../packages/simulation-engine/src/protocols/acl';
@@ -47,7 +48,9 @@ describe('native Cisco campus and policy workflows', () => {
     };
     expect(permitPacket(e, d, d.interfaces[0], 'in', packet)).toBe(false);
     expect(permitPacket(e, d, d.interfaces[0], 'in', { ...packet, flags: ['ACK'] })).toBe(true);
-    run(t, ['write memory', 'reload', '', 'en']);
+    run(t, ['write memory', 'reload', '']);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    run(t, ['en']);
     expect(e.device(d.id).accessLists?.[0].rules[0].established).toBe(true);
   });
   it('native PAT may be configured before addressing and translates real return traffic', () => {
@@ -84,7 +87,9 @@ describe('native Cisco campus and policy workflows', () => {
     run(t, ['conf t', 'interface Gi0/2', 'ip address 203.0.113.2 255.255.255.0', 'end']);
     expect(r.nat?.bindings).toEqual([]);
     expect(e.state.queue.some((q) => q.action.kind === 'nat-expire' && q.action.device === r.id)).toBe(false);
-    run(t, ['write memory', 'reload', '', 'en']);
+    run(t, ['write memory', 'reload', '']);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    run(t, ['en']);
     expect(e.device(r.id).nat?.interfaceRules).toHaveLength(1);
   });
   it('native snooping, DAI and per-port source guard enforce bindings', () => {
@@ -133,7 +138,9 @@ describe('native Cisco campus and policy workflows', () => {
     expect(permitDhcpSnooping(e, sw, sw.interfaces[0], packet, 10)).toBe(false);
     expect(permitDhcpSnooping(e, sw, sw.interfaces[2], packet, 10)).toBe(true);
     validateSnapshot(e.snapshot());
-    run(t, ['write memory', 'reload', '', 'en']);
+    run(t, ['write memory', 'reload', '']);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    run(t, ['en']);
     expect(e.device(sw.id).dhcpSnooping?.sourceGuardPorts).toEqual(['p0']);
   });
   it('port security learns the allowed MAC and shuts down a violating port', () => {

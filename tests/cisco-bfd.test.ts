@@ -5,6 +5,7 @@ import {
   validateSnapshot,
   exportPcap,
   decodePcap,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 import { encodeBfd, decodeBfd } from '../packages/simulation-engine/src/wire/bfd-codec';
 it('BFD wire control packets preserve discriminators and microsecond timers', () => {
@@ -72,6 +73,10 @@ it('native BFD removes an OSPF adjacency before its dead timer and recovers over
   expect(decodePcap(capture.bytes).some((p) => p.frame.transport?.bfd?.state === 'Up')).toBe(true);
   const t = new TerminalSession(e, a.id);
   for (const c of ['en', 'write memory', 'reload', '']) expect(t.execute(c), c).not.toMatch(/^%/);
-  expect(e.device(a.id).interfaces[0].bfd?.sessions).toEqual([]);
+  // The reload drops the device; it boots with fresh BFD runtime and the session comes back.
+  e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+  expect(e.device(a.id).interfaces[0].bfd?.sessions ?? []).toEqual([]);
   validateSnapshot(e.snapshot());
+  e.advanceTo(e.state.clock + 60000);
+  expect(e.device(a.id).interfaces[0].bfd?.sessions[0]?.state).toBe('Up');
 });

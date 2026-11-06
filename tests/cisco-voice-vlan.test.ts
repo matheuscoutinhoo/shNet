@@ -5,6 +5,7 @@ import {
   validateSnapshot,
   encodeEthernet,
   decodeEthernet,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 import { phoneVoiceVlan } from '../packages/simulation-engine/src/protocols/voice-vlan';
 import { cloneTopology } from '../apps/web/src/workspace/cloneTopology';
@@ -138,7 +139,7 @@ describe('CDP voice VLAN provisioning and tagged calls', () => {
     const { e, switches, phones } = network(),
       t = new TerminalSession(e, switches[0].id);
     run(t, ['en', 'write memory', 'reload', '']);
-    e.advanceTo(6000);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS + 6000);
     const reloadedPhone = e.device(phones[0].id);
     expect(phoneVoiceVlan(e.state, reloadedPhone, reloadedPhone.interfaces[0])).toBe(30);
     const source = e.snapshot(),
@@ -151,7 +152,7 @@ describe('CDP voice VLAN provisioning and tagged calls', () => {
         (d) => d.id !== phones[0].id && d.id !== phones[1].id && d.profile === 'phone'
       )!;
     expect(phone.discovery?.neighbors).toEqual([]);
-    s.advanceTo(12000);
+    s.advanceTo(s.state.clock + 6000);
     const neighbor = phone.discovery!.neighbors.find((n) => n.voiceVlan !== undefined)!;
     expect(neighbor).toBeDefined();
     expect(neighbor.voiceVlan).not.toBe(30);

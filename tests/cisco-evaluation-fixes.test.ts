@@ -5,6 +5,7 @@ import {
   linkOperational,
   preflight,
   validateSnapshot,
+  RELOAD_BOOT_MS,
   type Device,
 } from '../packages/simulation-engine/src';
 
@@ -484,9 +485,13 @@ describe('IOS output fidelity and preflight signal', () => {
 });
 
 describe('startup-config persistence and the IOS reload dialog', () => {
+  const RELOADED = /%SYS-5-RELOAD: Reload requested by console/;
   const reload = (t: TerminalSession, ...answers: string[]) => {
     expect(t.execute('reload')).toBe('');
-    return answers.map((answer) => t.execute(answer));
+    const output = answers.map((answer) => t.execute(answer));
+    // A confirmed reload takes the device down until it finishes booting from NVRAM.
+    if (output.some((text) => RELOADED.test(text))) t.engine.advanceTo(t.engine.state.clock + RELOAD_BOOT_MS);
+    return output.map((text) => (RELOADED.test(text) ? 'Reload requested.' : text));
   };
 
   it('access switches with NTP and management save and reload their configuration', () => {
@@ -511,7 +516,7 @@ describe('startup-config persistence and the IOS reload dialog', () => {
     expect(t.execute('write memory')).toBe('Building configuration...\n[OK]');
     const running = t.execute('show running-config');
     expect(running).not.toContain('clock configure');
-    expect(reload(t, '')).toEqual(['Reload complete.']);
+    expect(reload(t, '')).toEqual(['Reload requested.']);
     run(t, ['enable']);
     expect(t.execute('show running-config')).toBe(running);
     expect(e.device(d.id).hostname).toBe('ACC-1');
@@ -583,11 +588,11 @@ describe('startup-config persistence and the IOS reload dialog', () => {
     t.cancel();
     expect(t.prompt).toBe('UNSAVED#');
     expect(e.device(d.id).hostname).toBe('UNSAVED');
-    expect(reload(t, 'no', '')).toEqual(['', 'Reload complete.']);
+    expect(reload(t, 'no', '')).toEqual(['', 'Reload requested.']);
     expect(e.device(d.id).hostname).toBe('SAVED');
     expect(t.prompt).toBe('SAVED>');
     run(t, ['enable', 'configure terminal', 'hostname KEEP', 'end']);
-    expect(reload(t, 'yes', 'y')).toEqual(['Building configuration...\n[OK]', 'Reload complete.']);
+    expect(reload(t, 'yes', 'y')).toEqual(['Building configuration...\n[OK]', 'Reload requested.']);
     expect(e.device(d.id).hostname).toBe('KEEP');
     run(t, ['enable']);
     expect(reload(t, 'n')).toEqual(['']);

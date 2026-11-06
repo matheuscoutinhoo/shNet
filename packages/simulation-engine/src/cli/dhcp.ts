@@ -553,7 +553,7 @@ export function dhcpRunningConfig(device: Device): string[] {
     .flatMap((port) => [
       'interface ' + port.name,
       ...port.dhcpRelay!.map((address) => ' ip helper-address ' + address),
-      ' exit',
+      'exit',
     ]);
   const c = device.dhcpSnooping;
   const snooping = c

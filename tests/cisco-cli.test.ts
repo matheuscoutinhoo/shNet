@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { SimulationEngine, TerminalSession, validateSnapshot } from '../packages/simulation-engine/src';
+import {
+  SimulationEngine,
+  TerminalSession,
+  validateSnapshot,
+  RELOAD_BOOT_MS,
+} from '../packages/simulation-engine/src';
 import { resolveRoute } from '../packages/simulation-engine/src/protocols/ipv4';
 
 function fixture(profile = 'router') {
@@ -70,8 +75,9 @@ describe('Cisco CLI behavior', () => {
       'write memory',
       'reload',
       '',
-      'en',
     ]);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+    run(cli, ['en']);
     const d = e.device(id);
     expect(resolveRoute(d, '203.0.113.10', undefined, e.state)).toMatchObject({
       port: { id: 'p0' },
@@ -93,6 +99,7 @@ describe('Cisco CLI behavior', () => {
       'reload',
       '',
     ]);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
     expect(e.device(sw.id).interfaces[0].allowedVlans).toEqual([]);
     validateSnapshot(e.snapshot());
   });
@@ -219,6 +226,7 @@ describe('Cisco CLI behavior', () => {
     run(rcli, ['enable', 'reload']);
     expect(rcli.prompt).toBe('System configuration has been modified. Save? [yes/no]:');
     run(rcli, ['no', '']);
+    restored.advanceTo(restored.state.clock + RELOAD_BOOT_MS);
     expect(restored.device(id).hostname).toBe('SAVED');
     expect(restored.device(id).interfaces[0].ip).toBe('192.0.2.1');
     expect(restored.device(id).interfaces[0].mtu).toBe(1400);
@@ -226,6 +234,7 @@ describe('Cisco CLI behavior', () => {
     run(rcli, ['enable', 'erase startup-config']);
     expect(restored.device(id).hostname).toBe('SAVED');
     run(rcli, ['reload', 'no', '']);
+    restored.advanceTo(restored.state.clock + RELOAD_BOOT_MS);
     expect(restored.device(id).interfaces[0].ip).toBeUndefined();
     expect(restored.device(id).hostname).toBe('Router');
     validateSnapshot(restored.snapshot());

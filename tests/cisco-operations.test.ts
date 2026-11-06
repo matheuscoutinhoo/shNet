@@ -4,6 +4,7 @@ import {
   TerminalSession,
   resolveRoute,
   validateSnapshot,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 const run = (t: TerminalSession, lines: string[]) => {
   for (const line of lines) expect(t.execute(line), line).not.toMatch(/^%/);
@@ -51,8 +52,9 @@ it('IP SLA observes actual ICMP, drives HSRP priority and withdraws a tracked st
   expect(r.monitoring?.tracks[0].state).toBe(true);
   expect(resolveRoute(r, '198.51.100.10')).toBeDefined();
   validateSnapshot(e.snapshot());
-  run(t, ['write memory', 'reload', '', 'en']);
-  e.advanceTo(12000);
+  run(t, ['write memory', 'reload', '']);
+  e.advanceTo(e.state.clock + RELOAD_BOOT_MS + 12000);
+  run(t, ['en']);
   expect(e.device(r.id).monitoring?.tracks[0].state).toBe(true);
   validateSnapshot(e.snapshot());
 });
@@ -97,7 +99,9 @@ it('native NTP server activates real synchronization rather than storing a comma
   e.advanceTo(3000);
   expect(d.ntp?.synchronized).toBe(true);
   expect(Math.abs(d.networkClock!.offsetMs)).toBeLessThan(1);
-  run(t, ['write memory', 'reload', '', 'en']);
+  run(t, ['write memory', 'reload', '']);
+  e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+  run(t, ['en']);
   expect(e.device(d.id).ntp?.servers).toEqual(['192.0.2.2']);
   validateSnapshot(e.snapshot());
 });

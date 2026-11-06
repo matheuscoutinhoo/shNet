@@ -5,6 +5,7 @@ import {
   validateSnapshot,
   exportPcap,
   decodePcap,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 import { encodeEthernet, decodeEthernet } from '../packages/simulation-engine/src/wire/ethernet-codec';
 
@@ -87,10 +88,11 @@ describe('CDP and LLDP advertisements', () => {
     const restored = new SimulationEngine(e.snapshot()),
       rcli = new TerminalSession(restored, a.id);
     configure(rcli, ['en', 'reload', '']);
+    restored.advanceTo(restored.state.clock + RELOAD_BOOT_MS);
     expect(restored.device(a.id).discovery!.neighbors).toEqual([]);
     expect(restored.device(a.id).discovery!.cdpTimer).toBe(10);
     expect(restored.device(a.id).interfaces[1].lldpTransmit).toBe(false);
-    restored.advanceTo(200);
+    restored.advanceTo(restored.state.clock + 100);
     validateSnapshot(restored.snapshot());
     const invalid = restored.snapshot();
     invalid.queue = invalid.queue.filter((q) => q.action.kind !== 'discovery-tick');

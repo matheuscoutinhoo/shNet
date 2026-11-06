@@ -2,6 +2,7 @@ import type { SimulationEngine } from '../core/engine';
 import type { AclRule, Device, NetworkInterface } from '../model';
 import { bgpCandidates, bestBgpPaths } from '../protocols/bgp-routing';
 import { bgpPrefixKey } from '../protocols/bgp-model';
+import { connectedPort, singleHopEbgp } from '../protocols/bgp';
 import { bridgeId, portCost } from '../protocols/stp-election';
 import { ipNumber, ipString, mask } from '../protocols/ipv4';
 import { interfaceOperational } from '../protocols/layer3';
@@ -145,13 +146,19 @@ export function showBgpNeighbors(e: SimulationEngine, d: Device) {
     .map((peer) => {
       const config = state.neighbors.find((n) => n.ip === peer.ip)!;
       const since = peer.state === 'Established' ? peer.establishedAt : peer.changedAt;
+      const external = config.remoteAs !== state.asn;
       return [
-        `BGP neighbor is ${peer.ip},  remote AS ${config.remoteAs}, ${config.remoteAs === state.asn ? 'internal' : 'external'} link`,
+        `BGP neighbor is ${peer.ip},  remote AS ${config.remoteAs}, ${external ? 'external' : 'internal'} link`,
         `  BGP version 4, remote router ID ${peer.remoteId ?? '0.0.0.0'}`,
         `  BGP state = ${peer.state}` +
           (since !== undefined
             ? `, ${peer.state === 'Established' ? 'up' : 'down'} for ${clock(e.state.clock - since)}`
             : ''),
+        ...(external && (config.ebgpMultihop ?? 1) > 1
+          ? [`  External BGP neighbor may be up to ${config.ebgpMultihop} hops away.`]
+          : singleHopEbgp(state, config) && !connectedPort(e.state, d, peer.ip)
+            ? ['  External BGP neighbor not directly connected.']
+            : []),
         `  Message statistics: ${peer.sent} sent, ${peer.received} received`,
         `  Prefixes received ${state.rib.filter((p) => p.peer === peer.ip).length}, advertised ${peer.advertised.length}`,
       ].join('\n');
