@@ -58,12 +58,13 @@ export function updateSystem(
   c.temperatureC = target + (c.temperatureC - target) * Math.exp(-elapsed / 30000);
   c.throttled = c.temperatureC >= c.thermalLimitC;
   const rollover = s.clock - c.windowAt >= 1000;
-  // Memory is the size of the device's tables. Like a memory poll it is sampled by the metrics
-  // refresh and once per CPU window; serializing the device for every packet is far too costly.
-  if (environment !== undefined || rollover) {
+  // Memory is the size of the device's tables. Like a memory poll it is sampled at most once per
+  // simulated second; serializing the device for every packet or UI refresh is far too costly.
+  if (c.memoryAt === undefined || s.clock - c.memoryAt >= 1000) {
     const state = { ...d };
     delete state.system;
     c.memoryKiB = 64 + Math.ceil(new TextEncoder().encode(JSON.stringify(state)).length / 1024);
+    c.memoryAt = s.clock;
   }
   c.lastAt = s.clock;
   if (rollover) {

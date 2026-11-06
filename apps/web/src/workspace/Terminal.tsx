@@ -162,7 +162,16 @@ export function Terminal({
       appendTerminalOutput(state, coloredTerminalInput(state.prompt, cli.displayInput(input)) + '\r\n');
       // Password and reload-dialog answers have no command mark, so they use a full checkpoint.
       const dialog = cli.secretInput || !!cli.context.confirm;
-      const output = labRef.current.change(() => cli.execute(input), dialog, true, true);
+      // Reading state (show, enable, mode changes) neither pauses the simulation nor creates
+      // unsaved changes, unless the command still produced records (e.g. AAA accounting).
+      const lab = labRef.current,
+        sequence = lab.engine.state.sequence;
+      const output =
+        !dialog && cli.readOnly(input)
+          ? cli.execute(input)
+          : lab.change(() => cli.execute(input), dialog, true, true);
+      if (lab.engine.state.sequence !== sequence && !cli.lastMark)
+        lab.change(() => undefined, false, true, true);
       const changed = !!cli.lastMark;
       if (undoStep && cli.lastMark) labRef.current.remember(cli.lastMark);
       const shown = output && localized(output);

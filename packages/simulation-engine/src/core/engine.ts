@@ -367,6 +367,18 @@ export class SimulationEngine {
   private refreshDeferred = 0;
   // Set by every non-traffic event: carrier, STP, bundle, tracking or routing state may have changed.
   private networkDirty = true;
+  // Devices an event, emitted record or timer may have changed since takeTouched() (UI deltas).
+  private touched?: Set<string>;
+  /** Starts (or restarts) recording which devices events touch; see takeTouched(). */
+  trackTouched() {
+    this.touched = new Set();
+  }
+  /** Devices touched since the last call, or undefined when tracking is off. */
+  takeTouched() {
+    const touched = this.touched;
+    if (touched) this.touched = new Set();
+    return touched;
+  }
   /** Compact rollback point that also records which devices a local edit changes (see StateMark). */
   mark(): StateMark {
     this.lastMark = markState(this.state, this.lastMark);
@@ -1376,6 +1388,7 @@ export class SimulationEngine {
     }
     const traffic = isTraffic(type);
     if (!traffic) this.networkDirty = true;
+    this.touched?.add(device);
     // Protocol traffic (PDUs and keepalives sent or received) changes no carrier, bundle or
     // routing input by itself; the resulting state changes are reported by their own events.
     if (
@@ -1472,9 +1485,11 @@ export class SimulationEngine {
     this.emit('PACKET_DROPPED', d.id, why, { port, frame });
   }
   schedule(delay: number, action: Action) {
+    if (this.touched && 'device' in action) this.touched.add(action.device as string);
     enqueue(this.state, delay, structuredClone(action));
   }
   scheduleAt(at: number, action: Action) {
+    if (this.touched && 'device' in action) this.touched.add(action.device as string);
     enqueueAt(this.state, at, structuredClone(action));
   }
   sendFrame(deviceId: string, portId: string, frame: Frame) {
@@ -1843,6 +1858,7 @@ export class SimulationEngine {
     if (settle) this.refreshNetwork(false);
     const item = this.state.queue.shift();
     if (!item) return false;
+    if (this.touched && 'device' in item.action) this.touched.add(item.action.device as string);
     this.state.clock = item.at;
     refreshInfrastructure(this);
     expireDeviceCaches(this.state);

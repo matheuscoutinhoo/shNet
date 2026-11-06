@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   LIMITS,
   SimulationEngine,
+  SimulationRunner,
   ScenarioRunner,
+  applySimulationDelta,
+  validateSnapshot,
   TerminalSession,
   makeTemplate,
   type Device,
@@ -664,3 +667,28 @@ describe('NTP like IOS', () => {
     expect(ntp.failures).toBeLessThanOrEqual(5);
   });
 });
+
+describe('simulation fast paths keep results exact', () => {
+  it('incremental worker deltas keep a large lab mirror valid, and sync() makes it exact', () => {
+    const snapshot = makeTemplate('factory');
+    expect(snapshot.devices.length).toBeGreaterThan(40);
+    const reference = new SimulationEngine(snapshot),
+      main = new SimulationEngine(snapshot),
+      runner = new SimulationRunner(snapshot),
+      target = reference.state.clock + 3000;
+    reference.advanceTo(target, 2_000_000);
+    let deltas = 0;
+    while (
+      deltas < 5000 &&
+      (runner.engine.state.clock < target || (runner.engine.state.queue[0]?.at ?? Infinity) <= target)
+    ) {
+      applySimulationDelta(main.state, structuredClone(runner.advanceUntil(target, 1)));
+      if (++deltas % 25 === 0) validateSnapshot(main.snapshot());
+    }
+    expect(deltas).toBeGreaterThan(FULL_SWEEP_SPAN);
+    expect(runner.engine.snapshot()).toEqual(reference.snapshot());
+    applySimulationDelta(main.state, structuredClone(runner.sync()));
+    expect(main.snapshot()).toEqual(reference.snapshot());
+  }, 60000);
+});
+const FULL_SWEEP_SPAN = 10;
