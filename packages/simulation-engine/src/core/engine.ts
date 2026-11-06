@@ -249,6 +249,7 @@ import { configureTcpService } from '../protocols/tcp-services';
 import { configureTcpSettings } from '../protocols/tcp-extensions';
 import { configureDhcp6Relay } from '../protocols/dhcp6-relay';
 import { configureFirewall, expireFirewall, permitFirewall } from '../protocols/firewall';
+import { permitSelfZone } from '../protocols/zbf-policy';
 import { configureStateSyncPair, disableStateSync, handleStateSync } from '../protocols/state-sync';
 import { sendIcmpError } from '../protocols/icmp';
 import {
@@ -1790,6 +1791,7 @@ export class SimulationEngine {
       { port: route.port.id }
     );
     if (ingress && !permitFirewall(this, d, ingress, route.port, packet)) return;
+    if (!ingress && !permitSelfZone(this, d, route.port, packet, false)) return;
     const translated = natOutbound(this, d, ingress, route.port, packet);
     if (!translated) return;
     // A locally generated MTU error must quote the packet before source NAT.

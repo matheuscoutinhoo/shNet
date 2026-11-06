@@ -4,6 +4,13 @@ import type { LabController } from './useLab';
 
 export function FirewallForm({ lab, device }: { lab: LabController; device: Device }) {
   const [mode, setMode] = useState(device.firewall?.zonePolicy ? 'zones' : 'trusted');
+  if (device.zbf)
+    return (
+      <p className="muted">
+        Firewall por zonas configurado pelos comandos IOS (zone security, zone-pair security e zone-member
+        security). Altere-o pela CLI.
+      </p>
+    );
   const rules =
     device.firewall?.zonePolicy?.rules
       .slice()
@@ -155,9 +162,10 @@ export function FirewallForm({ lab, device }: { lab: LabController; device: Devi
           </p>
           <p className="muted">
             A menor sequência correspondente decide. inspect rastreia e autoriza retorno; permit libera sem
-            sessão; deny bloqueia, inclusive retornos. Sem regra, o tráfego entre zonas ou sem zona é
-            descartado. Dentro da mesma zona, é permitido. Erros ICMP relacionados passam pelas mesmas ACLs e
-            regras deny. O próprio roteador usa as ACLs.
+            sessão; deny bloqueia novas conexões, mas o retorno de uma sessão inspecionada continua passando.
+            Sem regra, o tráfego entre zonas, ou entre uma zona e uma interface sem zona, é descartado. Dentro
+            da mesma zona e entre interfaces sem zona, é permitido. Erros ICMP relacionados passam pelas
+            mesmas ACLs e regras deny. O próprio roteador usa as ACLs.
           </p>
         </>
       )}

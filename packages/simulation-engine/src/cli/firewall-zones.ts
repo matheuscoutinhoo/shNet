@@ -35,12 +35,19 @@ export function firewallZoneConfig(device: Device) {
   ];
 }
 export function registerFirewallZoneCommands(registry: CommandRegistry) {
-  const base = (device: Device) => ({
-    ...device.firewall,
-    enabled: device.firewall?.enabled ?? false,
-    trustedPorts: device.firewall?.trustedPorts ?? [],
-    protocols: device.firewall ? firewallProtocols(device.firewall) : ['TCP', 'UDP', 'ICMP'],
-  });
+  const base = (device: Device) => {
+    // The IOS zone-based firewall owns the zone policy once configured.
+    if (device.zbf)
+      throw new Error(
+        '% The IOS zone-based firewall (zone security / zone-pair security) is configured; remove it before using the simulator firewall zones.'
+      );
+    return {
+      ...device.firewall,
+      enabled: device.firewall?.enabled ?? false,
+      trustedPorts: device.firewall?.trustedPorts ?? [],
+      protocols: device.firewall ? firewallProtocols(device.firewall) : ['TCP', 'UDP', 'ICMP'],
+    };
+  };
   registry.register({
     pattern: /^firewall mode (trusted|zones)$/i,
     modes: CONFIG_MODES,

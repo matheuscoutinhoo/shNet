@@ -13,6 +13,7 @@ import { receiveVrrp, acceptsVrrpAddress } from './vrrp';
 import { receiveHsrp, acceptsHsrpAddress } from './hsrp';
 import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
 import { receiveTunnelPacket } from './ios-tunnel';
+import { permitSelfZone } from './zbf-policy';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
   if (cached !== undefined) return cached;
@@ -289,6 +290,16 @@ export function receiveIp(
   fromWire = true
 ) {
   if (fromWire && !permitPacket(e, d, port, 'in', packet)) return;
+  // Routing and redundancy protocols terminate on the router: the IOS self zone applies to them.
+  if (
+    fromWire &&
+    (packet.protocol === 'OSPF' ||
+      packet.protocol === 'VRRP' ||
+      (packet.protocol === 'UDP' &&
+        (packet.payload.protocol === 'HSRP' || packet.payload.protocol === 'RIP'))) &&
+    !permitSelfZone(e, d, port, packet, true)
+  )
+    return;
   if (packet.protocol === 'UDP' && packet.payload.protocol === 'HSRP') {
     receiveHsrp(e, d, port, packet);
     return;
@@ -335,6 +346,7 @@ export function receiveIp(
     (packet.dst === virtual?.vip ? localVirtual : acceptsVrrpAddress(e.state, d, packet.dst, port.vrf)) ||
     (packet.protocol === 'UDP' && packet.dst === '255.255.255.255')
   ) {
+    if (fromWire && !permitSelfZone(e, d, port, packet, true)) return;
     e.emit('PACKET_RECEIVED', d.id, 'Pacote destinado a este equipamento.', { port: port.id });
     if (packet.protocol === 'TCP') {
       receiveTcp(e, d, packet, port.vrf);

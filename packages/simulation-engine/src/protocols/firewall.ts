@@ -16,6 +16,7 @@ import {
 export { validateFirewall } from './firewall-validation';
 import { validateFirewallConfig } from './firewall-validation';
 import { syncFirewall } from './state-sync';
+import { logZbfDrop } from './zbf-policy';
 
 // Snapshots saved before protocol selection retain their TCP-only policy.
 export function firewallProtocols(config: Device['firewall']): ('TCP' | 'UDP' | 'ICMP')[] {
@@ -96,7 +97,8 @@ function permitTunnelTransport(
   if (!device.firewall?.zonePolicy) return true;
   const from = firewallZone(device, input.id),
     to = firewallZone(device, output.id),
-    rule = firewallRule(device, input.id, output.id, packet.protocol);
+    rule = firewallRule(device, input.id, output.id, packet.protocol, undefined, packet);
+  if (!from && !to) return true;
   if (from && to && (rule ? rule.action !== 'deny' : from === to)) return true;
   const message = `Firewall ${packet.protocol} em ${input.name}: sem regra de zona que permita ${packet.src} → ${packet.dst}.`;
   device.firewall.dropped++;
@@ -161,12 +163,31 @@ export function permitFirewall(
         input.id,
         output.id,
         packet.protocol,
-        packet.protocol === 'ICMP' ? undefined : packet.destinationPort
+        packet.protocol === 'ICMP' ? undefined : packet.destinationPort,
+        packet as Packet
       )
     : undefined;
+  // IOS: traffic between two interfaces outside every zone is not subject to the zone firewall.
+  if (zoned && !from && !to) return inspect();
   if (zoned && (!from || !to)) return deny('interface sem zona; descarte padrão');
-  if (rule?.action === 'deny') return deny('regra ' + rule.sequence + ' ' + from + ' → ' + to);
-  if (rule?.action === 'permit' || (zoned && from === to && !rule) || (!zoned && trustedIn && trustedOut)) {
+  // The session table is checked before the zone-pair policy: return traffic of an inspected
+  // session passes even when a class of the reverse zone-pair would drop or pass it.
+  const established =
+    zoned &&
+    !isError(packet) &&
+    config.sessions.some(
+      (entry) =>
+        entry.expiresAt > engine.state.clock &&
+        sessionDirection(device, entry, input.id, output.id, packet) !== undefined
+    );
+  if (rule?.action === 'deny' && !established) {
+    if (rule.log && !original6) logZbfDrop(engine, device, rule, packet as Packet);
+    return deny('regra ' + rule.sequence + ' ' + from + ' → ' + to);
+  }
+  if (
+    !established &&
+    (rule?.action === 'permit' || (zoned && from === to && !rule) || (!zoned && trustedIn && trustedOut))
+  ) {
     engine.emit(
       'FIREWALL_PERMIT',
       device.id,

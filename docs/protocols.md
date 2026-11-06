@@ -86,7 +86,7 @@ Há até 1024 sessões por roteador. O inspector mostra protocolo, estado e expi
 
 Erros Time Exceeded e Destination Unreachable incluem uma citação limitada ao cabeçalho IPv4 e aos campos de transporte, sem copiar dados da aplicação. O firewall autoriza ICMP RELATED apenas quando o fluxo citado corresponde a uma sessão viva. O erro pode vir de um roteador intermediário; não muda o estado nem renova a sessão. NAT estático/dinâmico/PAT traduzem o cabeçalho externo e a citação nos dois sentidos, restaurando portas/identificadores sem criar ou renovar bindings. O inspector mostra código, IPs, portas e sequência citados.
 
-No modo Zonas, atribua nomes às interfaces e escreva regras ordenadas por sequência. A primeira correspondência decide: inspect rastreia e autoriza retorno, permit libera sem sessão, deny bloqueia inclusive retorno e ICMP relacionado. Sem regra, tráfego entre zonas ou sem zona é descartado; dentro da mesma zona é permitido. Protocolos e portas são definidos pelas regras, independentemente da seleção global do modo legado. Alterar configuração reinicia sessões.
+No modo Zonas, atribua nomes às interfaces e escreva regras ordenadas por sequência. A primeira correspondência decide: inspect rastreia e autoriza retorno, permit libera sem sessão, deny bloqueia novas conexões e ICMP relacionado. Como no IOS, a tabela de sessões é consultada antes das regras: o retorno de uma sessão inspecionada passa mesmo que uma regra deny do sentido oposto o alcance. Sem regra, tráfego entre zonas, ou entre uma zona e uma interface sem zona, é descartado; dentro da mesma zona e entre interfaces sem zona é permitido. Protocolos e portas são definidos pelas regras, independentemente da seleção global do modo legado. Alterar configuração reinicia sessões.
 
 ```text
 enable
@@ -103,9 +103,33 @@ show firewall zones
 show firewall
 ```
 
+**Firewall por zonas do IOS (ZBF):** a sintaxe nativa do IOS também é aceita e substitui os comandos `firewall mode/zone/rule` no mesmo roteador. `class-map type inspect [match-any|match-all]` aceita `match protocol` (http, https, dns, ssh, icmp, tcp, udp e outros nomes do PAM), `match access-group name ACL` e `match class-map`; `policy-map type inspect` usa `class type inspect` e `class class-default` com `inspect`, `pass [log]` ou `drop [log]` (sem ação, ou class-default implícita, a ação é drop). `zone security`, `zone-pair security NOME source A destination B` com `service-policy type inspect` e `zone-member security` na interface ativam o filtro. A zona `self` protege o próprio roteador: sem zone-pair com self, o tráfego para/do roteador é livre; com política, ela decide, inclusive OSPF, HSRP, VRRP e RIP recebidos, e o retorno de tráfego gerado pelo roteador só passa com inspect self→zona ou regra explícita. `drop log` gera `%FW-6-DROP_PKT` no buffer de logging. Consulte com `show zone security`, `show zone-pair security`, `show class-map type inspect`, `show policy-map type inspect` e `show policy-map type inspect zone-pair [NOME] sessions`.
+
+```text
+class-map type inspect match-any INSIDE-OUT
+ match protocol http
+ match protocol dns
+ match protocol icmp
+policy-map type inspect IN-OUT
+ class type inspect INSIDE-OUT
+  inspect
+ class class-default
+  drop log
+zone security INSIDE
+zone security OUTSIDE
+zone-pair security IN-OUT source INSIDE destination OUTSIDE
+ service-policy type inspect IN-OUT
+interface Gi0/1
+ zone-member security INSIDE
+interface Gi0/2
+ zone-member security OUTSIDE
+```
+
+Limites do ZBF: sem parameter-maps nem contadores por classe; inspect não abre canais secundários de FTP; tráfego OSPF/HSRP/VRRP/RIP gerado pelo roteador não passa pela política self→zona.
+
 O template **Três zonas, caminhos controlados** demonstra HTTP com PAT na WAN, inspeção por TCP/80 na DMZ e bloqueio dos demais acessos entre zonas. No PC-01, `traceroute 192.168.20.10` mostra erros de TTL atravessando PAT e firewall.
 
-Limites: identificação Echo conceitual; erros UDP não abortam transportes. DF/Fragmentation Needed e PMTUD TCP estão nos ADRs 030/035; inspeção HTTP/DNS e IDS/IPS nos ADRs 026/032. Host Unreachable após ARP e redirects permanecem ausentes. Tráfego destinado/originado no roteador usa ACLs. Decisões em [ADR-012](adr/012-multiprotocol-firewall.md) e [ADR-015](adr/015-firewall-zones-and-related-icmp.md).
+Limites: identificação Echo conceitual; erros UDP não abortam transportes. DF/Fragmentation Needed e PMTUD TCP estão nos ADRs 030/035; inspeção HTTP/DNS e IDS/IPS nos ADRs 026/032. Host Unreachable após ARP e redirects permanecem ausentes. Sem ZBF, tráfego destinado/originado no roteador usa ACLs. Decisões em [ADR-012](adr/012-multiprotocol-firewall.md) e [ADR-015](adr/015-firewall-zones-and-related-icmp.md).
 
 ## OSPF
 

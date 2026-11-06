@@ -159,3 +159,9 @@ dmzdady6	stored for {0} virtual seconds.
 lfjh8sgg	{0}: {1} → Down; OSPF process restarted.
 rvt1sumh	Dynamic NAT translations removed.
 w0wxk9ci	Invalid NAT address.
+tnl2o3ux	Zone firewall configured with IOS commands (zone security, zone-pair security and zone-member security). Change it from the CLI.
+mnhckuzy	The lowest matching sequence decides. inspect tracks and allows the return traffic; permit allows without a session; deny blocks new connections, but the return traffic of an inspected session still passes. Without a rule, traffic between zones, or between a zone and an interface without a zone, is dropped. Within the same zone and between interfaces without a zone, it is allowed. Related ICMP errors go through the same ACLs and deny rules. The router itself uses the ACLs.
+axj4audw	% At most 32 classes per policy-map.
+qqy8u5of	Firewall {0}{1}{2}: zone-pair {3} → {4} drops it; {5} → {6}.
+ah01wm2o	to the router on
+argvwch1	originated by the router on

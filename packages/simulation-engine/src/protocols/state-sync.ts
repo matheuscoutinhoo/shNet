@@ -4,7 +4,7 @@ import { natPools } from './nat-selection';
 import { random } from '../core/queue';
 import { cableMetrics, linkOperational } from '../links/physical';
 import { canonicalScenarioJson as canonicalJson } from '../canonical-json';
-import { firewallRule, firewallUnicast } from './firewall-policy';
+import { firewallRule, firewallUnicast, sessionPacket } from './firewall-policy';
 import { ipNumber, sameSubnet } from './ipv4';
 import { stateSyncPairSchema, type StateSyncRecord } from './state-sync-model';
 
@@ -284,7 +284,8 @@ function install(e: SimulationEngine, d: Device, source: Device, a: Delivery) {
             inside,
             outside,
             session.protocol,
-            session.protocol === 'ICMP' ? undefined : session.serverPort
+            session.protocol === 'ICMP' ? undefined : session.serverPort,
+            sessionPacket(session)
           )?.action === 'inspect'
         : (config.protocols ?? ['TCP']).includes(session.protocol) &&
           config.trustedPorts.includes(inside) &&

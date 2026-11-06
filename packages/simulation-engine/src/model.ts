@@ -186,7 +186,7 @@ import {
   tcpServiceSchema,
   tcpTimerSchema,
 } from './protocols/tcp-model';
-import { firewallSchema, firewallTimerSchema } from './protocols/firewall-model';
+import { firewallSchema, firewallTimerSchema, zbfSchema } from './protocols/firewall-model';
 import { firewallSessionSchema } from './protocols/firewall-model';
 import { stateSyncSchema, stateSyncRecordSchema } from './protocols/state-sync-model';
 import { dhcpHaSchema } from './protocols/dhcp-ha-model';
@@ -829,6 +829,11 @@ export const interfaceSchema = z
     aclIn: z.string().max(32).optional(),
     aclOut: z.string().max(32).optional(),
     natRole: z.enum(['inside', 'outside']).optional(),
+    // IOS "zone-member security ZONE".
+    zoneMember: z
+      .string()
+      .regex(/^[a-zA-Z][\w-]{0,31}$/)
+      .optional(),
     rx: z.number().int().nonnegative(),
     tx: z.number().int().nonnegative(),
     errors: z.number().int().nonnegative(),
@@ -1202,6 +1207,8 @@ export const deviceSchema = z
     tcpConnections: z.array(tcpConnectionSchema).max(128).optional(),
     tcpSettings: tcpSettingsSchema.optional(),
     firewall: firewallSchema.optional(),
+    // Native IOS zone-based firewall (zones, inspect class-maps/policy-maps, zone-pairs).
+    zbf: zbfSchema.optional(),
     stateSync: stateSyncSchema.optional(),
     ospf: ospfStateSchema.optional(),
     rip: ripStateSchema.optional(),

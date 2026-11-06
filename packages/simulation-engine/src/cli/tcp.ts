@@ -172,7 +172,8 @@ export function tcpRunningConfig(device: Device) {
     ...(device.tcpServices?.map(
       (service) => `${service.enabled ? '' : 'no '}service ${service.kind} ${service.port}`
     ) ?? []),
-    ...(device.firewall
+    // The IOS zone-based firewall prints its own configuration (zone security, zone-pair...).
+    ...(device.firewall && !device.zbf
       ? [
           ...(device.firewall.trustedPorts.length
             ? [

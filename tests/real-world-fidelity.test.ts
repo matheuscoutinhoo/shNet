@@ -1851,6 +1851,211 @@ describe('IOS NAT pools and static PAT', () => {
     expect(e.device(edge.id).bootLog).toEqual([]);
   });
 });
+describe('IOS zone-based policy firewall', () => {
+  it('inspects zone-pairs, protects the self zone, logs drops and survives reload', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [edge, isp],
+      terminals: [te, ti],
+      cable,
+      advance,
+    } = lab('router', 'router');
+    const inside = e.addFactoryProfile('desktop', { x: 0, y: 200 }),
+      outside = e.addFactoryProfile('desktop', { x: 400, y: 200 }),
+      web = e.addFactoryProfile('web', { x: 200, y: 200 });
+    for (const d of [inside, outside, web]) e.setDevicePower(d.id, true);
+    for (const d of [inside, outside]) e.disableDhcp(d.id, e.device(d.id).interfaces[0].id);
+    Object.assign(e.device(inside.id).interfaces[0], { ip: '10.1.1.10', prefix: 24, gateway: '10.1.1.1' });
+    Object.assign(e.device(outside.id).interfaces[0], { ip: '192.0.2.10', prefix: 24, gateway: '192.0.2.1' });
+    Object.assign(e.device(web.id).interfaces[0], { ip: '172.20.1.80', prefix: 24, gateway: '172.20.1.1' });
+    e.configureTcpService(web.id, { enabled: true, kind: 'http', port: 80, body: 'DMZ' });
+    const port = (d: Device, name: string) => e.device(d.id).interfaces.find((p) => p.name === name)!.id;
+    const attach = (host: Device, d: Device, name: string) =>
+      e.connect(
+        { device: host.id, port: e.device(host.id).interfaces[0].id },
+        { device: d.id, port: port(d, name) }
+      );
+    attach(inside, edge, 'Gi0/1');
+    attach(web, edge, 'Gi0/3');
+    attach(outside, isp, 'Gi0/2');
+    cable(edge, 'Gi0/2', isp, 'Gi0/1');
+    const ping = (from: Device, ip: string) => {
+      const id = e.ping(from.id, ip);
+      advance(4_000);
+      return e.state.probes.find((p) => p.id === id)!.status;
+    };
+    const http = (from: Device, ip: string, tcpPort = 80) => {
+      const id = e.httpGet(from.id, ip, tcpPort);
+      advance(5_000);
+      return e.device(from.id).tcpConnections!.find((c) => c.id === id)?.received ?? '';
+    };
+    ok(ti, [
+      'interface Gi0/1',
+      'ip address 198.51.100.1 255.255.255.252',
+      'interface Gi0/2',
+      'ip address 192.0.2.1 255.255.255.0',
+      'exit',
+      'ip route 10.1.1.0 255.255.255.0 198.51.100.2',
+      'ip route 172.20.1.0 255.255.255.0 198.51.100.2',
+      'end',
+    ]);
+    ok(te, [
+      'interface Gi0/1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'interface Gi0/2',
+      'ip address 198.51.100.2 255.255.255.252',
+      'interface Gi0/3',
+      'ip address 172.20.1.1 255.255.255.0',
+      'exit',
+      'ip route 0.0.0.0 0.0.0.0 198.51.100.1',
+      'ip access-list extended DMZ-WEB',
+      'permit tcp any host 172.20.1.80 eq www',
+      'class-map type inspect match-any INSIDE-OUT',
+      'match protocol http',
+      'match protocol dns',
+      'match protocol icmp',
+      'class-map type inspect match-all OUTSIDE-TO-WEB',
+      'match protocol http',
+      'match access-group name DMZ-WEB',
+      'policy-map type inspect IN-OUT',
+      'class type inspect INSIDE-OUT',
+      'inspect',
+      'class class-default',
+      'drop log',
+      'policy-map type inspect OUT-DMZ',
+      'class type inspect OUTSIDE-TO-WEB',
+      'inspect',
+      'zone security INSIDE',
+      'zone security OUTSIDE',
+      'description Internet',
+      'zone security DMZ',
+      'zone-pair security IN-OUT source INSIDE destination OUTSIDE',
+      'service-policy type inspect IN-OUT',
+      'zone-pair security OUT-DMZ source OUTSIDE destination DMZ',
+      'service-policy type inspect OUT-DMZ',
+      'interface Gi0/1',
+      'zone-member security INSIDE',
+      'interface Gi0/2',
+      'zone-member security OUTSIDE',
+      'interface Gi0/3',
+      'zone-member security DMZ',
+      'end',
+    ]);
+    expect(te.prompt).toBe(e.device(edge.id).hostname + '#');
+    advance(5_000);
+    // INSIDE→OUTSIDE is inspected, so the replies return although no OUTSIDE→INSIDE pair exists.
+    expect(ping(inside, '192.0.2.10')).toBe('success');
+    expect(te.execute('show policy-map type inspect zone-pair IN-OUT sessions')).toMatch(
+      /Class-map: INSIDE-OUT \(match-any\)\n {6}Match: protocol http\n {6}Match: protocol dns\n {6}Match: protocol icmp\n {6}Inspect\n {8}Current session counts \(estab\/half-open\/terminating\) \[1:0:0\]\n {8}Established Sessions\n {9}Session [0-9A-F]{8} \(10\.1\.1\.10:0\)=>\(192\.0\.2\.10:0\) icmp:icmp SIS_OPEN/
+    );
+    expect(ping(outside, '10.1.1.10')).not.toBe('success');
+    // OUTSIDE→DMZ allows only HTTP to the published server (match-all: protocol and ACL).
+    expect(http(outside, '172.20.1.80')).toContain('200 OK');
+    expect(ping(outside, '172.20.1.80')).not.toBe('success');
+    // No zone-pair between INSIDE and DMZ: dropped by default.
+    expect(ping(inside, '172.20.1.80')).not.toBe('success');
+    // Telnet falls into class-default "drop log".
+    expect(http(inside, '192.0.2.10', 23)).toBe('');
+    expect(te.execute('show logging')).toMatch(
+      /%FW-6-DROP_PKT: Dropping tcp session 10\.1\.1\.10:\d+ 192\.0\.2\.10:23 on zone-pair IN-OUT class class-default with ip ident 0/
+    );
+    // The self zone: allowed until a zone-pair with self has a policy.
+    expect(ping(outside, '198.51.100.2')).toBe('success');
+    ok(te, [
+      'configure terminal',
+      'class-map type inspect match-any MGMT',
+      'match protocol ssh',
+      'policy-map type inspect OUT-SELF',
+      'class type inspect MGMT',
+      'pass',
+      'zone-pair security OUT-SELF source OUTSIDE destination self',
+      'service-policy type inspect OUT-SELF',
+      'end',
+    ]);
+    expect(ping(outside, '198.51.100.2')).not.toBe('success');
+    // Router-originated traffic is not inspected without a self→OUTSIDE pair: the reply is dropped.
+    expect(te.execute('ping 198.51.100.1')).toMatch(/Success rate is 0 percent/);
+    ok(te, [
+      'configure terminal',
+      'class-map type inspect match-any ROUTER-OUT',
+      'match protocol icmp',
+      'policy-map type inspect SELF-OUT',
+      'class type inspect ROUTER-OUT',
+      'inspect',
+      'zone-pair security SELF-OUT source self destination OUTSIDE',
+      'service-policy type inspect SELF-OUT',
+      'end',
+    ]);
+    expect(te.execute('ping 198.51.100.1')).toMatch(/Success rate is 100 percent/);
+    expect(te.execute('show zone security')).toBe(
+      [
+        'zone self',
+        '  Description: System defined zone',
+        '',
+        'zone INSIDE',
+        '  Member Interfaces:',
+        '    GigabitEthernet0/1',
+        '',
+        'zone OUTSIDE',
+        '  Description: Internet',
+        '  Member Interfaces:',
+        '    GigabitEthernet0/2',
+        '',
+        'zone DMZ',
+        '  Member Interfaces:',
+        '    GigabitEthernet0/3',
+      ].join('\n')
+    );
+    expect(te.execute('show zone-pair security')).toContain(
+      'Zone-pair name OUT-SELF\n    Source-Zone OUTSIDE  Destination-Zone self\n    service-policy OUT-SELF'
+    );
+    ok(te, ['configure terminal', 'interface Gi0/1']);
+    expect(te.execute('zone-member security GUEST')).toBe('% Zone GUEST does not exist.');
+    expect(te.execute('firewall mode zones')).toMatch(/^% The IOS zone-based firewall .* is configured/);
+    ok(te, ['exit']);
+    expect(te.execute('no zone security DMZ')).toMatch(/^% Zone DMZ has member interfaces/);
+    ok(te, ['end']);
+    const running = te.execute('show running-config');
+    expect(running).toContain(
+      [
+        'class-map type inspect match-all OUTSIDE-TO-WEB',
+        ' match protocol http',
+        ' match access-group name DMZ-WEB',
+        'exit',
+      ].join('\n')
+    );
+    expect(running).toContain(
+      [
+        'policy-map type inspect IN-OUT',
+        ' class type inspect INSIDE-OUT',
+        '  inspect',
+        ' class class-default',
+        '  drop log',
+        'exit',
+        'policy-map type inspect OUT-DMZ',
+        ' class type inspect OUTSIDE-TO-WEB',
+        '  inspect',
+        ' class class-default',
+        '  drop',
+        'exit',
+      ].join('\n')
+    );
+    expect(running).toContain(
+      'zone-pair security OUT-SELF source OUTSIDE destination self\n service-policy type inspect OUT-SELF\nexit'
+    );
+    expect(running).toMatch(/^interface (?:GigabitEthernet|Gi)0\/3\n(?: .+\n)* zone-member security DMZ\n/m);
+    expect(running).not.toMatch(/^(?:no )?(?:firewall|service firewall)/m);
+    ok(te, ['write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(te, ['enable']);
+    expect(te.execute('show running-config')).toBe(running);
+    expect(e.device(edge.id).bootLog).toEqual([]);
+    expect(ping(inside, '192.0.2.10')).toBe('success');
+    expect(ping(outside, '10.1.1.10')).not.toBe('success');
+    expect(http(outside, '172.20.1.80')).toContain('200 OK');
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {

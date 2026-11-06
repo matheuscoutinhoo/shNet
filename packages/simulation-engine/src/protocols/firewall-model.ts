@@ -60,13 +60,97 @@ export const firewallZonePolicySchema = z
             to: zoneName,
             protocol: z.enum(['ip', 'TCP', 'UDP', 'ICMP']),
             destinationPort: portNumberSchema.optional(),
+            // Also requires a permit in every listed ACL (IOS "match access-group name ACL").
+            acls: z
+              .array(z.string().regex(/^[\w-]{1,32}$/))
+              .min(1)
+              .max(4)
+              .optional(),
             action: z.enum(['inspect', 'permit', 'deny']),
+            // Origin of a rule compiled from the IOS zone-based firewall, and its "drop log".
+            zonePair: z
+              .string()
+              .regex(/^[a-zA-Z0-9][\w-]{0,31}$/)
+              .optional(),
+            className: z
+              .string()
+              .regex(/^[a-zA-Z0-9][\w-]{0,31}$/)
+              .optional(),
+            log: z.boolean().optional(),
           })
           .strict()
       )
-      .max(128),
+      .max(512),
   })
   .strict();
+const zbfName = z.string().regex(/^[a-zA-Z0-9][\w-]{0,31}$/);
+/** Native IOS zone-based firewall configuration; compiled into the firewall zone policy. */
+export const zbfSchema = z
+  .object({
+    zones: z
+      .array(
+        z
+          .object({
+            name: zoneName,
+            description: z.string().max(200).optional(),
+          })
+          .strict()
+      )
+      .max(16),
+    classMaps: z
+      .array(
+        z
+          .object({
+            name: zbfName,
+            matchAll: z.boolean(),
+            matches: z
+              .array(
+                z.union([
+                  z.object({ protocol: z.string().regex(/^[a-z0-9-]{2,20}$/) }).strict(),
+                  z.object({ acl: z.string().regex(/^[\w-]{1,32}$/) }).strict(),
+                  z.object({ classMap: zbfName }).strict(),
+                ])
+              )
+              .max(32),
+          })
+          .strict()
+      )
+      .max(64),
+    policyMaps: z
+      .array(
+        z
+          .object({
+            name: zbfName,
+            classes: z
+              .array(
+                z
+                  .object({
+                    className: zbfName,
+                    action: z.enum(['inspect', 'pass', 'drop']).optional(),
+                    log: z.boolean().optional(),
+                  })
+                  .strict()
+              )
+              .max(32),
+          })
+          .strict()
+      )
+      .max(32),
+    zonePairs: z
+      .array(
+        z
+          .object({
+            name: zbfName,
+            source: zoneName,
+            destination: zoneName,
+            policy: zbfName.optional(),
+          })
+          .strict()
+      )
+      .max(32),
+  })
+  .strict();
+export type ZbfConfig = z.infer<typeof zbfSchema>;
 export const firewallSchema = z
   .object({
     enabled: z.boolean(),

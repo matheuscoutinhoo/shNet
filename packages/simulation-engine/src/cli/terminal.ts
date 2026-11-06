@@ -75,6 +75,11 @@ export class TerminalSession {
       'ikev2-keyring': '(config-ikev2-keyring)#',
       'ikev2-keyring-peer': '(config-ikev2-keyring-peer)#',
       'ikev2-profile': '(config-ikev2-profile)#',
+      'zbf-zone': '(config-sec-zone)#',
+      'zbf-class-map': '(config-cmap)#',
+      'zbf-policy-map': '(config-pmap)#',
+      'zbf-policy-class': '(config-pmap-c)#',
+      'zbf-zone-pair': '(config-sec-zone-pair)#',
     }[this.context.mode];
     return (
       this.engine.device(this.deviceId).hostname +

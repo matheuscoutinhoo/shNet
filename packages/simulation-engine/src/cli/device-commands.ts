@@ -32,6 +32,13 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   const c = deviceCapabilities(d);
   if (!c.active) return /^(help|\?|show interfaces)$/i.test(input);
   const line = input.toLowerCase().replace(/^no /, '');
+  // IOS zone-based policy firewall: an ISR router feature.
+  if (
+    /^(?:zone(?:-pair)? security|zone-member security|(?:class|policy)-map type inspect|show (?:zone(?:-pair)? security|(?:class|policy)-map type inspect))\b/.test(
+      line
+    )
+  )
+    return d.type === 'router' && c.routing;
   if (/^(?:class-map|policy-map|service-policy|show policy-map)\b/.test(line))
     return (c.routing || c.switching) && !c.endpoint;
   if (

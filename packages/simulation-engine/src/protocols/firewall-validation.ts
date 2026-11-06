@@ -1,5 +1,5 @@
 import type { Device, Snapshot } from '../model';
-import { firewallRule, firewallZone, firewallUnicast } from './firewall-policy';
+import { firewallRule, firewallZone, firewallUnicast, sessionPacket } from './firewall-policy';
 
 export function validateFirewallConfig(device: Device) {
   const config = device.firewall;
@@ -76,7 +76,8 @@ export function validateFirewall(snapshot: Snapshot) {
             session.inside,
             session.outside,
             session.protocol,
-            session.protocol === 'ICMP' ? undefined : session.serverPort
+            session.protocol === 'ICMP' ? undefined : session.serverPort,
+            sessionPacket(session)
           )?.action === 'inspect'
         : (config.protocols ?? ['TCP']).includes(session.protocol) &&
           config.trustedPorts.includes(session.inside) &&

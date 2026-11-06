@@ -34,7 +34,12 @@ export type Mode =
   | 'ikev2-policy'
   | 'ikev2-keyring'
   | 'ikev2-keyring-peer'
-  | 'ikev2-profile';
+  | 'ikev2-profile'
+  | 'zbf-zone'
+  | 'zbf-class-map'
+  | 'zbf-policy-map'
+  | 'zbf-policy-class'
+  | 'zbf-zone-pair';
 export const CONFIG_MODES: Mode[] = [
   'config',
   'interface',
@@ -65,6 +70,11 @@ export const CONFIG_MODES: Mode[] = [
   'ikev2-keyring',
   'ikev2-keyring-peer',
   'ikev2-profile',
+  'zbf-zone',
+  'zbf-class-map',
+  'zbf-policy-map',
+  'zbf-policy-class',
+  'zbf-zone-pair',
 ];
 export const ALL_MODES: Mode[] = ['user', 'privileged', ...CONFIG_MODES];
 export const EXEC_MODES: Mode[] = ['user', 'privileged'];
@@ -272,6 +282,7 @@ export class CommandRegistry {
 export function parentContext(c: Context): Context | undefined {
   if (!CONFIG_MODES.includes(c.mode) || c.mode === 'config') return undefined;
   if (c.mode === 'policy-class') return { mode: 'policy-map', name: c.name };
+  if (c.mode === 'zbf-policy-class') return { mode: 'zbf-policy-map', name: c.name };
   if (c.mode === 'key-chain-key') return { mode: 'key-chain', name: c.name };
   if (c.mode === 'ikev2-keyring-peer') return { mode: 'ikev2-keyring', name: c.name };
   if (c.mode === 'address-family')

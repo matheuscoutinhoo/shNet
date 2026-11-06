@@ -63,6 +63,7 @@ import { printSecret } from './secrets';
 import { bfdInterfaceRunningConfig, bfdTemplateRunningConfig } from './bfd';
 import { keyChainRunningConfig } from './key-chain';
 import { registerIosExec, showIosArp, showIosMacTable } from './ios-exec';
+import { registerZbfCommands, zbfRunningConfig } from './zbf';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -97,6 +98,7 @@ export function makeRegistry() {
   registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);
+  registerZbfCommands(r);
   registerMqc(r);
   registerRemoteCommands(r);
   registerApplicationCommands(r);
@@ -577,6 +579,7 @@ export function makeRegistry() {
           ...monitoringRunning(d),
           ...routingPolicyRunning(d),
           ...mqcDefinitions(d),
+          ...zbfRunningConfig(d),
           ...keyChainRunningConfig(d),
           ...bfdTemplateRunningConfig(d),
           ...(d.enableSecret ? ['enable secret ' + d.enableSecret[1] + ' ' + d.enableSecret] : []),
@@ -609,6 +612,7 @@ export function makeRegistry() {
           ...(i.aclIn ? [' ip access-group ' + i.aclIn + ' in'] : []),
           ...(i.aclOut ? [' ip access-group ' + i.aclOut + ' out'] : []),
           ...(i.natRole ? [' ip nat ' + i.natRole] : []),
+          ...(i.zoneMember ? [' zone-member security ' + i.zoneMember] : []),
           ...(i.udld ? [' udld port' + (i.udld.mode === 'aggressive' ? ' aggressive' : '')] : []),
           ...bfdInterfaceRunningConfig(i),
           ...(i.ospfAuthentication?.key

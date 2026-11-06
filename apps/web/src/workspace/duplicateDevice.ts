@@ -46,6 +46,8 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     };
   if (d.routingPolicy) copy.routingPolicy = structuredClone(d.routingPolicy);
   if (d.mqc) copy.mqc = structuredClone(d.mqc);
+  // Zone membership travels with the interfaces; the zone policy is remapped with the firewall.
+  if (d.zbf) copy.zbf = structuredClone(d.zbf);
   if (d.system)
     copy.system = {
       ...structuredClone(d.system),
