@@ -58,6 +58,14 @@ export class TerminalSession {
       'bfd-template': '(config-bfd)#',
       'aaa-server': tacacs ? '(config-server-tacacs)#' : '(config-radius-server)#',
       'aaa-group': tacacs ? '(config-sg-tacacs+)#' : '(config-sg-radius)#',
+      'isakmp-policy': '(config-isakmp)#',
+      'transform-set': '(cfg-crypto-trans)#',
+      'ipsec-profile': '(ipsec-profile)#',
+      'ikev2-proposal': '(config-ikev2-proposal)#',
+      'ikev2-policy': '(config-ikev2-policy)#',
+      'ikev2-keyring': '(config-ikev2-keyring)#',
+      'ikev2-keyring-peer': '(config-ikev2-keyring-peer)#',
+      'ikev2-profile': '(config-ikev2-profile)#',
     }[this.context.mode];
     return (
       this.engine.device(this.deviceId).hostname +

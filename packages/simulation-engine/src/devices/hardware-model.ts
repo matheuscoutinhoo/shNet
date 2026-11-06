@@ -71,6 +71,14 @@ export const consoleSessionsSchema = z
               'bfd-template',
               'aaa-server',
               'aaa-group',
+              'isakmp-policy',
+              'transform-set',
+              'ipsec-profile',
+              'ikev2-proposal',
+              'ikev2-policy',
+              'ikev2-keyring',
+              'ikev2-keyring-peer',
+              'ikev2-profile',
             ]),
             port: idSchema.optional(),
             vlan: z.number().int().min(1).max(4094).optional(),
@@ -90,6 +98,7 @@ export const consoleSessionsSchema = z
               .strict()
               .optional(),
             aaaKind: z.enum(['tacacs', 'radius']).optional(),
+            peer: z.string().max(64).optional(),
             banner: z
               .object({
                 kind: z.enum(['motd', 'login', 'exec']),
@@ -104,7 +113,7 @@ export const consoleSessionsSchema = z
               .optional(),
             vrf: z.string().max(32).optional(),
             sla: z.number().int().positive().optional(),
-            name: z.string().max(32).optional(),
+            name: z.string().max(64).optional(),
             sequence: z.number().int().min(1).max(65535).optional(),
             className: z.string().max(32).optional(),
             auth: z

@@ -82,6 +82,28 @@ export function expireFirewall(engine: SimulationEngine, device: Device, id: str
   removeSession(engine, device, session, false);
   engine.emit('FIREWALL_EXPIRED', device.id, 'Sessão ' + id + ' expirada no relógio virtual.');
 }
+/**
+ * GRE and ESP between tunnel endpoints are not inspected statefully: without zones they pass, with
+ * zones each direction needs a zone-pair rule (intra-zone traffic passes).
+ */
+function permitTunnelTransport(
+  engine: SimulationEngine,
+  device: Device,
+  input: NetworkInterface,
+  output: NetworkInterface,
+  packet: Extract<Packet, { protocol: 'GRE' | 'ESP' }>
+) {
+  if (!device.firewall?.zonePolicy) return true;
+  const from = firewallZone(device, input.id),
+    to = firewallZone(device, output.id),
+    rule = firewallRule(device, input.id, output.id, packet.protocol);
+  if (from && to && (rule ? rule.action !== 'deny' : from === to)) return true;
+  const message = `Firewall ${packet.protocol} em ${input.name}: sem regra de zona que permita ${packet.src} → ${packet.dst}.`;
+  device.firewall.dropped++;
+  engine.emit('FIREWALL_DENY', device.id, message, { port: input.id, packet });
+  engine.drop(device, message, input.id);
+  return false;
+}
 export function permitFirewall(
   engine: SimulationEngine,
   device: Device,
@@ -92,6 +114,8 @@ export function permitFirewall(
 ) {
   const config = device.firewall;
   if (!config?.enabled || packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return true;
+  if (packet.protocol === 'GRE' || packet.protocol === 'ESP')
+    return permitTunnelTransport(engine, device, input, output, packet);
   const zoned = !!config.zonePolicy;
   const isError = (p: FirewallPacket): p is IcmpPacket & { kind: 'unreachable' | 'time-exceeded' } =>
     isIcmpError(p as Packet);

@@ -7,6 +7,7 @@ import { receiveRadius } from './aaa';
 import { receiveVxlan } from './vxlan';
 import { receiveSdwan } from './sdwan';
 import { receiveTunnel } from './tunnel';
+import { receiveIke } from './ios-tunnel';
 import { DHCP, type Device, type NetworkInterface, type UdpPacket } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { receiveDhcpClient } from './dhcp-client';
@@ -32,6 +33,10 @@ export function receiveUdp(
 ) {
   if (packet.payload.protocol === 'BFD') {
     receiveBfd(engine, device, port, packet);
+    return;
+  }
+  if (packet.payload.protocol === 'IKE') {
+    receiveIke(engine, device, packet);
     return;
   }
   if (packet.payload.protocol === 'HSRP') {

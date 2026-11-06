@@ -21,6 +21,7 @@ export const interfaceUp = (device: Device, port: NetworkInterface) =>
   port.adminUp &&
   !port.errDisabled &&
   (!port.tunnel || (port.tunnel.enabled && port.tunnel.status === 'up')) &&
+  (!port.iosTunnel || port.iosTunnel.status === 'up') &&
   (!port.vxlan || port.vxlan.enabled) &&
   (!port.logical?.parent || device.interfaces.some((p) => p.id === port.logical!.parent && p.adminUp));
 export function requireVrf(device: Device, vrf?: string) {
@@ -162,6 +163,8 @@ export function withOperationalMemo<T>(pass: () => T): T {
 function computeOperational(snapshot: Snapshot, device: Device, port: NetworkInterface): boolean {
   if (!device.power || !interfaceUp(device, port)) return false;
   if (port.loopback) return true;
+  // A tunnel's line protocol already reflects its transport, keepalives and IPsec.
+  if (port.iosTunnel) return true;
   if (port.capwapPeer)
     return (
       !!device.wlc?.enabled &&

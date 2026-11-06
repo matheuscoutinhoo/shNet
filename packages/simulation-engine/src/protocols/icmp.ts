@@ -10,7 +10,14 @@ export function isIcmpError(
   return packet.protocol === 'ICMP' && (packet.kind === 'time-exceeded' || packet.kind === 'unreachable');
 }
 export function quotePacket(packet: Packet): IcmpQuote | undefined {
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP' || isIcmpError(packet)) return;
+  if (
+    packet.protocol === 'OSPF' ||
+    packet.protocol === 'VRRP' ||
+    packet.protocol === 'GRE' ||
+    packet.protocol === 'ESP' ||
+    isIcmpError(packet)
+  )
+    return;
   let wireHeader: string | undefined;
   try {
     const bytes = encodeEthernet({

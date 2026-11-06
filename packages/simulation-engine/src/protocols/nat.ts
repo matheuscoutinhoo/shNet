@@ -218,8 +218,21 @@ function translateOutbound(
       (!entry.sourceAcl || matchingAclRule(device, entry.sourceAcl, packet)?.action === 'permit')
   );
   if (!pool) return packet;
-  const token = packet.protocol !== 'ICMP' ? String(packet.sourcePort) : packet.probeId;
-  const remotePort = packet.protocol !== 'ICMP' ? packet.destinationPort : 0;
+  if ((packet.protocol === 'GRE' || packet.protocol === 'ESP') && pool.overload) {
+    engine.drop(
+      device,
+      `PAT cannot translate ${packet.protocol}: it has no ports (use static NAT or NAT-T).`,
+      output.id
+    );
+    return;
+  }
+  const ported = packet.protocol === 'TCP' || packet.protocol === 'UDP';
+  const token = ported
+    ? String(packet.sourcePort)
+    : packet.protocol === 'ICMP'
+      ? packet.probeId
+      : packet.protocol;
+  const remotePort = ported ? packet.destinationPort : 0;
   let binding = nat.bindings.find(
     (entry) =>
       entry.pool === pool.name &&
@@ -267,7 +280,7 @@ function translateOutbound(
       pool: pool.name,
       inside: packet.src,
       global,
-      protocol: pool.overload ? packet.protocol : 'ip',
+      protocol: pool.overload ? (packet.protocol as 'ICMP' | 'UDP' | 'TCP') : 'ip',
       expiresAt: 0,
       ...(pool.overload
         ? {
@@ -297,9 +310,11 @@ function translateOutbound(
     { port: output.id }
   );
   if (!pool.overload) return { ...packet, src: binding.global };
-  return packet.protocol !== 'ICMP'
+  return packet.protocol === 'TCP' || packet.protocol === 'UDP'
     ? { ...packet, src: binding.global, sourcePort: Number(binding.globalToken) }
-    : { ...packet, src: binding.global, probeId: binding.globalToken! };
+    : packet.protocol === 'ICMP'
+      ? { ...packet, src: binding.global, probeId: binding.globalToken! }
+      : packet;
 }
 
 export function natInbound(
@@ -333,7 +348,12 @@ function translateInbound(
     );
     return { ...packet, dst: fixed.inside };
   }
-  const token = packet.protocol !== 'ICMP' ? String(packet.destinationPort) : packet.probeId;
+  const ported = packet.protocol === 'TCP' || packet.protocol === 'UDP';
+  const token = ported
+    ? String(packet.destinationPort)
+    : packet.protocol === 'ICMP'
+      ? packet.probeId
+      : packet.protocol;
   const binding = nat.bindings.find(
     (entry) =>
       entry.global === packet.dst &&
@@ -343,7 +363,7 @@ function translateInbound(
         (entry.protocol === packet.protocol &&
           entry.globalToken === token &&
           entry.remote === packet.src &&
-          (packet.protocol === 'ICMP' || entry.remotePort === packet.sourcePort)))
+          (packet.protocol === 'ICMP' || (ported && entry.remotePort === packet.sourcePort))))
   );
   if (!binding) return packet;
   touch(engine, device, binding);
@@ -362,9 +382,11 @@ function translateInbound(
     { port: port.id }
   );
   if (binding.protocol === 'ip') return { ...packet, dst: binding.inside };
-  return packet.protocol !== 'ICMP'
+  return packet.protocol === 'TCP' || packet.protocol === 'UDP'
     ? { ...packet, dst: binding.inside, destinationPort: Number(binding.insideToken) }
-    : { ...packet, dst: binding.inside, probeId: binding.insideToken! };
+    : packet.protocol === 'ICMP'
+      ? { ...packet, dst: binding.inside, probeId: binding.insideToken! }
+      : packet;
 }
 
 export function validateNatSnapshot(snapshot: Snapshot) {

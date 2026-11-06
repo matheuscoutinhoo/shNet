@@ -26,7 +26,15 @@ export type Mode =
   | 'key-chain-key'
   | 'bfd-template'
   | 'aaa-server'
-  | 'aaa-group';
+  | 'aaa-group'
+  | 'isakmp-policy'
+  | 'transform-set'
+  | 'ipsec-profile'
+  | 'ikev2-proposal'
+  | 'ikev2-policy'
+  | 'ikev2-keyring'
+  | 'ikev2-keyring-peer'
+  | 'ikev2-profile';
 export const CONFIG_MODES: Mode[] = [
   'config',
   'interface',
@@ -49,12 +57,20 @@ export const CONFIG_MODES: Mode[] = [
   'bfd-template',
   'aaa-server',
   'aaa-group',
+  'isakmp-policy',
+  'transform-set',
+  'ipsec-profile',
+  'ikev2-proposal',
+  'ikev2-policy',
+  'ikev2-keyring',
+  'ikev2-keyring-peer',
+  'ikev2-profile',
 ];
 export const ALL_MODES: Mode[] = ['user', 'privileged', ...CONFIG_MODES];
 export const EXEC_MODES: Mode[] = ['user', 'privileged'];
 /** IOS global configuration commands: typed in a sub-mode, they run in and return to (config). */
 export const GLOBAL_ONLY =
-  /^(?:no )?(?:hostname|ip route|ipv6 route|ip name-server|ip domain|ip default-gateway|ip routing|ipv6 unicast-routing|ip multicast-routing|ip cef|ip ssh|ip scp|ip http|ip dhcp (?:excluded-address|snooping(?: vlan|$))|ip nat (?:inside|outside) source|ip nat pool|ip sla schedule|access-list|enable (?:secret|password|algorithm-type)|username|banner|service |logging (?!synchronous)|snmp-server|ntp |clock |cdp run|lldp run|vtp |track |aaa (?:new-model|authentication|authorization|accounting|group|session-id)|tacacs|radius|crypto key|errdisable|login (?:block-for|on-|quiet|delay)|udld (?:enable|aggressive)|monitor session|spanning-tree (?:mode|vlan|mst \d|loopguard default|portfast (?:default|bpduguard)|extend))/i;
+  /^(?:no )?(?:hostname|ip route|ipv6 route|ip name-server|ip domain|ip default-gateway|ip routing|ipv6 unicast-routing|ip multicast-routing|ip cef|ip ssh|ip scp|ip http|ip dhcp (?:excluded-address|snooping(?: vlan|$))|ip nat (?:inside|outside) source|ip nat pool|ip sla schedule|access-list|enable (?:secret|password|algorithm-type)|username|banner|service |logging (?!synchronous)|snmp-server|ntp |clock |cdp run|lldp run|vtp |track |aaa (?:new-model|authentication|authorization|accounting|group|session-id)|tacacs|radius|crypto (?:key|isakmp|ipsec|ikev2)|errdisable|login (?:block-for|on-|quiet|delay)|udld (?:enable|aggressive)|monitor session|spanning-tree (?:mode|vlan|mst \d|loopguard default|portfast (?:default|bpduguard)|extend))/i;
 export interface Context {
   mode: Mode;
   port?: string;
@@ -72,6 +88,8 @@ export interface Context {
   aaaKind?: 'tacacs' | 'radius';
   // Multi-line "banner motd ^C" being typed: following lines are text until the delimiter.
   banner?: { kind: 'motd' | 'login' | 'exec'; delimiter: string; text: string[] };
+  // "crypto ikev2 keyring" sub-mode: the "peer NAME" being configured.
+  peer?: string;
   vrf?: string;
   sla?: number;
   name?: string;
@@ -251,6 +269,7 @@ export function parentContext(c: Context): Context | undefined {
   if (!CONFIG_MODES.includes(c.mode) || c.mode === 'config') return undefined;
   if (c.mode === 'policy-class') return { mode: 'policy-map', name: c.name };
   if (c.mode === 'key-chain-key') return { mode: 'key-chain', name: c.name };
+  if (c.mode === 'ikev2-keyring-peer') return { mode: 'ikev2-keyring', name: c.name };
   if (c.mode === 'address-family')
     return c.vrf ? { mode: 'vrf', vrf: c.vrf } : { mode: 'router', router: c.router, process: c.process };
   return { mode: 'config' };

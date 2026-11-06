@@ -66,6 +66,10 @@ export function fragmentFrame(e: SimulationEngine, d: Device, p: NetworkInterfac
   const packet = frame.packet;
   if (!packet || packet.bytes <= p.mtu || (d.type === 'switch' && p.mode !== 'routed')) return false;
   if (!permitPacket(e, d, p, 'out', packet)) return true;
+  if (packet.protocol === 'GRE' || packet.protocol === 'ESP') {
+    e.drop(d, `${packet.protocol} transport packet exceeds the MTU ${p.mtu} of ${p.name}.`, p.id, frame);
+    return true;
+  }
   if ('df' in packet && packet.df) {
     e.drop(d, 'IPv4 DF: MTU ' + p.mtu + ' excedida; ICMP Fragmentation Needed.', p.id, frame);
     sendIcmpError(e, d, p, packet, 'unreachable', 4, p.mtu);

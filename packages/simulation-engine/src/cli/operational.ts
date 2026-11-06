@@ -4,6 +4,8 @@ import { interfaceOperational, routingEnabled } from '../protocols/layer3';
 import { ipNumber, resolveDefaultRoutes, resolveRoute, subnet } from '../protocols/ipv4';
 import { ripRoutes } from '../protocols/rip';
 import { terminalIdentity } from './device-commands';
+import { TUNNEL_BANDWIDTH_KBPS } from '../protocols/ios-tunnel';
+import { iosTunnelShowLines } from './ios-tunnel';
 
 export const interfaceName = (name: string) =>
   name
@@ -12,14 +14,16 @@ export const interfaceName = (name: string) =>
     .replace(/^tengigabitethernet/i, 'Te')
     .replace(/^fortygigabitethernet/i, 'Fo')
     .replace(/^hundredgigabitethernet/i, 'Hu')
-    .replace(/^port-channel/i, 'Port-channel');
+    .replace(/^port-channel/i, 'Port-channel')
+    .replace(/^tu(?:n(?:n(?:e(?:l)?)?)?)?(?=\d)/i, 'Tunnel');
 
 export function interfaceStatus(e: SimulationEngine, d: Device, p: NetworkInterface) {
   return !p.adminUp
     ? 'administratively down'
     : p.errDisabled
       ? 'err-disabled'
-      : interfaceOperational(e.state, d, p)
+      : // A tunnel interface is up once enabled; its line protocol follows the transport.
+        p.iosTunnel || interfaceOperational(e.state, d, p)
         ? 'up'
         : 'down';
 }
@@ -110,10 +114,13 @@ export function showInterfaces(e: SimulationEngine, d: Device, brief = false, se
     .map(
       (p) =>
         `${p.name} is ${interfaceStatus(e, d, p)}, line protocol is ${interfaceOperational(e.state, d, p) ? 'up' : 'down'}\n` +
-        `  Hardware is ${p.media}, address is ${p.mac}\n` +
+        `  Hardware is ${p.iosTunnel ? 'Tunnel' : p.media}, address is ${p.mac}\n` +
         (p.description ? `  Description: ${p.description}\n` : '') +
         (p.ip ? `  Internet address is ${p.ip}/${p.prefix}\n` : '') +
-        `  MTU ${p.mtu} bytes, BW ${p.speed * 1000} Kbit/sec, ${p.duplex}-duplex\n` +
+        `  MTU ${p.mtu} bytes, BW ${p.bandwidthKbps ?? (p.iosTunnel ? TUNNEL_BANDWIDTH_KBPS : p.speed * 1000)} Kbit/sec, ${p.duplex}-duplex\n` +
+        iosTunnelShowLines(d, p)
+          .map((line) => line + '\n')
+          .join('') +
         `  ${p.rx} packets input, ${p.tx} packets output, ${p.errors} errors`
     )
     .join('\n\n');
@@ -219,6 +226,20 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
       legacy: `${code} ${r.network}/${r.prefix} [${r.distance}/${r.metric}] via ${r.nextHop}, ${p.name}`,
     });
   }
+  // Prefixes learned from a simulator IPsec tunnel peer are installed like reverse-route injection.
+  if (routingEnabled(d))
+    for (const p of d.interfaces.filter((p) => p.tunnel?.status === 'up' && usable(p)))
+      for (const r of p.tunnel!.remotePrefixes)
+        rows.push({
+          code: 'S',
+          network: r.network,
+          prefix: r.prefix,
+          distance: 200,
+          metric: 1,
+          nextHop: p.tunnel!.peerIp,
+          port: p.name,
+          legacy: `S ${r.network}/${r.prefix} [200/1] via ${p.tunnel!.peerIp}, ${p.name}`,
+        });
   for (const r of resolveDefaultRoutes(d, vrf).filter((r) => interfaceOperational(e.state, d, r.port))) {
     const dhcp = r.port.ipv4Mode === 'dhcp';
     rows.push({

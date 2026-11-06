@@ -15,6 +15,20 @@ const services: Record<string, number> = {
   snmp: 161,
   bootps: 67,
   bootpc: 68,
+  isakmp: 500,
+  'non500-isakmp': 4500,
+  syslog: 514,
+  tftp: 69,
+};
+// IP protocol numbers IOS accepts in place of a keyword.
+const protocolNumbers: Record<string, string> = {
+  '1': 'icmp',
+  '6': 'tcp',
+  '17': 'udp',
+  '47': 'gre',
+  '50': 'esp',
+  '89': 'ospf',
+  '112': 'vrrp',
 };
 function address(tokens: string[]) {
   const value = tokens.shift();
@@ -110,8 +124,9 @@ export function registerNativeAclCommands(r: CommandRegistry) {
       if (!acl) throw new Error('Select an ACL.');
       const tokens = m[3].trim().split(/\s+/),
         standard = c.aclType === 'standard';
-      const protocol = standard ? 'ip' : tokens.shift()!.toLowerCase();
-      if (!['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp'].includes(protocol))
+      const keyword = standard ? 'ip' : tokens.shift()!.toLowerCase(),
+        protocol = protocolNumbers[keyword] ?? keyword;
+      if (!['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp', 'gre', 'esp'].includes(protocol))
         throw new Error('Unsupported ACL protocol.');
       const source = address(tokens),
         sourcePort = standard ? undefined : port(tokens);

@@ -38,6 +38,8 @@ export function validateConnection(state: Snapshot, link: Link, ignoreId?: strin
     b.port.bond ||
     a.port.tunnel ||
     b.port.tunnel ||
+    a.port.iosTunnel ||
+    b.port.iosTunnel ||
     a.port.vxlan ||
     b.port.vxlan
   )

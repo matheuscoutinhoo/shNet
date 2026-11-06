@@ -11,6 +11,7 @@ import {
   type Device,
 } from '../packages/simulation-engine/src';
 import { type7Decode, type7Encode } from '../packages/simulation-engine/src/cli/secrets';
+import { decodePcap, exportPcap } from '../packages/simulation-engine/src/wire/pcap';
 
 const ok = (t: TerminalSession, lines: string[]) => {
   for (const line of lines) expect(t.execute(line), line).not.toMatch(/^%/m);
@@ -983,6 +984,151 @@ describe('endpoints obtain an address automatically', () => {
     expect(nic2().ip).toMatch(/^10\.1\.0\./);
     expect(link1.up).toBe(true);
     expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+  });
+});
+describe('IOS tunnel interfaces (GRE and IPsec VTI)', () => {
+  /** HQ and branch routers whose only path is an Internet router; each has a LAN loopback. */
+  function wan() {
+    const {
+      e,
+      devices: [hq, isp, br],
+      terminals: [th, ti, tb],
+      cable,
+      advance,
+    } = lab('router', 'isp', 'router');
+    cable(hq, 'Gi0/1', isp, 'Gi0/1');
+    cable(br, 'Gi0/1', isp, 'Gi0/2');
+    ok(ti, [
+      'interface Gi0/1',
+      'ip address 198.51.100.9 255.255.255.252',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 198.51.100.13 255.255.255.252',
+      'no shutdown',
+      'end',
+    ]);
+    for (const [t, wanIp, gw, lan] of [
+      [th, '198.51.100.10', '198.51.100.9', '10.1.0.1'],
+      [tb, '198.51.100.14', '198.51.100.13', '10.2.0.1'],
+    ] as const)
+      ok(t, [
+        'interface Gi0/1',
+        `ip address ${wanIp} 255.255.255.252`,
+        'no shutdown',
+        'exit',
+        `ip route 0.0.0.0 0.0.0.0 ${gw}`,
+        'interface Loopback0',
+        `ip address ${lan} 255.255.255.0`,
+        'ip ospf 1 area 0',
+        'exit',
+        'router ospf 1',
+        'exit',
+      ]);
+    const tunnel = (t: TerminalSession, local: string, remote: string, extra: string[]) =>
+      ok(t, [
+        'interface Tunnel0',
+        `ip address ${local} 255.255.255.252`,
+        'tunnel source GigabitEthernet0/1',
+        `tunnel destination ${remote}`,
+        ...extra,
+        'ip ospf 1 area 0',
+        'end',
+      ]);
+    const port = (d: Device) => e.device(d.id).interfaces.find((p) => p.name === 'Tunnel0')!;
+    return { e, hq, isp, br, th, ti, tb, tunnel, port, advance };
+  }
+  it('GRE carries routed traffic and OSPF, and keepalives take the tunnel down when the peer stops answering', () => {
+    const { e, hq, br, th, tb, tunnel, port, advance } = wan();
+    tunnel(th, '172.31.0.1', '198.51.100.14', ['keepalive 5 3']);
+    tunnel(tb, '172.31.0.2', '198.51.100.10', ['keepalive 5 3']);
+    advance(60_000);
+    expect(port(hq).iosTunnel?.status).toBe('up');
+    expect(th.execute('show ip interface brief')).toMatch(/Tunnel0\s+172\.31\.0\.1\s+YES manual up\s+up/);
+    expect(th.execute('show ip ospf neighbor')).toMatch(
+      /10\.2\.0\.1\s+\d+\s+FULL\/\s+-\s+\S+\s+172\.31\.0\.2\s+Tunnel0/
+    );
+    expect(th.execute('ping 10.2.0.1 source Loopback0')).toMatch(/!!!!!/);
+    // The Internet router sees GRE (IP protocol 47) between the public addresses, not the LANs.
+    expect(
+      e.state.events.some(
+        (ev) => ev.frame?.packet?.protocol === 'GRE' && ev.frame.packet.src === '198.51.100.10'
+      )
+    ).toBe(true);
+    expect(th.execute('show interfaces Tunnel0')).toMatch(
+      /Tunnel source 198\.51\.100\.10 \(Gi0\/1\), destination 198\.51\.100\.14[\s\S]*GRE\/IP/
+    );
+    // Default tunnel bandwidth is 100 kbit/s: OSPF cost 1000.
+    expect(e.device(hq.id).ospf!.interfaces.find((i) => i.port === port(hq).id)?.cost).toBe(1000);
+    // The peer's tunnel goes down: keepalives stop being answered and the line protocol drops.
+    ok(tb, ['configure terminal', 'interface Tunnel0', 'shutdown', 'end']);
+    advance(25_000);
+    expect(port(hq).iosTunnel?.status).toBe('down');
+    expect(th.execute('show ip interface brief')).toMatch(/Tunnel0\s+172\.31\.0\.1\s+YES manual up\s+down/);
+    expect(port(br).iosTunnel?.reason).toBe('administratively down');
+  });
+  it('an IPsec VTI comes up only with matching IKEv2 keys, encrypts as ESP and survives reload', () => {
+    const { e, hq, th, tb, tunnel, port, advance } = wan();
+    const crypto = (psk: string, peer: string) => [
+      'crypto ikev2 proposal PROP',
+      'encryption aes-cbc-256',
+      'integrity sha256',
+      'group 14',
+      'crypto ikev2 policy POL',
+      'proposal PROP',
+      'crypto ikev2 keyring KR',
+      'peer SITE',
+      `address ${peer}`,
+      `pre-shared-key ${psk}`,
+      'exit',
+      'exit',
+      'crypto ikev2 profile IKEPROF',
+      `match identity remote address ${peer} 255.255.255.255`,
+      'authentication remote pre-share',
+      'authentication local pre-share',
+      'keyring local KR',
+      'crypto ipsec transform-set TS esp-aes 256 esp-sha256-hmac',
+      'mode tunnel',
+      'crypto ipsec profile VTI',
+      'set transform-set TS',
+      'set ikev2-profile IKEPROF',
+      'exit',
+    ];
+    ok(th, crypto('Vpn-K3y-1', '198.51.100.14'));
+    ok(tb, crypto('Wrong-K3y', '198.51.100.10'));
+    const vti = ['tunnel mode ipsec ipv4', 'tunnel protection ipsec profile VTI'];
+    tunnel(th, '172.31.0.1', '198.51.100.14', vti);
+    tunnel(tb, '172.31.0.2', '198.51.100.10', vti);
+    advance(30_000);
+    // Different pre-shared keys: IKE_AUTH fails and the VTI stays down.
+    expect(port(hq).iosTunnel?.status).toBe('down');
+    expect(th.execute('show crypto session')).toMatch(/Session status: DOWN[\s\S]*authentication failed/);
+    ok(tb, ['configure terminal', 'crypto ikev2 keyring KR', 'peer SITE', 'pre-shared-key Vpn-K3y-1', 'end']);
+    advance(30_000);
+    expect(port(hq).iosTunnel?.status).toBe('up');
+    expect(th.execute('show crypto ikev2 sa')).toMatch(
+      /198\.51\.100\.10\/500\s+198\.51\.100\.14\/500\s+none\/none\s+READY/
+    );
+    expect(th.execute('show ip ospf neighbor')).toMatch(/FULL\/\s+-.*Tunnel0/);
+    expect(th.execute('ping 10.2.0.1 source Loopback0')).toMatch(/!!!!!/);
+    expect(th.execute('show crypto ipsec sa')).toMatch(/#pkts encaps: [1-9]\d*/);
+    // On the wire only ESP between the public addresses: the inner packets are not visible.
+    const transit = e.state.events.filter((ev) => ev.frame?.packet?.src === '198.51.100.10');
+    expect(transit.some((ev) => ev.frame!.packet!.protocol === 'ESP')).toBe(true);
+    expect(transit.some((ev) => ev.frame!.packet!.protocol === 'GRE')).toBe(false);
+    const running = th.execute('show running-config');
+    expect(running).toContain('crypto ipsec profile VTI\n set transform-set TS\n set ikev2-profile IKEPROF');
+    expect(running).toMatch(
+      /interface Tunnel0\n(?: .*\n)* tunnel mode ipsec ipv4\n tunnel destination 198\.51\.100\.14\n tunnel protection ipsec profile VTI/
+    );
+    ok(th, ['write memory', 'reload', '']);
+    advance(60_000 + 30_000);
+    ok(th, ['enable']);
+    expect(th.execute('show running-config')).toBe(running);
+    expect(port(hq).iosTunnel?.status).toBe('up');
+    expect(th.execute('ping 10.2.0.1 source Loopback0')).toMatch(/!!!!!/);
+    // Captures export GRE/ESP as real IP protocols that decode again.
+    const pcap = exportPcap(e.snapshot());
+    expect(decodePcap(pcap.bytes).some((r) => r.frame.esp !== undefined)).toBe(true);
   });
 });
 describe('802.1X on a Layer 2 access switch', () => {

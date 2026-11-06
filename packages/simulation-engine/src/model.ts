@@ -119,6 +119,14 @@ import {
 } from './protocols/tunnel-model';
 export * from './protocols/tunnel-model';
 import {
+  iosTunnelSchema,
+  cryptoConfigSchema,
+  grePacketSchema,
+  espPacketSchema,
+  ikeMessageSchema,
+} from './protocols/ios-tunnel-model';
+export * from './protocols/ios-tunnel-model';
+import {
   wirelessStateSchema,
   wifiPduSchema,
   wirelessTimerSchema,
@@ -238,7 +246,7 @@ export const aclRuleSchema = z
   .object({
     sequence: z.number().int().min(1).max(65535),
     action: z.enum(['permit', 'deny']),
-    protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp']),
+    protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp', 'gre', 'esp']),
     source: subnetSchema,
     destination: subnetSchema,
     sourceWildcard: ipv4Schema.optional(),
@@ -619,6 +627,10 @@ export const interfaceSchema = z
     bond: bondStateSchema.optional(),
     installedNic: z.boolean().optional(),
     tunnel: tunnelStateSchema.optional(),
+    // IOS "interface TunnelN" (GRE or IPsec VTI).
+    iosTunnel: iosTunnelSchema.optional(),
+    // "bandwidth N" (kbit/s): what routing protocols use for cost, not the line rate.
+    bandwidthKbps: z.number().int().min(1).max(100000000).optional(),
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),
@@ -831,6 +843,7 @@ const udpPacketSchema = z
       z.object({ protocol: z.literal('RIP'), message: ripMessageSchema }).strict(),
       z.object({ protocol: z.literal('SNMP'), message: snmpMessageSchema }).strict(),
       z.object({ protocol: z.literal('SYSLOG'), message: syslogMessageSchema }).strict(),
+      z.object({ protocol: z.literal('IKE'), message: ikeMessageSchema }).strict(),
     ]),
     bytes: z.number().int().min(28).max(65535),
   })
@@ -842,6 +855,8 @@ export const packetSchema = z
     tcpPacketSchema,
     ospfPacketSchema,
     vrrpPacketSchema,
+    grePacketSchema,
+    espPacketSchema,
   ])
   .superRefine((packet, ctx) => {
     if (packet.protocol === 'TCP' && packet.family === 6)
@@ -997,6 +1012,7 @@ export const deviceSchema = z
     bootLog: z.array(z.string().max(400)).max(64).optional(),
     loopGuardDefault: z.boolean().optional(),
     iosSystem: iosSystemSchema.optional(),
+    crypto: cryptoConfigSchema.optional(),
     monitoring: monitoringSchema.optional(),
     dot1xSystemAuthControl: z.boolean().optional(),
     routingPolicy: routingPolicySchema.optional(),
@@ -1400,6 +1416,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z
     .object({ kind: z.literal('errdisable-recovery'), device: id, port: id, since: finite.nonnegative() })
     .strict(),
+  // IOS tunnel interface: GRE keepalives, IKE retransmission and SA lifetime.
+  z.object({ kind: z.literal('ios-tunnel-tick'), device: id, port: id, token: id }).strict(),
   z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('quorum-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('database-client-tick'), device: id, token: id }).strict(),

@@ -12,6 +12,7 @@ import { sendIcmpError } from './icmp';
 import { receiveVrrp, acceptsVrrpAddress } from './vrrp';
 import { receiveHsrp, acceptsHsrpAddress } from './hsrp';
 import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
+import { receiveTunnelPacket } from './ios-tunnel';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
   if (cached !== undefined) return cached;
@@ -289,6 +290,11 @@ export function receiveIp(
         return;
       }
       receiveUdp(e, d, port, packet, sourceMac);
+      return;
+    }
+    // GRE (47) and ESP (50) terminate on an IOS tunnel interface.
+    if (packet.protocol === 'GRE' || packet.protocol === 'ESP') {
+      receiveTunnelPacket(e, d, packet);
       return;
     }
     if (packet.kind === 'echo-request')

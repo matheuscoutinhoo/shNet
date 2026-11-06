@@ -38,7 +38,10 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
     if (p.autoCost) {
       const physical = device.interfaces.find((i) => i.id === p.port);
       if (physical)
-        p.cost = Math.max(1, Math.min(65535, Math.floor(config.referenceBandwidth / physical.speed)));
+        p.cost = Math.max(
+          1,
+          Math.min(65535, Math.floor((config.referenceBandwidth * 1000) / interfaceBandwidthKbps(physical)))
+        );
     }
   }
   if (device.type !== 'router' && !(device.type === 'switch' && device.ipRouting))
@@ -109,7 +112,13 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
 
 /** IOS default OSPF network type: broadcast on Ethernet segments, point-to-point on serial/tunnel/loopback. */
 export function defaultOspfNetworkType(port: NetworkInterface): 'point-to-point' | 'broadcast' {
-  return port.loopback || port.tunnel || port.media === 'serial' ? 'point-to-point' : 'broadcast';
+  return port.loopback || port.tunnel || port.iosTunnel || port.media === 'serial'
+    ? 'point-to-point'
+    : 'broadcast';
+}
+/** The bandwidth routing protocols use: "bandwidth N", else the line rate (100 kbit/s on tunnels). */
+export function interfaceBandwidthKbps(port: NetworkInterface) {
+  return port.bandwidthKbps ?? (port.iosTunnel ? 100 : port.speed * 1000);
 }
 /** Interface OSPF settings for an interface that is newly enabled for OSPF. */
 export function newOspfInterfaceSettings(port: NetworkInterface) {

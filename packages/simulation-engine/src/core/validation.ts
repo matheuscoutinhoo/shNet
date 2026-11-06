@@ -24,6 +24,7 @@ import { validateVxlan } from '../protocols/vxlan';
 import { validateQos } from '../protocols/qos';
 import { validateMpls } from '../protocols/mpls';
 import { validateTunnels } from '../protocols/tunnel-validation';
+import { validateIosTunnels } from '../protocols/ios-tunnel';
 import { validateWireless } from '../protocols/wireless';
 import { validateIpv6 } from '../protocols/ipv6-validation';
 import { validateDhcp6 } from '../protocols/dhcp6';
@@ -106,6 +107,7 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   validateWireless(s);
   validateEnterprise(s);
   validateTunnels(s);
+  validateIosTunnels(s);
   validateQos(s);
   validateMpls(s);
   validateVxlan(s);

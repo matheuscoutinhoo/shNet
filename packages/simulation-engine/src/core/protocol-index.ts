@@ -11,7 +11,8 @@ type Feature =
   | 'rack'
   | 'discovery'
   | 'hsrp'
-  | 'dhcp-client';
+  | 'dhcp-client'
+  | 'ios-tunnel';
 const caches = new WeakMap<
   Snapshot,
   { array: Device[]; length: number; features: Map<Feature, { device: Device; index: number }[]> }
@@ -25,13 +26,15 @@ const participates = (d: Device, key: Feature) =>
         ? d.interfaces.some((p) => p.dot1x || p.supplicant)
         : key === 'dhcp-client'
           ? d.interfaces.some((p) => p.ipv4Mode === 'dhcp')
-          : key === 'stp'
-            ? Boolean(d.spanningTree || d.multiSpanningTree)
-            : key === 'ups'
-              ? d.infrastructure?.kind === 'ups'
-              : key === 'rack'
-                ? d.infrastructure?.kind === 'rack'
-                : Boolean(d[key]);
+          : key === 'ios-tunnel'
+            ? d.interfaces.some((p) => p.iosTunnel)
+            : key === 'stp'
+              ? Boolean(d.spanningTree || d.multiSpanningTree)
+              : key === 'ups'
+                ? d.infrastructure?.kind === 'ups'
+                : key === 'rack'
+                  ? d.infrastructure?.kind === 'rack'
+                  : Boolean(d[key]);
 /** Engine configuration APIs invalidate membership; state fields remain live references. */
 export function invalidateProtocolIndex(s: Snapshot) {
   caches.delete(s);

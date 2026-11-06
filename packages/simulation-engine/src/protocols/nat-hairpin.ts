@@ -61,6 +61,8 @@ export function hairpinInbound(
     p.natRole !== 'inside' ||
     packet.protocol === 'OSPF' ||
     packet.protocol === 'VRRP' ||
+    packet.protocol === 'GRE' ||
+    packet.protocol === 'ESP' ||
     isIcmpError(packet)
   )
     return packet;
@@ -148,6 +150,8 @@ export function hairpinOutbound(
     !n.hairpin ||
     packet.protocol === 'OSPF' ||
     packet.protocol === 'VRRP' ||
+    packet.protocol === 'GRE' ||
+    packet.protocol === 'ESP' ||
     isIcmpError(packet)
   )
     return;

@@ -60,6 +60,8 @@ export function commandSupported(d: Device, input: string, context: Context): bo
     return (c.routing || c.switching) && !c.endpoint;
   if (/^(?:vtp|storm-control|monitor session|show (?:vtp|storm-control|monitor))\b/.test(line))
     return c.switching;
+  if (/^(?:crypto (?:isakmp|ipsec|ikev2)|show crypto)\b/.test(line))
+    return d.type === 'router' && c.routingProtocols;
   if (/^(?:standby|show standby)\b/.test(line)) return c.routingProtocols;
   if (/^(?:cdp|lldp|show (?:cdp|lldp))\b/.test(line))
     return (c.routing || c.switching) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');

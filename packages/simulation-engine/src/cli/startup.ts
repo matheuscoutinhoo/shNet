@@ -69,8 +69,10 @@ function rebuild(e: SimulationEngine, id: string, registry: CommandRegistry): st
     return (
       /^Port-channel\d+$/.test(p.name) ||
       (/^tun\d+$/.test(p.id) && /^Tunnel\d+$/.test(p.name)) ||
+      // IOS "interface TunnelN" is re-created by its own interface command.
+      /^tunnel-if-\d+$/.test(p.id) ||
       (/^vx\d+$/.test(p.id) && /^Vxlan\d+$/.test(p.name)) ||
-      !!(live?.aggregate || live?.tunnel || live?.vxlan)
+      !!(live?.aggregate || live?.tunnel || live?.iosTunnel || live?.vxlan)
     );
   };
   const hardware = (saved?.interfaces ?? old.interfaces.filter((p) => !p.logical && !p.loopback)).filter(

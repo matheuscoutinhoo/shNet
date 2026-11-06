@@ -50,6 +50,7 @@ import {
 } from './ios-management';
 import { bannerRunningConfig } from './banner';
 import { registerIosManagementShow } from './ios-management-show';
+import { registerIosTunnelCommands, iosTunnelInterfaceLines, cryptoRunningConfig } from './ios-tunnel';
 import { edgePort } from '../protocols/stp-scope';
 import { registerMonitoring, monitoringRunning } from './monitoring';
 import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
@@ -89,6 +90,7 @@ export function makeRegistry() {
   // Before the simulator's legacy management forms, so the IOS syntax wins.
   registerIosManagementCommands(r);
   registerIosManagementShow(r);
+  registerIosTunnelCommands(r);
   registerIosOperations(r);
   registerConfigDiff(r);
   registerMonitoring(r);
@@ -167,17 +169,19 @@ export function makeRegistry() {
       c.mode =
         c.mode === 'key-chain-key'
           ? 'key-chain'
-          : c.mode === 'policy-class'
-            ? 'policy-map'
-            : c.mode === 'address-family'
-              ? c.vrf
-                ? 'vrf'
-                : 'router'
-              : config.includes(c.mode) && c.mode !== 'config'
-                ? 'config'
-                : c.mode === 'config'
-                  ? 'privileged'
-                  : 'user';
+          : c.mode === 'ikev2-keyring-peer'
+            ? 'ikev2-keyring'
+            : c.mode === 'policy-class'
+              ? 'policy-map'
+              : c.mode === 'address-family'
+                ? c.vrf
+                  ? 'vrf'
+                  : 'router'
+                : config.includes(c.mode) && c.mode !== 'config'
+                  ? 'config'
+                  : c.mode === 'config'
+                    ? 'privileged'
+                    : 'user';
     },
   });
   r.register({
@@ -231,6 +235,7 @@ export function makeRegistry() {
       let p = d.interfaces.find((p) => p.name.toLowerCase() === name.toLowerCase());
       if (!p && /^Vlan\d+$/i.test(name)) p = e.addSvi(d.id, Number(name.slice(4)));
       if (!p && /^Loopback\d+$/i.test(name)) p = e.addLoopback(d.id, Number(name.slice(8)));
+      if (!p && /^Tunnel\d+$/i.test(name)) p = e.addIosTunnel(d.id, Number(name.slice(6)));
       if (!p && /^.+\.\d+$/.test(name)) {
         const [parentName, vlan] = name.split('.');
         const parent = d.interfaces.find((p) => p.name.toLowerCase() === parentName.toLowerCase());
@@ -589,6 +594,7 @@ export function makeRegistry() {
           'hostname ' + d.hostname,
           ...iosSystemRunning(d),
           ...iosManagementHead(d),
+          ...cryptoRunningConfig(d),
           ...monitoringRunning(d),
           ...routingPolicyRunning(d),
           ...mqcDefinitions(d),
@@ -611,10 +617,12 @@ export function makeRegistry() {
           'interface ' + i.name,
           ...(i.description ? [' description ' + i.description] : []),
           // Loopbacks use a 9216-byte MTU by default; only explicit changes are configuration.
-          ...(i.mtu !== (i.loopback ? 9216 : 1500) ? [' mtu ' + i.mtu] : []),
+          ...(!i.iosTunnel && i.mtu !== (i.loopback ? 9216 : 1500) ? [' mtu ' + i.mtu] : []),
           ...(i.duplex === 'half' && !i.logical && !i.loopback ? [' duplex half'] : []),
           ...(i.logical?.kind === 'subinterface' ? [' encapsulation dot1q ' + i.logical.vlan] : []),
-          ...(d.type === 'switch' && !i.logical && i.mode === 'routed' ? [' no switchport'] : []),
+          ...(d.type === 'switch' && !i.logical && !i.iosTunnel && i.mode === 'routed'
+            ? [' no switchport']
+            : []),
           ...(i.vrf ? [' vrf forwarding ' + i.vrf] : []),
           ' ' + (i.adminUp ? 'no shutdown' : 'shutdown'),
           ...(i.speedAuto === false && !i.logical && !i.loopback ? [' speed ' + i.speed] : []),
@@ -635,6 +643,7 @@ export function makeRegistry() {
             : i.ip
               ? [' ip address ' + i.ip + ' ' + ipString(mask(i.prefix!))]
               : []),
+          ...iosTunnelInterfaceLines(i),
           ...(i.ipv4Mode !== 'dhcp' && i.dns?.length ? [' ip name-server ' + i.dns.join(' ')] : []),
           ...(i.stpEdge
             ? [' spanning-tree portfast']

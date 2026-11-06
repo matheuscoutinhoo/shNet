@@ -327,8 +327,62 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
         payload = concat(header, inner);
         if (p.bytes !== payload.length + 28)
           throw new Error('VXLAN: tamanho legado sem padding; captura histórica não interoperável.');
+      } else if (v.protocol === 'IKE') {
+        // ISAKMP/IKEv2 header (SPIs, version, exchange, flags, length); the body stays opaque.
+        const m = v.message,
+          body = text(JSON.stringify(m)),
+          exchange =
+            m.version === 1
+              ? 2
+              : m.kind === 'init' || m.kind === 'init-reply'
+                ? 34
+                : m.kind === 'notify'
+                  ? 37
+                  : 35;
+        payload = concat(
+          hex(m.kind === 'init' || m.kind === 'auth' ? m.spi : (m.peerSpi ?? '0'.repeat(16))),
+          hex(m.kind === 'init' || m.kind === 'auth' ? (m.peerSpi ?? '0'.repeat(16)) : m.spi),
+          new Uint8Array([
+            0,
+            m.version === 1 ? 0x10 : 0x20,
+            exchange,
+            m.kind === 'init' || m.kind === 'auth' ? 0x08 : 0x20,
+          ]),
+          u32(0),
+          u32(28 + body.length),
+          body
+        );
       } else throw new Error('Payload UDP ' + v.protocol + ' sem codec binário.');
       transport = udp(p.src, p.dst, p.sourcePort, p.destinationPort, payload);
+    } else if (p.protocol === 'GRE') {
+      protocol = 47;
+      // RFC 2784/2890 header: K flag when keyed, version 0, then the passenger IPv4 packet.
+      let passenger: Uint8Array;
+      if (p.keepalive) {
+        const k = JSON.parse(p.inner) as { src: string; dst: string };
+        passenger = ipv4(k.src, k.dst, 255, 47, concat(u16(0), u16(0)));
+      } else {
+        const inner = encodeEthernet(
+          {
+            src: f.src,
+            dst: f.dst,
+            etherType: 'IPv4',
+            packet: packetSchema.parse(JSON.parse(p.inner)),
+            hops: 1,
+          },
+          depth + 1
+        );
+        passenger = inner.subarray(14, 14 + view(inner).getUint16(16));
+      }
+      transport = concat(
+        u16(p.key !== undefined ? 0x2000 : 0),
+        u16(0x0800),
+        ...(p.key !== undefined ? [u32(p.key)] : []),
+        passenger
+      );
+    } else if (p.protocol === 'ESP') {
+      protocol = 50;
+      transport = concat(hex(p.spi), u32(p.sequence), hex(p.body), hex(p.tag));
     } else throw new Error('Protocolo IP ' + p.protocol + ' sem codec binário.');
     body = ipv4(
       p.src,
@@ -396,6 +450,8 @@ export interface DecodedEthernet {
   bpdu?: ReturnType<typeof decodeStp>;
   fragment?: { identification: number; offset: number; more: boolean; data: Uint8Array };
   mpls?: { labels: { value: number; tc: number; ttl: number }[]; inner: DecodedEthernet };
+  gre?: { key?: number; protocolType: number; inner?: DecodedEthernet };
+  esp?: { spi: number; sequence: number };
   transport?: {
     sourcePort?: number;
     destinationPort?: number;
@@ -617,6 +673,26 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
     }
   } else if (r.protocol === 89 && r.family === 4) {
     r.ospf = decodeOspf(body);
+  } else if (r.protocol === 47 && r.family === 4) {
+    need(body, 0, 4);
+    const keyed = !!(body[0] & 0x20),
+      protocolType = v.getUint16(2),
+      start = keyed ? 8 : 4;
+    need(body, 0, start);
+    const passenger = body.subarray(start);
+    r.gre = {
+      ...(keyed ? { key: v.getUint32(4) } : {}),
+      protocolType,
+      ...(protocolType === 0x0800 && passenger.length
+        ? {
+            inner: decodeEthernet(concat(new Uint8Array(12), u16(0x0800), passenger), depth + 1),
+          }
+        : {}),
+    };
+  } else if (r.protocol === 50) {
+    need(body, 0, 8);
+    r.esp = { spi: v.getUint32(0), sequence: v.getUint32(4) };
+    r.transport = { payload: body.subarray(8) };
   } else if (r.protocol === 1 || r.protocol === 58) {
     need(body, 0, 8);
     if (checksum(r.protocol === 58 ? concat(pseudo(r.src!, r.dst!, 58, body.length), body) : body))

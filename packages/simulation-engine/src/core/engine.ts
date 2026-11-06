@@ -106,6 +106,12 @@ import { configureTelemetry, configureCollector, handleTelemetry } from '../prot
 import { configureClock, configureNtp, handleNtp, stampNtp } from '../protocols/ntp';
 import { monitorTick, slaProbeIds } from '../protocols/monitoring';
 import { handleErrdisableRecovery } from '../protocols/errdisable';
+import {
+  addTunnelInterface,
+  handleIosTunnelTick,
+  refreshIosTunnels,
+  sendIosTunnel,
+} from '../protocols/ios-tunnel';
 import { receiveUdld, udldTick } from '../protocols/udld';
 import { bfdTick } from '../protocols/bfd';
 import { configureRemote } from '../protocols/remote';
@@ -657,9 +663,20 @@ export class SimulationEngine {
     syncPvstInstances(this, this.device(deviceId));
     return port;
   }
+  /** IOS "interface TunnelN". */
+  addIosTunnel(deviceId: string, number: number) {
+    return addTunnelInterface(this, this.device(deviceId), number);
+  }
   removeLogicalInterface(deviceId: string, portId: string) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
-    if (!port.logical && !port.tunnel && !port.vxlan && !port.loopback && !port.installedNic)
+    if (
+      !port.logical &&
+      !port.tunnel &&
+      !port.iosTunnel &&
+      !port.vxlan &&
+      !port.loopback &&
+      !port.installedNic
+    )
       throw new Error('Somente interfaces lógicas/túneis podem ser removidos.');
     if (
       port.installedNic &&
@@ -727,8 +744,12 @@ export class SimulationEngine {
       ({ action }) => action.kind !== 'arp-timeout' || action.device !== deviceId || action.port !== portId
     );
     this.state.queue = this.state.queue.filter(
-      ({ action: a }) => a.kind !== 'tunnel-tick' || a.device !== deviceId || a.port !== portId
+      ({ action: a }) =>
+        (a.kind !== 'tunnel-tick' && a.kind !== 'ios-tunnel-tick') ||
+        a.device !== deviceId ||
+        a.port !== portId
     );
+    if (port.iosTunnel) invalidateProtocolIndex(this.state);
     if (device.sdwan) device.sdwan.selected = device.sdwan.selected.filter((p) => p.port !== portId);
     if (port.vxlan && device.bgp) this.configureBgp(deviceId, bgpConfig(device));
     this.emit('CONFIG_CHANGED', device.id, 'Interface ' + port.name + ' removida.');
@@ -1012,6 +1033,7 @@ export class SimulationEngine {
     refreshHsrp(this);
     refreshBgp(this);
     refreshDhcpClients(this);
+    refreshIosTunnels(this);
   }
   configureWlc(device: string, input: unknown) {
     configureWlc(this, this.device(device), input);
@@ -1523,6 +1545,11 @@ export class SimulationEngine {
       this.drop(d, 'Console transporta somente comandos UART.', port.id, frame);
       return;
     }
+    // An IOS tunnel interface encapsulates in GRE/ESP towards its peer.
+    if (port.iosTunnel) {
+      sendIosTunnel(this, d, port, frame);
+      return;
+    }
     if (fragmentFrame(this, d, port, frame)) return;
     if (frame.ipv6 && !permit6(this, d, port, 'out', frame.ipv6)) return;
     if (port.vxlan) {
@@ -1772,7 +1799,7 @@ export class SimulationEngine {
       sendIcmpError(this, d, ingress, packet, 'unreachable', 4, route.port.mtu);
       return;
     }
-    if (route.port.tunnel) {
+    if (route.port.tunnel || route.port.iosTunnel) {
       this.sendFrame(d.id, route.port.id, {
         src: route.port.mac,
         dst: route.port.mac,
@@ -1890,6 +1917,7 @@ export class SimulationEngine {
     else if (a.kind === 'monitoring-tick') monitorTick(this, this.device(a.device), a.token);
     else if (a.kind === 'device-boot') completeReload(this, a.device, a.token);
     else if (a.kind === 'errdisable-recovery') handleErrdisableRecovery(this, a);
+    else if (a.kind === 'ios-tunnel-tick') handleIosTunnelTick(this, a);
     else if (a.kind === 'udld-tick') {
       const d = this.device(a.device),
         p = d.interfaces.find((p) => p.id === a.port);
@@ -1992,6 +2020,7 @@ export class SimulationEngine {
         refreshVrrp(this);
         refreshHsrp(this, afterEvent);
         refreshDhcpClients(this);
+        refreshIosTunnels(this);
       }
       refreshBgp(this);
       if (!afterEvent || !this.networkDirty) return;
@@ -2209,6 +2238,7 @@ export class SimulationEngine {
       refreshHsrp(this);
       refreshBgp(this);
       refreshDhcpClients(this);
+      refreshIosTunnels(this);
     }
     let count = 0;
     while (

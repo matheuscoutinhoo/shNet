@@ -145,3 +145,6 @@ diccg6r0	Waiting for link
 k6j244it	Address conflict on every DHCP offer.
 vfxqd8cz	APIPA address {0}/16 in use.
 fb5dx6cn	Retrying in {0} s.
+jcwwmne7	Firewall {0} on {1}: no zone rule permits {2} → {3}.
+gy8ovewh	Invalid IOS tunnel interface.
+5swbd5tm	Inconsistent IOS tunnel timer.

@@ -634,6 +634,8 @@ export function Timeline({
                               TCP: '6 (TCP)',
                               OSPF: '89 (OSPF)',
                               VRRP: '112 (VRRP)',
+                              GRE: '47 (GRE)',
+                              ESP: '50 (ESP)',
                             }[event.frame.packet.protocol]
                           }
                         </dd>
@@ -726,6 +728,34 @@ export function Timeline({
                       </details>
                     ) : event.frame.packet.protocol === 'TCP' ? (
                       <TcpPacketDetails packet={event.frame.packet} />
+                    ) : event.frame.packet.protocol === 'GRE' ? (
+                      <details open>
+                        <summary>
+                          <span>04</span> GRE
+                        </summary>
+                        <PacketFields>
+                          <dt>Key</dt>
+                          <dd>{event.frame.packet.key ?? '-'}</dd>
+                          <dt>Passenger</dt>
+                          <dd>
+                            {event.frame.packet.keepalive
+                              ? 'keepalive ' + event.frame.packet.keepalive
+                              : 'IPv4 (0x0800)'}
+                          </dd>
+                        </PacketFields>
+                      </details>
+                    ) : event.frame.packet.protocol === 'ESP' ? (
+                      <details open>
+                        <summary>
+                          <span>04</span> ESP
+                        </summary>
+                        <PacketFields>
+                          <dt>SPI</dt>
+                          <dd>0x{event.frame.packet.spi}</dd>
+                          <dt>Sequence</dt>
+                          <dd>{event.frame.packet.sequence}</dd>
+                        </PacketFields>
+                      </details>
                     ) : (
                       <>
                         <details open>

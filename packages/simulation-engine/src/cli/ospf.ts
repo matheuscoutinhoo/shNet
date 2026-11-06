@@ -10,6 +10,9 @@ import { interfaceName } from './operational';
 import { parsePrefix, subnet, ipString, mask } from '../protocols/ipv4';
 import { registerBfdCommands } from './bfd';
 
+export function ospfConfiguration(device: Device): OspfConfig {
+  return configuration(device);
+}
 function configuration(device: Device): OspfConfig {
   if (!device.ospf) throw new Error('Configure first: router ospf <process-id>');
   return {

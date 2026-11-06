@@ -1052,6 +1052,10 @@
   "{0} diferenças de configuração"
  ],
  [
+  "jcwwmne7",
+  "Firewall {0} em {1}: sem regra de zona que permita {2} → {3}."
+ ],
+ [
   "jfgik4xa",
   "BGP retirou {0} via {1}."
  ],
