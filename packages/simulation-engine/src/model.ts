@@ -1723,6 +1723,8 @@ export const LIMITS = {
   devices: 2000,
   macAge: 300000,
   arpAge: 60000,
+  // IOS "arp timeout" default: 4 hours.
+  iosArpAge: 14400000,
   arpTimeout: 3000,
   probeTimeout: 30000,
   l2Hops: 32,

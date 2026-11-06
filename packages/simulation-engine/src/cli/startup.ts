@@ -242,6 +242,13 @@ function replay(
   }
   return rejected;
 }
+/** The OSPF process as it starts after a reload: a configured router ID is in effect. */
+function savedOspf(state: NonNullable<Device['ospf']>) {
+  const config = ospfConfigSchema.parse(pick(state, Object.keys(ospfConfigSchema.shape)));
+  if (config.pendingRouterId) config.routerId = config.pendingRouterId;
+  delete config.pendingRouterId;
+  return config;
+}
 /** NVRAM data IOS keeps outside the config text: RSA keys, SNMPv3 users and vlan.dat (VTP). */
 function privateConfig(d: Device) {
   const s = d.iosSystem,
@@ -269,7 +276,7 @@ export function saveStartup(e: SimulationEngine, d: Device, registry: CommandReg
     console: p.console,
   }));
   const protocols = {
-    ospf: d.ospf ? ospfConfigSchema.parse(pick(d.ospf, Object.keys(ospfConfigSchema.shape))) : undefined,
+    ospf: d.ospf ? savedOspf(d.ospf) : undefined,
     rip: d.rip ? ripConfigSchema.parse(pick(d.rip, Object.keys(ripConfigSchema.shape))) : undefined,
     bgp: bgpConfig(d),
     nat: d.nat

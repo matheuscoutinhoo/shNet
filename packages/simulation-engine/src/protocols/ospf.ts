@@ -55,7 +55,7 @@ function adjacencyKey(config: OspfConfig, entry: OspfConfig['interfaces'][number
     entry.authenticationKeyId,
   ]);
 }
-export function configureOspf(engine: SimulationEngine, device: Device, input: unknown) {
+export function configureOspf(engine: SimulationEngine, device: Device, input: unknown, restart = false) {
   const config = ospfConfigSchema.parse(input);
   for (const p of config.interfaces) {
     const authentication = device.interfaces.find((i) => i.id === p.port)?.ospfAuthentication;
@@ -115,6 +115,7 @@ export function configureOspf(engine: SimulationEngine, device: Device, input: u
   // Like IOS, an edit only resets the adjacencies whose hello parameters changed; a new router ID,
   // process or enable state restarts the whole process.
   if (
+    !restart &&
     previous?.enabled &&
     config.enabled &&
     previous.routerId === config.routerId &&
@@ -264,6 +265,28 @@ export function selectOspfRouterId(d: Device) {
       .map((p) => p.ip!)
       .sort((a, b) => ipNumber(b) - ipNumber(a))[0] ?? '0.0.0.0'
   );
+}
+/**
+ * "clear ip ospf process": drops every adjacency, flushes the self-originated LSAs and restarts
+ * with the configured router ID (or a newly selected one).
+ */
+export function clearOspfProcess(engine: SimulationEngine, device: Device) {
+  const state = device.ospf;
+  if (!state) return;
+  const config = ospfConfigOf(state);
+  // Once chosen, the router ID survives a clear: only a configured (or removed) router-id changes it.
+  const routerId =
+    config.pendingRouterId ?? (config.routerId === '0.0.0.0' ? selectOspfRouterId(device) : config.routerId);
+  delete config.pendingRouterId;
+  for (const neighbor of state.neighbors)
+    engine.emit(
+      'OSPF_NEIGHBOR_CHANGED',
+      device.id,
+      `${neighbor.routerId}: ${neighbor.state} → Down; processo OSPF reiniciado.`,
+      { port: neighbor.port }
+    );
+  state.neighbors = [];
+  configureOspf(engine, device, { ...config, routerId, enabled: routerId !== '0.0.0.0' }, true);
 }
 function removeNeighbor(engine: SimulationEngine, device: Device, neighbor: OspfNeighbor, why: string) {
   device.ospf!.neighbors = device.ospf!.neighbors.filter((entry) => entry !== neighbor);

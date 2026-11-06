@@ -7,6 +7,7 @@ import { OSPF, lsaKey, type DynamicRoute, type OspfLsa } from './ospf-model';
 import { bestOspfRoutes, ospfSpf, ospfRouterPaths } from './ospf-spf';
 import { floodOspf } from './ospf-wire';
 import { ospfRedistributedRoutes } from './ospf-redistribution';
+import { noteInstalledRoutes } from './route-age';
 
 function signature(lsa: OspfLsa) {
   return JSON.stringify([
@@ -358,6 +359,7 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
         );
     state.routes = routes;
     state.spfRuns++;
+    noteInstalledRoutes(device, 'ospf', routes, engine.state.clock);
     engine.emit('OSPF_SPF', device.id, `SPF a partir da LSDB local: ${routes.length} rotas selecionadas.`);
   }
 }

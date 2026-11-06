@@ -1,4 +1,4 @@
-import type { Device, NetworkInterface, OspfConfig } from '../model';
+import { ipv4Schema, type Device, type NetworkInterface, type OspfConfig } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 import { readSecret } from './secrets';
@@ -342,12 +342,29 @@ export function registerOspfCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^router-id ([\d.]+)$/i,
-    syntax: 'router-id <address>',
+    pattern: /^(no )?router-id(?: ([\d.]+))?$/i,
+    syntax: ['router-id <address>', 'no router-id'],
     modes: ['router'],
     run: (m, e, d, c) => {
       if (c.router !== 'ospf') throw new Error('router-id requires router ospf mode.');
-      e.configureOspf(d.id, { ...configuration(d), routerId: m[1], autoRouterId: false, enabled: true });
+      if (!m[1] && !m[2]) throw new Error('Incomplete command.');
+      const value = configuration(d),
+        state = d.ospf!;
+      const wanted = m[1] ? selectOspfRouterId(d) : ipv4Schema.parse(m[2]);
+      if (!m[1] && (ipNumber(wanted) === 0 || ipNumber(wanted) >= 0xe0000000))
+        throw new Error('Invalid input detected at: ' + m[2]);
+      // A running process keeps its router ID until "clear ip ospf process" or a reload.
+      if (state.enabled && state.routerId !== '0.0.0.0' && state.routerId !== wanted) {
+        e.configureOspf(d.id, { ...value, autoRouterId: !!m[1], pendingRouterId: wanted });
+        return '% OSPF: Reload or use "clear ip ospf process" command, for this to take effect';
+      }
+      delete value.pendingRouterId;
+      e.configureOspf(d.id, {
+        ...value,
+        routerId: wanted,
+        autoRouterId: !!m[1],
+        enabled: wanted !== '0.0.0.0',
+      });
     },
   });
   registry.register({
@@ -524,7 +541,7 @@ export function ospfRunningConfig(device: Device): string[] {
   const areaText = (id: number) => String(id);
   return [
     'router ospf ' + (state.processId ?? 1),
-    ...(!state.autoRouterId ? [' router-id ' + state.routerId] : []),
+    ...(!state.autoRouterId ? [' router-id ' + (state.pendingRouterId ?? state.routerId)] : []),
     ...(state.logAdjacencyChanges === false
       ? [' no log-adjacency-changes']
       : state.logAdjacencyChanges === 'detail'

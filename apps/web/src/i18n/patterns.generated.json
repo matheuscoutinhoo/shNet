@@ -456,6 +456,10 @@
   "Recuperação local indisponível: {0} Exporte as alterações se o servidor também falhar."
  ],
  [
+  "8v28nfn5",
+  "AS Hops {0}"
+ ],
+ [
   "903iz4bz",
   "Interface lógica {0} criada."
  ],
@@ -742,6 +746,10 @@
  [
   "dmnyxe54",
   "Relay DHCPv6 configurado em {0}."
+ ],
+ [
+  "dmzdady6",
+  "armazenado por {0} s virtuais."
  ],
  [
   "doann0by",
@@ -1176,6 +1184,10 @@
   "Resposta do servidor {0} entregue na rede de giaddr={1}; UDP 67 → 68."
  ],
  [
+  "lfjh8sgg",
+  "{0}: {1} → Down; processo OSPF reiniciado."
+ ],
+ [
   "lgpn1570",
   "{0}: apenas um caminho físico de acesso."
  ],
@@ -1502,10 +1514,6 @@
  [
   "sfvpggds",
   "Pools {0}/{1}: intervalos sobrepostos no mesmo domínio."
- ],
- [
-  "sgaxv3d4",
-  "{0} → {1} armazenado por 60 s virtuais."
  ],
  [
   "snsuesho",

@@ -62,6 +62,7 @@ import { composeRunningConfig } from './running-config';
 import { printSecret } from './secrets';
 import { bfdInterfaceRunningConfig, bfdTemplateRunningConfig } from './bfd';
 import { keyChainRunningConfig } from './key-chain';
+import { registerIosExec, showIosArp, showIosMacTable } from './ios-exec';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -92,6 +93,7 @@ export function makeRegistry() {
   registerIosManagementShow(r);
   registerIosTunnelCommands(r);
   registerIosOperations(r);
+  registerIosExec(r);
   registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);
@@ -502,36 +504,50 @@ export function makeRegistry() {
     run: (m, _e, d) => showVlan(d, !!m[1]),
   });
   r.register({
-    pattern: /^show mac address-table$/i,
+    pattern: /^show mac address-table((?: (?:dynamic|static|address \S+|interface \S+|vlan \d+))*)$/i,
+    syntax: [
+      'show mac address-table',
+      'show mac address-table dynamic',
+      'show mac address-table interface <interface>',
+      'show mac address-table vlan <vlan>',
+      'show mac address-table address <mac>',
+    ],
     modes: all,
-    run: (_m, _e, d) =>
-      'VLAN   MAC                PORT\n' +
-      d.macTable
-        .map((m) => String(m.vlan).padEnd(7) + m.mac + '  ' + d.interfaces.find((i) => i.id === m.port)?.name)
-        .join('\n'),
-  });
-  r.register({
-    pattern: /^show arp$/i,
-    modes: all,
-    run: (_m, _e, d) =>
-      'IP                MAC                PORT\n' +
-      d.arpTable
-        .map((a) => a.ip.padEnd(18) + a.mac + '  ' + d.interfaces.find((i) => i.id === a.port)?.name)
-        .join('\n') +
-      (d.arpResolutions?.length
-        ? '\nINCOMPLETE\n' +
-          d.arpResolutions
+    run: (m, _e, d) =>
+      terminalIdentity(d).host
+        ? 'VLAN   MAC                PORT\n' +
+          d.macTable
             .map(
-              (entry) =>
-                entry.ip +
-                ' ' +
-                d.interfaces.find((port) => port.id === entry.port)?.name +
-                ' attempt=' +
-                entry.attempts +
-                '/3'
+              (m) => String(m.vlan).padEnd(7) + m.mac + '  ' + d.interfaces.find((i) => i.id === m.port)?.name
             )
             .join('\n')
-        : ''),
+        : showIosMacTable(d, m[1]),
+  });
+  r.register({
+    pattern: /^show (ip )?arp(?: (\S+))?$/i,
+    syntax: ['show arp', 'show ip arp', 'show ip arp <address>', 'show ip arp <interface>'],
+    modes: all,
+    run: (m, e, d) =>
+      !terminalIdentity(d).host
+        ? showIosArp(e, d, m[2])
+        : 'IP                MAC                PORT\n' +
+          d.arpTable
+            .map((a) => a.ip.padEnd(18) + a.mac + '  ' + d.interfaces.find((i) => i.id === a.port)?.name)
+            .join('\n') +
+          (d.arpResolutions?.length
+            ? '\nINCOMPLETE\n' +
+              d.arpResolutions
+                .map(
+                  (entry) =>
+                    entry.ip +
+                    ' ' +
+                    d.interfaces.find((port) => port.id === entry.port)?.name +
+                    ' attempt=' +
+                    entry.attempts +
+                    '/3'
+                )
+                .join('\n')
+            : ''),
   });
   r.register({
     pattern: /^show ip route$/i,

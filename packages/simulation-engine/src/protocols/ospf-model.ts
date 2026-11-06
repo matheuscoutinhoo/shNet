@@ -193,6 +193,9 @@ export const ospfConfigSchema = z
     routerId: ipv4Schema,
     processId: z.number().int().min(1).max(65535).optional(),
     autoRouterId: z.boolean().optional(),
+    // A router ID configured while the process already runs: IOS applies it only after
+    // "clear ip ospf process" or a reload.
+    pendingRouterId: ipv4Schema.optional(),
     maximumPaths: z.number().int().min(1).max(32).default(4),
     referenceBandwidth: z.number().int().min(1).max(4294967).default(100),
     passiveDefault: z.boolean().default(false),

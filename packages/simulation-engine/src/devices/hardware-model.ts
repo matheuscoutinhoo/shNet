@@ -108,7 +108,10 @@ export const consoleSessionsSchema = z
               .strict()
               .optional(),
             confirm: z
-              .object({ kind: z.enum(['save', 'reload']) })
+              .object({
+                kind: z.enum(['save', 'reload', 'clear-counters', 'clear-logging', 'clear-ospf']),
+                port: z.string().max(80).optional(),
+              })
               .strict()
               .optional(),
             vrf: z.string().max(32).optional(),

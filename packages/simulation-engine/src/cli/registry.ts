@@ -96,8 +96,12 @@ export interface Context {
   sequence?: number;
   className?: string;
   auth?: { kind: 'enable'; attempts: number };
-  // Pending IOS reload dialog: "Save? [yes/no]" (save) then "Proceed with reload? [confirm]" (reload).
-  confirm?: { kind: 'save' | 'reload' };
+  // Pending IOS dialog: reload ("Save? [yes/no]" then "Proceed with reload? [confirm]") or a
+  // clear command waiting for [confirm] / "yes".
+  confirm?: {
+    kind: 'save' | 'reload' | 'clear-counters' | 'clear-logging' | 'clear-ospf';
+    port?: string;
+  };
 }
 export interface Command {
   pattern: RegExp;

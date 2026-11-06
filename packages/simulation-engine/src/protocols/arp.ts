@@ -21,6 +21,9 @@ import { observeDhcpArp } from './dhcp-client';
 type Resolution = NonNullable<Device['arpResolutions']>[number];
 type ArpTimer = Extract<Action, { kind: 'arp-timeout' }>;
 const retryMs = 1000;
+/** ARP cache lifetime: IOS routers and switches keep entries 4 hours; host stacks about a minute. */
+export const arpAgeMs = (d: Device) =>
+  ['router', 'switch'].includes(d.type) ? LIMITS.iosArpAge : LIMITS.arpAge;
 export function isDhcpRelease(packet: Packet) {
   return (
     packet.protocol === 'UDP' &&
@@ -223,14 +226,14 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
       ip: arp.senderIp,
       mac: arp.senderMac,
       port: port.id,
-      expires: engine.state.clock + LIMITS.arpAge,
+      expires: engine.state.clock + arpAgeMs(device),
     });
   if (device.arpTable.length > 2048) device.arpTable.shift();
-  noteCacheExpiry(engine.state, engine.state.clock + LIMITS.arpAge);
+  noteCacheExpiry(engine.state, engine.state.clock + arpAgeMs(device));
   engine.emit(
     'ARP_TABLE_UPDATED',
     device.id,
-    arp.senderIp + ' → ' + arp.senderMac + ' armazenado por 60 s virtuais.',
+    arp.senderIp + ' → ' + arp.senderMac + ` armazenado por ${arpAgeMs(device) / 1000} s virtuais.`,
     { port: port.id, frame }
   );
   if (arp.kind === 'request' && port.ip && !announcement) {

@@ -43,15 +43,24 @@ function echo(
   target: string,
   options: { ttl?: number; vrf?: string; bytes?: number; df?: boolean; source?: string; timeoutMs: number }
 ): Result {
-  const id = e.ping(
-    d.id,
-    target,
-    options.ttl ?? 64,
-    options.vrf,
-    options.bytes ?? 100,
-    !!options.df,
-    options.source
-  );
+  let id: string;
+  try {
+    id = e.ping(
+      d.id,
+      target,
+      options.ttl ?? 64,
+      options.vrf,
+      options.bytes ?? 100,
+      !!options.df,
+      options.source
+    );
+  } catch (error) {
+    // Without an IPv4 address to send from (no route, no SVI) IOS prints "." after the timeout.
+    if (!/SVI|endereço IPv4 na interface de origem/.test(error instanceof Error ? error.message : ''))
+      throw error;
+    e.advanceTo(e.state.clock + options.timeoutMs, 500000, undefined, false);
+    return { status: 'timeout' };
+  }
   const probe = () => e.state.probes.find((p) => p.id === id);
   waitFor(
     e,
@@ -156,11 +165,22 @@ function sourcePort(d: Device, source: string) {
 
 // Traceroute stops after this many consecutive silent hops to bound simulated time.
 const SILENT_HOPS = 3;
-function trace(e: SimulationEngine, d: Device, address: string, vrf?: string) {
+type TraceOptions = {
+  vrf?: string;
+  source?: string;
+  timeoutMs: number;
+  probes: number;
+  minTtl: number;
+  maxTtl: number;
+};
+const TRACE_DEFAULTS: TraceOptions = { timeoutMs: 3000, probes: 3, minTtl: 1, maxTtl: 30 };
+function trace(e: SimulationEngine, d: Device, address: string, o: TraceOptions = TRACE_DEFAULTS) {
   const hops: { ttl: number; results: Result[] }[] = [];
   let silent = 0;
-  for (let ttl = 1; ttl <= 30; ttl++) {
-    const results = [0, 1, 2].map(() => echo(e, d, address, { ttl, vrf, timeoutMs: 3000 }));
+  for (let ttl = o.minTtl; ttl <= o.maxTtl; ttl++) {
+    const results = Array.from({ length: o.probes }, () =>
+      echo(e, d, address, { ttl, vrf: o.vrf, source: o.source, timeoutMs: o.timeoutMs })
+    );
     hops.push({ ttl, results });
     silent = results.every((r) => r.status === 'timeout') ? silent + 1 : 0;
     if (silent >= SILENT_HOPS || results.some((r) => r.status === 'success' || r.status === 'unreachable'))
@@ -169,9 +189,15 @@ function trace(e: SimulationEngine, d: Device, address: string, vrf?: string) {
   return { hops, stopped: silent >= SILENT_HOPS };
 }
 
-function iosTraceroute(e: SimulationEngine, d: Device, target: string, vrf?: string) {
+function iosTraceroute(
+  e: SimulationEngine,
+  d: Device,
+  target: string,
+  options: Omit<TraceOptions, 'source'> & { source?: string }
+) {
   const { address, translated } = resolveTarget(e, d, target);
-  const { hops, stopped } = trace(e, d, address, vrf);
+  const source = options.source ? sourcePort(d, options.source) : undefined;
+  const { hops, stopped } = trace(e, d, address, { ...options, source });
   return [
     ...(translated ? [translated] : []),
     'Type escape sequence to abort.',
@@ -258,10 +284,40 @@ export function registerPingCommands(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^(traceroute|tracert) (?:vrf ([\w-]{1,32}) )?([a-z0-9_.-]+)$/i,
-    syntax: ['traceroute <address>', 'traceroute vrf <vrf> <address>'],
+    pattern:
+      /^(traceroute|tracert) (?:vrf ([\w-]{1,32}) )?([a-z0-9_.-]+)((?:\s+(?:source|timeout|probe)\s+\S+|\s+ttl\s+\d+\s+\d+|\s+numeric)*)$/i,
+    syntax: [
+      'traceroute <address>',
+      'traceroute vrf <vrf> <address>',
+      'traceroute <address> source <interface>',
+      'traceroute <address> numeric',
+      'traceroute <address> timeout <seconds>',
+      'traceroute <address> probe <count>',
+      'traceroute <address> ttl <min> <max>',
+    ],
     modes: ALL_MODES,
-    run: (m, e, d) =>
-      terminalIdentity(d).host && !m[2] ? hostTraceroute(e, d, m[3]) : iosTraceroute(e, d, m[3], m[2]),
+    run: (m, e, d) => {
+      if (terminalIdentity(d).host && !m[2] && !m[4].trim()) return hostTraceroute(e, d, m[3]);
+      const tokens = m[4].trim() ? m[4].trim().split(/\s+/) : [];
+      const o: Omit<TraceOptions, 'source'> & { source?: string } = { ...TRACE_DEFAULTS, vrf: m[2] };
+      for (let i = 0; i < tokens.length; i++) {
+        const key = tokens[i].toLowerCase(),
+          number = (min: number, max: number) => {
+            const n = Number(tokens[++i]);
+            if (!Number.isInteger(n) || n < min || n > max)
+              throw new Error(`Invalid ${key}: use ${min}-${max}.`);
+            return n;
+          };
+        if (key === 'numeric') continue;
+        if (key === 'source') o.source = tokens[++i];
+        else if (key === 'timeout') o.timeoutMs = number(0, 3600) * 1000;
+        else if (key === 'probe') o.probes = number(1, 10);
+        else {
+          o.minTtl = number(1, 255);
+          o.maxTtl = number(o.minTtl, 255);
+        }
+      }
+      return iosTraceroute(e, d, m[3], o);
+    },
   });
 }

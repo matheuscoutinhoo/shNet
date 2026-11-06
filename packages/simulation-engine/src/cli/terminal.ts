@@ -12,6 +12,7 @@ import { verifyIosSecret } from './local-security';
 import { refreshInterfacePat } from '../protocols/nat';
 import { beginReload, saveStartup } from './startup';
 import { sessionBanners } from './ios-management';
+import { answerClear, applyOutputModifier, parseOutputModifier } from './ios-exec';
 export class TerminalSession {
   context: Context = { mode: 'user' };
   history: string[] = [];
@@ -27,10 +28,18 @@ export class TerminalSession {
   }
   get prompt() {
     if (this.secretInput) return 'Password:';
-    if (this.context.confirm)
-      return this.context.confirm.kind === 'save'
-        ? 'System configuration has been modified. Save? [yes/no]:'
-        : 'Proceed with reload? [confirm]';
+    const confirm = this.context.confirm;
+    if (confirm)
+      return {
+        save: 'System configuration has been modified. Save? [yes/no]:',
+        reload: 'Proceed with reload? [confirm]',
+        'clear-counters':
+          'Clear "show interface" counters on ' +
+          (confirm.port ? 'this interface' : 'all interfaces') +
+          ' [confirm]',
+        'clear-logging': 'Clear logging buffer [confirm]',
+        'clear-ospf': 'Reset ALL OSPF processes? [no]:',
+      }[confirm.kind];
     // Banner text lines are typed without a prompt until the delimiter.
     if (this.context.banner) return '';
     const tacacs = this.context.aaaKind === 'tacacs';
@@ -119,9 +128,20 @@ export class TerminalSession {
   }
   private answerReload(answer: string) {
     const before = this.engine.checkpoint(),
-      kind = this.context.confirm!.kind;
+      confirm = this.context.confirm!,
+      kind = confirm.kind;
     try {
       const d = this.engine.device(this.deviceId);
+      if (kind === 'clear-counters' || kind === 'clear-logging' || kind === 'clear-ospf') {
+        delete this.context.confirm;
+        // [confirm] accepts Enter or "y"; "[no]:" prompts need an explicit yes.
+        const accepted =
+          kind === 'clear-ospf' ? /^y(?:es?)?$/.test(answer) : !answer || /^(?:y|yes|confirm)$/.test(answer);
+        if (!accepted) return '';
+        answerClear(this.engine, d, kind, confirm.port);
+        validateSnapshot(this.engine.state);
+        return '';
+      }
       if (kind === 'save') {
         if (/^no?$/.test(answer)) {
           this.context.confirm = { kind: 'reload' };
@@ -180,8 +200,8 @@ export class TerminalSession {
     let before: StateMark | undefined;
     try {
       const d = this.engine.device(this.deviceId);
-      const filter = banner ? null : /\s*\|\s*(include|exclude|begin)\s+(.+)$/i.exec(line);
-      if (filter) line = line.slice(0, filter.index).trimEnd();
+      const modifier = banner ? undefined : parseOutputModifier(line);
+      if (modifier) line = modifier.command;
       if (!banner) line = this.registry.normalize(line, d, this.context);
       const safe = redactNetworkSecrets(line);
       this.history.push(safe === line ? input.trim() : safe);
@@ -215,17 +235,9 @@ export class TerminalSession {
       if (!readOnly) before = this.engine.mark();
       let result = this.registry.execute(line, this.engine, this.engine.device(this.deviceId), this.context);
       if (!readOnly) refreshInterfacePat(this.engine, this.engine.device(this.deviceId));
-      if (filter) {
-        if (!/^show\s/i.test(authorized)) throw new Error('Output filters require a show command.');
-        if (filter[2].length > 128 || /[(){}+*?\\]/.test(filter[2]))
-          throw new Error('Use a literal text or alternatives separated by |.');
-        const needles = filter[2].split('|').filter(Boolean),
-          lines = result.split('\n');
-        const matches = (text: string) => needles.some((needle) => text.includes(needle));
-        result =
-          filter[1].toLowerCase() === 'begin'
-            ? lines.slice(lines.findIndex(matches) < 0 ? lines.length : lines.findIndex(matches)).join('\n')
-            : lines.filter((text) => matches(text) !== (filter[1].toLowerCase() === 'exclude')).join('\n');
+      if (modifier) {
+        if (!/^show\s/i.test(authorized)) throw new Error('Output modifiers require a show command.');
+        result = applyOutputModifier(result, modifier);
       }
       if (!/^aaa (?:login|logout)(?:\s|$)/i.test(line))
         accountTacacs(this.engine, d, redactNetworkSecrets(line));
@@ -267,7 +279,13 @@ export class TerminalSession {
   /** Whether a line only reads state, so callers can skip undo checkpoints and revalidation. */
   readOnly(input: string) {
     if (this.secretInput || this.context.confirm || this.context.banner) return false;
-    const line = input.trim().replace(/\s*\|\s*(?:include|exclude|begin)\s+.+$/i, '');
+    const trimmed = input.trim();
+    let line: string;
+    try {
+      line = parseOutputModifier(trimmed)?.command ?? trimmed;
+    } catch {
+      return true;
+    }
     if (!line || line.startsWith('!') || line.endsWith('?')) return true;
     try {
       return READ_ONLY.test(
@@ -293,5 +311,6 @@ export function cliErrorText(error: unknown) {
         .map((issue) => (issue.path.length ? issue.path.join('.') + ' — ' : '') + issue.message)
         .join('; ')
     );
-  return error instanceof Error ? error.message : 'Comando inválido';
+  // Messages that already carry the IOS "%" marker are not prefixed twice ("% % ...").
+  return error instanceof Error ? error.message.replace(/^%\s*/, '') : 'Comando inválido';
 }

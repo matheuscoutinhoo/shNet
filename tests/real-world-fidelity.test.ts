@@ -267,9 +267,12 @@ describe('running-config layout and secrets', () => {
       'exit',
       'ipv6 route 2001:db8:99::/48 2001:db8:1:10::1',
       'router ospf 1',
-      'router-id 10.255.0.1',
-      'end',
     ]);
+    // The process already chose 10.1.10.2: IOS applies a new router ID after a clear or a reload.
+    expect(t.execute('router-id 10.255.0.1')).toBe(
+      '% OSPF: Reload or use "clear ip ospf process" command, for this to take effect'
+    );
+    ok(t, ['end']);
     const running = t.execute('show running-config'),
       lines = running.split('\n');
     expect(lines.filter((l) => l === 'interface Vlan10')).toHaveLength(1);
@@ -290,6 +293,7 @@ describe('running-config layout and secrets', () => {
     ok(t, ['enable']);
     expect(e.device(sw.id).bootLog).toEqual([]);
     expect(t.execute('show running-config')).toBe(running);
+    expect(e.device(sw.id).ospf!.routerId).toBe('10.255.0.1');
   });
   it('implements Cisco type 7 for service password-encryption', () => {
     expect(type7Decode('0822455D0A16')).toBe('cisco');
@@ -1267,7 +1271,9 @@ describe('static routes like IOS (Null0 summaries, recursive next hops)', () => 
       '\nip route 10.1.0.0 255.255.0.0 Null0 name SUMMARY tag 100\n'
     );
     const r2Routes = t2.execute('show ip route');
-    expect(r2Routes).toMatch(/^B {8}10\.1\.0\.0\/16 \[20\/0\] via 192\.0\.2\.1/m);
+    expect(r2Routes).toMatch(
+      /^ {6}10\.0\.0\.0\/16 is subnetted, 1 subnets\nB {8}10\.1\.0\.0 \[20\/0\] via 192\.0\.2\.1/m
+    );
     expect(r2Routes).toMatch(/^S {5}172\.16\.0\.0\/16 \[1\/0\] via 10\.1\.1\.1$/m);
     expect(r2Routes).not.toContain('172.17.0.0');
     // Without the Null0 route the packet would loop between R1's default route and R2's summary.
@@ -1606,6 +1612,142 @@ describe('IOS OSPF router commands', () => {
     ok(t1, ['enable']);
     expect(t1.execute('show running-config')).toBe(running);
     expect(e.device(r1.id).bootLog).toEqual([]);
+  });
+});
+describe('IOS exec commands and output modifiers', () => {
+  it('filters output, shows route entries and protocols, and confirms clear commands like IOS', () => {
+    const {
+      e,
+      devices: [r1, r2, sw],
+      terminals: [t1, t2, ts],
+      cable,
+      advance,
+    } = lab('router', 'router', 'access');
+    cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    cable(r1, 'Gi0/2', sw, 'Gi0/24');
+    ok(t1, [
+      'interface Loopback0',
+      'ip address 1.1.1.1 255.255.255.255',
+      'interface Gi0/1',
+      'ip address 10.12.0.1 255.255.255.0',
+      'no shutdown',
+      'interface Gi0/2',
+      'ip address 10.1.10.1 255.255.255.0',
+      'no shutdown',
+      'exit',
+      'ip route 0.0.0.0 0.0.0.0 10.12.0.2',
+      'router ospf 1',
+      'network 10.12.0.0 0.0.0.255 area 0',
+      'network 1.1.1.1 0.0.0.0 area 0',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Loopback0',
+      'ip address 2.2.2.2 255.255.255.255',
+      'interface Gi0/1',
+      'ip address 10.12.0.2 255.255.255.0',
+      'no shutdown',
+      'router ospf 1',
+      'network 0.0.0.0 255.255.255.255 area 0',
+      'end',
+    ]);
+    advance(60_000);
+    ok(t1, ['terminal length 0', 'terminal width 132', 'terminal monitor']);
+    // Route views.
+    const ospf = t1.execute('show ip route ospf');
+    expect(ospf).toContain('Gateway of last resort is 10.12.0.2 to network 0.0.0.0');
+    expect(ospf).toMatch(
+      /^ {6}2\.0\.0\.0\/32 is subnetted, 1 subnets\nO {8}2\.2\.2\.2 \[110\/2\] via 10\.12\.0\.2, \d\d:\d\d:\d\d, GigabitEthernet0\/1$/m
+    );
+    expect(ospf).not.toMatch(/^[CLS]\*? +\d/m);
+    expect(t1.execute('show ip route connected')).not.toMatch(/^O +\d/m);
+    const entry = t1.execute('show ip route 2.2.2.2');
+    expect(entry).toContain('Routing entry for 2.2.2.2/32');
+    expect(entry).toContain('Known via "ospf 1", distance 110, metric 2, type intra area');
+    expect(entry).toMatch(/\* 10\.12\.0\.2, from 2\.2\.2\.2, \d\d:\d\d:\d\d ago, via GigabitEthernet0\/1/);
+    expect(t1.execute('show ip route 0.0.0.0')).toContain(
+      'Known via "static", distance 1, metric 0, candidate default path'
+    );
+    expect(t1.execute('show ip route 8.8.8.8')).toBe('% Network not in table');
+    expect(t1.execute('show ip route summary')).toMatch(/^ospf 1 +0 +1 /m);
+    const protocols = t1.execute('show ip protocols');
+    expect(protocols).toContain('Routing Protocol is "ospf 1"');
+    expect(protocols).toContain('  Router ID 1.1.1.1');
+    expect(protocols).toMatch(/^ {4}2\.2\.2\.2 +110 +\d\d:\d\d:\d\d$/m);
+    // Output modifiers, abbreviated, with IOS regular expressions.
+    const interfaces = t1.execute('sh run | i ^interface').split('\n');
+    expect(interfaces.every((line) => /^interface \S+$/.test(line))).toBe(true);
+    expect(interfaces).toContain('interface Loopback0');
+    expect(t1.execute('show running-config | section router ospf')).toBe(
+      'router ospf 1\n network 10.12.0.0 0.0.0.255 area 0\n network 1.1.1.1 0.0.0.0 area 0'
+    );
+    expect(t1.execute('show running-config | begin ^router').split('\n')[0]).toBe('router ospf 1');
+    expect(t1.execute('show ip route | count ^O')).toBe('Number of lines which match regexp = 1');
+    expect(t1.execute('show ip interface brief | exclude unassigned|Interface')).not.toContain('unassigned');
+    expect(t1.execute('show running-config | grep ip')).toBe('% Invalid input detected at: grep');
+    const block = t1.execute('show running-config interface GigabitEthernet0/1');
+    expect(block).toMatch(
+      /^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n!\ninterface Gi0\/1\n/
+    );
+    expect(block.endsWith('\nend')).toBe(true);
+    const mac = e
+      .device(r2.id)
+      .interfaces.find((p) => p.name === 'Gi0/1')!
+      .mac.replace(/:/g, '')
+      .replace(/^(.{4})(.{4})(.{4})$/, '$1.$2.$3');
+    expect(t1.execute('ping 10.12.0.2 repeat 1')).toContain('Success rate is 100 percent (1/1)');
+    const arp = t1.execute('show ip arp');
+    expect(arp.split('\n')[0]).toBe('Protocol  Address          Age (min)  Hardware Addr   Type   Interface');
+    expect(arp).toMatch(
+      new RegExp(
+        `^Internet  10\\.12\\.0\\.2 +\\d+   ${mac.replace(/\./g, '\\.')}  ARPA   GigabitEthernet0/1$`,
+        'm'
+      )
+    );
+    expect(arp).toMatch(/^Internet {2}10\.12\.0\.1 +- {3}\S+ {2}ARPA {3}GigabitEthernet0\/1$/m);
+    // Clear commands ask for confirmation like IOS.
+    expect(t1.execute('clear counters')).toBe('');
+    expect(t1.prompt).toBe('Clear "show interface" counters on all interfaces [confirm]');
+    expect(t1.execute('')).toBe('');
+    expect(e.device(r1.id).interfaces.every((p) => p.rx === 0 && p.tx === 0)).toBe(true);
+    expect(t1.execute('show logging | include CLEAR')).toMatch(
+      /%CLEAR-5-COUNTERS: Clear counter on all interfaces by console$/
+    );
+    // A new router ID waits for "clear ip ospf process".
+    ok(t1, ['configure terminal', 'router ospf 1']);
+    expect(t1.execute('router-id 9.9.9.9')).toBe(
+      '% OSPF: Reload or use "clear ip ospf process" command, for this to take effect'
+    );
+    ok(t1, ['end']);
+    expect(t1.execute('show ip protocols')).toContain('  Router ID 1.1.1.1');
+    expect(t1.execute('show running-config | include router-id')).toBe(' router-id 9.9.9.9');
+    expect(t1.execute('clear ip ospf process')).toBe('');
+    expect(t1.prompt).toBe('Reset ALL OSPF processes? [no]:');
+    expect(t1.execute('')).toBe('');
+    expect(t1.execute('show ip protocols')).toContain('  Router ID 1.1.1.1');
+    t1.execute('clear ip ospf process');
+    expect(t1.execute('yes')).toBe('');
+    expect(t1.execute('show ip protocols')).toContain('  Router ID 9.9.9.9');
+    advance(60_000);
+    expect(t2.execute('show ip ospf neighbor')).toMatch(/^9\.9\.9\.9 .*FULL/m);
+    expect(t1.execute('traceroute 2.2.2.2 source Loopback0 numeric probe 1')).toMatch(
+      /Tracing the route to 2\.2\.2\.2\n.*\n {2}1 2\.2\.2\.2 \d+ msec$/
+    );
+    // Messages that already start with "%" are not prefixed twice.
+    ok(t1, ['configure terminal', 'interface Tunnel0']);
+    expect(t1.execute('tunnel mode gre multipoint')).toMatch(/^% DMVPN/);
+    // Catalyst MAC address table: the router's ARP broadcast teaches the switch its MAC.
+    ok(t1, ['end']);
+    t1.execute('ping 10.1.10.50 repeat 1');
+    ok(ts, ['end']);
+    const table = ts.execute('show mac address-table');
+    expect(table).toContain(' All    0100.0ccc.cccc    STATIC      CPU');
+    expect(table).toMatch(/^ {3}1 {4}\S{4}\.\S{4}\.\S{4} {4}DYNAMIC {5}Gi0\/24$/m);
+    expect(ts.execute('show mac address-table dynamic')).not.toContain('CPU');
+    expect(ts.execute('clear mac address-table dynamic')).toBe('');
+    expect(ts.execute('show mac address-table dynamic | include Total')).toBe(
+      'Total Mac Addresses for this criterion: 0'
+    );
   });
 });
 describe('802.1X on a Layer 2 access switch', () => {
