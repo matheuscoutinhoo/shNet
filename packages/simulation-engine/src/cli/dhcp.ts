@@ -3,10 +3,12 @@ import {
   DHCP_LIMITS,
   DHCP_MAX_LEASE_MS,
   dhcpPendingPoolSchema,
+  dhcpPoolOptionSchema,
   ipv4Schema,
   type Device,
   type DhcpPendingPool,
   type DhcpPool,
+  type DhcpPoolOption,
 } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import {
@@ -24,6 +26,14 @@ import { dhcpHaStatus } from '../protocols/dhcp-ha';
 const IOS_LEASE_MS = 86400000;
 type PoolDraft = DhcpPendingPool &
   Partial<Pick<DhcpPool, 'port' | 'relayAddress' | 'relayAddresses' | 'ios'>>;
+const optionLine = (option: DhcpPoolOption) =>
+  ' option ' +
+  option.code +
+  ('ip' in option
+    ? ' ip ' + option.ip.join(' ')
+    : 'ascii' in option
+      ? ' ascii ' + (/\s/.test(option.ascii) ? '"' + option.ascii + '"' : option.ascii)
+      : ' hex ' + option.hex.match(/.{1,4}/g)!.join('.'));
 
 function savePending(device: Device, draft: DhcpPendingPool) {
   const entry = dhcpPendingPoolSchema.parse(draft),
@@ -419,6 +429,39 @@ export function registerDhcpCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
+    pattern: /^(no )?option (\d{1,3})(?: (ip|ascii|hex) (.+))?$/i,
+    syntax: [
+      'option <code> ip <address...>',
+      'option <code> ascii <string>',
+      'option <code> hex <hex>',
+      'no option <code>',
+    ],
+    modes: ['dhcp'],
+    run: (matches, engine, device, context) => {
+      const code = Number(matches[2]);
+      if (!matches[1] && !matches[3]) throw new Error('Incomplete command.');
+      const value = matches[4]?.trim() ?? '';
+      const kind = matches[3]?.toLowerCase();
+      const option = matches[1]
+        ? undefined
+        : dhcpPoolOptionSchema.safeParse(
+            kind === 'ip'
+              ? { code, ip: value.split(/\s+/) }
+              : kind === 'ascii'
+                ? { code, ascii: value.replace(/^"(.*)"$/, '$1') }
+                : { code, hex: value.replace(/\./g, '').toLowerCase() }
+          );
+      if (option && !option.success) throw new Error('Invalid input detected at: option');
+      editPool(engine, device, context, (pool) => {
+        const others = (pool.options ?? []).filter((entry) => entry.code !== code);
+        const next = option?.success ? [...others, option.data].sort((a, b) => a.code - b.code) : others;
+        if (next.length > 16) throw new Error('Too many DHCP options in pool.');
+        if (next.length) pool.options = next;
+        else delete pool.options;
+      });
+    },
+  });
+  registry.register({
     pattern: /^no (default-router|dns-server)$/i,
     modes: ['dhcp'],
     run: (matches, engine, device, context) =>
@@ -618,6 +661,7 @@ export function dhcpRunningConfig(device: Device): string[] {
         ...(pool.gateway ? [' default-router ' + pool.gateway] : []),
         ...(pool.dns.length ? [' dns-server ' + pool.dns.join(' ')] : []),
         ...(pool.domainName ? [' domain-name ' + pool.domainName] : []),
+        ...(pool.options ?? []).map(optionLine),
         ...(pool.excluded.length ? [' excluded-address ' + pool.excluded.join(' ')] : []),
         ...(pool.reservations ?? []).map((entry) => ' reservation ' + entry.clientMac + ' ' + entry.address),
         ' exit',
@@ -631,6 +675,7 @@ export function dhcpRunningConfig(device: Device): string[] {
       ...(entry.gateway ? [' default-router ' + entry.gateway] : []),
       ...(entry.dns.length ? [' dns-server ' + entry.dns.join(' ')] : []),
       ...(entry.domainName ? [' domain-name ' + entry.domainName] : []),
+      ...(entry.options ?? []).map(optionLine),
       ...(entry.excluded?.length ? [' excluded-address ' + entry.excluded.join(' ')] : []),
       ...(entry.reservations ?? []).map((item) => ' reservation ' + item.clientMac + ' ' + item.address),
       ...(entry.leaseMs !== IOS_LEASE_MS ? [leaseLine(entry.leaseMs)] : []),

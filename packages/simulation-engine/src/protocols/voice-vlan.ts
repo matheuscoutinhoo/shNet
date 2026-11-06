@@ -3,18 +3,15 @@ import type { SimulationEngine } from '../core/engine';
 import { interfaceOperational } from './layer3';
 import { retainArpResolutions } from './arp';
 import { startDhcp } from './dhcp-client';
+import { ipPhone } from './ip-phone';
 
 const dataFrame = (f: Frame) => !!(f.arp || f.packet || f.ipv6 || f.fragment);
+/** An IP phone (hardware profile or SIP application) learns its voice VLAN unless disabled. */
+export const learnsVoiceVlan = (d: Device) =>
+  ipPhone(d) && d.phone?.enabled !== false && d.phone?.autoVoiceVlan !== false;
 /** A phone learns only the CDP policy received on its own physical Ethernet port. */
 export function phoneVoiceVlan(s: Snapshot, d: Device, p: NetworkInterface, stale = false) {
-  if (
-    !d.phone?.enabled ||
-    d.phone.autoVoiceVlan === false ||
-    p.logical ||
-    p.loopback ||
-    !['rj45', 'sfp', 'qsfp'].includes(p.media)
-  )
-    return;
+  if (!learnsVoiceVlan(d) || p.logical || p.loopback || !['rj45', 'sfp', 'qsfp'].includes(p.media)) return;
   if (!stale && (!d.power || !interfaceOperational(s, d, p))) return;
   return d.discovery?.neighbors
     .filter(
@@ -39,7 +36,7 @@ export function phoneIngressFrame(
   p: NetworkInterface,
   f: Frame
 ): { frame: Frame; error?: string } {
-  if (!d.phone?.enabled || d.phone.autoVoiceVlan === false || !dataFrame(f)) return { frame: f };
+  if (!learnsVoiceVlan(d) || !dataFrame(f)) return { frame: f };
   const vlan = phoneVoiceVlan(s, d, p);
   if (vlan === undefined) return { frame: f };
   if (f.vlan !== vlan)
@@ -55,7 +52,7 @@ export function refreshPhoneVoiceNetwork(
   d: Device,
   before: Map<string, number | undefined>
 ) {
-  if (!d.phone?.enabled || d.phone.autoVoiceVlan === false) return;
+  if (!learnsVoiceVlan(d)) return;
   for (const p of d.interfaces) {
     const next = phoneVoiceVlan(e.state, d, p);
     if (before.get(p.id) === next) continue;
@@ -63,7 +60,7 @@ export function refreshPhoneVoiceNetwork(
     d.arpTable = d.arpTable.filter((a) => a.port !== p.id);
     d.pending = d.pending.filter((a) => a.port !== p.id);
     retainArpResolutions(e, d);
-    for (const c of d.phone.calls)
+    for (const c of d.phone?.calls ?? [])
       if (c.local === local && ['CALLING', 'RINGING', 'ESTABLISHED'].includes(c.state)) {
         c.state = 'FAILED';
         e.state.queue = e.state.queue.filter(

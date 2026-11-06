@@ -18,6 +18,7 @@ import { sameSubnet, subnet } from './ipv4';
 import { sendDhcp } from './dhcp-wire';
 import { retainArpResolutions } from './arp';
 import { interfaceOperational } from './layer3';
+import { ipPhone } from './ip-phone';
 
 type ClientTimer = Extract<Action, { kind: 'dhcp-client-timer' }>;
 
@@ -181,7 +182,8 @@ export function refreshDhcpClients(engine: SimulationEngine) {
     }
 }
 // Windows-style automatic private addressing: 169.254.1.0-169.254.254.255, derived from the MAC.
-const autoconfigures = (device: Device) => device.type === 'pc' && !device.phone;
+// IP phones never self-assign an address; they keep rediscovering until a server answers.
+const autoconfigures = (device: Device) => device.type === 'pc' && !ipPhone(device);
 function apipaAddress(port: NetworkInterface) {
   const bytes = port.mac.split(':').map((part) => parseInt(part, 16));
   return '169.254.' + ((bytes[4] % 254) + 1) + '.' + bytes[5];
@@ -195,9 +197,10 @@ function discoveryFailed(engine: SimulationEngine, device: Device, port: Network
     client.autoconfig = apipaAddress(port);
     Object.assign(port, { ip: client.autoconfig, prefix: 16 });
   }
-  schedule(engine, device, port, 'retry', engine.state.clock + DHCP.backgroundRetryMs, client.transactionId);
+  const retryMs = ipPhone(device) ? DHCP.phoneRetryMs : DHCP.backgroundRetryMs;
+  schedule(engine, device, port, 'retry', engine.state.clock + retryMs, client.transactionId);
   const apipa = client.autoconfig ? ` Endereço APIPA ${client.autoconfig}/16 em uso.` : '',
-    retry = ` Nova tentativa em ${DHCP.backgroundRetryMs / 1000} s.`;
+    retry = ` Nova tentativa em ${retryMs / 1000} s.`;
   engine.emit('DHCP_FAILED', device.id, reason + apipa + retry, { port: port.id });
 }
 

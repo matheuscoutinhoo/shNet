@@ -517,6 +517,20 @@ const dhcpClientSchema = z
 export const DHCP_MAX_LEASE_MS = 365 * 86400000;
 // Per-server limits sized for a central enterprise DHCP server.
 export const DHCP_LIMITS = { pools: 64, bindings: 8192 } as const;
+const dhcpOptionCode = z.number().int().min(1).max(254);
+// IOS pool "option CODE ip A.B.C.D ..." | "option CODE ascii STRING" | "option CODE hex HEX" (e.g. 150 TFTP).
+export const dhcpPoolOptionSchema = z.union([
+  z.object({ code: dhcpOptionCode, ip: z.array(ipv4Schema).min(1).max(8) }).strict(),
+  z.object({ code: dhcpOptionCode, ascii: z.string().min(1).max(255) }).strict(),
+  z
+    .object({
+      code: dhcpOptionCode,
+      hex: z.string().regex(/^(?:[0-9a-f]{2}){1,255}$/),
+    })
+    .strict(),
+]);
+export type DhcpPoolOption = z.infer<typeof dhcpPoolOptionSchema>;
+const dhcpPoolOptions = z.array(dhcpPoolOptionSchema).max(16).optional();
 export const dhcpPoolSchema = z
   .object({
     name: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
@@ -543,6 +557,7 @@ export const dhcpPoolSchema = z
       .string()
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$/)
       .optional(),
+    options: dhcpPoolOptions,
   })
   .strict();
 // An IOS pool that cannot be bound yet (no network statement or no routed IPv4 interface).
@@ -567,6 +582,7 @@ export const dhcpPendingPoolSchema = z
       .string()
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$/)
       .optional(),
+    options: dhcpPoolOptions,
   })
   .strict();
 export type DhcpPendingPool = z.infer<typeof dhcpPendingPoolSchema>;
@@ -1664,6 +1680,8 @@ export const DHCP = {
   attempts: 4,
   // After a failed discovery, hosts keep trying in the background (Windows: every 5 minutes).
   backgroundRetryMs: 300000,
+  // IP phones do not self-assign an address and restart discovery every minute.
+  phoneRetryMs: 60000,
 } as const;
 export const LIMITS = {
   queue: 100000,

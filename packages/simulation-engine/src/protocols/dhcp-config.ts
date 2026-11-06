@@ -181,6 +181,7 @@ export function iosPoolDeclaration(pool: DhcpPool | DhcpPendingPool): DhcpPendin
     ...(pool.excluded?.length ? { excluded: [...pool.excluded] } : {}),
     ...(pool.reservations?.length ? { reservations: structuredClone(pool.reservations) } : {}),
     ...(pool.domainName ? { domainName: pool.domainName } : {}),
+    ...(pool.options?.length ? { options: structuredClone(pool.options) } : {}),
   };
 }
 /** Default IOS-style range: every host of the network, capped at the simulator pool size. */

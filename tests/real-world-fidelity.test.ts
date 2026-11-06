@@ -1151,6 +1151,77 @@ describe('Wi-Fi clients scan every channel', () => {
     expect(e.device(laptop.id).wireless?.phase).toBe('associated');
   });
 });
+describe('Cisco IP phone on a voice VLAN access port', () => {
+  it('learns the voice VLAN over CDP, leases from the voice pool and never self-assigns an address', () => {
+    const {
+      e,
+      devices: [r, sw],
+      terminals: [tr, ts],
+      cable,
+      advance,
+    } = lab('router', 'access');
+    cable(r, 'Gi0/2', sw, 'Gi0/24');
+    ok(ts, [
+      'vlan 10',
+      'name USERS',
+      'vlan 20',
+      'name VOICE',
+      'exit',
+      'interface Gi0/24',
+      'switchport mode trunk',
+      'switchport trunk allowed vlan 10,20',
+      'interface range Gi0/1 - 2',
+      'switchport mode access',
+      'switchport access vlan 10',
+      'switchport voice vlan 20',
+      'spanning-tree portfast',
+      'end',
+    ]);
+    const swPort = (name: string) => e.device(sw.id).interfaces.find((p) => p.name === name)!.id;
+    const [pc, phone] = ['desktop', 'phone'].map((profile, i) =>
+      e.addFactoryProfile(profile, { x: i * 100, y: 300 })
+    );
+    const nic = (d: Device) => e.device(d.id).interfaces.find((p) => p.name === 'Eth0')!;
+    e.connect({ device: pc.id, port: nic(pc).id }, { device: sw.id, port: swPort('Gi0/1') });
+    e.connect({ device: phone.id, port: nic(phone).id }, { device: sw.id, port: swPort('Gi0/2') });
+    for (const d of [pc, phone]) e.setDevicePower(d.id, true);
+    // No DHCP server yet: the PC falls back to APIPA while the phone keeps rediscovering.
+    advance(90_000);
+    expect(nic(pc).ip).toMatch(/^169\.254\./);
+    expect(nic(phone).ip).toBeUndefined();
+    ok(tr, [
+      'ip dhcp excluded-address 10.5.10.1 10.5.10.9',
+      'ip dhcp excluded-address 10.5.20.1 10.5.20.9',
+      'ip dhcp pool USERS',
+      'network 10.5.10.0 255.255.255.0',
+      'default-router 10.5.10.1',
+      'ip dhcp pool VOICE',
+      'network 10.5.20.0 255.255.255.0',
+      'default-router 10.5.20.1',
+      'option 150 ip 10.2.50.60',
+      'interface Gi0/2',
+      'no shutdown',
+      'interface Gi0/2.10',
+      'encapsulation dot1Q 10',
+      'ip address 10.5.10.1 255.255.255.0',
+      'interface Gi0/2.20',
+      'encapsulation dot1Q 20',
+      'ip address 10.5.20.1 255.255.255.0',
+      'end',
+    ]);
+    // The phone retries within a minute; the PC on its 5-minute background retry.
+    advance(60_000);
+    expect(nic(phone).dhcp?.status).toBe('bound');
+    expect(nic(phone).ip).toMatch(/^10\.5\.20\.(?:[1-9]\d|\d{3})$/);
+    expect(nic(phone).gateway).toBe('10.5.20.1');
+    advance(240_000);
+    expect(nic(pc).dhcp?.status).toBe('bound');
+    expect(nic(pc).ip).toMatch(/^10\.5\.10\.(?:[1-9]\d|\d{3})$/);
+    expect(ts.execute('show cdp neighbors')).toMatch(/^\S+\s+Gi0\/2\s+\d+\s+H P\s/m);
+    expect(tr.execute('show running-config')).toContain('\n option 150 ip 10.2.50.60\n');
+    expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {

@@ -555,9 +555,12 @@ export function addFactoryProfile(e: SimulationEngine, id: string, position = { 
   ) {
     d.bootManaged = true;
     d.operatingSystem = { family: 'ios-xe', release: '17.12', subset: 'shlab-core-v1' };
+  }
+  // IOS devices run CDP; IP phones run CDP and LLDP-MED to learn their voice VLAN.
+  if (d.operatingSystem || id === 'phone')
     d.discovery = {
       cdp: true,
-      lldp: false,
+      lldp: id === 'phone',
       cdpTimer: 60,
       cdpHoldtime: 180,
       lldpTimer: 30,
@@ -567,7 +570,6 @@ export function addFactoryProfile(e: SimulationEngine, id: string, position = { 
       nextLldp: e.state.clock,
       neighbors: [],
     };
-  }
   d.power = f === 'rack' || f === 'patch-panel';
   if (f === 'rack') d.infrastructure = { kind: 'rack', units: 42, ambientC: 22, ventilation: 1, slots: [] };
   else if (f === 'patch-panel') d.infrastructure = { kind: 'patch-panel', pairs: [] };
