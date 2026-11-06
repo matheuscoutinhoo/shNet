@@ -1131,6 +1131,26 @@ describe('IOS tunnel interfaces (GRE and IPsec VTI)', () => {
     expect(decodePcap(pcap.bytes).some((r) => r.frame.esp !== undefined)).toBe(true);
   });
 });
+describe('Wi-Fi clients scan every channel', () => {
+  it('a client with default radio settings associates to an AP on another band and channel', () => {
+    const e = new SimulationEngine(),
+      ap = e.addDevice('switch', { x: 200, y: 200 }),
+      laptop = e.addDevice('pc', { x: 240, y: 200 });
+    const radio = {
+      txPower: 20,
+      noise: -95,
+      attenuation: 0,
+      enabled: true,
+      security: 'wpa2-psk',
+      key: 'Campus-Key-1',
+    };
+    e.configureWireless(ap.id, { ...radio, role: 'ap', ssid: 'CORP', band: '5', channel: 36 });
+    // The client's configured channel is irrelevant: it scans both bands and tunes to the AP.
+    e.configureWireless(laptop.id, { ...radio, role: 'client', ssid: 'CORP', band: '2.4', channel: 1 });
+    e.advanceTo(5000);
+    expect(e.device(laptop.id).wireless?.phase).toBe('associated');
+  });
+});
 describe('802.1X on a Layer 2 access switch', () => {
   /** PC (supplicant) - access switch (no ip routing) - router - RADIUS server. */
   function campus() {

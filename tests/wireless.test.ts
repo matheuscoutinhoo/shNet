@@ -78,11 +78,12 @@ describe('Rádio, autenticação e associação wireless', () => {
     expect(e.state.events.some((v) => v.type === 'WIFI_AUTH_FAILED')).toBe(true);
     validateSnapshot(e.snapshot());
   });
-  it('SSID e canal distintos impedem associação; movimento reduz sinal e desassocia', () => {
+  it('o cliente varre todos os canais; SSID distinto impede associação; movimento reduz sinal e desassocia', () => {
     const { e, pc, ap } = topology();
     e.configureWireless(pc.id, { ...cfg('client'), channel: 6 });
     e.advanceTo(5000);
-    expect(pc.wireless?.phase).toBe('scanning');
+    // Like a real station, the client scans every channel and tunes to the AP (on channel 1).
+    expect(pc.wireless?.phase).toBe('associated');
     e.configureWireless(pc.id, { ...cfg('client'), ssid: 'Outra' });
     e.advanceTo(10000);
     expect(pc.wireless?.phase).toBe('scanning');

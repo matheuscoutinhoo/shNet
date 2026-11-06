@@ -85,8 +85,9 @@ export function wirelessMetrics(s: Snapshot, l: Link) {
       y.enabled &&
       a.interfaces.find((p) => p.id === l.a.port)?.adminUp === true &&
       b.interfaces.find((p) => p.id === l.b.port)?.adminUp === true &&
-      x.band === y.band &&
-      x.channel === y.channel &&
+      // A client scans every channel of both bands and tunes to the AP; AP-to-AP (mesh) links
+      // need the same channel.
+      (x.role === 'client' || y.role === 'client' || (x.band === y.band && x.channel === y.channel)) &&
       rssi >= -85 &&
       snr >= 10,
   };
