@@ -2,7 +2,7 @@ import { lsaChecksum, ospfAreaType } from './ospf-security';
 import { ripRoutes } from './rip';
 import type { SimulationEngine } from '../core/engine';
 import type { Device } from '../model';
-import { subnet, sameSubnet, resolveRoute } from './ipv4';
+import { subnet, sameSubnet, bestRoute } from './ipv4';
 import { OSPF, lsaKey, type DynamicRoute, type OspfLsa } from './ospf-model';
 import { bestOspfRoutes, ospfSpf, ospfRouterPaths } from './ospf-spf';
 import { floodOspf } from './ospf-wire';
@@ -145,7 +145,7 @@ export function synchronizeOspf(engine: SimulationEngine, device: Device) {
       )
   );
   if (state.defaultOriginate) {
-    const route = resolveRoute({ ...device, ospf: undefined }, '0.0.0.0', undefined, engine.state);
+    const route = bestRoute({ ...device, ospf: undefined }, '0.0.0.0', undefined, engine.state);
     if (state.defaultOriginate.always || route?.prefix === 0) {
       const prior = eligible.findIndex((r) => r.prefix === 0);
       if (prior >= 0) eligible.splice(prior, 1);

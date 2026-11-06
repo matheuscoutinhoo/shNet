@@ -282,8 +282,6 @@ vpa0mt2p	{0}: {1} links terminate on the same device ({2}).
 1up8hlpo	Two uplinks cannot protect against a failure of this switch; test device and power loss.
 b1n0t0ci	{0}: route {1}/{2} has host bits set.
 rm7axv04	Use the canonical network address to make the review unambiguous.
-6wdvonid	{0}: next hop {1} has no IPv4 interface in the route's subnet/VRF.
-0lyer4r6	Fix the address, mask, or VRF. The engine resolves static routes through connected interfaces; the review does not prove availability.
 h6xjijek	{0}: route {1}/{2} points to {3}, the physical IP of a VRRP participant.
 93jbk20t	Consider using the VIP as the next hop and validate the return path after failover.
 3q7shzqf	{0}: IPv6 next hop {1} is outside the prefixes of interface {2}.

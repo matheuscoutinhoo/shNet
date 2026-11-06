@@ -24,5 +24,20 @@ export const routeEntrySchema = z
       .string()
       .regex(/^[a-zA-Z0-9_-]{1,32}$/)
       .optional(),
+    // "ip route ... Null0": matching packets are discarded (summary or blackhole route).
+    discard: z.literal(true).optional(),
+    // "permanent": stays in the routing table even when the exit interface or next hop is lost.
+    permanent: z.literal(true).optional(),
+    name: z
+      .string()
+      .regex(/^[\x21-\x7e]{1,64}$/)
+      .optional(),
+    tag: uint32Schema.optional(),
   })
-  .strict();
+  .strict()
+  .refine((route) => !route.discard || (!route.port && route.nextHop === '0.0.0.0'), {
+    message: 'Null0 route cannot have an exit interface or next hop.',
+  })
+  .refine((route) => !(route.permanent && route.track), {
+    message: 'A static route is either permanent or tracked.',
+  });

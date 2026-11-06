@@ -8,6 +8,7 @@ import {
   validateSnapshot,
   TerminalSession,
   makeTemplate,
+  preflight,
   type Device,
 } from '../packages/simulation-engine/src';
 import { type7Decode, type7Encode } from '../packages/simulation-engine/src/cli/secrets';
@@ -1220,6 +1221,74 @@ describe('Cisco IP phone on a voice VLAN access port', () => {
     expect(ts.execute('show cdp neighbors')).toMatch(/^\S+\s+Gi0\/2\s+\d+\s+H P\s/m);
     expect(tr.execute('show running-config')).toContain('\n option 150 ip 10.2.50.60\n');
     expect(() => validateSnapshot(e.snapshot())).not.toThrow();
+  });
+});
+describe('static routes like IOS (Null0 summaries, recursive next hops)', () => {
+  it('discards unused summary space, originates the summary in BGP and resolves next hops recursively', () => {
+    const {
+      e,
+      devices: [r1, r2],
+      terminals: [t1, t2],
+      cable,
+      advance,
+    } = lab('router', 'router');
+    cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    ok(t1, [
+      'interface Gi0/1',
+      'ip address 192.0.2.1 255.255.255.252',
+      'no shutdown',
+      'interface Loopback1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'exit',
+      'ip route 10.1.0.0 255.255.0.0 Null0 name SUMMARY tag 100',
+      'ip route 0.0.0.0 0.0.0.0 192.0.2.2',
+      'router bgp 65001',
+      'neighbor 192.0.2.2 remote-as 65002',
+      'network 10.1.0.0 mask 255.255.0.0',
+      'end',
+    ]);
+    ok(t2, [
+      'interface Gi0/1',
+      'ip address 192.0.2.2 255.255.255.252',
+      'no shutdown',
+      'exit',
+      // Recursive: 10.1.1.1 is reachable only through the BGP-learned summary.
+      'ip route 172.16.0.0 255.255.0.0 10.1.1.1 name VIA-SUMMARY',
+      'ip route 172.17.0.0 255.255.0.0 198.51.100.9',
+      'router bgp 65002',
+      'neighbor 192.0.2.1 remote-as 65001',
+      'end',
+    ]);
+    advance(90_000);
+    expect(t1.execute('show ip route')).toMatch(/^S {8}10\.1\.0\.0\/16 is directly connected, Null0$/m);
+    expect(t1.execute('show running-config')).toContain(
+      '\nip route 10.1.0.0 255.255.0.0 Null0 name SUMMARY tag 100\n'
+    );
+    const r2Routes = t2.execute('show ip route');
+    expect(r2Routes).toMatch(/^B {8}10\.1\.0\.0\/16 \[20\/0\] via 192\.0\.2\.1/m);
+    expect(r2Routes).toMatch(/^S {5}172\.16\.0\.0\/16 \[1\/0\] via 10\.1\.1\.1$/m);
+    expect(r2Routes).not.toContain('172.17.0.0');
+    // Without the Null0 route the packet would loop between R1's default route and R2's summary.
+    t2.execute('ping 10.1.1.1');
+    t2.execute('ping 10.1.99.1');
+    advance(15_000);
+    const result = (target: string) => [
+      ...new Set(e.state.probes.filter((p) => p.target === target).map((p) => p.status)),
+    ];
+    expect(result('10.1.1.1')).toEqual(['success']);
+    expect(result('10.1.99.1')).toEqual(['unreachable']);
+    expect(
+      preflight(e.snapshot())
+        .filter((issue) => issue.code === 'ROUTE_UNRESOLVED_NEXT_HOP')
+        .map((issue) => issue.message)
+    ).toEqual([
+      e.device(r2.id).hostname +
+        ': rota 172.17.0.0/16 via 198.51.100.9 não resolve na tabela de rotas da VRF.',
+    ]);
+    ok(t1, ['configure terminal']);
+    expect(t1.execute('no ip route 10.9.0.0 255.255.0.0')).toMatch(/No matching route to delete/);
+    ok(t1, ['no ip route 10.1.0.0 255.255.0.0 Null0', 'end']);
+    expect(t1.execute('show running-config')).not.toContain('Null0');
   });
 });
 describe('802.1X on a Layer 2 access switch', () => {

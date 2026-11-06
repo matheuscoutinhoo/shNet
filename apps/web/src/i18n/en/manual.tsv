@@ -148,3 +148,6 @@ fb5dx6cn	Retrying in {0} s.
 jcwwmne7	Firewall {0} on {1}: no zone rule permits {2} → {3}.
 gy8ovewh	Invalid IOS tunnel interface.
 5swbd5tm	Inconsistent IOS tunnel timer.
+wy5r4038	Static route to Null0 (/{0}) discards the packet for {1}.
+kcxjttuc	{0}: route {1}/{2} via {3} does not resolve in the VRF routing table.
+6jqdyukf	Check the address, mask, VRF and the protocol that should advertise the next hop. Recursive routes need a connected, static or dynamic route to the next hop.

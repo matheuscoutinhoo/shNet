@@ -9,7 +9,7 @@ import { registerForwardingCommands, forwardingRunningConfig } from './forwardin
 import { registerTunnelCommands, tunnelRunningConfig } from './tunnel';
 import { registerWirelessCommands, wirelessRunningConfig } from './wireless';
 import { registerIpv6Commands, ipv6RunningConfig } from './ipv6';
-import { registerLayer3Commands, layer3RunningConfig } from './layer3';
+import { registerLayer3Commands, layer3RunningConfig, staticRouteLine } from './layer3';
 import { registerLacpCommands, lacpRunningConfig } from './lacp';
 import { registerBgpCommands, bgpRunningConfig } from './bgp';
 import { registerVrrpCommands, vrrpRunningConfig } from './vrrp';
@@ -466,43 +466,6 @@ export function makeRegistry() {
     },
   });
   r.register({
-    pattern: /^(no )?ip route ([\d.]+)(?:\/|\s+)([\d.]+) ([\d.]+)(?: (\d+))?(?: track (\d+))?$/i,
-    syntax: [
-      'ip route <network> <mask> <next-hop>',
-      'ip route <network> <mask> <next-hop> <distance>',
-      'ip route <cidr> <next-hop>',
-      'ip route <cidr> <next-hop> <distance>',
-      'no ip route <network> <mask> <next-hop>',
-    ],
-    modes: config,
-    run: (m, _e, d) => {
-      if (!['router', 'switch'].includes(d.type))
-        throw new Error('Rotas estáticas exigem roteador ou switch L3');
-      const network = ipv4Schema.parse(m[2]),
-        prefix = parsePrefix(m[3]),
-        nextHop = ipv4Schema.parse(m[4]);
-      if (subnet(network, prefix).network !== network)
-        throw new Error('Informe endereço de rede alinhado ao prefixo');
-      d.routes = d.routes.filter(
-        (r) => !(r.vrf === undefined && r.network === network && r.prefix === prefix && r.nextHop === nextHop)
-      );
-      if (!m[1]) {
-        if (d.routes.length >= 256) throw new Error('Limite de rotas');
-        const distance = m[5] ? Number(m[5]) : undefined;
-        if (distance !== undefined && (distance < 1 || distance > 255))
-          throw new Error('Administrative distance must be between 1 and 255.');
-        d.routes.push({
-          network,
-          prefix,
-          nextHop,
-          metric: 1,
-          ...(distance !== undefined ? { distance } : {}),
-          ...(m[6] ? { track: Number(m[6]) } : {}),
-        });
-      }
-    },
-  });
-  r.register({
     pattern: /^show (interfaces|ip interface brief)(?: (.+))?$/i,
     syntax: [
       'show interfaces',
@@ -675,21 +638,7 @@ export function makeRegistry() {
           ...(d.loopGuardDefault ? ['spanning-tree loopguard default'] : []),
           ...(d.gateway ? ['ip default-gateway ' + d.gateway] : []),
           ...policyRunningConfig(d).filter((line) => /^(?:no )?(?:ip nat|service nat)/.test(line)),
-          ...d.routes.map(
-            (r) =>
-              'ip route ' +
-              (r.vrf ? 'vrf ' + r.vrf + ' ' : '') +
-              r.network +
-              ' ' +
-              ipString(mask(r.prefix)) +
-              ' ' +
-              (r.port
-                ? d.interfaces.find((p) => p.id === r.port)!.name +
-                  (r.nextHop === '0.0.0.0' ? '' : ' ' + r.nextHop)
-                : r.nextHop) +
-              (r.distance !== undefined ? ' ' + r.distance : '') +
-              (r.track ? ' track ' + r.track : '')
-          ),
+          ...d.routes.map((r) => staticRouteLine(d, r)),
           ...dhcpRunningConfig(d),
           ...dnsRunningConfig(d),
           ...tcpRunningConfig(d),

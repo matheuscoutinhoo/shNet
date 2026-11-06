@@ -1,7 +1,13 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface } from '../model';
 import { interfaceOperational, routingEnabled } from '../protocols/layer3';
-import { ipNumber, resolveDefaultRoutes, resolveRoute, subnet } from '../protocols/ipv4';
+import {
+  ipNumber,
+  resolveDefaultRoutes,
+  resolveRoute,
+  staticRouteInstalled,
+  subnet,
+} from '../protocols/ipv4';
 import { ripRoutes } from '../protocols/rip';
 import { terminalIdentity } from './device-commands';
 import { TUNNEL_BANDWIDTH_KBPS } from '../protocols/ios-tunnel';
@@ -168,25 +174,9 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
       legacy: `L ${p.ip}/32 directly connected, ${p.name}`,
     });
   }
-  for (const r of d.routes.filter((r) => r.vrf === vrf && r.distance !== 255)) {
-    if (r.track && !d.monitoring?.tracks.find((t) => t.id === r.track)?.state) continue;
-    const next = r.port
-      ? d.interfaces.find(
-          (p) =>
-            p.id === r.port &&
-            usable(p) &&
-            (r.nextHop === '0.0.0.0' ||
-              subnet(p.ip!, p.prefix!).network === subnet(r.nextHop, p.prefix!).network)
-        )
-      : resolveRoute(
-          d,
-          r.nextHop,
-          vrf,
-          e.state,
-          new Set([JSON.stringify([vrf, r.network, r.prefix, r.nextHop, r.port])])
-        );
-    if (!next) continue;
-    const port = r.port ? d.interfaces.find((p) => p.id === r.port)!.name : undefined;
+  for (const r of d.routes.filter((r) => r.vrf === vrf)) {
+    if (!staticRouteInstalled(d, r, e.state)) continue;
+    const port = r.discard ? 'Null0' : r.port ? d.interfaces.find((p) => p.id === r.port)!.name : undefined;
     rows.push({
       code: 'S',
       network: r.network,

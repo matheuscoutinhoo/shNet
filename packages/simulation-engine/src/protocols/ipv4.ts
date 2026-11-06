@@ -89,6 +89,37 @@ export function resolveDefaultRoutes(device: Device, vrf?: string) {
   }
   return routes;
 }
+type RouteEntry = Device['routes'][number];
+/** Identifies a static route on a recursive next-hop resolution path. */
+export const staticRouteKey = (r: RouteEntry) =>
+  JSON.stringify([r.vrf, r.network, r.prefix, r.nextHop, r.port]);
+type Resolution = { port: NetworkInterface; nextHop: string; prefix: number };
+/** The longest match is a Null0 route (or a permanent route that lost its path): the packet is dropped. */
+export type RouteDiscard = { discard: true; prefix: number };
+/** Whether IOS keeps a static route in the routing table (ignoreTrack: judge only the path). */
+export function staticRouteInstalled(
+  device: Device,
+  r: RouteEntry,
+  snapshot?: Snapshot,
+  ignoreTrack = false
+) {
+  if (r.distance === 255 && !ignoreTrack) return false;
+  if (!ignoreTrack && r.track && !device.monitoring?.tracks.find((t) => t.id === r.track)?.state)
+    return false;
+  if (r.discard || r.permanent) return true;
+  if (r.port)
+    return device.interfaces.some(
+      (p) =>
+        p.id === r.port &&
+        p.vrf === r.vrf &&
+        p.ip !== undefined &&
+        p.prefix !== undefined &&
+        interfaceUp(device, p) &&
+        (!snapshot || interfaceOperational(snapshot, device, p)) &&
+        (r.nextHop === '0.0.0.0' || sameSubnet(p.ip, r.nextHop, p.prefix))
+    );
+  return !!bestRoute(device, r.nextHop, r.vrf, snapshot, new Set([staticRouteKey(r)]));
+}
 export function resolveRoute(
   device: Device,
   dst: string,
@@ -96,11 +127,23 @@ export function resolveRoute(
   snapshot?: Snapshot,
   visited: ReadonlySet<string> = new Set(),
   flowKey?: string
-): { port: NetworkInterface; nextHop: string; prefix: number } | undefined {
-  type Resolution = { port: NetworkInterface; nextHop: string; prefix: number };
+): Resolution | undefined {
+  const route = bestRoute(device, dst, vrf, snapshot, visited, flowKey);
+  return route && 'discard' in route ? undefined : route;
+}
+/** Routing table lookup: the forwarding resolution, a discard (Null0) or no route. */
+export function bestRoute(
+  device: Device,
+  dst: string,
+  vrf?: string,
+  snapshot?: Snapshot,
+  visited: ReadonlySet<string> = new Set(),
+  flowKey?: string
+): Resolution | RouteDiscard | undefined {
+  type Lookup = Resolution | RouteDiscard | undefined;
   const work = { remaining: 1024 },
-    direct = new Map<string, Resolution | undefined>();
-  function lookup(dst: string, visited: ReadonlySet<string>, directOnly = false): Resolution | undefined {
+    direct = new Map<string, Lookup>();
+  function lookup(dst: string, visited: ReadonlySet<string>, directOnly = false): Lookup {
     const usable = (p: NetworkInterface) =>
       interfaceUp(device, p) && (!snapshot || interfaceOperational(snapshot, device, p));
     const connected = device.interfaces
@@ -120,6 +163,8 @@ export function resolveRoute(
       metric: number;
       distance: number;
       key?: string;
+      discard?: boolean;
+      permanent?: boolean;
     }[] = [
       ...connected.map((port) => ({ port, nextHop: dst, prefix: port.prefix!, metric: -1, distance: 0 })),
       ...(visited.size ? [] : resolveDefaultRoutes(device, vrf).map((route) => ({ ...route, distance: 1 }))),
@@ -137,9 +182,14 @@ export function resolveRoute(
             });
       for (const r of device.routes.filter((r) => r.vrf === vrf && sameSubnet(r.network, dst, r.prefix))) {
         if (r.track && !device.monitoring?.tracks.find((t) => t.id === r.track)?.state) continue;
-        const key = JSON.stringify([vrf, r.network, r.prefix, r.nextHop, r.port]);
+        const key = staticRouteKey(r);
         if (r.distance === 255 || visited.has(key) || visited.size >= 16 || (visited.size && !r.prefix))
           continue;
+        const entry = { prefix: r.prefix, metric: r.metric, distance: r.distance ?? 1 };
+        if (r.discard) {
+          candidates.push({ ...entry, nextHop: '0.0.0.0', discard: true });
+          continue;
+        }
         const port = r.port
           ? device.interfaces.find(
               (p) =>
@@ -151,14 +201,17 @@ export function resolveRoute(
                 (r.nextHop === '0.0.0.0' || sameSubnet(p.ip, r.nextHop, p.prefix))
             )
           : undefined;
-        if (r.port && !port) continue;
+        if (r.port && !port) {
+          // A permanent route keeps its prefix while the exit interface is down.
+          if (r.permanent) candidates.push({ ...entry, nextHop: '0.0.0.0', discard: true });
+          continue;
+        }
         candidates.push({
+          ...entry,
           port,
           nextHop: r.nextHop === '0.0.0.0' && port ? dst : r.nextHop,
-          prefix: r.prefix,
-          metric: r.metric,
-          distance: r.distance ?? 1,
           key,
+          ...(r.permanent ? { permanent: true } : {}),
         });
       }
       for (const route of vrf
@@ -203,6 +256,7 @@ export function resolveRoute(
       candidates.unshift(...equal.slice(offset), ...equal.slice(0, offset));
     }
     for (const candidate of candidates) {
+      if (candidate.discard) return { discard: true, prefix: candidate.prefix };
       if (candidate.port) {
         if (usable(candidate.port))
           return { port: candidate.port, nextHop: candidate.nextHop, prefix: candidate.prefix };
@@ -210,7 +264,7 @@ export function resolveRoute(
       }
       if (!candidate.key || directOnly) continue;
       const path = new Set([...visited, candidate.key]);
-      let resolved: Resolution | undefined;
+      let resolved: Lookup;
       if (work.remaining > 0) {
         work.remaining--;
         resolved = lookup(candidate.nextHop, path);
@@ -219,7 +273,9 @@ export function resolveRoute(
           direct.set(candidate.nextHop, lookup(candidate.nextHop, path, true));
         resolved = direct.get(candidate.nextHop);
       }
+      // A next hop that resolves to Null0 sends the traffic to Null0 as well.
       if (resolved) return { ...resolved, prefix: candidate.prefix };
+      if (candidate.permanent) return { discard: true, prefix: candidate.prefix };
     }
   }
   return lookup(dst, visited);

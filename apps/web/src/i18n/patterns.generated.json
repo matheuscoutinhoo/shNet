@@ -352,10 +352,6 @@
   "{0} comunicando"
  ],
  [
-  "6wdvonid",
-  "{0}: próximo salto {1} sem interface IPv4 na sub-rede/VRF da rota."
- ],
- [
   "6xn8hf4v",
   "MAC destino desconhecido: flooding apenas na VLAN {0}."
  ],
@@ -1100,6 +1096,10 @@
   "{0} → {1} ({2}): RTT {3} ms, perda {4}%{5}."
  ],
  [
+  "kcxjttuc",
+  "{0}: rota {1}/{2} via {3} não resolve na tabela de rotas da VRF."
+ ],
+ [
   "ke6mh19m",
   "TCP [{0}] enfileirado. Avance a simulação."
  ],
@@ -1766,6 +1766,10 @@
  [
   "ww6v0d48",
   "{0} (recuperado)"
+ ],
+ [
+  "wy5r4038",
+  "Rota estática para Null0 (/{0}) descarta o pacote para {1}."
  ],
  [
   "wz3e1nzm",

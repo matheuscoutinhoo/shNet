@@ -1,5 +1,5 @@
 import type { Device, Snapshot } from '../model';
-import { ipNumber, sameSubnet, subnet, resolveRoute } from './ipv4';
+import { ipNumber, sameSubnet, subnet, resolveRoute, staticRouteInstalled } from './ipv4';
 import { BGP, bgpPrefixKey, type BgpNeighbor, type BgpPath, type BgpState } from './bgp-model';
 import { applyRouteMap, prefixListPermits } from './routing-policy';
 
@@ -39,7 +39,8 @@ function isOriginated(device: Device, prefix: { network: string; prefix: number 
         !route.vrf &&
         route.network === prefix.network &&
         route.prefix === prefix.prefix &&
-        bgpNextHop(device, route.nextHop)
+        // Null0 and interface statics count as soon as IOS installs them; recursive ones need their next hop.
+        staticRouteInstalled({ ...device, bgp: undefined }, route)
     ) ||
     [
       ...(device.ospf?.enabled ? device.ospf.routes : []),

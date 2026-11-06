@@ -205,7 +205,7 @@ import {
   routingEnabled,
   sviOperational,
 } from '../protocols/layer3';
-import { ipNumber, receiveIp, resolveRoute } from '../protocols/ipv4';
+import { bestRoute, ipNumber, receiveIp, resolveRoute } from '../protocols/ipv4';
 import { configureDhcpPool, configureDhcpRelay, refreshDhcpPools } from '../protocols/dhcp-config';
 import {
   configureDhcpHaPair,
@@ -1760,10 +1760,17 @@ export class SimulationEngine {
         ? [packet.sourcePort, packet.destinationPort]
         : []),
     ]);
-    const baseline = labelRoute ?? resolveRoute(d, packet.dst, vrf, this.state, new Set(), flowKey);
+    const best = labelRoute ? undefined : bestRoute(d, packet.dst, vrf, this.state, new Set(), flowKey);
+    const baseline = labelRoute ?? (best && 'discard' in best ? undefined : best);
     const connected = baseline && !baseline.port.tunnel && baseline.nextHop === packet.dst;
     const selection = !vrf && !connected && !labelRoute ? selectSdwan(this, d, packet) : undefined;
     const route = selection?.blocked ? undefined : (selection?.route ?? baseline);
+    if (!route && best && 'discard' in best) {
+      this.drop(d, `Rota estática para Null0 (/${best.prefix}) descarta o pacote para ${packet.dst}.`);
+      // Null0 answers with ICMP host unreachable, like IOS with "ip unreachables" (the default).
+      if (ingress) sendIcmpError(this, d, ingress, packet, 'unreachable', 1);
+      return;
+    }
     if (!route) {
       const configured = resolveRoute(d, packet.dst, vrf);
       const reason =
