@@ -1,4 +1,5 @@
 import type { Device } from '../model';
+import { longInterfaceName } from '../protocols/interface-name';
 
 /**
  * Lays out running-config the way IOS prints it, which is also the order startup-config is
@@ -84,4 +85,93 @@ export function composeRunningConfig(d: Device, head: string[], main: string[], 
     ...emit(after.kept),
     ...emit(late),
   ];
+}
+
+/** IOS XE release the simulated routers and switches report. */
+export const IOS_VERSION = '17.12';
+const LINE = /^line (con|aux|vty) (\d+)(?: (\d+))?$/;
+const LINE_ORDER = ['con', 'aux', 'vty'];
+// Free text and simulator JSON keep their exact spelling.
+const LITERAL = /^\s*(?:description |remark |\d+ remark |alias |snmp-server (?:location|contact) )|\{"/;
+const BANNER = /^banner (?:motd|login|exec|incoming) \^C/;
+/**
+ * The composed configuration as IOS prints it: "!" between blocks instead of "exit", full
+ * interface names, the version line first, every console/VTY line block last and "end".
+ */
+export function iosConfigText(d: Device, composed: string[]) {
+  const names = new Map(
+    d.interfaces.map((p) => [p.name, longInterfaceName(p.name)] as const).filter(([a, b]) => a !== b)
+  );
+  const expand = (line: string) =>
+    names.size && !LITERAL.test(line)
+      ? line.replace(
+          /(^|[\s,])([A-Z][A-Za-z-]*\d+(?:\/\d+)*(?:\.\d+)?)(?=$|[\s,])/g,
+          (all, before: string, name: string) => before + (names.get(name) ?? name)
+        )
+      : line;
+  // Top-level commands with their sub-commands; banner text is kept verbatim.
+  const blocks: { header: string; children: string[]; text?: boolean }[] = [];
+  for (let i = 0; i < composed.length; i++) {
+    const line = composed[i];
+    if (line === 'exit') continue;
+    // Sub-mode exits are implicit in IOS output (the next sibling or a top-level line closes them).
+    if (/^ +exit$/.test(line) && blocks.length && !blocks.at(-1)!.text) continue;
+    if (BANNER.test(line)) {
+      const text = [line];
+      let closed = line.slice(line.indexOf('^C') + 2).includes('^C');
+      while (!closed && i + 1 < composed.length) {
+        text.push(composed[++i]);
+        closed = composed[i].includes('^C');
+      }
+      blocks.push({ header: text[0], children: text.slice(1), text: true });
+    } else if (line.startsWith(' ') && blocks.length && !blocks.at(-1)!.text)
+      blocks.at(-1)!.children.push(expand(line));
+    else blocks.push({ header: expand(line), children: [] });
+  }
+  // IOS always shows the console and VTY lines (and the AUX port of routers), configured or not.
+  const lines = blocks.filter((b) => LINE.test(b.header));
+  const has = (kind: string, first: number) =>
+    lines.some((b) => {
+      const m = LINE.exec(b.header)!;
+      return m[1] === kind && Number(m[2]) <= first && first <= Number(m[3] ?? m[2]);
+    });
+  if (['router', 'switch'].includes(d.type)) {
+    const defaults: [string, number, number][] = [
+      ['con', 0, 0],
+      ...(d.type === 'router' ? ([['aux', 0, 0]] as [string, number, number][]) : []),
+      ['vty', 0, 4],
+      ...(d.type === 'switch' ? ([['vty', 5, 15]] as [string, number, number][]) : []),
+    ];
+    for (const [kind, first, last] of defaults)
+      if (!has(kind, first))
+        lines.push({ header: `line ${kind} ${first}${last !== first ? ' ' + last : ''}`, children: [] });
+  }
+  const order = (header: string) => {
+    const m = LINE.exec(header)!;
+    return LINE_ORDER.indexOf(m[1]) * 100 + Number(m[2]);
+  };
+  lines.sort((a, b) => order(a.header) - order(b.header));
+  const out = ['!', 'version ' + IOS_VERSION, '!'];
+  const separate = () => {
+    if (out.at(-1) !== '!') out.push('!');
+  };
+  for (const b of blocks.filter((b) => !LINE.test(b.header))) {
+    const block = b.children.length > 0 || /^(?:interface|router) /.test(b.header);
+    if (block) separate();
+    out.push(b.header, ...b.children);
+    if (block) separate();
+  }
+  separate();
+  for (const b of lines) out.push(b.header, ...b.children);
+  separate();
+  out.push('end');
+  return out;
+}
+/** "show running-config": IOS reports the size of the text it is about to print. */
+export function withConfigHeader(body: string) {
+  return `Building configuration...\n\nCurrent configuration : ${new TextEncoder().encode(body).length + 1} bytes\n${body}`;
+}
+/** The configuration text without the "Building configuration..." header. */
+export function configBody(text: string) {
+  return text.replace(/^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n/, '');
 }

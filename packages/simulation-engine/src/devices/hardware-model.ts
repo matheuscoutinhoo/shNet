@@ -114,7 +114,15 @@ export const consoleSessionsSchema = z
               .optional(),
             confirm: z
               .object({
-                kind: z.enum(['save', 'reload', 'clear-counters', 'clear-logging', 'clear-ospf']),
+                kind: z.enum([
+                  'save',
+                  'reload',
+                  'clear-counters',
+                  'clear-logging',
+                  'clear-ospf',
+                  'delete-name',
+                  'delete-file',
+                ]),
                 port: z.string().max(80).optional(),
               })
               .strict()

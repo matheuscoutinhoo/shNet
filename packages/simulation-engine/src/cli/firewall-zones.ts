@@ -1,6 +1,7 @@
 import type { Device } from '../model';
 import { firewallProtocols } from '../protocols/firewall';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { findInterface } from '../protocols/interface-name';
 
 export function firewallZoneConfig(device: Device) {
   const policy = device.firewall?.zonePolicy;
@@ -71,7 +72,7 @@ export function registerFirewallZoneCommands(registry: CommandRegistry) {
         policy.zones.push({
           name: match[2],
           ports: (match[3]?.split(/\s+/) ?? []).map((name) => {
-            const port = device.interfaces.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
+            const port = findInterface(device, name);
             if (!port) throw new Error('Interface de zona inexistente.');
             return port.id;
           }),

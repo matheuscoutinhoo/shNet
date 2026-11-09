@@ -28,10 +28,13 @@ export function registerManagementCommands(registry: CommandRegistry) {
       'snmp-server community <name> RW',
     ],
     modes: CONFIG_MODES,
+    // The community starts the agent, with or without RO/RW (RO is the default).
     run: (match, engine, device) =>
       engine.configureSnmpAgent(device.id, {
-        enabled: match[2] ? true : (device.snmpAgent?.enabled ?? false),
+        enabled: true,
         community: match[1],
+        ...(match[2]?.toUpperCase() === 'RW' ? { access: 'RW' } : {}),
+        ...(match[3] ? { acl: match[3] } : {}),
       }),
   });
   registry.register({
@@ -41,6 +44,8 @@ export function registerManagementCommands(registry: CommandRegistry) {
       engine.configureSnmpAgent(device.id, {
         enabled: !match[1],
         community: device.snmpAgent?.community ?? 'public',
+        ...(device.snmpAgent?.access ? { access: device.snmpAgent.access } : {}),
+        ...(device.snmpAgent?.acl ? { acl: device.snmpAgent.acl } : {}),
       }),
   });
   registry.register({
@@ -152,8 +157,13 @@ export function managementRunningConfig(device: Device) {
   return [
     ...(device.snmpAgent
       ? [
-          'snmp-server community ' + device.snmpAgent.community,
-          (device.snmpAgent.enabled ? '' : 'no ') + 'service snmp',
+          'snmp-server community ' +
+            device.snmpAgent.community +
+            ' ' +
+            (device.snmpAgent.access ?? 'RO') +
+            (device.snmpAgent.acl ? ' ' + device.snmpAgent.acl : ''),
+          // A community whose agent was stopped from the simulator's service panel.
+          ...(device.snmpAgent.enabled ? [] : ['no service snmp']),
         ]
       : []),
     ...(device.syslogServer ? [(device.syslogServer.enabled ? '' : 'no ') + 'service syslog'] : []),

@@ -3,10 +3,11 @@ import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
 import { showRoutes, showInterfacesStatus } from './operational';
 import { interfaceReference } from './ios-management';
+import { configBody } from './running-config';
 export function archiveRunning(e: SimulationEngine, d: Device, r: CommandRegistry) {
   const a = d.iosSystem?.archive;
   if (!a) throw new Error('Configure archive first.');
-  const configuration = r.execute('show running-config', e, d, { mode: 'privileged' });
+  const configuration = configBody(r.execute('show running-config', e, d, { mode: 'privileged' }));
   if (configuration.length > 65536) throw new Error('Archive configuration exceeds 64 KiB.');
   const name = (a.path + '-' + e.state.clock + '-' + e.id('archive')).slice(0, 160);
   a.copies.push({ at: e.state.clock, name, configuration });

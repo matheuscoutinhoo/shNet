@@ -4,6 +4,7 @@ import { ipString, mask, parsePrefix, subnet } from '../protocols/ipv4';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 import { showRoutes, interfaceName } from './operational';
 import { rebuildSpanningTree } from '../protocols/stp';
+import { findInterface } from '../protocols/interface-name';
 
 type StaticRoute = Device['routes'][number];
 const IPV4 = /^(?:\d{1,3}\.){3}\d{1,3}$/;
@@ -136,7 +137,7 @@ export function registerLayer3Commands(r: CommandRegistry) {
     pattern: /^no interface (\S+)$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) => {
-      const port = d.interfaces.find((p) => p.name.toLowerCase() === m[1].toLowerCase());
+      const port = findInterface(d, m[1]);
       if (!port) throw new Error('Interface inexistente.');
       e.removeLogicalInterface(d.id, port.id);
     },
@@ -145,6 +146,8 @@ export function registerLayer3Commands(r: CommandRegistry) {
     pattern: /^(no )?ip routing$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) => {
+      // Routers always route; IOS accepts "ip routing" there as the default it already is.
+      if (d.type === 'router' && !m[1]) return '';
       if (d.type !== 'switch') throw new Error('ip routing configura a stack L3 do switch.');
       d.ipRouting = !m[1];
       e.emit('CONFIG_CHANGED', d.id, 'Roteamento L3 ' + (d.ipRouting ? 'ativo.' : 'desligado.'));

@@ -16,7 +16,7 @@ import { registerVrrpCommands, vrrpRunningConfig } from './vrrp';
 import { registerStateSyncCommands, stateSyncRunningConfig } from './state-sync';
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort, type Mode } from './registry';
 import { ipv4Schema } from '../model';
-import { parsePrefix, subnet, ipString, mask } from '../protocols/ipv4';
+import { parsePrefix, subnet, ipString, mask, sameSubnet } from '../protocols/ipv4';
 import { dhcpRunningConfig, registerDhcpCommands } from './dhcp';
 import { dnsRunningConfig, registerDnsCommands } from './dns';
 import { registerStpCommands, stpRunningConfig } from './stp';
@@ -56,9 +56,10 @@ import { registerRoutingPolicy, routingPolicyRunning } from './routing-policy';
 import { registerMqc, mqcDefinitions, mqcAttachments } from './mqc';
 import { showInterfacesTrunk, showVlan } from './ios-show';
 import { allVlansAllowed, vlanRangeText } from '../protocols/trunk';
+import { defaultVlanName, longInterfaceName } from '../protocols/interface-name';
 import { registerPingCommands } from './ping';
 import { registerConfigDiff } from './config-diff';
-import { composeRunningConfig } from './running-config';
+import { composeRunningConfig, iosConfigText, withConfigHeader } from './running-config';
 import { printSecret } from './secrets';
 import { bfdInterfaceRunningConfig, bfdTemplateRunningConfig } from './bfd';
 import { keyChainRunningConfig } from './key-chain';
@@ -199,6 +200,12 @@ export function makeRegistry() {
       d.hostname = m[1];
     },
   });
+  // Lines IOS writes into every configuration file; replaying them changes nothing.
+  r.register({
+    pattern: /^(?:version \d+(?:\.\d+)*|boot-start-marker|boot-end-marker)$/i,
+    modes: config,
+    run: () => '',
+  });
   r.register({
     pattern: /^interface range (.+)$/i,
     syntax: 'interface range <interfaces...>',
@@ -236,7 +243,8 @@ export function makeRegistry() {
   });
   r.register({
     pattern: /^interface\s+(.+)$/i,
-    syntax: 'interface <interface>',
+    // IOS accepts a space between the type and the number ("interface GigabitEthernet 0/1").
+    syntax: 'interface <interface...>',
     modes: config,
     run: (m, e, d, c) => {
       const name = interfaceName(m[1]);
@@ -342,12 +350,17 @@ export function makeRegistry() {
       if (prefix < 31 && (ip === net.network || ip === net.broadcast))
         throw new Error('Use um endereço de host, não network/broadcast');
       const p = currentPort(d, c);
-      if (
-        e.state.devices.some((v) =>
-          v.interfaces.some((i) => i.ip === ip && i.vrf === p.vrf && (v.id !== d.id || i.id !== p.id))
-        )
-      )
-        throw new Error('IP já usado por outra interface');
+      // IOS refuses only overlapping subnets on the same device (and VRF); two devices may share
+      // an address, which shows up at run time as %IP-4-DUPADDR.
+      const overlap = d.interfaces.find(
+        (i) =>
+          i.id !== p.id &&
+          i.ip &&
+          i.prefix !== undefined &&
+          i.vrf === p.vrf &&
+          (sameSubnet(i.ip, ip, Math.min(i.prefix, prefix)) || i.ip === ip)
+      );
+      if (overlap) throw new Error(`${net.network} overlaps with ${longInterfaceName(overlap.name)}`);
       if (p.dhcp) e.disableDhcp(d.id, p.id);
       p.ip = ip;
       p.prefix = prefix;
@@ -391,7 +404,7 @@ export function makeRegistry() {
       const id = vlanId(m[1]);
       if (!d.vlans.some((v) => v.id === id)) {
         if (d.vlans.length >= 256) throw new Error('Limite de VLANs');
-        d.vlans.push({ id, name: 'VLAN' + id });
+        d.vlans.push({ id, name: defaultVlanName(id) });
         syncPvstInstances(e, d);
       }
       c.vlan = id;
@@ -422,7 +435,9 @@ export function makeRegistry() {
     modes: ['interface'],
     run: (m, _e, d, c) => {
       if (d.type !== 'switch') throw new Error('Comando exclusivo de switch');
-      currentPort(d, c).mode = m[1].toLowerCase() as 'access' | 'trunk';
+      const p = currentPort(d, c);
+      p.mode = m[1].toLowerCase() as 'access' | 'trunk';
+      p.explicitMode = true;
       d.macTable = [];
     },
   });
@@ -564,8 +579,8 @@ export function makeRegistry() {
     pattern: /^show running-config$/i,
     syntax: 'show running-config',
     modes: all,
-    run: (_m, _e, d) =>
-      composeRunningConfig(
+    run: (_m, _e, d) => {
+      const lines = composeRunningConfig(
         d,
         [
           'hostname ' + d.hostname,
@@ -589,71 +604,96 @@ export function makeRegistry() {
           ...vxlanRunningConfig(d),
           ...policyRunningConfig(d).filter((line) => !/^(?:no )?(?:ip nat|service nat)/.test(line)),
           ...stateSyncRunningConfig(_e.state, d),
-          ...(d.type === 'switch' ? d.vlans.flatMap((v) => ['vlan ' + v.id, ' name ' + v.name, 'exit']) : []),
+          // VLANs live in vlan.dat; IOS lists them in running-config only in VTP transparent/off mode.
+          ...(d.type === 'switch' && ['transparent', 'off'].includes(d.iosSystem?.vtp?.mode ?? '')
+            ? d.vlans
+                .filter((v) => v.id !== 1 && (v.id < 1002 || v.id > 1005))
+                .flatMap((v) => [
+                  'vlan ' + v.id,
+                  ...(v.name !== defaultVlanName(v.id) ? [' name ' + v.name] : []),
+                  'exit',
+                ])
+            : []),
         ],
-        d.interfaces.flatMap((i) => [
-          'interface ' + i.name,
-          ...(i.description ? [' description ' + i.description] : []),
-          // Loopbacks use a 9216-byte MTU by default; only explicit changes are configuration.
-          ...(!i.iosTunnel && i.mtu !== (i.loopback ? 9216 : 1500) ? [' mtu ' + i.mtu] : []),
-          ...(i.duplex === 'half' && !i.logical && !i.loopback ? [' duplex half'] : []),
-          ...(i.logical?.kind === 'subinterface' ? [' encapsulation dot1q ' + i.logical.vlan] : []),
-          ...(d.type === 'switch' && !i.logical && !i.iosTunnel && i.mode === 'routed'
-            ? [' no switchport']
-            : []),
-          ...(i.vrf ? [' vrf forwarding ' + i.vrf] : []),
-          ' ' + (i.adminUp ? 'no shutdown' : 'shutdown'),
-          ...(i.speedAuto === false && !i.logical && !i.loopback ? [' speed ' + i.speed] : []),
-          ...(i.transceiver ? [' transceiver ' + i.transceiver] : []),
-          ...(i.aclIn ? [' ip access-group ' + i.aclIn + ' in'] : []),
-          ...(i.aclOut ? [' ip access-group ' + i.aclOut + ' out'] : []),
-          ...(i.natRole ? [' ip nat ' + i.natRole] : []),
-          ...(i.zoneMember ? [' zone-member security ' + i.zoneMember] : []),
-          ...(i.udld ? [' udld port' + (i.udld.mode === 'aggressive' ? ' aggressive' : '')] : []),
-          ...bfdInterfaceRunningConfig(i),
-          ...(i.ospfAuthentication?.key
-            ? [
-                ` ip ospf message-digest-key ${i.ospfAuthentication.keyId} md5 ${printSecret(d, i.ospfAuthentication.key)}`,
-              ]
-            : []),
-          ...(i.ospfAuthentication?.enabled === true
-            ? [' ip ospf authentication message-digest']
-            : i.ospfAuthentication?.enabled === false
-              ? [' ip ospf authentication null']
+        d.interfaces.flatMap((i) => {
+          const switchport = d.type === 'switch' && !i.logical && i.mode !== 'routed';
+          // A routed interface without IPv4 shows "no ip address", as IOS prints it.
+          const unaddressed =
+            ['router', 'switch'].includes(d.type) &&
+            !switchport &&
+            !i.ip &&
+            i.ipv4Mode !== 'dhcp' &&
+            !i.aggregate &&
+            !i.iosTunnel &&
+            !i.tunnel &&
+            !i.vxlan;
+          return [
+            'interface ' + i.name,
+            ...(i.description ? [' description ' + i.description] : []),
+            // Loopbacks use a 9216-byte MTU by default; only explicit changes are configuration.
+            ...(!i.iosTunnel && i.mtu !== (i.loopback ? 9216 : 1500) ? [' mtu ' + i.mtu] : []),
+            ...(i.logical?.kind === 'subinterface' ? [' encapsulation dot1Q ' + i.logical.vlan] : []),
+            ...(d.type === 'switch' && !i.logical && !i.iosTunnel && i.mode === 'routed'
+              ? [' no switchport']
               : []),
-          ...(i.ipv4Mode === 'dhcp'
-            ? [' ip address dhcp']
-            : i.ip
-              ? [' ip address ' + i.ip + ' ' + ipString(mask(i.prefix!))]
+            ...(i.vrf ? [' vrf forwarding ' + i.vrf] : []),
+            ...(i.ipv4Mode === 'dhcp'
+              ? [' ip address dhcp']
+              : i.ip
+                ? [' ip address ' + i.ip + ' ' + ipString(mask(i.prefix!))]
+                : unaddressed
+                  ? [' no ip address']
+                  : []),
+            ...(i.aclIn ? [' ip access-group ' + i.aclIn + ' in'] : []),
+            ...(i.aclOut ? [' ip access-group ' + i.aclOut + ' out'] : []),
+            ...(i.natRole ? [' ip nat ' + i.natRole] : []),
+            ...(i.zoneMember ? [' zone-member security ' + i.zoneMember] : []),
+            ...(i.ospfAuthentication?.key
+              ? [
+                  ` ip ospf message-digest-key ${i.ospfAuthentication.keyId} md5 ${printSecret(d, i.ospfAuthentication.key)}`,
+                ]
               : []),
-          ...iosTunnelInterfaceLines(i),
-          ...(i.ipv4Mode !== 'dhcp' && i.dns?.length ? [' ip name-server ' + i.dns.join(' ')] : []),
-          ...(i.stpEdge
-            ? [' spanning-tree portfast']
-            : i.stpEdge === false && edgePort(d, { ...i, stpEdge: undefined })
-              ? [' spanning-tree portfast disable']
+            ...(i.ospfAuthentication?.enabled === true
+              ? [' ip ospf authentication message-digest']
+              : i.ospfAuthentication?.enabled === false
+                ? [' ip ospf authentication null']
+                : []),
+            ...iosTunnelInterfaceLines(i),
+            ...(i.ipv4Mode !== 'dhcp' && i.dns?.length ? [' ip name-server ' + i.dns.join(' ')] : []),
+            ...(switchport
+              ? [
+                  ...(i.trunkEncapsulation
+                    ? [' switchport trunk encapsulation ' + i.trunkEncapsulation]
+                    : []),
+                  // IOS shows only what differs from the defaults (VLAN 1, all VLANs allowed).
+                  ...(i.accessVlan !== 1 ? [' switchport access vlan ' + i.accessVlan] : []),
+                  ...(i.nativeVlan !== 1 ? [' switchport trunk native vlan ' + i.nativeVlan] : []),
+                  ...(allVlansAllowed(i)
+                    ? []
+                    : [' switchport trunk allowed vlan ' + (vlanRangeText(i.allowedVlans) || 'none')]),
+                  ...(i.mode === 'trunk' || i.explicitMode ? [' switchport mode ' + i.mode] : []),
+                  ...(i.nonegotiate ? [' switchport nonegotiate'] : []),
+                ]
               : []),
-          ...(i.stpGuard ? [' spanning-tree guard ' + i.stpGuard] : []),
-          ...(i.bpduGuard !== undefined
-            ? [' spanning-tree bpduguard ' + (i.bpduGuard ? 'enable' : 'disable')]
-            : []),
-          ...(i.stpCost ? [' spanning-tree cost ' + i.stpCost] : []),
-          ...(d.type === 'switch' && !i.logical && i.mode !== 'routed'
-            ? [
-                ...(i.trunkEncapsulation ? [' switchport trunk encapsulation ' + i.trunkEncapsulation] : []),
-                ' switchport mode ' + i.mode,
-                ' switchport access vlan ' + i.accessVlan,
-                ' switchport trunk native vlan ' + i.nativeVlan,
-                // IOS does not print the default "switchport trunk allowed vlan all".
-                ...(allVlansAllowed(i)
-                  ? []
-                  : [' switchport trunk allowed vlan ' + (vlanRangeText(i.allowedVlans) || 'none')]),
-                ...(i.nonegotiate ? [' switchport nonegotiate'] : []),
-              ]
-            : []),
-          ...stormControlRunningConfig(i),
-          'exit',
-        ]),
+            ...(i.adminUp ? [] : [' shutdown']),
+            ...(i.duplex === 'half' && !i.logical && !i.loopback ? [' duplex half'] : []),
+            ...(i.speedAuto === false && !i.logical && !i.loopback ? [' speed ' + i.speed] : []),
+            ...(i.udld ? [' udld port' + (i.udld.mode === 'aggressive' ? ' aggressive' : '')] : []),
+            ...bfdInterfaceRunningConfig(i),
+            ...(i.stpEdge
+              ? [' spanning-tree portfast']
+              : i.stpEdge === false && edgePort(d, { ...i, stpEdge: undefined })
+                ? [' spanning-tree portfast disable']
+                : []),
+            ...(i.stpGuard ? [' spanning-tree guard ' + i.stpGuard] : []),
+            ...(i.bpduGuard !== undefined
+              ? [' spanning-tree bpduguard ' + (i.bpduGuard ? 'enable' : 'disable')]
+              : []),
+            ...(i.stpCost ? [' spanning-tree cost ' + i.stpCost] : []),
+            ...stormControlRunningConfig(i),
+            'exit',
+          ];
+        }),
         [
           ...campusRunningConfig(d),
           ...mqcAttachments(d),
@@ -685,7 +725,12 @@ export function makeRegistry() {
           ...discoveryRunningConfig(d),
           ...hsrpRunningConfig(d),
         ]
-      ).join('\n'),
+      );
+      // Endpoints keep the simulator's plain listing; IOS devices print the IOS text.
+      return terminalIdentity(d).host
+        ? lines.join('\n')
+        : withConfigHeader(iosConfigText(d, lines).join('\n'));
+    },
   });
   // Synchronous ping/traceroute advance the simulation until replies arrive (IOS and host formats).
   registerPingCommands(r);

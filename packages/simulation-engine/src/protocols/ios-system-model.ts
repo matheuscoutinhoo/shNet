@@ -339,6 +339,8 @@ export const iosSystemSchema = z
       })
       .strict()
       .optional(),
+    // "delete flash:vlan.dat": the switch boots with the default VLAN database.
+    vlanDatDeleted: z.boolean().optional(),
     // "spanning-tree portfast default" / "spanning-tree portfast bpduguard default".
     portfastDefault: z.boolean().optional(),
     bpduguardDefault: z.boolean().optional(),

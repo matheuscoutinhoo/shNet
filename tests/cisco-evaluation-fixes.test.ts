@@ -417,8 +417,8 @@ describe('Cisco factory defaults', () => {
   it('loopbacks have no phantom description, MTU, speed or duplex lines', () => {
     const { t } = factory('router');
     run(t, ['interface Loopback0', 'ip address 10.255.0.1 255.255.255.255', 'end']);
-    const block = t.execute('show running-config').split('interface Loopback0\n')[1].split('\nexit')[0];
-    expect(block).toBe(' no shutdown\n ip address 10.255.0.1 255.255.255.255');
+    const block = t.execute('show running-config').split('interface Loopback0\n')[1].split('\n!')[0];
+    expect(block).toBe(' ip address 10.255.0.1 255.255.255.255');
   });
 });
 
@@ -639,10 +639,10 @@ describe('IOS DHCP server pools', () => {
       'ip dhcp excluded-address 10.10.10.1 10.10.10.20\nip dhcp excluded-address 10.10.20.1\n'
     );
     expect(config).toContain(
-      'ip dhcp pool USERS\n network 10.10.10.0 255.255.255.0\n default-router 10.10.10.1\n dns-server 10.2.50.53\n domain-name acme.corp\n exit'
+      'ip dhcp pool USERS\n network 10.10.10.0 255.255.255.0\n default-router 10.10.10.1\n dns-server 10.2.50.53\n domain-name acme.corp\n!'
     );
     expect(config).toContain(
-      'ip dhcp pool VOICE\n network 10.10.20.0 255.255.255.0\n default-router 10.10.20.1\n lease 0 8\n exit'
+      'ip dhcp pool VOICE\n network 10.10.20.0 255.255.255.0\n default-router 10.10.20.1\n lease 0 8\n!'
     );
     validateSnapshot(e.snapshot());
   });

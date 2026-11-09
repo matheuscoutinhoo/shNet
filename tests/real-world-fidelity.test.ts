@@ -146,9 +146,14 @@ describe('startup-config lifecycle (write memory, reload)', () => {
       'end',
     ]);
     const running = t.execute('show running-config');
+    expect(running).toMatch(
+      /^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n!\nversion /
+    );
     expect(t.execute('write memory')).toBe('Building configuration...\n[OK]');
+    // NVRAM holds the configuration text, without the "Building configuration..." header.
+    const saved = running.replace(/^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n/, '');
     expect(t.execute('show startup-config')).toBe(
-      `Using ${new TextEncoder().encode(running).length} out of 33554432 bytes\n${running}`
+      `Using ${new TextEncoder().encode(saved).length} out of 33554432 bytes\n${saved}`
     );
     advance(5000);
     expect(t.execute('reload')).toBe('');
@@ -818,7 +823,7 @@ describe('IOS day-0 management plane', () => {
     // "spanning-tree portfast disable" opts a port out of the default and is printed as such.
     ok(ta, ['configure terminal', 'interface Gi0/6', 'spanning-tree portfast disable', 'end']);
     expect(ta.execute('show running-config')).toMatch(
-      /interface Gi0\/6\n(?: .*\n)* spanning-tree portfast disable\n/
+      /interface GigabitEthernet0\/6\n(?: .*\n)* spanning-tree portfast disable\n/
     );
   });
   it('storm-control filters a broadcast storm and action shutdown err-disables the port', () => {
@@ -1367,12 +1372,12 @@ describe('IOS access lists (remarks, port operators, ICMP types, logging)', () =
       '    30 permit tcp any host 10.2.2.10 range 8000 8080\n    40 deny icmp any any echo log (10 matches)'
     );
     const running = t1.execute('show running-config');
+    // Numbered ACLs keep the legacy "access-list N" form, as IOS prints them.
     expect(running).toContain(
       [
-        'ip access-list standard 10',
-        ' remark NOC jump hosts and management VLANs',
-        ' 10 permit 10.2.50.0 0.0.0.255',
-        ' 20 deny any log',
+        'access-list 10 remark NOC jump hosts and management VLANs',
+        'access-list 10 permit 10.2.50.0 0.0.0.255',
+        'access-list 10 deny any log',
       ].join('\n')
     );
     expect(running).toContain(
@@ -1690,7 +1695,7 @@ describe('IOS exec commands and output modifiers', () => {
     expect(t1.execute('show running-config | grep ip')).toBe('% Invalid input detected at: grep');
     const block = t1.execute('show running-config interface GigabitEthernet0/1');
     expect(block).toMatch(
-      /^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n!\ninterface Gi0\/1\n/
+      /^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n!\ninterface GigabitEthernet0\/1\n/
     );
     expect(block.endsWith('\nend')).toBe(true);
     const mac = e
@@ -2025,7 +2030,7 @@ describe('IOS zone-based policy firewall', () => {
         'class-map type inspect match-all OUTSIDE-TO-WEB',
         ' match protocol http',
         ' match access-group name DMZ-WEB',
-        'exit',
+        '!',
       ].join('\n')
     );
     expect(running).toContain(
@@ -2035,19 +2040,19 @@ describe('IOS zone-based policy firewall', () => {
         '  inspect',
         ' class class-default',
         '  drop log',
-        'exit',
+        '!',
         'policy-map type inspect OUT-DMZ',
         ' class type inspect OUTSIDE-TO-WEB',
         '  inspect',
         ' class class-default',
         '  drop',
-        'exit',
+        '!',
       ].join('\n')
     );
     expect(running).toContain(
-      'zone-pair security OUT-SELF source OUTSIDE destination self\n service-policy type inspect OUT-SELF\nexit'
+      'zone-pair security OUT-SELF source OUTSIDE destination self\n service-policy type inspect OUT-SELF\n!'
     );
-    expect(running).toMatch(/^interface (?:GigabitEthernet|Gi)0\/3\n(?: .+\n)* zone-member security DMZ\n/m);
+    expect(running).toMatch(/^interface GigabitEthernet0\/3\n(?: .+\n)* zone-member security DMZ\n/m);
     expect(running).not.toMatch(/^(?:no )?(?:firewall|service firewall)/m);
     ok(te, ['write memory', 'reload', '']);
     advance(RELOAD_MS);
@@ -2292,7 +2297,7 @@ describe('IOS campus features', () => {
     for (const line of [
       'no ip dhcp snooping information option',
       ' ip dhcp snooping limit rate 5',
-      'ip source binding 0050.7966.6801 vlan 10 10.1.10.50 interface Gi0/5',
+      'ip source binding 0050.7966.6801 vlan 10 10.1.10.50 interface GigabitEthernet0/5',
     ])
       expect(running).toContain('\n' + line + '\n');
     ok(t, ['write memory', 'reload', '']);
@@ -2380,7 +2385,131 @@ describe('IOS campus features', () => {
     ]);
     expect(t.execute('service-policy output SHAPE')).toBe('% Must remove fair-queue configuration first.');
     ok(t, ['end']);
-    expect(t.execute('show running-config')).toMatch(/\ninterface Gi0\/1\n(?: .+\n)* fair-queue\n/);
+    expect(t.execute('show running-config')).toMatch(
+      /\ninterface GigabitEthernet0\/1\n(?: .+\n)* fair-queue\n/
+    );
+  });
+});
+describe('IOS running-config format and the VLAN database', () => {
+  const RELOAD_MS = 60_000;
+  const body = (text: string) =>
+    text.replace(/^Building configuration\.\.\.\n\nCurrent configuration : \d+ bytes\n/, '');
+  it('prints IOS text: header, version, "!" blocks, full interface names, no defaults, lines and end', () => {
+    const {
+      terminals: [t],
+    } = lab('router');
+    // Abbreviated interface names resolve as on IOS.
+    ok(t, [
+      'hostname EDGE',
+      'int g0/1',
+      'description WAN to Gi0/1 of ISP',
+      'ip address 198.51.100.2 255.255.255.252',
+      'int gig 0/2',
+      'shutdown',
+      'int lo0',
+      'ip address 10.255.0.1 255.255.255.255',
+      'exit',
+      'access-list 1 permit 10.0.0.0 0.255.255.255',
+      'snmp-server community NOC',
+      'ip routing',
+      'end',
+    ]);
+    const running = t.execute('show running-config');
+    const size = new TextEncoder().encode(body(running)).length + 1;
+    expect(
+      running.startsWith(
+        `Building configuration...\n\nCurrent configuration : ${size} bytes\n!\nversion 17.12\n!\nhostname EDGE\n`
+      )
+    ).toBe(true);
+    expect(running).toContain(
+      '!\ninterface GigabitEthernet0/1\n description WAN to Gi0/1 of ISP\n ip address 198.51.100.2 255.255.255.252\n!\n'
+    );
+    expect(running).toContain('!\ninterface GigabitEthernet0/2\n no ip address\n shutdown\n!\n');
+    expect(running).toContain('!\ninterface Loopback0\n ip address 10.255.0.1 255.255.255.255\n!\n');
+    expect(running).toContain('\naccess-list 1 permit 10.0.0.0 0.255.255.255\n');
+    expect(running).toContain('\nsnmp-server community NOC RO\n');
+    expect(running.endsWith('!\nline con 0\nline aux 0\nline vty 0 4\n!\nend')).toBe(true);
+    for (const absent of [/no shutdown/, /^exit$/m, /^cdp /m, /lldp/, /service snmp/, /^ip routing$/m])
+      expect(running).not.toMatch(absent);
+    expect(t.execute('show running-config interface lo0')).toBe(
+      `Building configuration...\n\nCurrent configuration : 65 bytes\n!\ninterface Loopback0\n ip address 10.255.0.1 255.255.255.255\nend`
+    );
+  });
+  it('a pasted show running-config rebuilds the same configuration on a blank device', () => {
+    const {
+      terminals: [source, blank],
+    } = lab('access', 'access');
+    ok(source, [
+      'hostname ACC-1',
+      'vtp mode transparent',
+      'vlan 10',
+      'name USERS',
+      'vlan 20',
+      'interface range g0/1 - 2',
+      'switchport mode access',
+      'switchport access vlan 10',
+      'spanning-tree portfast',
+      'interface g0/24',
+      'switchport mode trunk',
+      'switchport trunk allowed vlan 10,20',
+      'switchport trunk native vlan 20',
+      'interface vlan 10',
+      'ip address 10.10.10.5 255.255.255.0',
+      'exit',
+      'ip default-gateway 10.10.10.1',
+      'line vty 0 4',
+      'transport input ssh',
+      'end',
+    ]);
+    const running = source.execute('show running-config');
+    expect(running).toContain('!\nvlan 10\n name USERS\n!\nvlan 20\n!\n');
+    expect(running).toContain(
+      '!\ninterface GigabitEthernet0/1\n switchport access vlan 10\n switchport mode access\n spanning-tree portfast\n!\n'
+    );
+    expect(running).toContain(
+      '!\ninterface GigabitEthernet0/24\n switchport trunk native vlan 20\n switchport trunk allowed vlan 10,20\n switchport mode trunk\n!\n'
+    );
+    // An untouched port prints no switchport defaults.
+    expect(running).toContain('!\ninterface GigabitEthernet0/3\n!\n');
+    for (const line of body(running).split('\n')) expect(blank.execute(line), line).not.toMatch(/^%/);
+    ok(blank, ['enable']);
+    expect(blank.execute('show running-config')).toBe(running);
+  });
+  it('keeps VLANs in vlan.dat: hidden in VTP server mode, kept across reload and erase, cleared by delete', () => {
+    const {
+      e,
+      devices: [sw],
+      terminals: [t],
+      advance,
+    } = lab('access');
+    ok(t, ['vlan 30', 'name VOICE', 'vlan 40', 'end']);
+    const running = t.execute('show running-config');
+    expect(running).not.toMatch(/^vlan /m);
+    expect(t.execute('show vlan brief')).toMatch(/^30 {3}VOICE {28}active/m);
+    expect(t.execute('show vlan brief')).toMatch(/^40 {3}VLAN0040 {25}active/m);
+    // No write memory, then erase NVRAM: the VLAN database lives on flash and survives both.
+    ok(t, ['write erase', 'reload', 'no']);
+    ok(t, ['']);
+    advance(RELOAD_MS);
+    ok(t, ['enable']);
+    expect(e.device(sw.id).vlans.map((v) => v.id)).toEqual([1, 30, 40]);
+    expect(t.execute('dir flash:')).toContain('vlan.dat');
+    expect(t.execute('delete flash:vlan.dat')).toBe('');
+    expect(t.prompt).toBe('Delete filename [vlan.dat]?');
+    expect(t.execute('')).toBe('');
+    expect(t.prompt).toBe('Delete flash:/vlan.dat? [confirm]');
+    expect(t.execute('')).toBe('');
+    expect(t.execute('dir flash:')).not.toContain('vlan.dat');
+    expect(t.execute('delete flash:vlan.dat')).toBe(
+      '% Error deleting flash:/vlan.dat (No such file or directory)'
+    );
+    // Running VLANs stay until the next boot.
+    expect(e.device(sw.id).vlans.map((v) => v.id)).toEqual([1, 30, 40]);
+    ok(t, ['reload', '']);
+    advance(RELOAD_MS);
+    ok(t, ['enable']);
+    expect(e.device(sw.id).vlans.map((v) => v.id)).toEqual([1]);
+    expect(t.execute('dir flash:')).toContain('vlan.dat');
   });
 });
 describe('IOS operational show, debug and console logging', () => {

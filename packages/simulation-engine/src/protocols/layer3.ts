@@ -11,6 +11,7 @@ import { receiveArp } from './arp';
 import { receiveIp } from './ipv4';
 import { receiveIp6 } from './ipv6';
 import { acceptsHsrpMac } from './hsrp';
+import { defaultVlanName } from './interface-name';
 
 export const routingEnabled = (device: Device) =>
   device.type === 'router' || (device.type === 'switch' && device.ipRouting === true);
@@ -50,7 +51,7 @@ export function createLogicalInterface(
   if (device.interfaces.length >= 48) throw new Error('Limite de 48 interfaces.');
   if (kind === 'svi' && !device.vlans.some((entry) => entry.id === vlan)) {
     if (device.vlans.length >= 256) throw new Error('Limite de VLANs.');
-    device.vlans.push({ id: vlan, name: 'VLAN' + vlan });
+    device.vlans.push({ id: vlan, name: defaultVlanName(vlan) });
   }
   const base = parent ?? device.interfaces[0];
   const macs = new Set(engine.state.devices.flatMap((d) => d.interfaces.map((p) => p.mac)));

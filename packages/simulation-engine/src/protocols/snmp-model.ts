@@ -53,7 +53,17 @@ export const snmpMessageSchema = z.discriminatedUnion('type', [
     .strict(),
 ]);
 export const snmpAgentSchema = z
-  .object({ enabled: z.boolean(), community: communitySchema, startedAt: timeSchema })
+  .object({
+    enabled: z.boolean(),
+    community: communitySchema,
+    // "snmp-server community NAME RO|RW [ACL]" (RO is the IOS default).
+    access: z.enum(['RO', 'RW']).optional(),
+    acl: z
+      .string()
+      .regex(/^[\w-]{1,64}$/)
+      .optional(),
+    startedAt: timeSchema,
+  })
   .strict();
 export const snmpQuerySchema = z
   .object({

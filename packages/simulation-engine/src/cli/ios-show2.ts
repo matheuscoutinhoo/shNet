@@ -708,7 +708,7 @@ function showFlash(d: Device) {
   const files = [
     { name: iosImage(d), bytes: 520_000_000 },
     { name: 'packages.conf', bytes: 7_512 },
-    ...(d.type === 'switch' ? [{ name: 'vlan.dat', bytes: 3_436 }] : []),
+    ...(d.type === 'switch' && !d.iosSystem?.vlanDatDeleted ? [{ name: 'vlan.dat', bytes: 3_436 }] : []),
     ...(d.iosSystem?.archive?.copies ?? []).map((c) => ({
       name: c.name.replace(/^flash:\/?/, ''),
       bytes: c.configuration.length,
@@ -737,6 +737,13 @@ function showBoot(d: Device) {
     ...(d.type === 'switch' ? ['HELPER variable does not exist'] : []),
     'Configuration register is 0x2102',
   ].join('\n');
+}
+/** "delete flash:vlan.dat": the running VLANs stay until the next boot, which starts with VLAN 1 only. */
+export function deleteVlanDat(e: SimulationEngine, d: Device) {
+  if (d.type !== 'switch' || d.iosSystem?.vlanDatDeleted)
+    throw new Error('%Error deleting flash:/vlan.dat (No such file or directory)');
+  (d.iosSystem ??= {}).vlanDatDeleted = true;
+  e.emit('CONFIG_CHANGED', d.id, 'flash:/vlan.dat deleted; the VLAN database resets at the next boot.');
 }
 
 export function registerIosShow2(r: CommandRegistry) {
@@ -827,6 +834,19 @@ export function registerIosShow2(r: CommandRegistry) {
     syntax: ['dir', 'dir flash:', 'show flash:'],
     modes: ['user', 'privileged'],
     run: (_m, _e, d) => showFlash(d),
+  });
+  r.register({
+    pattern: /^delete((?: \/(?:force|recursive))*) (\S+)$/i,
+    syntax: ['delete flash:vlan.dat', 'delete /force flash:vlan.dat'],
+    modes: ['privileged'],
+    run: (m, e, d, c) => {
+      const file = m[2].replace(/^flash:\/?/i, '');
+      if (file.toLowerCase() !== 'vlan.dat' || d.type !== 'switch' || d.iosSystem?.vlanDatDeleted)
+        throw new Error('%Error deleting flash:/' + file + ' (No such file or directory)');
+      if (/\/force/i.test(m[1])) deleteVlanDat(e, d);
+      else c.confirm = { kind: 'delete-name' };
+      return '';
+    },
   });
   r.register({
     pattern: /^show (?:boot|bootvar)$/i,

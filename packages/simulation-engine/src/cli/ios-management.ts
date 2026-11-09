@@ -4,6 +4,7 @@ import type { IosLine, IosSystem } from '../protocols/ios-system-model';
 import { scheduleErrdisableRecovery } from '../protocols/errdisable';
 import { hashIosSecret } from './local-security';
 import { interfaceName } from './operational';
+import { findInterface } from '../protocols/interface-name';
 import { CONFIG_MODES, currentPort, type CommandRegistry, type Context } from './registry';
 import { printSecret, readSecret, type7Encode } from './secrets';
 import { startBanner } from './banner';
@@ -92,16 +93,12 @@ export const facilityName = (facility: number) => FACILITIES[facility] ?? String
 const sys = (d: Device): IosSystem => (d.iosSystem ??= {});
 /** Canonical IOS name of an interface reference; an existing interface keeps its exact name. */
 export function interfaceReference(d: Device, raw: string) {
-  const name = interfaceName(raw)
-    .replace(/^lo(?:opback)?(?=\d)/i, 'Loopback')
-    .replace(/^vl(?:an)?(?=\d)/i, 'Vlan')
-    .replace(/^po(?:rt-channel)?(?=\d)/i, 'Port-channel')
-    .replace(/^tu(?:nnel)?(?=\d)/i, 'Tunnel');
-  return d.interfaces.find((p) => p.name.toLowerCase() === name.toLowerCase())?.name ?? name;
+  const name = interfaceName(raw);
+  return findInterface(d, name)?.name ?? name;
 }
 /** The interface a stored name refers to, if it exists (names may be configured before it). */
 export function referencedInterface(d: Device, name?: string) {
-  return name ? d.interfaces.find((p) => p.name.toLowerCase() === name.toLowerCase()) : undefined;
+  return findInterface(d, name);
 }
 function parseMethods(tokens: string[]) {
   const methods: string[] = [];

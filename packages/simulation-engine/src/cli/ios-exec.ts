@@ -15,6 +15,7 @@ import { ipNumber, parsePrefix } from '../protocols/ipv4';
 import { clearOspfProcess } from '../protocols/ospf';
 import { ospfAreaType } from '../protocols/ospf-security';
 import { RIP } from '../protocols/rip-model';
+import { withConfigHeader } from './running-config';
 
 // ---------------------------------------------------------------------------------------------
 // Output modifiers: "show ... | include|exclude|begin|section|count REGEX".
@@ -443,14 +444,12 @@ export function registerIosExec(r: CommandRegistry) {
     run: (m, e, d) => {
       const port = findPort(d, m[1].replace(/\s+/g, ''));
       const lines = String(r.execute('show running-config', e, d, { mode: 'privileged' })).split('\n');
-      const start = lines.findIndex((line) => line === 'interface ' + port.name);
-      const block = start < 0 ? ['interface ' + port.name] : [lines[start]];
+      const header = 'interface ' + longInterfaceName(port.name);
+      const start = lines.findIndex((line) => line === header);
+      const block = start < 0 ? [header] : [lines[start]];
       for (let i = start + 1; start >= 0 && i < lines.length && lines[i].startsWith(' '); i++)
         block.push(lines[i]);
-      const text = ['!', ...block, 'end'].join('\n');
-      return ['Building configuration...', '', `Current configuration : ${text.length + 1} bytes`, text].join(
-        '\n'
-      );
+      return withConfigHeader(['!', ...block, 'end'].join('\n'));
     },
   });
   r.register({

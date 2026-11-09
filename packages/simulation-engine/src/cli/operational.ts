@@ -13,19 +13,12 @@ import {
 import { ripRoutes } from '../protocols/rip';
 import { RIP } from '../protocols/rip-model';
 import { routeInstalledAt } from '../protocols/route-age';
+import { canonicalInterfaceName } from '../protocols/interface-name';
 import { terminalIdentity } from './device-commands';
 import { TUNNEL_BANDWIDTH_KBPS } from '../protocols/ios-tunnel';
 import { iosTunnelShowLines } from './ios-tunnel';
 
-export const interfaceName = (name: string) =>
-  name
-    .replace(/\s/g, '')
-    .replace(/^gigabitethernet/i, 'Gi')
-    .replace(/^tengigabitethernet/i, 'Te')
-    .replace(/^fortygigabitethernet/i, 'Fo')
-    .replace(/^hundredgigabitethernet/i, 'Hu')
-    .replace(/^port-channel/i, 'Port-channel')
-    .replace(/^tu(?:n(?:n(?:e(?:l)?)?)?)?(?=\d)/i, 'Tunnel');
+export const interfaceName = (name: string) => canonicalInterfaceName(name);
 
 export function interfaceStatus(e: SimulationEngine, d: Device, p: NetworkInterface) {
   return !p.adminUp

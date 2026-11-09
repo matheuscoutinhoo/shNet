@@ -410,7 +410,6 @@ qtr55vtf	Transceiver requires SFP/QSFP.
 6ifxyj27	MTU must be between 576 and 9216
 33m1dx70	Use an SVI or no switchport to configure IPv4.
 i9bno1bd	Use a host address, not network/broadcast
-egxhfjsy	IP already used by another interface
 jyqjes41	Use ip route on the router; gateway is a host setting
 cqrc7s3h	VLANs are configured on the switch
 0w4zobfl	VLAN limit reached

@@ -17,6 +17,7 @@ import { activeVirtualRouter } from './virtual-router';
 import { natOwnsAddress } from './nat';
 import { isUnicast } from './dhcp-config';
 import { observeDhcpArp } from './dhcp-client';
+import { dottedMac, longInterfaceName } from './interface-name';
 
 type Resolution = NonNullable<Device['arpResolutions']>[number];
 type ArpTimer = Extract<Action, { kind: 'arp-timeout' }>;
@@ -188,6 +189,19 @@ export function handleArpTimer(engine: SimulationEngine, action: ArpTimer) {
 export function receiveArp(engine: SimulationEngine, device: Device, port: NetworkInterface, frame: Frame) {
   const arp = frame.arp;
   if (!arp || arp.senderMac !== frame.src) return;
+  // Another station claims one of this router's addresses.
+  if (
+    port.ip &&
+    arp.senderIp === port.ip &&
+    arp.senderMac !== port.mac &&
+    (device.type === 'router' || device.type === 'switch')
+  )
+    engine.emit(
+      'PACKET_DROPPED',
+      device.id,
+      `%IP-4-DUPADDR: Duplicate address ${port.ip} on ${longInterfaceName(port.name)}, sourced by ${dottedMac(arp.senderMac)}`,
+      { port: port.id }
+    );
   if (observeDhcpArp(engine, device, port, frame)) return;
   const virtual = activeVirtualRouter(engine.state, device, port, arp.targetIp);
   const configuredVirtual =

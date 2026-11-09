@@ -105,7 +105,9 @@ describe('VRRPv3 IPv4 por anúncios Ethernet', () => {
       'end',
     ])
       expect(cli.execute(command)).not.toMatch(/Erro|%/);
-    expect(cli.execute('show running-config')).toContain('track interface Gi0/2 decrement 80');
+    expect(cli.execute('show running-config')).toContain(
+      'vrrp 10 track interface GigabitEthernet0/2 decrement 80'
+    );
     expect(cli.execute('show vrrp')).toContain(
       '  Priority is 150\n    Track interface GigabitEthernet0/2 state Up decrement 80\n'
     );

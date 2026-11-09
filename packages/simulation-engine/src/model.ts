@@ -732,6 +732,8 @@ export const interfaceSchema = z
       .optional(),
     accessVlan: vlan,
     nativeVlan: vlan,
+    // "switchport mode access|trunk" typed explicitly (IOS shows it; the factory mode is not shown).
+    explicitMode: z.boolean().optional(),
     allowedVlans: z.array(vlan).max(4094),
     // IOS default: a trunk carries every VLAN while no explicit allowed list is configured.
     allVlansAllowed: z.boolean().optional(),

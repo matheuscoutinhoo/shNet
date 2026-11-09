@@ -208,11 +208,11 @@ describe('configuration diff', () => {
     );
     run(r.t, ['end', 'write memory', 'configure terminal', 'interface Gi0/2', 'description UPLINK', 'end']);
     expect(r.t.execute('show archive config differences')).toBe(
-      '!Contextual Config Diffs:\ninterface Gi0/2\n +description UPLINK'
+      '!Contextual Config Diffs:\ninterface GigabitEthernet0/2\n +description UPLINK'
     );
     expect(configChanges(e, r.id)).toMatchObject({
       saved: true,
-      changes: ['interface Gi0/2', ' +description UPLINK'],
+      changes: ['interface GigabitEthernet0/2', ' +description UPLINK'],
     });
     run(r.t, ['write memory']);
     expect(r.t.execute('show archive config differences')).toBe(

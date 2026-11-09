@@ -16,6 +16,7 @@ import { deriveSecret, hashHex, hmacHex, keyShare, openRecord, sealRecord } from
 import { interfaceOperational } from './layer3';
 import { ipNumber, receiveIp, resolveRoute } from './ipv4';
 import { permitPacket } from './acl';
+import { findInterface } from './interface-name';
 
 type Tick = Extract<Action, { kind: 'ios-tunnel-tick' }>;
 type Gre = Extract<Packet, { protocol: 'GRE' }>;
@@ -36,7 +37,7 @@ export function tunnelSourcePort(d: Device, t: IosTunnel) {
   if (!t.source) return undefined;
   return ipLiteral(t.source)
     ? d.interfaces.find((p) => p.ip === t.source && !p.iosTunnel)
-    : d.interfaces.find((p) => p.name.toLowerCase() === t.source!.toLowerCase());
+    : findInterface(d, t.source);
 }
 export function tunnelSourceIp(d: Device, t: IosTunnel) {
   return t.source && ipLiteral(t.source) ? t.source : tunnelSourcePort(d, t)?.ip;

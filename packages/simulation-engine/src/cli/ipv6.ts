@@ -3,6 +3,7 @@ import { ipv6Config } from '../protocols/ipv6-control';
 import { linkLocal6, network6, normalize6 } from '../protocols/ipv6-address';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 import { interfaceName } from './operational';
+import { findInterface } from '../protocols/interface-name';
 function cidr(value: string) {
   const [ip, mask] = value.split('/'),
     prefix = Number(mask);
@@ -21,7 +22,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c),
-        down = m[3] && d.interfaces.find((p) => p.name.toLowerCase() === m[3].toLowerCase());
+        down = m[3] && findInterface(d, m[3]);
       if (m[3] && !down) throw new Error('Interface de delegação inexistente.');
       e.configureDhcp6Client(d.id, p.id, {
         enabled: !m[1],
@@ -36,7 +37,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     pattern: /^dhcp6 release (\S+)$/i,
     modes: ALL_MODES,
     run: (m, e, d) => {
-      const p = d.interfaces.find((p) => p.name.toLowerCase() === m[1].toLowerCase());
+      const p = findInterface(d, m[1]);
       if (!p) throw new Error('Interface DHCPv6 inexistente.');
       e.releaseDhcp6(d.id, p.id);
     },
@@ -202,8 +203,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
             '% Next hop ' + nextHop + ' is not on a connected IPv6 subnet; specify the exit interface.'
           );
       } else {
-        const name = interfaceName(m[4]).toLowerCase();
-        port = d.interfaces.find((p) => p.name.toLowerCase() === name);
+        port = findInterface(d, interfaceName(m[4]));
         if (!port) throw new Error('Interface não encontrada.');
         nextHop = '::';
       }
@@ -226,7 +226,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     modes: CONFIG_MODES,
     run: (m, e, d) => {
       const a = cidr(m[3]),
-        p = d.interfaces.find((p) => p.name.toLowerCase() === m[4].toLowerCase());
+        p = findInterface(d, m[4]);
       if (!p) throw new Error('Interface não encontrada.');
       e.configureRoute6(
         d.id,
@@ -246,7 +246,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     pattern: /^ping ipv6 (\S+)(?: interface (\S+))?(?: vrf (\S+))?(?: hop-limit (\d+))?(?: size (\d+))?$/i,
     modes: ALL_MODES,
     run: (m, e, d) => {
-      const p = m[2] ? d.interfaces.find((p) => p.name.toLowerCase() === m[2].toLowerCase()) : undefined;
+      const p = m[2] ? findInterface(d, m[2]) : undefined;
       if (m[2] && !p) throw new Error('Interface não encontrada.');
       return 'Probe IPv6 ' + e.ping6(d.id, m[1], Number(m[4] ?? 64), m[3], p?.id, Number(m[5] ?? 104));
     },

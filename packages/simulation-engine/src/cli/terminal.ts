@@ -13,6 +13,7 @@ import { refreshInterfacePat } from '../protocols/nat';
 import { beginReload, saveStartup } from './startup';
 import { sessionBanners } from './ios-management';
 import { answerClear, applyOutputModifier, parseOutputModifier } from './ios-exec';
+import { deleteVlanDat } from './ios-show2';
 export class TerminalSession {
   context: Context = { mode: 'user' };
   history: string[] = [];
@@ -39,6 +40,8 @@ export class TerminalSession {
           ' [confirm]',
         'clear-logging': 'Clear logging buffer [confirm]',
         'clear-ospf': 'Reset ALL OSPF processes? [no]:',
+        'delete-name': 'Delete filename [vlan.dat]?',
+        'delete-file': 'Delete flash:/vlan.dat? [confirm]',
       }[confirm.kind];
     // Banner text lines are typed without a prompt until the delimiter.
     if (this.context.banner) return '';
@@ -144,6 +147,21 @@ export class TerminalSession {
       kind = confirm.kind;
     try {
       const d = this.engine.device(this.deviceId);
+      if (kind === 'delete-name') {
+        // Enter keeps the proposed name; IOS then asks for confirmation.
+        this.context.confirm = { kind: 'delete-file' };
+        if (answer && answer !== 'vlan.dat' && answer !== 'flash:vlan.dat') {
+          delete this.context.confirm;
+          return '%Error deleting flash:/' + answer + ' (No such file or directory)';
+        }
+        return '';
+      }
+      if (kind === 'delete-file') {
+        delete this.context.confirm;
+        if (answer && !/^(?:y|yes|confirm)$/.test(answer)) return '';
+        deleteVlanDat(this.engine, d);
+        return '';
+      }
       if (kind === 'clear-counters' || kind === 'clear-logging' || kind === 'clear-ospf') {
         delete this.context.confirm;
         // [confirm] accepts Enter or "y"; "[no]:" prompts need an explicit yes.

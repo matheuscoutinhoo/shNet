@@ -10,6 +10,7 @@ import { archiveRunning } from './ios-operations';
 import { applyDefaultSpanningTree } from '../protocols/stp';
 import { hardwareSpeed, negotiateLink } from '../links/physical';
 import { iosLogLine } from './ios-time';
+import { configBody } from './running-config';
 
 /** Simulated time an IOS router or switch takes to boot after "reload". */
 export const RELOAD_BOOT_MS = 60_000;
@@ -24,7 +25,7 @@ function assertStartupCapable(d: Device) {
   if (!startupCapable(d)) throw new Error('This device has no startup-config (NVRAM).');
 }
 export function runningConfigText(e: SimulationEngine, d: Device, registry: CommandRegistry) {
-  return String(registry.execute('show running-config', e, d, { mode: 'privileged' }) ?? '');
+  return configBody(String(registry.execute('show running-config', e, d, { mode: 'privileged' }) ?? ''));
 }
 function emptyPort(input: Device['interfaces'][number], live?: NetworkInterface) {
   return interfaceSchema.parse({
@@ -89,6 +90,11 @@ function rebuild(e: SimulationEngine, id: string, registry: CommandRegistry): st
     )
   );
   for (const p of interfaces) if (old.type === 'router' && !p.logical) p.mode = 'routed';
+  // vlan.dat lives on flash: the VLAN database and VTP state survive reloads and "write erase".
+  const vlanDat =
+    old.type === 'switch' && !old.iosSystem?.vlanDatDeleted
+      ? { vlans: structuredClone(old.vlans), vtp: old.iosSystem?.vtp }
+      : undefined;
   const blank: Device = {
     id: old.id,
     type: old.type,
@@ -102,7 +108,7 @@ function rebuild(e: SimulationEngine, id: string, registry: CommandRegistry): st
     physicalPosition: old.physicalPosition,
     power: old.power,
     interfaces,
-    vlans: [{ id: 1, name: 'default' }],
+    vlans: vlanDat?.vlans ?? [{ id: 1, name: 'default' }],
     routes: [],
     macTable: [],
     arpTable: [],
@@ -132,7 +138,8 @@ function rebuild(e: SimulationEngine, id: string, registry: CommandRegistry): st
   e.state.devices = e.state.devices.map((d) => (d.id === id ? blank : d));
   e.state.queue = e.state.queue.filter((q) => !('device' in q.action && q.action.device === id));
   e.invalidateIndexes();
-  if (old.operatingSystem) configureDiscovery(e, e.device(id), {});
+  // CDP runs by default on IOS; only non-default discovery settings are in the configuration.
+  if (old.operatingSystem || old.discovery) configureDiscovery(e, e.device(id), {});
   applyDefaultSpanningTree(e, e.device(id));
   const initial = { device: structuredClone(e.device(id)), queue: [...e.state.queue] };
   const touched = new Set([id]);
@@ -161,14 +168,14 @@ function rebuild(e: SimulationEngine, id: string, registry: CommandRegistry): st
   };
   // Lines are normally only rolled back when the parser rejects them. If the result is still
   // inconsistent, the boot is replayed checking every line, so only the offending ones are lost.
-  let rejected = e.deferRefresh(() => replay(e, id, registry, saved, false));
+  let rejected = e.deferRefresh(() => replay(e, id, registry, saved, false, vlanDat?.vtp));
   try {
     finish();
     return rejected;
   } catch {
     reset();
   }
-  rejected = replay(e, id, registry, saved, true);
+  rejected = replay(e, id, registry, saved, true, vlanDat?.vtp);
   try {
     finish();
     return rejected;
@@ -186,7 +193,8 @@ function replay(
   id: string,
   registry: CommandRegistry,
   saved: Device['startupConfig'],
-  strict: boolean
+  strict: boolean,
+  vtp?: NonNullable<Device['iosSystem']>['vtp']
 ) {
   const context: Context = { mode: 'config' };
   const rejected: string[] = [];
@@ -220,9 +228,17 @@ function replay(
       return;
     }
     if (!command || command.startsWith('!')) return;
+    if (/^(?:version \S+|end|Building configuration\.\.\.|Current configuration : \d+ bytes)$/i.test(command))
+      return;
     if (/^(?:(?:do\s+)*(?:copy|write|reload|erase|startup))(?:\s|$)/i.test(command)) {
       rejected.push(`${label}\n% Exec command ignored in startup-config.`);
       return;
+    }
+    // A command at the left margin follows the previous block's sub-commands: it is global again
+    // (saved files from older versions close blocks with "exit" themselves).
+    if (!/^\s/.test(raw) && context.mode !== 'config' && !/^exit$/i.test(command)) {
+      for (const key of Object.keys(context)) Reflect.deleteProperty(context, key);
+      context.mode = 'config';
     }
     transaction(label, () => registry.execute(command, e, e.device(id), context));
   });
@@ -239,8 +255,10 @@ function replay(
     const s = (e.device(id).iosSystem ??= {});
     if (hidden.rsaModulus) s.rsaModulus = hidden.rsaModulus;
     if (hidden.snmpUsers?.length) (s.snmp ??= {}).users = structuredClone(hidden.snmpUsers);
-    if (hidden.vtp && !s.vtp) s.vtp = structuredClone(hidden.vtp);
   }
+  const database = vtp ?? hidden?.vtp;
+  if (database && !e.device(id).iosSystem?.vtp)
+    (e.device(id).iosSystem ??= {}).vtp = structuredClone(database);
   return rejected;
 }
 /** The OSPF process as it starts after a reload: a configured router ID is in effect. */

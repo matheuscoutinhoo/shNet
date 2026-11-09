@@ -4,7 +4,7 @@ import { ipv4Schema, type Device, type NatConfig, type NetworkInterface } from '
 import type { SimulationEngine } from '../core/engine';
 import { ipNumber, ipString, mask, parsePrefix, sameSubnet } from '../protocols/ipv4';
 import { syncNat } from '../protocols/state-sync';
-import { registerNativeAclCommands, aclRunningLines } from './acl';
+import { registerNativeAclCommands, aclEntryText, aclRunningLines } from './acl';
 import { interfaceName, longInterfaceName } from './operational';
 
 export function policyNetwork(value: string) {
@@ -358,11 +358,18 @@ function showNatStatistics(engine: SimulationEngine, device: Device) {
 
 export function policyRunningConfig(device: Device) {
   return [
-    ...(device.accessLists?.flatMap((acl) => [
-      `ip access-list ${acl.kind ?? 'extended'} ${acl.name}`,
-      ...aclRunningLines(acl),
-      'exit',
-    ]) ?? []),
+    ...(device.accessLists?.flatMap((acl) =>
+      // Numbered ACLs keep their legacy "access-list N ..." form, without sequence numbers.
+      /^\d+$/.test(acl.name)
+        ? [
+            ...acl.rules.flatMap((rule) => [
+              ...(rule.remarks ?? []).map((text) => `access-list ${acl.name} remark ${text}`),
+              `access-list ${acl.name} ${aclEntryText(rule, acl.kind)}`,
+            ]),
+            ...(acl.remarks ?? []).map((text) => `access-list ${acl.name} remark ${text}`),
+          ]
+        : [`ip access-list ${acl.kind ?? 'extended'} ${acl.name}`, ...aclRunningLines(acl), 'exit']
+    ) ?? []),
     // NAT runs as soon as it is configured (IOS has no global switch); "no service nat" is the
     // simulator's way to pause it.
     ...(device.nat && !device.nat.enabled ? ['no service nat'] : []),

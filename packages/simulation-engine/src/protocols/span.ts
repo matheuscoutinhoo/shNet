@@ -1,11 +1,11 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, Frame, NetworkInterface } from '../model';
+import { findInterface, sameInterface } from './interface-name';
 
 // Without "encapsulation replicate", SPAN does not copy Layer 2 control frames (BPDU, CDP, LACP...).
 const COPIED = new Set<Frame['etherType']>(['IPv4', 'IPv6', 'ARP', 'MPLS']);
-const named = (d: Device, name: string) =>
-  d.interfaces.find((p) => p.name.toLowerCase() === name.toLowerCase());
-const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+const named = (d: Device, name: string) => findInterface(d, name);
+const same = sameInterface;
 
 /** A SPAN destination only transmits copies: it neither switches nor learns from what it receives. */
 export function spanDestination(d: Device, p: NetworkInterface) {

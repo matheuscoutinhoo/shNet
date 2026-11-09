@@ -21,7 +21,7 @@ import {
 } from '../protocols/dhcp-config';
 import { ipNumber, ipString, mask, parsePrefix, sameSubnet, subnet } from '../protocols/ipv4';
 import { dhcpHaStatus } from '../protocols/dhcp-ha';
-import { dottedMac, longInterfaceName } from '../protocols/interface-name';
+import { dottedMac, findInterface, longInterfaceName } from '../protocols/interface-name';
 
 function vlanRanges(ids: number[]) {
   const sorted = [...new Set(ids)].sort((a, b) => a - b),
@@ -203,11 +203,7 @@ function leaseMs(match: RegExpMatchArray) {
 
 function portByName(device: Device, name?: string, context?: Context) {
   if (!name) return device.interfaces.find((entry) => entry.id === context?.port) ?? device.interfaces[0];
-  const normalized = name
-    .replace(/\s/g, '')
-    .replace(/^gigabitEthernet/i, 'Gi')
-    .toLowerCase();
-  const port = device.interfaces.find((entry) => entry.name.toLowerCase() === normalized);
+  const port = findInterface(device, name);
   if (!port) throw new Error('Interface inexistente.');
   return port;
 }

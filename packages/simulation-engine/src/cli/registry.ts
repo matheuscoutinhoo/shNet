@@ -109,7 +109,8 @@ export interface Context {
   // Pending IOS dialog: reload ("Save? [yes/no]" then "Proceed with reload? [confirm]") or a
   // clear command waiting for [confirm] / "yes".
   confirm?: {
-    kind: 'save' | 'reload' | 'clear-counters' | 'clear-logging' | 'clear-ospf';
+    kind:
+      'save' | 'reload' | 'clear-counters' | 'clear-logging' | 'clear-ospf' | 'delete-name' | 'delete-file';
     port?: string;
   };
 }
