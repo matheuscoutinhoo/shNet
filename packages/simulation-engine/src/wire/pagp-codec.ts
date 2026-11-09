@@ -33,7 +33,8 @@ export function decodePagp(b: Uint8Array) {
   need(b, 0, 50);
   if (!isPagp(b) || b[8] !== 1) throw new Error('Invalid PAgP header or version.');
   const v = view(b),
-    at = (offset: number) => [...b.subarray(offset, offset + 6)].map((n) => n.toString(16).padStart(2, '0')).join(':');
+    at = (offset: number) =>
+      [...b.subarray(offset, offset + 6)].map((n) => n.toString(16).padStart(2, '0')).join(':');
   return {
     version: 1,
     autoMode: !!(b[9] & 2),

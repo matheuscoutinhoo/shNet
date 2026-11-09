@@ -12,6 +12,7 @@ import { encodeEigrp, decodeEigrp } from './eigrp-codec';
 import { encodeOspf3, decodeOspf3 } from './ospf3-codec';
 import { encodeBfd, decodeBfd } from './bfd-codec';
 import { encodeLacp, decodeLacp } from './lacp-codec';
+import { decodePagp, encodePagp, isPagp } from './pagp-codec';
 import { encodeEapol, decodeEapol } from './eapol-codec';
 import { encodeUdld, decodeUdld } from './udld-codec';
 import { encodeStp, decodeStp } from './stp-codec';
@@ -258,6 +259,8 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
     );
   } else if (f.bpdu) {
     ({ type, body } = encodeStp(f.bpdu));
+  } else if (f.lacp?.pagp) {
+    ({ type, body } = encodePagp(f.lacp));
   } else if (f.lacp) {
     type = 0x8809;
     body = encodeLacp(f.lacp);
@@ -455,6 +458,7 @@ export interface DecodedEthernet {
   eigrp?: ReturnType<typeof decodeEigrp>;
   ospf3?: ReturnType<typeof decodeOspf3>;
   lacp?: ReturnType<typeof decodeLacp>;
+  pagp?: ReturnType<typeof decodePagp>;
   eapol?: ReturnType<typeof decodeEapol>;
   udld?: ReturnType<typeof decodeUdld>;
   bpdu?: ReturnType<typeof decodeStp>;
@@ -539,6 +543,15 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
   ) {
     need(bytes, at, r.etherType);
     r.udld = decodeUdld(bytes.subarray(at, at + r.etherType));
+    return r;
+  }
+  if (
+    r.etherType <= 1500 &&
+    r.dstMac === '01:00:0c:cc:cc:cc' &&
+    isPagp(bytes.subarray(at, at + r.etherType))
+  ) {
+    need(bytes, at, r.etherType);
+    r.pagp = decodePagp(bytes.subarray(at, at + r.etherType));
     return r;
   }
   if (r.etherType === 0x88cc || (r.etherType <= 1500 && r.dstMac === '01:00:0c:cc:cc:cc')) {

@@ -9,7 +9,7 @@ import {
   type Action,
 } from '../model';
 import type { SimulationEngine } from '../core/engine';
-import { LACP, lacpPduSchema, type LacpPdu } from './lacp-model';
+import { LACP, PAGP, lacpPduSchema, pagpMode, type LacpPdu } from './lacp-model';
 import { lacpMembers } from './lacp-members';
 import { linkOperational } from '../links/physical';
 import { rebuildSpanningTree } from './stp';
@@ -18,11 +18,12 @@ const carrier = (s: Snapshot, d: Device, port: string) =>
   s.links.some(
     (l) => [l.a, l.b].some((end) => end.device === d.id && end.port === port) && linkOperational(s, l)
   );
+export type ChannelMode = 'active' | 'passive' | 'on' | 'desirable' | 'auto';
 export function configureLacp(
   e: SimulationEngine,
   d: Device,
   number: number,
-  mode: 'active' | 'passive' | 'on',
+  mode: ChannelMode,
   members: string[],
   minLinks = 1
 ) {
@@ -32,7 +33,7 @@ export function configureLacp(
     !Number.isInteger(number) ||
     number < 1 ||
     number > 64 ||
-    !['active', 'passive', 'on'].includes(mode) ||
+    !['active', 'passive', 'on', 'desirable', 'auto'].includes(mode) ||
     !Number.isInteger(minLinks) ||
     minLinks < 1 ||
     minLinks > 8 ||
@@ -159,17 +160,20 @@ export function removeLacp(e: SimulationEngine, d: Device, port: NetworkInterfac
 function send(e: SimulationEngine, d: Device, aggregate: NetworkInterface, member: NetworkInterface) {
   const agg = aggregate.aggregate!,
     received = agg.received.find((r) => r.port === member.id && r.expiresAt > e.state.clock);
+  const pagp = pagpMode(agg.mode),
+    active = agg.mode === 'active' || agg.mode === 'desirable';
   if (
     !d.power ||
     !aggregate.adminUp ||
     agg.mode === 'on' ||
     !carrier(e.state, d, member.id) ||
-    (agg.mode === 'passive' && !received)
+    (!active && !received)
   )
     return;
   const pdu: LacpPdu = lacpPduSchema.parse({
     version: 1,
-    active: agg.mode === 'active',
+    active,
+    ...(pagp ? { pagp: true } : {}),
     actor: {
       system: d.interfaces[0].mac,
       key: agg.number,
@@ -177,12 +181,21 @@ function send(e: SimulationEngine, d: Device, aggregate: NetworkInterface, membe
       portNumber: d.interfaces.indexOf(member) + 1,
       systemPriority: 32768,
       portPriority: 32768,
-      state: (agg.mode === 'active' ? 1 : 0) | 2 | 4 | (agg.selected.includes(member.id) ? 8 | 16 | 32 : 0),
+      state: (active ? 1 : 0) | 2 | 4 | (agg.selected.includes(member.id) ? 8 | 16 | 32 : 0),
     },
     ...(received ? { partner: { ...received.pdu.actor } } : {}),
   });
-  const frame: Frame = { src: member.mac, dst: LACP.mac, etherType: 'LACP', lacp: pdu, hops: LIMITS.l2Hops };
-  e.emit('LACP_SENT', d.id, `LACP ${aggregate.name} por ${member.name}.`, { port: member.id, frame });
+  const frame: Frame = {
+    src: member.mac,
+    dst: pagp ? PAGP.mac : LACP.mac,
+    etherType: 'LACP',
+    lacp: pdu,
+    hops: LIMITS.l2Hops,
+  };
+  e.emit('LACP_SENT', d.id, `${pagp ? 'PAgP' : 'LACP'} ${aggregate.name} por ${member.name}.`, {
+    port: member.id,
+    frame,
+  });
   e.sendFrame(d.id, member.id, frame);
 }
 export function refreshLacp(e: SimulationEngine) {
@@ -241,11 +254,20 @@ export function receiveLacp(e: SimulationEngine, d: Device, member: NetworkInter
     !port ||
     !agg ||
     !pdu ||
-    frame.dst !== LACP.mac ||
+    frame.dst !== (pdu.pagp ? PAGP.mac : LACP.mac) ||
     !port.adminUp ||
     pdu.actor.system === d.interfaces[0].mac
   )
     return;
+  // LACP and PAgP never negotiate with each other: the other protocol's PDUs are not understood.
+  if (!!pdu.pagp !== pagpMode(agg.mode)) {
+    e.drop(
+      d,
+      `EtherChannel ${port.name}: ${pdu.pagp ? 'PAgP' : 'LACP'} PDU on ${member.name}, the group runs ${pagpMode(agg.mode) ? 'PAgP' : agg.mode === 'on' ? 'no protocol (mode on)' : 'LACP'}.`,
+      member.id
+    );
+    return;
+  }
   const old = agg.received.find((r) => r.port === member.id);
   const changed = !old || JSON.stringify(old.pdu) !== JSON.stringify(pdu);
   agg.received = [

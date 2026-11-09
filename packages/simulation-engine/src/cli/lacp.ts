@@ -1,5 +1,6 @@
 import type { Device, NetworkInterface } from '../model';
-import { LOAD_BALANCE_METHODS } from '../protocols/lacp-model';
+import { LOAD_BALANCE_METHODS, pagpMode } from '../protocols/lacp-model';
+import type { ChannelMode } from '../protocols/lacp';
 import { linksAt } from '../core/topology-index';
 import { linkOperational } from '../links/physical';
 import { dottedMac, shortInterfaceName } from '../protocols/interface-name';
@@ -61,7 +62,7 @@ function showSummary(d: Device, now: number, carrier: (port: string) => boolean)
     return (
       String(agg.number).padEnd(7) +
       (shortInterfaceName(p.name) + '(' + (p.mode === 'routed' ? 'R' : 'S') + state + ')').padEnd(16) +
-      (agg.mode === 'on' ? '-' : 'LACP').padEnd(12) +
+      (agg.mode === 'on' ? '-' : pagpMode(agg.mode) ? 'PAgP' : 'LACP').padEnd(12) +
       members.join('')
     ).trimEnd();
   };
@@ -77,7 +78,9 @@ function showSummary(d: Device, now: number, carrier: (port: string) => boolean)
   ].join('\n');
 }
 function showNeighbors(d: Device, now: number) {
-  const groups = d.interfaces.filter((p) => p.aggregate && p.aggregate.mode !== 'on');
+  const groups = d.interfaces.filter(
+    (p) => p.aggregate && p.aggregate.mode !== 'on' && !pagpMode(p.aggregate.mode)
+  );
   return [
     'Flags:  S - Device is requesting Slow LACPDUs',
     '        F - Device is requesting Fast LACPDUs',
@@ -116,20 +119,23 @@ function showNeighbors(d: Device, now: number) {
 }
 export function registerLacpCommands(r: CommandRegistry) {
   r.register({
-    pattern: /^channel-group (\d+) mode (active|passive|on)$/i,
+    pattern: /^channel-group (\d+) mode (active|passive|on|desirable|auto)(?: non-silent)?$/i,
     syntax: [
       'channel-group <number> mode active',
       'channel-group <number> mode passive',
       'channel-group <number> mode on',
+      'channel-group <number> mode desirable [non-silent]',
+      'channel-group <number> mode auto [non-silent]',
     ],
     modes: ['interface'],
     run: (m, e, d, c) => {
       const member = currentPort(d, c),
         number = Number(m[1]),
-        mode = m[2].toLowerCase() as 'active' | 'passive' | 'on',
+        mode = m[2].toLowerCase() as ChannelMode,
         old = d.interfaces.find((p) => p.aggregate?.number === number);
-      // LACP and static members cannot share a channel-group.
-      if (old?.aggregate && (old.aggregate.mode === 'on') !== (mode === 'on'))
+      // LACP, PAgP and static members cannot share a channel-group.
+      const family = (x: ChannelMode) => (x === 'on' ? 'on' : pagpMode(x) ? 'pagp' : 'lacp');
+      if (old?.aggregate && family(old.aggregate.mode) !== family(mode))
         throw new Error(
           `Command rejected (${shortInterfaceName(old.name)}, ${shortInterfaceName(member.name)}): Invalid etherchnl mode`
         );
@@ -223,6 +229,47 @@ export function registerLacpCommands(r: CommandRegistry) {
     modes: ALL_MODES,
     run: (_m, e, d) => showNeighbors(d, e.state.clock),
   });
+  r.register({
+    pattern: /^show pagp neighbors?$/i,
+    syntax: 'show pagp neighbor',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showPagpNeighbors(e.state.devices, d, e.state.clock),
+  });
+}
+/** IOS "show pagp neighbor": the partner learned on each member of the PAgP channel groups. */
+function showPagpNeighbors(devices: Device[], d: Device, now: number) {
+  const groups = d.interfaces.filter((p) => p.aggregate && pagpMode(p.aggregate.mode));
+  return [
+    'Flags:  S - Device is sending Slow hello.  C - Device is in Consistent state.',
+    '        A - Device is in Auto mode.        P - Device learns on physical port.',
+    ...groups.flatMap((p) => {
+      const agg = p.aggregate!;
+      return [
+        '',
+        `Channel group ${agg.number} neighbors`,
+        '          Partner              Partner          Partner         Partner Group',
+        'Port      Name                 Device ID        Port       Age  Flags   Cap.',
+        ...agg.received
+          .filter((r) => r.expiresAt > now)
+          .map((r) => {
+            const actor = r.pdu.actor,
+              member = d.interfaces.find((m) => m.id === r.port)!,
+              partner = devices.find((v) => v.interfaces[0]?.mac === actor.system),
+              port = partner?.interfaces.find((x) => x.id === actor.port);
+            return (
+              shortInterfaceName(member.name).padEnd(10) +
+              (partner?.hostname ?? '').slice(0, 20).padEnd(21) +
+              dottedMac(actor.system).padEnd(17) +
+              (port ? shortInterfaceName(port.name) : actor.port).padEnd(9) +
+              (Math.floor((now - r.at) / 1000) + 's').padStart(5) +
+              ' ' +
+              ('S' + ((actor.state ?? 0) & 8 ? 'C' : '') + (r.pdu.active ? '' : 'A')).padEnd(8) +
+              (0x10000 + actor.key).toString(16).toUpperCase()
+            );
+          }),
+      ];
+    }),
+  ].join('\n');
 }
 export function lacpRunningConfig(d: Device) {
   return [

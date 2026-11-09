@@ -461,7 +461,7 @@ export class SimulationEngine {
   configureLacp(
     deviceId: string,
     number: number,
-    mode: 'active' | 'passive' | 'on',
+    mode: 'active' | 'passive' | 'on' | 'desirable' | 'auto',
     members: string[],
     minLinks = 1
   ) {
