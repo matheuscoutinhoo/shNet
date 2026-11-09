@@ -7,7 +7,6 @@ import {
   ospf3Abr,
   ospf3Config,
   ospf3Cost,
-  ospf3LinkLocal,
   ospf3RouterId,
   removeOspf3,
 } from '../protocols/ospf3';
@@ -314,7 +313,8 @@ export function registerOspf3Commands(r: CommandRegistry) {
       }
       requireRouting(d);
       const id = processFor(d, m[2]);
-      if (!ospf3LinkLocal(p) && !p.ipv6) throw new Error('% OSPFv3: IPv6 is not enabled on ' + p.name);
+      // Accepted before IPv6 is enabled (pasted configurations come in any order); the interface
+      // joins OSPFv3 once it has a link-local address.
       // Like IOS, the interface command starts the process when it does not exist yet.
       config.enabled = true;
       config.processId = id;

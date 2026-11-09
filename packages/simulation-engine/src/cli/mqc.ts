@@ -103,6 +103,20 @@ export function registerMqc(r: CommandRegistry) {
     },
   });
   r.register({
+    pattern: /^(no )?fair-queue$/i,
+    syntax: ['fair-queue', 'no fair-queue'],
+    modes: ['policy-class'],
+    run: (m, e, d, c) => {
+      const cl = mqc(d)
+        .policyMaps.find((x) => x.name === c.name)!
+        .classes.find((x) => x.name === c.className)!;
+      if (m[1]) delete cl.fairQueue;
+      else if (cl.priorityPercent) throw new Error('% fair-queue is not allowed in a priority class');
+      else cl.fairQueue = true;
+      compileMqc(e, d);
+    },
+  });
+  r.register({
     pattern: /^(no )?service-policy ([\w-]{1,32})$/i,
     modes: ['policy-class'],
     run: (m, e, d, c) => {
@@ -273,6 +287,7 @@ export function mqcDefinitions(d: Device) {
         ...(c.policeMbps ? ['  police ' + c.policeMbps * 1e6] : []),
         ...(c.shapeMbps ? ['  shape average ' + c.shapeMbps * 1e6] : []),
         ...(c.queueLimit ? ['  queue-limit ' + c.queueLimit] : []),
+        ...(c.fairQueue ? ['  fair-queue'] : []),
         ...(c.mark !== undefined ? ['  set dscp ' + c.mark] : []),
         ...(c.childPolicy ? ['  service-policy ' + c.childPolicy] : []),
         ' exit',

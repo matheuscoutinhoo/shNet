@@ -19,7 +19,7 @@ function validateConfig(d: Device, c: ReturnType<typeof dhcpSnoopingConfigSchema
     new Set(c.trustedPorts).size !== c.trustedPorts.length ||
     [...c.sourceGuardPorts, ...c.arpTrustedPorts].some((id) => !switchport(id)) ||
     c.trustedPorts.some(
-      (id) => !d.interfaces.some((p) => p.id === id && !p.logical && !p.channel && p.mode !== 'routed')
+      (id) => !d.interfaces.some((p) => p.id === id && !p.logical && p.mode !== 'routed')
     ) ||
     // IOS keeps static bindings whatever the snooping VLANs or the port's current VLAN.
     c.staticBindings.some((b) => !isUnicast(b.ip) || !switchport(b.port)) ||
@@ -61,6 +61,15 @@ function withinRate(e: SimulationEngine, d: Device, p: NetworkInterface, f: Fram
   e.refreshSpanningTree();
   return false;
 }
+/**
+ * Whether a port is in a trusted list: configured on it or, for a Port-channel, on its member
+ * interfaces (IOS accepts "ip dhcp snooping trust" / "ip arp inspection trust" on either).
+ */
+export function trustedIn(d: Device, list: string[], port: string) {
+  if (list.includes(port)) return true;
+  const aggregate = d.interfaces.find((p) => p.id === port)?.aggregate;
+  return !!aggregate?.members.some((m) => list.includes(m));
+}
 export function permitDhcpSnooping(
   e: SimulationEngine,
   d: Device,
@@ -80,7 +89,7 @@ export function permitDhcpSnooping(
     return true;
   c.bindings = c.bindings.filter((b) => b.expiresAt > e.state.clock);
   c.requests = c.requests.filter((r) => r.expiresAt > e.state.clock);
-  const trusted = c.trustedPorts.includes(p.id);
+  const trusted = trustedIn(d, c.trustedPorts, p.id);
   const deny = (why: string) => {
     c.dropped++;
     e.drop(d, 'DHCP snooping: ' + why, p.id, f);
@@ -113,7 +122,7 @@ export function permitDhcpSnooping(
       if (m.type === 'ack') {
         if (!isUnicast(m.address) || (request.ip && request.ip !== m.address))
           return deny('ACK não confirma o endereço solicitado.');
-        if (!request.relay && !c.trustedPorts.includes(request.port)) {
+        if (!request.relay && !trustedIn(d, c.trustedPorts, request.port)) {
           c.bindings = c.bindings.filter(
             (b) => !(b.vlan === vlan && (b.mac === m.clientMac || b.ip === m.address))
           );
@@ -175,7 +184,7 @@ export function permitDhcpSnooping(
   )
     return deny('IP Source Guard: IP/MAC/porta sem binding.');
   if (
-    !c.arpTrustedPorts.includes(p.id) &&
+    !trustedIn(d, c.arpTrustedPorts, p.id) &&
     !(c.arpInspection && !c.arpInspectionVlans.length && trusted) &&
     (c.arpInspection || c.arpInspectionVlans.includes(vlan)) &&
     f.arp
@@ -204,13 +213,13 @@ export function validateDhcpSnooping(s: Snapshot) {
         (b) =>
           !isUnicast(b.ip) ||
           !isUnicast(b.server) ||
-          c.trustedPorts.includes(b.port) ||
+          trustedIn(d, c.trustedPorts, b.port) ||
           !c.vlans.includes(b.vlan) ||
           !d.interfaces.some((p) => p.id === b.port && portCarriesVlan(p, b.vlan))
       ) ||
       c.requests.some(
         (r) =>
-          (r.relay && (!isUnicast(r.relay) || !c.trustedPorts.includes(r.port))) ||
+          (r.relay && (!isUnicast(r.relay) || !trustedIn(d, c.trustedPorts, r.port))) ||
           !c.vlans.includes(r.vlan) ||
           !d.interfaces.some((p) => p.id === r.port && portCarriesVlan(p, r.vlan))
       )

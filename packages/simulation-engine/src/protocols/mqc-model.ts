@@ -33,6 +33,9 @@ export const mqcSchema = z
                     shapeMbps: z.number().min(0.001).max(100000).optional(),
                     childPolicy: name.optional(),
                     queueLimit: z.number().int().min(1).max(256).optional(),
+                    // "fair-queue": flow-based fair queueing inside the class (accepted; the class
+                    // queue itself is FIFO in the simulator).
+                    fairQueue: z.literal(true).optional(),
                   })
                   .strict()
               )

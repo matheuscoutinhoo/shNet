@@ -248,6 +248,33 @@ export function registerStpCommands(registry: CommandRegistry) {
       }),
   });
   registry.register({
+    // IOS host macro: access mode, PortFast and no EtherChannel on the port.
+    pattern: /^switchport host$/i,
+    syntax: 'switchport host',
+    modes: ['interface'],
+    run: (_match, engine, device, context) => {
+      if (device.type !== 'switch') throw new Error('Comando exclusivo de switch');
+      const p = currentPort(device, context);
+      const aggregate = device.interfaces.find((x) => x.id === p.channel)?.aggregate;
+      if (aggregate) {
+        const remaining = aggregate.members.filter((m) => m !== p.id);
+        if (remaining.length)
+          engine.configureLacp(device.id, aggregate.number, aggregate.mode, remaining, aggregate.minLinks);
+        else engine.removeLacp(device.id, p.channel!);
+      }
+      const port = currentPort(device, context);
+      port.mode = 'access';
+      port.explicitMode = true;
+      device.macTable = [];
+      engine.setSpanningTreePort(device.id, port.id, { edge: true });
+      return [
+        'switchport mode will be set to access',
+        'spanning-tree portfast will be enabled',
+        'channel group will be disabled',
+      ].join('\n');
+    },
+  });
+  registry.register({
     pattern: /^spanning-tree cost (\d+)$/i,
     modes: ['interface'],
     run: (match, engine, device, context) =>
