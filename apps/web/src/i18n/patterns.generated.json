@@ -28,6 +28,10 @@
   "Mensagem {0} para {1}:514."
  ],
  [
+  "09st2m9w",
+  "Configuração IOS importada: {0} de {1} linhas aplicadas."
+ ],
+ [
   "0mn19gzg",
   "objetivo-{0}"
  ],
@@ -782,6 +786,10 @@
  [
   "e7i81xyh",
   "Consulta DNS enfileirada [{0}]. Avance a simulação."
+ ],
+ [
+  "eaudp8jp",
+  "Proxy ARP: {0} é alcançável por outra interface; o roteador responde com o próprio MAC."
  ],
  [
   "ee9epgm4",

@@ -280,11 +280,9 @@ function privateConfig(d: Device) {
     };
   return Object.keys(hidden).length ? hidden : undefined;
 }
-/** "write memory": NVRAM receives the running-config text, exactly what show running-config prints. */
-export function saveStartup(e: SimulationEngine, d: Device, registry: CommandRegistry) {
-  assertStartupCapable(d);
-  const commands = runningConfigText(e, d, registry).split('\n');
-  const interfaces = d.interfaces.map((p) => ({
+/** The hardware NVRAM records with the configuration; boot re-creates the interfaces from it. */
+function nvramInterfaces(d: Device) {
+  return d.interfaces.map((p) => ({
     id: p.id,
     name: p.name,
     mac: p.mac,
@@ -296,6 +294,12 @@ export function saveStartup(e: SimulationEngine, d: Device, registry: CommandReg
     serial: p.serial,
     console: p.console,
   }));
+}
+/** "write memory": NVRAM receives the running-config text, exactly what show running-config prints. */
+export function saveStartup(e: SimulationEngine, d: Device, registry: CommandRegistry) {
+  assertStartupCapable(d);
+  const commands = runningConfigText(e, d, registry).split('\n');
+  const interfaces = nvramInterfaces(d);
   const protocols = {
     ospf: d.ospf ? savedOspf(d.ospf) : undefined,
     rip: d.rip ? ripConfigSchema.parse(pick(d.rip, Object.keys(ripConfigSchema.shape))) : undefined,
@@ -347,6 +351,25 @@ export function reloadStartup(e: SimulationEngine, d: Device, registry: CommandR
   );
   e.device(d.id).bootLog = rejected.slice(0, 64);
   return rejected;
+}
+/**
+ * "copy tftp: startup-config" followed by a reload, without the boot delay: the text becomes the
+ * startup-config and the device boots from it. Returns the lines the parser rejected.
+ */
+export function bootFromText(e: SimulationEngine, d: Device, registry: CommandRegistry, text: string) {
+  assertStartupCapable(d);
+  if (!d.power) throw new Error('Ligue o equipamento antes de importar uma configuração.');
+  const commands = text.replace(/\r\n?/g, '\n').split('\n');
+  if (commands.length > 4096) throw new Error('A configuração importada aceita até 4096 linhas.');
+  const hidden = privateConfig(d);
+  d.startupConfig = startupConfigurationSchema.parse({
+    version: 1,
+    interfaces: nvramInterfaces(d),
+    commands,
+    ...(hidden ? { protocols: { privateConfig: hidden } } : {}),
+  });
+  d.bootManaged = true;
+  return reloadStartup(e, d, registry);
 }
 /**
  * "reload": the device goes down immediately (its links drop and neighbors react), boots for

@@ -181,3 +181,20 @@ fgu54bzf	Hello · DR {0} · BDR {1} · {2} neighbor(s)
 l8nnp08j	ADV Router Age Seq# Fragment ID Link count Bits
 064lwt45	LACP negotiates members with control frames. Active initiates; passive responds. At least one side must be active. Cisco PAgP uses desirable (initiates) and auto (responds) with the same rule and does not negotiate with LACP. Mode on bundles without negotiating and requires on at both ends. The port-channel load-balance hash (src-dst-ip by default on switches) picks a member; a failure redistributes the flows among the remaining ones.
 8mks2s65	No PDU received
+eaudp8jp	Proxy ARP: {0} is reachable through another interface; the router answers with its own MAC.
+p5uiftjv	Import IOS configuration
+4a3mxw6l	Paste a real
+9wjpeg2z	. The device restarts with it, as with
+6vvw2b58	followed by
+m230mkxl	; the current configuration is replaced.
+bq6jhjc3	IOS configuration to import
+a0o81ad7	Import and restart
+nu1jan0c	Compatibility report
+rzc1csj7	lines applied,
+fut38lrt	ignored and
+krase2nl	rejected.
+06x7dz8l	Only IOS routers and switches import a configuration.
+mqy31ava	Paste an IOS configuration (show running-config).
+09st2m9w	IOS configuration imported: {0} of {1} lines applied.
+m6g6zush	Power on the device before importing a configuration.
+hm26076h	The imported configuration accepts up to 4096 lines.

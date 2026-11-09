@@ -245,6 +245,10 @@ show ipv6 route [ospf|connected|local|static]
 
 As VLANs ficam no `vlan.dat` (flash): aparecem na running-config só em VTP transparent/off, sobrevivem a `reload` e `write erase`, e `delete flash:vlan.dat` (com as confirmações do IOS) restaura a base padrão no próximo boot. Nomes padrão seguem o IOS (`VLAN0010`). As interfaces aceitam as abreviações do IOS (`g0/1`, `gig 0/1`, `GigabitEthernet0/1`, `po1`, `lo0`, `vl10`). Endereços sobrepostos são recusados apenas no mesmo equipamento; equipamentos diferentes podem repetir um endereço, o que gera `%IP-4-DUPADDR` ao receber ARP conflitante.
 
+**Importar configuração IOS** (aba CLI do inspetor, ou `importIosConfig` na API do motor): cole um `show running-config` real de um roteador ou switch. O texto vira a startup-config e o equipamento reinicia com ele na hora, como em `copy tftp: startup-config` seguido de `reload`; a configuração anterior é substituída.
+
+O relatório de compatibilidade mostra quantas linhas foram aplicadas e lista, com o número da linha e a mensagem do parser, cada linha rejeitada. Exemplos: interfaces que não existem no hardware simulado, como `GigabitEthernet0/0/0` de um ISR 4000, e comandos não suportados. Também lista as linhas ignoradas, que são comandos EXEC como `write memory`. Ao final, a NVRAM guarda a configuração como o equipamento a entendeu, de modo que um `reload` posterior não pede para salvar.
+
 ## Telnet e SSH entre equipamentos
 
 `telnet HOST [porta] [/vrf NOME] [/source-interface INTF]` e `ssh -l USUÁRIO [-p porta] [-vrf NOME] HOST` abrem uma conexão TCP real (portas 23 e 22) a partir do modo EXEC e entregam o terminal ao equipamento remoto; `exit`/`logout` no EXEC remoto fecha a conexão (`[Connection to X closed by foreign host]`) e volta ao equipamento de origem. Sessões podem ser encadeadas (R1 → R2 → R3) e caem quando o remoto recarrega, desliga ou perde a conexão.
@@ -259,7 +263,9 @@ Limites: os métodos `group tacacs+|radius` das listas AAA são tratados como se
 
 `ip verify unicast source reachable-via rx [allow-default]` (modo estrito; `ip verify unicast reverse-path` é a forma antiga) aceita um pacote só quando a rota de volta à origem sai pela interface de chegada, considerando caminhos de mesmo custo; `reachable-via any` (modo loose) exige apenas que exista rota. A rota padrão só conta com `allow-default` e uma rota para Null0 nunca conta; DHCP (0.0.0.0 → 255.255.255.255) é isento. Cada descarte gera um evento explicando a origem e incrementa o contador `verification drops`.
 
-`show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores. Proxy ARP não é modelado e aparece como desabilitado.
+`show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, proxy ARP, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores.
+
+Proxy ARP vem ativo, como no IOS, nas interfaces roteadas de roteadores e switches L3. O roteador responde com o próprio MAC a um ARP de um host da sub-rede da interface quando o endereço consultado está fora dessa sub-rede e é alcançável por outra interface. Isso permite que um host com máscara larga demais ou sem gateway alcance outras redes. A rota padrão não conta, e com HSRP/VRRP só o roteador ativo responde, com o MAC virtual. `no ip proxy-arp` desativa a função e aparece na running-config.
 
 ## ACLs IPv6 nomeadas
 

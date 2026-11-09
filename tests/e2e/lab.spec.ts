@@ -5404,6 +5404,22 @@ test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais e
   await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
   await inspector.getByText('Alterações não salvas (running × startup)').click();
   await expect(inspector.locator('.config-changes')).toContainText('Ainda não há startup-config');
+  // A real IOS configuration imported into the router reboots it and reports compatibility.
+  await inspector.getByText('Importar configuração IOS').click();
+  await inspector
+    .getByLabel('Configuração IOS a importar')
+    .fill(
+      'version 15.9\n!\nhostname BR-R2\n!\ninterface GigabitEthernet0/0/0\n description ISR4K\n!\nntp server 10.0.0.9\nwrite memory\nend'
+    );
+  await inspector.getByRole('button', { name: 'Importar e reiniciar' }).click();
+  const report = inspector.getByLabel('Relatório de compatibilidade');
+  await expect(report).toContainText('BR-R2: 2 de 5 linhas aplicadas, 1 ignoradas e 2 rejeitadas.');
+  await expect(report.locator('pre')).toContainText('5: interface GigabitEthernet0/0/0');
+  await inspector.getByText('Alterações não salvas (running × startup)').click();
+  await inspector.getByText('Alterações não salvas (running × startup)').click();
+  await expect(inspector.locator('.config-changes')).toContainText(
+    'Nenhuma alteração desde o último write memory.'
+  );
   expect(errors).toEqual([]);
 });
 

@@ -1,4 +1,5 @@
 import { ConfigChangesPanel } from './ConfigChangesPanel';
+import { ConfigImportPanel } from './ConfigImportPanel';
 import {
   deviceCapabilities,
   inspectorTabIds,
@@ -354,6 +355,7 @@ export function Inspector({
               <Terminal lab={lab} deviceId={device.id} />
             </Suspense>
             <ConfigChangesPanel lab={lab} device={device} />
+            <ConfigImportPanel lab={lab} device={device} />
           </>
         )}
         {activeTab === 'tables' && (

@@ -7,6 +7,7 @@ import { makeRegistry } from './commands';
 import { deviceConfigDiff } from './config-diff';
 import type { Context } from './registry';
 import { cliErrorText, TerminalSession } from './terminal';
+import { bootFromText, saveStartup } from './startup';
 
 export interface BulkResult {
   device: string;
@@ -49,6 +50,58 @@ export function parseVariableTable(text: string) {
 /** Running-config vs startup-config changes for one device (inspector view). */
 export function configChanges(engine: SimulationEngine, id: string) {
   return deviceConfigDiff(engine, engine.device(id), makeRegistry());
+}
+export interface ConfigImportReport {
+  hostname: string;
+  /** Configuration lines in the text (blank lines, "!" comments and headers excluded). */
+  lines: number;
+  applied: number;
+  ignored: { number: number; line: string; message: string }[];
+  rejected: { number: number; line: string; message: string }[];
+}
+const CONFIG_HEADER = /^(?:version \S+|end|Building configuration\.\.\.|Current configuration : \d+ bytes)$/i;
+/**
+ * Imports a real IOS configuration ("show running-config" text) into a router or switch, like
+ * "copy tftp: startup-config" followed by a reload: the device boots from the text and the
+ * report lists what IOS accepted and every line it rejected, with the parser's message.
+ */
+export function importIosConfig(engine: SimulationEngine, id: string, text: string): ConfigImportReport {
+  const d = engine.device(id);
+  if (!['router', 'switch'].includes(d.type))
+    throw new Error('Somente roteadores e switches IOS importam configuração.');
+  const source = text.replace(/\r\n?/g, '\n').split('\n');
+  const lines = source.filter((line) => {
+    const command = line.trim();
+    return command && !command.startsWith('!') && !CONFIG_HEADER.test(command);
+  }).length;
+  if (!lines) throw new Error('Cole uma configuração IOS (show running-config).');
+  const registry = makeRegistry();
+  const ignored: ConfigImportReport['ignored'] = [],
+    rejected: ConfigImportReport['rejected'] = [];
+  for (const entry of bootFromText(engine, d, registry, text)) {
+    const match = /^line (\d+): [^\n]*\n% ([\s\S]*)$/.exec(entry);
+    const number = match ? Number(match[1]) : 0,
+      item = {
+        number,
+        line: number ? source[number - 1].trim() : '',
+        message: match ? match[2] : entry.replace(/^% /, ''),
+      };
+    (/^Exec command ignored/.test(item.message) ? ignored : rejected).push(item);
+  }
+  // NVRAM keeps the configuration as the device understood it, so a reload asks nothing.
+  saveStartup(engine, engine.device(id), registry);
+  engine.emit(
+    'CONFIG_CHANGED',
+    id,
+    `Configuração IOS importada: ${lines - ignored.length - rejected.length} de ${lines} linhas aplicadas.`
+  );
+  return {
+    hostname: engine.device(id).hostname,
+    lines,
+    applied: lines - ignored.length - rejected.length,
+    ignored,
+    rejected,
+  };
 }
 /** Replaces {{name}} placeholders; every placeholder must have a value. */
 export function renderTemplate(template: string, vars: Record<string, string>) {
