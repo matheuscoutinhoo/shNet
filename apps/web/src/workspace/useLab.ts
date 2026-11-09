@@ -522,6 +522,14 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     restore,
     history,
     save,
+    /** An explicit Save also persists progress made by a still-running simulation. */
+    saveNow: () => {
+      if (simulationAdvanced.current) {
+        simulationAdvanced.current = false;
+        editVersion.current++;
+      }
+      return save();
+    },
     setName: (value: string) => {
       setNameState(value);
       nameRef.current = value;
