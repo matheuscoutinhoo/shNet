@@ -250,6 +250,8 @@ import { configureTcpSettings } from '../protocols/tcp-extensions';
 import { configureDhcp6Relay } from '../protocols/dhcp6-relay';
 import { configureFirewall, expireFirewall, permitFirewall } from '../protocols/firewall';
 import { permitSelfZone } from '../protocols/zbf-policy';
+import { longInterfaceName } from '../protocols/interface-name';
+import { debugSent, debugUnroutable } from '../protocols/ip-debug';
 import { configureStateSyncPair, disableStateSync, handleStateSync } from '../protocols/state-sync';
 import { sendIcmpError } from '../protocols/icmp';
 import {
@@ -936,15 +938,38 @@ export class SimulationEngine {
   setPort(deviceId: string, portId: string, up: boolean) {
     const { device, port } = endpoint(this.state, { device: deviceId, port: portId });
     if (up && !port.adminUp) delete port.errDisabled;
+    const changed = port.adminUp !== up;
     port.adminUp = up;
     device.arpTable = device.arpTable.filter((a) => a.port !== portId);
     device.macTable = device.macTable.filter((m) => m.port !== portId);
-    this.emit(
-      up ? 'LINK_UP' : 'LINK_DOWN',
-      deviceId,
-      port.name + ' administrativamente ' + (up ? 'ativa' : 'desligada'),
-      { port: portId }
-    );
+    if (device.type === 'router' || device.type === 'switch') {
+      // IOS logs LINK and LINEPROTO changes, and only when the state actually changes.
+      if (changed) {
+        const name = longInterfaceName(port.name),
+          operational = up && interfaceOperational(this.state, device, port);
+        this.emit(
+          operational ? 'LINK_UP' : 'LINK_DOWN',
+          deviceId,
+          up
+            ? `%LINK-3-UPDOWN: Interface ${name}, changed state to ${operational ? 'up' : 'down'}`
+            : `%LINK-5-CHANGED: Interface ${name}, changed state to administratively down`,
+          { port: portId }
+        );
+        if (operational || !up)
+          this.emit(
+            operational ? 'LINK_UP' : 'LINK_DOWN',
+            deviceId,
+            `%LINEPROTO-5-UPDOWN: Line protocol on Interface ${name}, changed state to ${operational ? 'up' : 'down'}`,
+            { port: portId }
+          );
+      }
+    } else
+      this.emit(
+        up ? 'LINK_UP' : 'LINK_DOWN',
+        deviceId,
+        port.name + ' administrativamente ' + (up ? 'ativa' : 'desligada'),
+        { port: portId }
+      );
     this.refreshSpanningTree();
   }
   configureDhcpPool(deviceId: string, input: unknown) {
@@ -1516,7 +1541,7 @@ export class SimulationEngine {
         refreshVrrp(this);
       d.logs.push((this.state.clock.toFixed(3) + ' ' + type + ' ' + reason).slice(0, 300));
       if (d.logs.length > 100) d.logs.shift();
-      bufferSyslog(d, this.state.clock, type, reason, details.port);
+      bufferSyslog(d, this.state.clock, type, reason, details);
       forwardSyslogEvent(this, d, event);
     }
     return event;
@@ -1781,6 +1806,7 @@ export class SimulationEngine {
           ? 'SVI sem porta operacional na VLAN.'
           : 'Nenhuma rota corresponde a ' + packet.dst + ' e não há gateway/rota padrão válido.';
       this.drop(d, reason);
+      if (d.debug) debugUnroutable(this, d, packet, ingress);
       if (ingress && routingEnabled(d)) sendIcmpError(this, d, ingress, packet, 'unreachable', 0);
       return;
     }
@@ -1792,6 +1818,8 @@ export class SimulationEngine {
     );
     if (ingress && !permitFirewall(this, d, ingress, route.port, packet)) return;
     if (!ingress && !permitSelfZone(this, d, route.port, packet, false)) return;
+    // IOS "debug ip packet" shows the packets the router sends itself, not CEF-switched transit.
+    if (!ingress && d.debug) debugSent(this, d, route.port, packet);
     const translated = natOutbound(this, d, ingress, route.port, packet);
     if (!translated) return;
     // A locally generated MTU error must quote the packet before source NAT.

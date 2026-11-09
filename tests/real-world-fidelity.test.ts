@@ -578,7 +578,9 @@ describe('IP SLA operations are independent of the ping history', () => {
     return { e, r, target };
   }
   const trackDowns = (e: SimulationEngine) =>
-    e.state.events.filter((v) => v.reason.includes('Object track 10: Down'));
+    e.state.events.filter(
+      (v) => v.reason.startsWith('%TRACK-6-STATE: 10 ') && v.reason.endsWith('Up -> Down')
+    );
   it('a scenario run does not take tracked SLAs down', () => {
     const { e, r, target } = slaLab();
     const runner = new ScenarioRunner(e.snapshot(), {
@@ -2379,6 +2381,256 @@ describe('IOS campus features', () => {
     expect(t.execute('service-policy output SHAPE')).toBe('% Must remove fair-queue configuration first.');
     ok(t, ['end']);
     expect(t.execute('show running-config')).toMatch(/\ninterface Gi0\/1\n(?: .+\n)* fair-queue\n/);
+  });
+});
+describe('IOS operational show, debug and console logging', () => {
+  /** SW - R1 (DR, RID 1.1.1.1, NTP master, VRRP master) and R2 (BDR, ABR) on one LAN; R2 - R3 area 1. */
+  function operationsLab() {
+    const l = lab('access', 'router', 'router', 'router');
+    const {
+      devices: [sw, r1, r2, r3],
+      terminals: [ts, t1, t2, t3],
+      cable,
+      advance,
+    } = l;
+    cable(sw, 'Gi0/1', r1, 'Gi0/1');
+    cable(sw, 'Gi0/2', r2, 'Gi0/1');
+    cable(r2, 'Gi0/2', r3, 'Gi0/1');
+    ok(ts, ['interface range Gi0/1 - 2', 'spanning-tree portfast', 'end']);
+    ok(t1, [
+      'router ospf 1',
+      'router-id 1.1.1.1',
+      'interface Gi0/1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'ip ospf priority 200',
+      'ip ospf 1 area 0',
+      'vrrp 1 ip 10.1.1.254',
+      'vrrp 1 priority 120',
+      'exit',
+      'ntp master 3',
+      'end',
+    ]);
+    ok(t2, [
+      'router ospf 1',
+      'router-id 2.2.2.2',
+      'interface Gi0/1',
+      'ip address 10.1.1.2 255.255.255.0',
+      'ip ospf 1 area 0',
+      'vrrp 1 ip 10.1.1.254',
+      'interface Gi0/2',
+      'ip address 10.0.23.1 255.255.255.252',
+      'ip ospf network point-to-point',
+      'ip ospf 1 area 1',
+      'exit',
+      'ntp server 10.1.1.1',
+      'ip sla 10',
+      'icmp-echo 10.1.1.1',
+      'frequency 5',
+      'exit',
+      'ip sla schedule 10 life forever start-time now',
+      'track 10 ip sla 10 reachability',
+      'end',
+    ]);
+    ok(t3, [
+      'router ospf 1',
+      'router-id 3.3.3.3',
+      'interface Gi0/1',
+      'ip address 10.0.23.2 255.255.255.252',
+      'ip ospf network point-to-point',
+      'ip ospf 1 area 1',
+      'end',
+    ]);
+    advance(90_000);
+    return l;
+  }
+  it('shows OSPF, VRRP, IP SLA, track, NTP, clock and spanning tree in IOS format', () => {
+    const {
+      terminals: [ts, t1, t2, t3],
+    } = operationsLab();
+    // Roles follow the elected router IDs, also when they differ from the interface addresses.
+    expect(t2.execute('show ip ospf neighbor')).toMatch(/^1\.1\.1\.1\s+200\s+FULL\/DR\s+/m);
+    expect(t1.execute('show ip ospf neighbor')).toMatch(/^2\.2\.2\.2\s+1\s+FULL\/BDR\s+/m);
+    expect(t2.execute('show ip ospf interface brief')).toBe(
+      [
+        'Interface    PID   Area            IP Address/Mask    Cost  State Nbrs F/C',
+        'Gi0/1        1     0               10.1.1.2/24        1     BDR   1/1',
+        'Gi0/2        1     1               10.0.23.1/30       1     P2P   1/1',
+      ].join('\n')
+    );
+    const detail = t2.execute('show ip ospf interface Gi0/1');
+    for (const line of [
+      'GigabitEthernet0/1 is up, line protocol is up ',
+      '  Internet Address 10.1.1.2/24, Area 0, Attached via Interface Enable',
+      '  Process ID 1, Router ID 2.2.2.2, Network Type BROADCAST, Cost: 1',
+      '  Transmit Delay is 1 sec, State BDR, Priority 1',
+      '  Designated Router (ID) 1.1.1.1, Interface address 10.1.1.1',
+      '  Backup Designated router (ID) 2.2.2.2, Interface address 10.1.1.2',
+      '  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5',
+      '  Neighbor Count is 1, Adjacent neighbor count is 1 ',
+      '    Adjacent with neighbor 1.1.1.1  (Designated Router)',
+    ])
+      expect(detail).toContain(line);
+    const neighbor = t2.execute('show ip ospf neighbor detail');
+    for (const line of [
+      ' Neighbor 1.1.1.1, interface address 10.1.1.1',
+      '    In the area 0 via interface GigabitEthernet0/1',
+      '    Neighbor priority is 200, State is FULL',
+      '    DR is 10.1.1.1 BDR is 10.1.1.2',
+      '    Options is 0x12 in Hello (E-bit, L-bit)',
+    ])
+      expect(neighbor).toContain(line);
+    const database = t2.execute('show ip ospf database');
+    for (const line of [
+      '            OSPF Router with ID (2.2.2.2) (Process ID 1)',
+      '                Router Link States (Area 0)',
+      '                Net Link States (Area 0)',
+      '                Summary Net Link States (Area 1)',
+    ])
+      expect(database).toContain(line);
+    expect(database).toMatch(/^1\.1\.1\.1 {9}1\.1\.1\.1 {9}\d+ +0x[0-9A-F]{8} 0x[0-9A-F]{6} 1$/m);
+    const process = t2.execute('show ip ospf');
+    for (const line of [
+      ' Routing Process "ospf 1" with ID 2.2.2.2',
+      ' It is an area border router',
+      ' Number of areas in this router is 2. 2 normal 0 stub 0 nssa',
+      '    Area BACKBONE(0)',
+      '    Area 1',
+    ])
+      expect(process).toContain(line);
+    expect(t2.execute('show vrrp brief')).toMatch(
+      /^Gi0\/1 {14}1 {3}100 3609 {7}Y {2}Backup {2}10\.1\.1\.1 {8}10\.1\.1\.254$/m
+    );
+    expect(t1.execute('show vrrp')).toContain(
+      '  State is Master\n  Virtual IP address is 10.1.1.254\n  Virtual MAC address is 0000.5e00.0101'
+    );
+    expect(t2.execute('show ip sla summary')).toMatch(
+      /^\*10 {10}icmp-echo {3}10\.1\.1\.1 {10}RTT=\d+ +OK +\d+ seconds ago$/m
+    );
+    const statistics = t2.execute('show ip sla statistics 10');
+    expect(statistics).toContain('IPSLA operation id: 10\n        Latest RTT: ');
+    expect(statistics).toContain('Latest operation return code: OK\nNumber of successes: ');
+    expect(statistics).toContain('Number of failures: 0\nOperation time to live: Forever');
+    expect(t2.execute('show track 10')).toMatch(
+      /^Track 10\n {2}IP SLA 10 reachability\n {2}Reachability is Up\n {4}1 change, last change \d{2}:\d{2}:\d{2}\n {2}Latest operation return code: OK/
+    );
+    expect(t2.execute('show ntp status')).toMatch(
+      /^Clock is synchronized, stratum 4, reference is 10\.1\.1\.1\n/
+    );
+    expect(t2.execute('show ntp associations')).toMatch(/^\*~10\.1\.1\.1 {8}127\.127\.1\.1 +3 /m);
+    expect(t2.execute('show clock')).toMatch(/^\d{2}:\d{2}:\d{2}\.\d{3} UTC Sun Mar 1 2026$/);
+    expect(t3.execute('show clock detail')).toMatch(
+      /^\*\d{2}:\d{2}:\d{2}\.\d{3} UTC Sun Mar 1 2026\nNo time source$/
+    );
+    expect(t3.execute('show ntp status')).toBe('%NTP is not enabled.');
+    const summary = ts.execute('show spanning-tree summary');
+    expect(summary).toContain('Switch is in rapid-pvst mode\nRoot bridge for: VLAN0001\n');
+    expect(summary).toMatch(/^VLAN0001 {22}0 {9}0 {8}0 {10}2 {10}2$/m);
+    expect(ts.execute('show spanning-tree root')).toMatch(
+      /^VLAN0001 {9}32769 [0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4} +0 {4}2 {3}20 {2}15$/m
+    );
+    expect(t2.execute('show processes cpu sorted')).toMatch(
+      /^CPU utilization for five seconds: \d+%\/0%; one minute: \d+%; five minutes: \d+%\n PID Runtime\(ms\)/
+    );
+    expect(t2.execute('dir flash:')).toMatch(
+      /^Directory of flash:\/\n\n {5}1 {2}-rw- +\d+ {2}Mar 1 2026 00:00:00 \+00:00 {2}isr4300-universalk9\./
+    );
+    expect(t2.execute('show boot')).toContain('BOOT variable = flash:packages.conf;');
+  });
+  it('lowers the VRRP priority through an IOS track object so the backup takes over', () => {
+    const {
+      devices: [sw, r1, r2, r3],
+      terminals: [ts, t1, t2, t3],
+      cable,
+      advance,
+    } = lab('access', 'router', 'router', 'router');
+    cable(sw, 'Gi0/1', r1, 'Gi0/1');
+    cable(sw, 'Gi0/2', r2, 'Gi0/1');
+    cable(r1, 'Gi0/2', r3, 'Gi0/1');
+    ok(ts, ['interface range Gi0/1 - 2', 'spanning-tree portfast', 'end']);
+    ok(t1, [
+      'track 1 interface Gi0/2 line-protocol',
+      'interface Gi0/2',
+      'ip address 10.0.13.1 255.255.255.252',
+      'interface Gi0/1',
+      'ip address 10.1.1.1 255.255.255.0',
+      'vrrp 1 ip 10.1.1.254',
+      'vrrp 1 priority 120',
+      'vrrp 1 track 1 decrement 30',
+      'end',
+    ]);
+    ok(t2, ['interface Gi0/1', 'ip address 10.1.1.2 255.255.255.0', 'vrrp 1 ip 10.1.1.254', 'end']);
+    ok(t3, ['interface Gi0/1', 'ip address 10.0.13.2 255.255.255.252', 'end']);
+    advance(10_000);
+    expect(t1.execute('show vrrp')).toContain('  State is Master\n  Virtual IP address is 10.1.1.254\n');
+    expect(t1.execute('show vrrp')).toContain(
+      '  Priority is 120\n    Track object 1 state Up decrement 30\n'
+    );
+    expect(t1.execute('show running-config')).toContain(' vrrp 1 track 1 decrement 30\n');
+    ok(t1, ['configure terminal', 'interface Gi0/2', 'shutdown', 'end']);
+    advance(10_000);
+    const backup = t1.execute('show vrrp');
+    expect(backup).toContain('  State is Backup\n');
+    expect(backup).toContain(
+      '  Priority is 90 (configured 120)\n    Track object 1 state Down decrement 30\n'
+    );
+    expect(t2.execute('show vrrp brief')).toMatch(/^Gi0\/1 +1 +100 +\d+ +Y {2}Master /m);
+    ok(t1, ['configure terminal', 'interface Gi0/2', 'no shutdown', 'end']);
+    advance(10_000);
+    expect(t1.execute('show vrrp')).toContain('  State is Master\n');
+    expect(t2.execute('show vrrp')).toContain('  State is Backup\n');
+  });
+  it('debugs ICMP, IP packets, ARP and OSPF adjacencies, and logs to the console like IOS', () => {
+    const RELOAD_MS = 60_000;
+    const {
+      e,
+      devices: [, , r2, r3],
+      terminals: [, t1, t2, t3],
+      advance,
+    } = operationsLab();
+    expect(
+      e
+        .device(r2.id)
+        .consoleLog!.lines.some((l) => l.endsWith('%SYS-5-CONFIG_I: Configured from console by console'))
+    ).toBe(true);
+    expect(t2.execute('debug ip icmp')).toBe('ICMP packet debugging is on');
+    expect(t2.execute('deb ip os adj')).toBe('OSPF adjacency debugging is on');
+    expect(t2.execute('show debugging')).toBe(
+      'Generic IP:\n  ICMP packet debugging is on\nIP routing:\n  OSPF adjacency debugging is on'
+    );
+    expect(t1.execute('ping 10.1.1.2')).toMatch(/Success rate is 100 percent/);
+    ok(t2, ['clear ip ospf process', 'yes']);
+    advance(30_000);
+    const log = t2.execute('show logging');
+    expect(log).toMatch(
+      /: ICMP: echo reply sent, src 10\.1\.1\.2, dst 10\.1\.1\.1, topology BASE, dscp 0 topoid 0\n/
+    );
+    for (const line of [
+      'OSPF-1 ADJ   Gi0/1: 2 Way Communication to 1.1.1.1, state 2WAY',
+      'OSPF-1 ADJ   Gi0/1: DR: 1.1.1.1 (Id)   BDR: 2.2.2.2 (Id)',
+      'OSPF-1 ADJ   Gi0/1: Exchange Done with 1.1.1.1',
+      'OSPF-1 ADJ   Gi0/1: Synchronized with 1.1.1.1, state FULL',
+    ])
+      expect(log).toContain(': ' + line + '\n');
+    // The console shows the same messages, IOS-timestamped.
+    expect(e.device(r2.id).consoleLog!.lines.at(-1)).toMatch(/^\*?Mar {2}1 \d{2}:\d{2}:\d{2}\.\d{3}: /);
+    expect(t2.execute('undebug all')).toBe('All possible debugging has been turned off');
+    expect(t2.execute('show debugging')).toBe('');
+    ok(t3, ['configure terminal', 'interface Gi0/1', 'shutdown', 'end']);
+    const console3 = e.device(r3.id).consoleLog!.lines.join('\n');
+    expect(console3).toContain(
+      ': %LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to administratively down\n'
+    );
+    expect(console3).toContain(
+      ': %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to down\n'
+    );
+    // "no logging console" stops console output; debug flags do not survive a reload.
+    ok(t3, ['configure terminal', 'no logging console', 'interface Gi0/1', 'no shutdown', 'end']);
+    expect(e.device(r3.id).consoleLog!.lines.join('\n')).toBe(console3);
+    ok(t3, ['debug ip packet', 'write memory', 'reload', '']);
+    advance(RELOAD_MS);
+    ok(t3, ['enable']);
+    expect(e.device(r3.id).debug).toBeUndefined();
+    expect(t3.execute('show debugging')).toBe('');
   });
 });
 describe('802.1X on a Layer 2 access switch', () => {

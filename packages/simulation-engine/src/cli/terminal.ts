@@ -129,7 +129,14 @@ export class TerminalSession {
     }
   }
   end() {
-    if (CONFIG_MODES.includes(this.context.mode)) this.context = { mode: 'privileged' };
+    if (!CONFIG_MODES.includes(this.context.mode)) return;
+    this.context = { mode: 'privileged' };
+    if (!this.identity.host)
+      this.engine.emit(
+        'CONFIG_CHANGED',
+        this.deviceId,
+        '%SYS-5-CONFIG_I: Configured from console by console'
+      );
   }
   private answerReload(answer: string) {
     const before = this.engine.checkpoint(),
@@ -240,6 +247,17 @@ export class TerminalSession {
       if (!readOnly) before = this.engine.mark();
       let result = this.registry.execute(line, this.engine, this.engine.device(this.deviceId), this.context);
       if (!readOnly) refreshInterfacePat(this.engine, this.engine.device(this.deviceId));
+      // IOS logs leaving configuration mode (end, Ctrl-Z, exit from global configuration).
+      if (
+        !this.identity.host &&
+        CONFIG_MODES.includes(context.mode) &&
+        !CONFIG_MODES.includes(this.context.mode)
+      )
+        this.engine.emit(
+          'CONFIG_CHANGED',
+          this.deviceId,
+          '%SYS-5-CONFIG_I: Configured from console by console'
+        );
       if (modifier) {
         if (!/^show\s/i.test(authorized)) throw new Error('Output modifiers require a show command.');
         result = applyOutputModifier(result, modifier);
@@ -259,7 +277,7 @@ export class TerminalSession {
         !/^(ipconfig(?: \/all)?$|ip (?:addr|address|link|route) show$|route print$|arp -a$|wifi scan$)/i.test(
           authorized
         ) &&
-        !/^(show|help|\?|ping|traceroute|tracert|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf)/i.test(
+        !/^(show|help|\?|ping|traceroute|tracert|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf|debug|no debug|u\w* all|undebug|terminal|clear)/i.test(
           authorized
         )
       )

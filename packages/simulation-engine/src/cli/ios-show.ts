@@ -35,7 +35,8 @@ export function showOspfNeighbors(e: SimulationEngine, d: Device) {
     const config = state.interfaces.find((entry) => entry.port === n.port);
     if (config?.networkType === 'point-to-point') return '  -';
     const port = state.ports.find((entry) => entry.port === n.port);
-    return n.ip === port?.dr ? 'DR' : n.ip === port?.bdr ? 'BDR' : 'DROTHER';
+    // The election records router IDs.
+    return n.routerId === port?.dr ? 'DR' : n.routerId === port?.bdr ? 'BDR' : 'DROTHER';
   };
   const label: Record<string, string> = {
     Init: 'INIT',
@@ -277,53 +278,53 @@ function stpBlock(
       ),
   ].join('\n');
 }
-/** show spanning-tree [vlan N]: one IOS block per VLAN (PVST) or MST instance. */
-export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) {
+/** The spanning trees of a switch: one per VLAN (PVST), per MST instance, or the common tree. */
+export function stpTrees(d: Device) {
   const c = d.multiSpanningTree;
-  if (!d.spanningTree?.enabled) return 'No spanning tree instance exists.';
+  if (!d.spanningTree?.enabled) return [];
   const member = (p: NetworkInterface, vlans: number[]) =>
     p.mode === 'trunk' ? vlans.some((v) => trunkAllows(p, v)) : vlans.includes(p.accessVlan);
-  if (!c) {
-    const ports = d.interfaces
-      .filter((p) => p.spanningTree)
-      .map((p) => ({ port: p, state: p.spanningTree! }));
-    return stpBlock(
-      e,
-      d,
-      'VLAN0001',
-      d.spanningTree.mode === 'rstp' ? 'rstp' : 'ieee',
-      d.spanningTree,
-      0,
-      ports
-    );
-  }
+  if (!c)
+    return [
+      {
+        vlans: [1],
+        title: 'VLAN0001',
+        protocol: d.spanningTree.mode === 'rstp' ? 'rstp' : 'ieee',
+        tree: d.spanningTree,
+        sysId: 0,
+        ports: d.interfaces.filter((p) => p.spanningTree).map((p) => ({ port: p, state: p.spanningTree! })),
+      },
+    ];
   const protocol = c.mode === 'mstp' ? 'mstp' : c.protocol === 'stp' ? 'ieee' : 'rstp';
-  const blocks = c.instances
-    .filter((instance) =>
-      vlan === undefined
-        ? true
-        : c.mode === 'pvst'
-          ? instance.id === vlan
-          : c.mappings.some((m) => m.vlan === vlan && m.instance === instance.id)
-    )
+  return [...c.instances]
     .sort((a, b) => a.id - b.id)
     .map((instance) => {
       const vlans =
         c.mode === 'pvst'
           ? [instance.id]
           : c.mappings.filter((m) => m.instance === instance.id).map((m) => m.vlan);
-      const ports = d.interfaces
-        .filter((p) => member(p, vlans))
-        .flatMap((p) => {
-          const state = p.spanningInstances?.find((i) => i.id === instance.id)?.state;
-          return state ? [{ port: p, state }] : [];
-        });
-      const title =
-        c.mode === 'pvst'
-          ? 'VLAN' + String(instance.id).padStart(4, '0')
-          : 'MST' + String(instance.id).padStart(4, '0');
-      return stpBlock(e, d, title, protocol, instance.tree, c.mode === 'pvst' ? instance.id : 0, ports);
+      return {
+        vlans,
+        title: (c.mode === 'pvst' ? 'VLAN' : 'MST') + String(instance.id).padStart(4, '0'),
+        protocol,
+        tree: instance.tree,
+        sysId: c.mode === 'pvst' ? instance.id : 0,
+        ports: d.interfaces
+          .filter((p) => member(p, vlans))
+          .flatMap((p) => {
+            const state = p.spanningInstances?.find((i) => i.id === instance.id)?.state;
+            return state ? [{ port: p, state }] : [];
+          }),
+      };
     });
+}
+/** show spanning-tree [vlan N]: one IOS block per VLAN (PVST) or MST instance. */
+export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) {
+  if (!d.spanningTree?.enabled) return 'No spanning tree instance exists.';
+  const pvst = d.multiSpanningTree?.mode === 'pvst';
+  const blocks = stpTrees(d)
+    .filter((t) => vlan === undefined || (d.multiSpanningTree ? t.vlans.includes(vlan) : vlan === 1 || !pvst))
+    .map((t) => stpBlock(e, d, t.title, t.protocol, t.tree, t.sysId, t.ports));
   if (!blocks.length)
     throw new Error(
       vlan === undefined
@@ -333,7 +334,6 @@ export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) 
   return blocks.join('\n\n');
 }
 
-/** show vlan [brief] */
 /** show interfaces trunk: operational trunks, their allowed, active and forwarding VLANs. */
 export function showInterfacesTrunk(e: SimulationEngine, d: Device) {
   const trunks = d.interfaces.filter(
@@ -367,6 +367,7 @@ export function showInterfacesTrunk(e: SimulationEngine, d: Device) {
     ),
   ].join('\n');
 }
+/** show vlan [brief] */
 export function showVlan(d: Device, brief: boolean) {
   const access = (id: number) =>
     d.interfaces

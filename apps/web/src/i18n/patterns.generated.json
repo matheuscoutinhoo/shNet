@@ -32,10 +32,6 @@
   "objetivo-{0}"
  ],
  [
-  "0odvunf3",
-  "OSPF {0}, router ID {1} {2} adjacências Full, {3} LSAs, {4} rotas, {5} alterações SPF."
- ],
- [
   "0olsgjgf",
   "RST encerrou sessão {0}."
  ],
@@ -546,6 +542,10 @@
  [
   "ap87kn76",
   "Estado {0}/{1} revisão {2}."
+ ],
+ [
+  "asmeqhca",
+  "Nbr {0}: Prepare dbase exchange"
  ],
  [
   "avx5ncmu",
@@ -1770,6 +1770,10 @@
  [
   "wjv61lcb",
   "Pool NAT {0} sem endereços disponíveis."
+ ],
+ [
+  "wkmbm2pj",
+  "0 {0}no no Base"
  ],
  [
   "wlcvpauf",

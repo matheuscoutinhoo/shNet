@@ -106,7 +106,9 @@ describe('VRRPv3 IPv4 por anúncios Ethernet', () => {
     ])
       expect(cli.execute(command)).not.toMatch(/Erro|%/);
     expect(cli.execute('show running-config')).toContain('track interface Gi0/2 decrement 80');
-    expect(cli.execute('show vrrp')).toContain('efetiva 150');
+    expect(cli.execute('show vrrp')).toContain(
+      '  Priority is 150\n    Track interface GigabitEthernet0/2 state Up decrement 80\n'
+    );
     const bad = engine.snapshot();
     bad.devices.find((d) => d.id === a.id)!.vrrp!.groups[0].track![0].port = 'missing';
     expect(() => validateSnapshot(bad)).toThrow(/Tracking/);
@@ -348,7 +350,7 @@ describe('VRRPv3 IPv4 por anúncios Ethernet', () => {
       expect(cli.execute(cmd)).toBe('');
     expect(engine.device(a.id).vrrp!.groups[1]).toEqual(timer);
     expect(cli.execute('do show running-config')).toContain('no vrrp 10 preempt');
-    expect(cli.execute('do show vrrp')).toContain('00:00:5e:00:01:0a');
+    expect(cli.execute('do show vrrp')).toContain('Virtual MAC address is 0000.5e00.010a');
     expect(cli.execute('vrrp 10 priority 255')).toMatch(/Erro|Error|%/);
     expect(() =>
       engine.configureVrrp(a.id, { enabled: true, groups: [{ port: 'p0', vrid: 1, vip: '192.168.99.1' }] })

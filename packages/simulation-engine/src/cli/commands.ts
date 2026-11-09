@@ -64,6 +64,8 @@ import { bfdInterfaceRunningConfig, bfdTemplateRunningConfig } from './bfd';
 import { keyChainRunningConfig } from './key-chain';
 import { registerIosExec, showIosArp, showIosMacTable } from './ios-exec';
 import { registerZbfCommands, zbfRunningConfig } from './zbf';
+import { registerIosShow2 } from './ios-show2';
+import { registerDebugCommands } from './debug';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -95,6 +97,8 @@ export function makeRegistry() {
   registerIosTunnelCommands(r);
   registerIosOperations(r);
   registerIosExec(r);
+  registerIosShow2(r);
+  registerDebugCommands(r);
   registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);

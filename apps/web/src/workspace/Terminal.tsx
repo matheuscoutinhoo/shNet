@@ -393,6 +393,15 @@ export function Terminal({
           : 'Probe TTL ' + p.ttl + ': ' + p.status + (p.responder ? ' from ' + p.responder : '')
       );
     }
+    // IOS console logging: syslog and debug messages appear as they are generated.
+    const log = lab.engine.device(deviceId).consoleLog;
+    // A reload rebuilds the device and restarts the numbering.
+    if ((log?.sequence ?? 0) < state.consoleSeen) state.consoleSeen = 0;
+    if (log && log.sequence > state.consoleSeen) {
+      const fresh = Math.min(log.lines.length, log.sequence - state.consoleSeen);
+      for (const line of log.lines.slice(log.lines.length - fresh)) result(line);
+      state.consoleSeen = log.sequence;
+    }
   }, [lab.tick, lab.engine, deviceId]);
   const device = lab.engine.device(deviceId),
     identity = terminalIdentity(device);

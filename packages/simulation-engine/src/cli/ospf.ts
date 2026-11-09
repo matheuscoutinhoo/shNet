@@ -483,31 +483,10 @@ export function registerOspfCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^show ip ospf(?: (neighbor|database|interface))?$/i,
+    pattern: /^show ip ospf neighbor$/i,
+    syntax: 'show ip ospf neighbor',
     modes: ALL_MODES,
-    run: (match, engine, device) => {
-      const state = device.ospf;
-      if (!state) return 'OSPF não configurado.';
-      if (match[1]?.toLowerCase() === 'neighbor') return showOspfNeighbors(engine, device);
-      if (match[1]?.toLowerCase() === 'database')
-        return (
-          'AREA TYPE     LINK STATE ID       ADVERTISING ROUTER  SEQUENCE AGE(s)\n' +
-          state.lsdb
-            .map(
-              (lsa) =>
-                `${lsa.area} ${lsa.type.padEnd(9)}${lsa.id.padEnd(20)}${lsa.advertisingRouter.padEnd(20)}${lsa.sequence} ${((engine.state.clock - lsa.originatedAt) / 1000).toFixed(1)}${lsa.withdrawn ? ' WITHDRAWN' : ''}`
-            )
-            .join('\n')
-        );
-      if (match[1]?.toLowerCase() === 'interface')
-        return state.interfaces
-          .map((config) => {
-            const runtime = state.ports.find((entry) => entry.port === config.port)!;
-            return `${device.interfaces.find((p) => p.id === config.port)?.name}: area ${config.area}, cost ${config.cost}, ${config.networkType}${config.passive ? ', passive' : ''}, ${runtime.operational ? 'up' : 'down'}\n  Hello ${config.helloMs / 1000}s Dead ${config.deadMs / 1000}s DR ${runtime.dr} BDR ${runtime.bdr}`;
-          })
-          .join('\n');
-      return `OSPF ${state.enabled ? 'ativo' : 'inativo'}, router ID ${state.routerId}\n${state.neighbors.filter((n) => n.state === 'Full').length} adjacências Full, ${state.lsdb.length} LSAs, ${state.routes.length} rotas, ${state.spfRuns} alterações SPF.`;
-    },
+    run: (_match, engine, device) => (device.ospf ? showOspfNeighbors(engine, device) : ''),
   });
 }
 function ospfInterfaceRunning(device: Device): string[] {

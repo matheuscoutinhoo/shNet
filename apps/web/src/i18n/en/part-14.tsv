@@ -39,7 +39,6 @@ c1lzk509	Invalid phone ports.
 v3qpfjhi	Invalid SIP dialog.
 8bsqy5w1	Call has no matching timer.
 gvltrmik	Orphaned SIP timer.
-1dpnernk	Tracking requires an interface, route or service.
 b04ru93n	Tracking service port requires the HTTP service.
 pn5lnht4	VRRP requires a router or server with an IP stack.
 0od2t37l	VRRP requires a routed interface with static IPv4 /1 to /30.

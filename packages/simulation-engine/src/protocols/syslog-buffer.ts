@@ -1,27 +1,27 @@
-import type { Device } from '../model';
-import { longInterfaceName } from './interface-name';
+import type { Device, Frame } from '../model';
+import { dottedMac, longInterfaceName } from './interface-name';
+import { iosTimestamp } from '../cli/ios-time';
+import type { DebugKind } from './debug-model';
 
-// Events that IOS reports as syslog messages, with the severity and mnemonic they map to.
-// An empty mnemonic keeps only the events already worded as IOS messages (e.g. %PM-4-ERR_DISABLE).
-const SYSLOG_EVENTS: Record<string, [number, string]> = {
-  LINK_DOWN: [3, 'LINK-3-UPDOWN'],
-  LINK_UP: [3, 'LINK-3-UPDOWN'],
-  OSPF_NEIGHBOR_CHANGED: [5, 'OSPF-5-ADJCHG'],
-  BGP_STATE_CHANGED: [5, 'BGP-5-ADJCHANGE'],
-  VRRP_STATE_CHANGED: [6, 'VRRP-6-STATECHANGE'],
-  HSRP_STATE_CHANGED: [5, 'HSRP-5-STATECHANGE'],
-  STP_ROOT_CHANGED: [6, 'SPANTREE-6-ROOTCHANGE'],
-  STP_TOPOLOGY_CHANGED: [6, 'SPANTREE-6-TOPOCHANGE'],
-  CONFIG_CHANGED: [5, ''],
-  // "%SEC-6-IPACCESSLOG..." messages of ACL entries configured with "log".
-  ACL_PERMIT: [6, ''],
-  ACL_DENY: [6, ''],
+// Events that IOS reports as syslog messages, with the severity of the message they map to.
+// Events listed without a dedicated translation keep only reasons already worded as IOS messages
+// (e.g. %PM-4-ERR_DISABLE, %LINK-3-UPDOWN, %SEC-6-IPACCESSLOGP).
+const SYSLOG_EVENTS: Record<string, number> = {
+  LINK_DOWN: 3,
+  LINK_UP: 3,
+  OSPF_NEIGHBOR_CHANGED: 5,
+  BGP_STATE_CHANGED: 5,
+  VRRP_STATE_CHANGED: 6,
+  HSRP_STATE_CHANGED: 5,
+  CONFIG_CHANGED: 5,
+  ACL_PERMIT: 6,
+  ACL_DENY: 6,
   // %BGP-4-MAXPFX and %BGP-3-MAXPFXEXCEED.
-  BGP_ROUTE_REJECTED: [4, ''],
+  BGP_ROUTE_REJECTED: 4,
   // %FW-6-DROP_PKT of zone-pair classes configured with "drop log".
-  FIREWALL_DENY: [6, ''],
+  FIREWALL_DENY: 6,
   // Drops worded as IOS messages, such as %HSRP-4-BADAUTH.
-  PACKET_DROPPED: [4, ''],
+  PACKET_DROPPED: 4,
 };
 /** "10.0.0.2: OpenConfirm → Established." becomes "neighbor 10.0.0.2 Up" (IOS logs only Up/Down). */
 function bgpAdjacency(d: Device | undefined, reason: string) {
@@ -67,21 +67,51 @@ function ospfAdjacency(d: Device | undefined, reason: string, port?: string) {
       : (OSPF_EVENTS[to] ?? 'Received Hello');
   return `Process ${d.ospf.processId ?? 1}, Nbr ${match[1]} on ${longInterfaceName(name)} from ${from} to ${to}, ${why}`;
 }
-/** The IOS syslog message an engine event produces, if any. */
-export function iosSyslogMessage(type: string, reason: string, d?: Device, port?: string) {
-  const kind = SYSLOG_EVENTS[type];
-  if (!kind) return;
+const title = (state: string) => state[0] + state.slice(1).toLowerCase();
+const VRRP_STATES: Record<string, string> = { INIT: 'Init', BACKUP: 'Backup', ACTIVE: 'Master' };
+/** The IOS syslog messages an engine event produces (an interface change logs LINK and LINEPROTO). */
+export function iosSyslogMessages(
+  type: string,
+  reason: string,
+  d?: Device,
+  port?: string
+): { severity: number; text: string }[] {
+  if (SYSLOG_EVENTS[type] === undefined) return [];
   const own = /^%[\w-]+-(\d)-\w+:/.exec(reason);
-  if (own) return { severity: Number(own[1]), text: reason };
+  if (own) return [{ severity: Number(own[1]), text: reason }];
+  const name = d?.interfaces.find((p) => p.id === port)?.name ?? port ?? '';
   if (type === 'BGP_STATE_CHANGED') {
     const text = bgpAdjacency(d, reason);
-    return text ? { severity: 5, text: '%BGP-5-ADJCHANGE: ' + text } : undefined;
+    return text ? [{ severity: 5, text: '%BGP-5-ADJCHANGE: ' + text }] : [];
   }
   if (type === 'OSPF_NEIGHBOR_CHANGED') {
     const text = ospfAdjacency(d, reason, port);
-    return text ? { severity: 5, text: '%OSPF-5-ADJCHG: ' + text } : undefined;
+    return text ? [{ severity: 5, text: '%OSPF-5-ADJCHG: ' + text }] : [];
   }
-  return kind[1] ? { severity: kind[0], text: '%' + kind[1] + ': ' + reason } : undefined;
+  if (type === 'HSRP_STATE_CHANGED') {
+    const m = /^HSRP (\d+), VIP \S+: (\w+) → (\w+)\.$/.exec(reason);
+    return m
+      ? [
+          {
+            severity: 5,
+            text: `%HSRP-5-STATECHANGE: ${longInterfaceName(name)} Grp ${m[1]} state ${title(m[2])} -> ${title(m[3])}`,
+          },
+        ]
+      : [];
+  }
+  if (type === 'VRRP_STATE_CHANGED') {
+    const m = /^VRID (\d+), VIP \S+: (\w+) → (\w+)\.$/.exec(reason);
+    return m
+      ? [
+          {
+            severity: 6,
+            text: `%VRRP-6-STATECHANGE: ${name} Grp ${m[1]} state ${VRRP_STATES[m[2]] ?? m[2]} -> ${VRRP_STATES[m[3]] ?? m[3]}`,
+          },
+        ]
+      : [];
+  }
+  // Other simulator wording (power, PoE, spanning-tree internals) is not an IOS message.
+  return [];
 }
 // IOS default: "logging buffered 4096 debugging".
 export const DEFAULT_LOG_BUFFER = { size: 4096, level: 7 };
@@ -89,15 +119,116 @@ export function loggingBuffer(d: Device) {
   const buffered = d.iosSystem?.logging?.buffered;
   return buffered === false ? undefined : (buffered ?? DEFAULT_LOG_BUFFER);
 }
-/** Stores a syslog message in the circular logging buffer; the oldest messages give way when full. */
-export function bufferSyslog(d: Device, clock: number, type: string, reason: string, port?: string) {
-  const message = iosSyslogMessage(type, reason, d, port);
-  const buffer = message && loggingBuffer(d);
-  if (!message || !buffer || message.severity > buffer.level) return;
-  const lines = (d.syslogBuffer ??= []);
-  lines.push((clock.toFixed(3) + ' ' + message.text).slice(0, 320));
-  // Each buffered message costs its text plus the IOS timestamp (about 30 bytes).
-  let bytes = lines.reduce((total, line) => total + line.length + 30, 0);
-  while (lines.length > 1 && (bytes > buffer.size || lines.length > 2000))
-    bytes -= lines.shift()!.length + 30;
+const CONSOLE_LINES = 64;
+/**
+ * Logs one IOS message: into the circular logging buffer and onto the console (IOS default
+ * "logging console debugging"), each at its configured severity.
+ */
+export function logIos(d: Device, clock: number, severity: number, text: string) {
+  const buffer = loggingBuffer(d);
+  if (buffer && severity <= buffer.level) {
+    const lines = (d.syslogBuffer ??= []);
+    lines.push((clock.toFixed(3) + ' ' + text).slice(0, 320));
+    // Each buffered message costs its text plus the IOS timestamp (about 30 bytes).
+    let bytes = lines.reduce((total, line) => total + line.length + 30, 0);
+    while (lines.length > 1 && (bytes > buffer.size || lines.length > 2000))
+      bytes -= lines.shift()!.length + 30;
+  }
+  const console = d.iosSystem?.logging?.console;
+  if (console === false || severity > (console ?? 7) || (d.type !== 'router' && d.type !== 'switch')) return;
+  const log = (d.consoleLog ??= { sequence: 0, lines: [] });
+  log.lines.push((iosTimestamp(clock, !!d.ntp?.synchronized) + ': ' + text).slice(0, 320));
+  log.sequence++;
+  if (log.lines.length > CONSOLE_LINES) log.lines.shift();
 }
+/** Stores the syslog messages of an engine event and the debug output it produces. */
+export function bufferSyslog(
+  d: Device,
+  clock: number,
+  type: string,
+  reason: string,
+  details: { port?: string; frame?: Frame } = {}
+) {
+  for (const message of iosSyslogMessages(type, reason, d, details.port))
+    logIos(d, clock, message.severity, message.text);
+  if (d.debug?.length) debugEvent(d, clock, type, reason, details);
+}
+/** One line of "debug" output, when that debugging is on (severity 7, no mnemonic). */
+export function debugLog(d: Device, clock: number, kind: DebugKind, text: string) {
+  if (d.debug?.includes(kind)) logIos(d, clock, 7, text);
+}
+const OSPF_ADJ: Record<string, (nbr: string, d: Device) => string[]> = {
+  '2-Way': (nbr) => [`2 Way Communication to ${nbr}, state 2WAY`],
+  ExStart: (nbr) => [`Nbr ${nbr}: Prepare dbase exchange`],
+  Exchange: (nbr, d) => [
+    `NBR Negotiation Done. We are the ${ipValue(d.ospf?.routerId ?? '0.0.0.0') > ipValue(nbr) ? 'MASTER' : 'SLAVE'}`,
+  ],
+  Loading: (nbr) => [`Exchange Done with ${nbr}`],
+  Full: (nbr) => [`Synchronized with ${nbr}, state FULL`],
+  Down: (nbr) => [`Neighbor ${nbr} is dead, state DOWN`],
+};
+const ipValue = (ip: string) => ip.split('.').reduce((n, part) => n * 256 + Number(part), 0);
+/** Debug output derived from engine events (OSPF adjacencies, HSRP, VRRP, BGP, ARP). */
+function debugEvent(
+  d: Device,
+  clock: number,
+  type: string,
+  reason: string,
+  details: { port?: string; frame?: Frame }
+) {
+  const name = shortName(d, details.port);
+  if (type === 'OSPF_NEIGHBOR_CHANGED') {
+    const m = /^([\d.]+)(?: em \S+)?: (\S+) → (\S+?)(?:; .*)?\.$/.exec(reason);
+    for (const line of (m && OSPF_ADJ[m[3]]?.(m[1], d)) ?? [])
+      debugLog(d, clock, 'ip ospf adj', `OSPF-${d.ospf?.processId ?? 1} ADJ   ${name}: ${line}`);
+  } else if (type === 'OSPF_DR_CHANGED') {
+    const m = /^(\S+): DR ([\d.]+), BDR ([\d.]+)\.$/.exec(reason);
+    if (m) {
+      const port = shortName(d, m[1]),
+        prefix = `OSPF-${d.ospf?.processId ?? 1} ADJ   ${port}: `;
+      for (const line of [
+        'DR/BDR election',
+        `Elect BDR ${m[3]}`,
+        `Elect DR ${m[2]}`,
+        `DR: ${m[2]} (Id)   BDR: ${m[3]} (Id)`,
+      ])
+        debugLog(d, clock, 'ip ospf adj', prefix + line);
+    }
+  } else if (type === 'HSRP_STATE_CHANGED') {
+    const m = /^HSRP (\d+), VIP \S+: (\w+) → (\w+)\.$/.exec(reason);
+    if (m) debugLog(d, clock, 'standby', `HSRP: ${name} Grp ${m[1]} ${title(m[2])} -> ${title(m[3])}`);
+  } else if (type === 'VRRP_STATE_CHANGED') {
+    const m = /^VRID (\d+), VIP \S+: (\w+) → (\w+)\.$/.exec(reason);
+    if (m)
+      debugLog(
+        d,
+        clock,
+        'vrrp',
+        `VRRP: ${name} Grp ${m[1]} state ${VRRP_STATES[m[2]] ?? m[2]} -> ${VRRP_STATES[m[3]] ?? m[3]}`
+      );
+  } else if (type === 'BGP_STATE_CHANGED') {
+    const m = /^([\d.]+): (\S+) → (\S+)\.$/.exec(reason);
+    if (m) debugLog(d, clock, 'ip bgp', `BGP: ${m[1]} went from ${m[2]} to ${m[3]}`);
+  } else if (
+    details.frame?.arp &&
+    (type === 'ARP_REQUEST' || type === 'ARP_REPLY' || type === 'ARP_TABLE_UPDATED')
+  ) {
+    const a = details.frame.arp,
+      sent = type !== 'ARP_TABLE_UPDATED',
+      target = a.kind === 'request' ? '0000.0000.0000' : dottedMac(details.frame.dst);
+    debugLog(
+      d,
+      clock,
+      'arp',
+      `IP ARP: ${sent ? 'sent' : 'rcvd'} ${a.kind === 'request' ? 'req' : 'rep'} src ${a.senderIp} ${dottedMac(a.senderMac)}, dst ${a.targetIp}${sent ? ' ' + target : ''} ${name}`
+    );
+    if (!sent && a.senderIp !== '0.0.0.0')
+      debugLog(
+        d,
+        clock,
+        'arp',
+        `IP ARP: creating entry for IP address: ${a.senderIp}, hw: ${dottedMac(a.senderMac)}`
+      );
+  }
+}
+const shortName = (d: Device, port?: string) => d.interfaces.find((p) => p.id === port)?.name ?? port ?? '';

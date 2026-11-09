@@ -14,6 +14,7 @@ import { receiveHsrp, acceptsHsrpAddress } from './hsrp';
 import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
 import { receiveTunnelPacket } from './ios-tunnel';
 import { permitSelfZone } from './zbf-policy';
+import { debugEchoReply, debugReceived } from './ip-debug';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
   if (cached !== undefined) return cached;
@@ -348,6 +349,7 @@ export function receiveIp(
   ) {
     if (fromWire && !permitSelfZone(e, d, port, packet, true)) return;
     e.emit('PACKET_RECEIVED', d.id, 'Pacote destinado a este equipamento.', { port: port.id });
+    if (d.debug) debugReceived(e, d, port, packet);
     if (packet.protocol === 'TCP') {
       receiveTcp(e, d, packet, port.vrf);
       return;
@@ -365,14 +367,15 @@ export function receiveIp(
       receiveTunnelPacket(e, d, packet);
       return;
     }
-    if (packet.kind === 'echo-request')
+    if (packet.kind === 'echo-request') {
       e.sendIp(
         d.id,
         { ...packet, src: packet.dst, dst: packet.src, ttl: 64, kind: 'echo-reply' },
         undefined,
         port.vrf
       );
-    else {
+      if (d.debug) debugEchoReply(e, d, packet);
+    } else {
       if (
         packet.kind === 'unreachable' &&
         packet.error?.code === 4 &&

@@ -16,6 +16,7 @@ import { natIcmpInbound, natIcmpOutbound } from './nat-icmp';
 import { syncNat } from './state-sync';
 import { staticNatOutside, natPools } from './nat-selection';
 import { matchingAclRule } from './acl';
+import { debugLog } from './syslog-buffer';
 
 export function validateNat(device: Device) {
   if (!device.nat) return;
@@ -217,7 +218,7 @@ export function natOutbound(
   output: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  return (
+  const result =
     sipMediaOutbound(engine, device, input, output, packet) ??
     sipOutbound(
       engine,
@@ -226,8 +227,15 @@ export function natOutbound(
       output,
       packet,
       translateOutbound(engine, device, input, output, packet)
-    )
-  );
+    );
+  if (device.debug && result && result.src !== packet.src)
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip nat',
+      `NAT: s=${packet.src}->${result.src}, d=${packet.dst} [0]`
+    );
+  return result;
 }
 function translateOutbound(
   engine: SimulationEngine,
@@ -386,7 +394,15 @@ export function natInbound(
   port: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  return sipInbound(engine, device, port, packet) ?? translateInbound(engine, device, port, packet);
+  const result = sipInbound(engine, device, port, packet) ?? translateInbound(engine, device, port, packet);
+  if (device.debug && result && result.dst !== packet.dst)
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip nat',
+      `NAT*: s=${packet.src}, d=${packet.dst}->${result.dst} [0]`
+    );
+  return result;
 }
 function translateInbound(
   engine: SimulationEngine,

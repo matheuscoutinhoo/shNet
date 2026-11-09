@@ -13,6 +13,12 @@ import { availablePoolAddress, poolContains, sameDhcpScope } from './dhcp-config
 import { ipNumber, ipString, sameSubnet } from './ipv4';
 import { sendDhcp, sendDhcpServerResponse } from './dhcp-wire';
 import { dhcpHaChanged, deferDhcpHaResponse, DHCP_HA_RESERVE_MS, DHCP_HA_REPLY_MS } from './dhcp-ha';
+import { debugLog } from './syslog-buffer';
+import { longInterfaceName } from './interface-name';
+
+/** IOS client identifier of an Ethernet client: "01" and the MAC, in groups of four digits. */
+const dhcpClientId = (mac: string) =>
+  ('01' + mac.replace(/[^0-9a-f]/gi, '').toLowerCase()).match(/.{1,4}/g)!.join('.');
 
 function removeBinding(engine: SimulationEngine, device: Device, binding: DhcpBinding) {
   if (device.dhcpServer)
@@ -110,6 +116,22 @@ function response(
   pool: DhcpPool,
   address: string
 ) {
+  if (device.debug) {
+    const client = dhcpClientId(request.clientMac);
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip dhcp server packet',
+      `DHCPD: Sending DHCP${type.toUpperCase()} to client ${client} (${address}).`
+    );
+    if (type === 'ack')
+      debugLog(
+        device,
+        engine.state.clock,
+        'ip dhcp server events',
+        `DHCPD: assigned IP address ${address} to client ${client}.`
+      );
+  }
   if (
     deferDhcpHaResponse(engine, device, {
       port: port.id,
@@ -125,6 +147,13 @@ function response(
 }
 
 function nack(engine: SimulationEngine, device: Device, port: NetworkInterface, request: DhcpMessage) {
+  if (device.debug)
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip dhcp server packet',
+      `DHCPD: Sending DHCPNAK to client ${dhcpClientId(request.clientMac)} (${'requestedIp' in request ? request.requestedIp : request.clientIp}).`
+    );
   sendDhcp(
     engine,
     device,
@@ -157,6 +186,13 @@ export function receiveDhcpServer(
   if (packet.payload.protocol !== 'DHCP') return;
   const message = packet.payload.message;
   const relayed = !!message.giaddr && message.giaddr !== DHCP.unspecifiedIp;
+  if (device.debug)
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip dhcp server packet',
+      `DHCPD: DHCP${message.type.toUpperCase()} received from client ${dhcpClientId(message.clientMac)} ${relayed ? 'through relay ' + message.giaddr : 'on interface ' + longInterfaceName(port.name)}.`
+    );
   const renewal = !relayed && packet.dst !== DHCP.broadcastIp && message.clientIp !== DHCP.unspecifiedIp;
   // IOS pools answer on any local address (helper-address may target a loopback or another interface).
   const localAddress = device.interfaces.find((entry) => entry.adminUp && entry.ip === packet.dst);
@@ -221,6 +257,12 @@ export function receiveDhcpServer(
       engine.emit('DHCP_RELEASE', device.id, 'Concessão ' + existing.address + ' devolvida pelo cliente.', {
         port: port.id,
       });
+      debugLog(
+        device,
+        engine.state.clock,
+        'ip dhcp server events',
+        `DHCPD: returned ${existing.address} to address pool ${existing.pool}.`
+      );
     }
     return;
   }

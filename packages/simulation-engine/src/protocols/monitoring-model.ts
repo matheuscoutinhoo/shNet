@@ -19,6 +19,10 @@ export const monitoringSchema = z
             sentAt: timeSchema.optional(),
             status: z.enum(['unknown', 'up', 'down']).default('unknown'),
             rtt: timeSchema.optional(),
+            // IOS operation statistics: results since the operation was configured.
+            successes: z.number().int().nonnegative().optional(),
+            failures: z.number().int().nonnegative().optional(),
+            lastRun: timeSchema.optional(),
           })
           .strict()
       )
@@ -33,6 +37,7 @@ export const monitoringSchema = z
             port: idSchema.optional(),
             state: z.boolean().default(false),
             changedAt: timeSchema,
+            changes: z.number().int().nonnegative().optional(),
           })
           .strict()
       )

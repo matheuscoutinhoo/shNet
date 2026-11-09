@@ -84,19 +84,6 @@ export function registerIosOperations(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^show clock$/i,
-    modes: ALL_MODES,
-    run: (_m, e, d) => {
-      const t = d.iosSystem?.timezone,
-        offset = t ? (t.hours * 60 + (t.hours < 0 ? -1 : 1) * t.minutes) * 60000 : 0;
-      return (
-        new Date(e.state.clock + (d.networkClock?.offsetMs ?? 0) + offset)
-          .toISOString()
-          .replace('Z', ' ' + (t?.name ?? 'UTC')) + ' (virtual clock)'
-      );
-    },
-  });
-  r.register({
     pattern: /^archive$/i,
     modes: ['config'],
     run: (_m, _e, d, c) => {

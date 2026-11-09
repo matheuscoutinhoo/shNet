@@ -449,8 +449,8 @@ describe('IOS output fidelity and preflight signal', () => {
     expect(environment).toContain('Temperature: 42 C');
     expect(environment).toContain('CPU: 12%');
     run(t, ['ip sla 1', 'icmp-echo 192.0.2.1', 'exit']);
-    e.device(d.id).monitoring!.operations[0].rtt = 0.137;
-    expect(t.execute('do show ip sla statistics')).toContain('RTT 1 ms');
+    Object.assign(e.device(d.id).monitoring!.operations[0], { rtt: 0.137, status: 'up' });
+    expect(t.execute('do show ip sla statistics')).toContain('Latest RTT: 1 milliseconds');
   });
 
   it('preflight accepts split DHCP scopes and aggregates L3-switch capability notes', () => {

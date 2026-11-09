@@ -187,6 +187,7 @@ import {
   tcpTimerSchema,
 } from './protocols/tcp-model';
 import { firewallSchema, firewallTimerSchema, zbfSchema } from './protocols/firewall-model';
+import { consoleLogSchema, debugKindSchema } from './protocols/debug-model';
 import { firewallSessionSchema } from './protocols/firewall-model';
 import { stateSyncSchema, stateSyncRecordSchema } from './protocols/state-sync-model';
 import { dhcpHaSchema } from './protocols/dhcp-ha-model';
@@ -1272,6 +1273,9 @@ export const deviceSchema = z
     logs: z.array(z.string().max(300)).max(100),
     // IOS logging buffer: "<clock> <message>" lines, trimmed to the "logging buffered" size.
     syslogBuffer: z.array(z.string().max(320)).max(2000).optional(),
+    consoleLog: consoleLogSchema.optional(),
+    // "debug ..." flags: runtime state, cleared by a reload and never part of the configuration.
+    debug: z.array(debugKindSchema).max(16).optional(),
     dropped: z.number().int().nonnegative(),
   })
   .strict();

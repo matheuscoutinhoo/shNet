@@ -3,6 +3,7 @@ import type { Device, IcmpPacket, IcmpQuote, NetworkInterface, Packet } from '..
 import { isUnicast } from './dhcp-config';
 import { resolveRoute, subnet } from './ipv4';
 import { encodeEthernet } from '../wire/ethernet-codec';
+import { debugIcmpError } from './ip-debug';
 
 export function isIcmpError(
   packet: Packet
@@ -53,6 +54,7 @@ export function sendIcmpError(
 ) {
   const quote = quotePacket(packet);
   if (!quote) return;
+  if (device.debug) debugIcmpError(engine, device, kind, code, packet);
   sendIcmpQuoteError(
     engine,
     device,

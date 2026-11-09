@@ -7,6 +7,9 @@ const time = z.number().finite().nonnegative();
 const interval = z.number().int().min(100).max(10000).multipleOf(10);
 export const vrrpTrackSchema = z
   .object({
+    // IOS "vrrp N track <object>": a "track N" object; interfaces, routes and services are
+    // simulator extensions.
+    object: z.number().int().min(1).max(1000).optional(),
     port: id.optional(),
     route: ipv4Schema.optional(),
     service: z
@@ -17,8 +20,8 @@ export const vrrpTrackSchema = z
   })
   .strict()
   .refine(
-    (t) => [t.port, t.route, t.service].filter((v) => v !== undefined).length === 1,
-    'Tracking exige uma interface, rota ou serviço.'
+    (t) => [t.object, t.port, t.route, t.service].filter((v) => v !== undefined).length === 1,
+    'VRRP tracking needs exactly one track object, interface, route or service.'
   )
   .refine(
     (t) => t.servicePort === undefined || t.service === 'http',
@@ -91,6 +94,7 @@ export const vrrpTimerSchema = z
   })
   .strict();
 export type VrrpGroupConfig = z.infer<typeof vrrpGroupConfigSchema>;
+export type VrrpTrack = z.infer<typeof vrrpTrackSchema>;
 export type VrrpGroup = z.infer<typeof vrrpGroupSchema>;
 export type VrrpPacket = z.infer<typeof vrrpPacketSchema>;
 export type VrrpTimer = z.infer<typeof vrrpTimerSchema>;

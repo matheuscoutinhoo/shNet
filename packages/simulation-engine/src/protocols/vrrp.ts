@@ -13,6 +13,7 @@ import {
   type VrrpGroupConfig,
   type VrrpPacket,
   type VrrpTimer,
+  type VrrpTrack,
 } from './vrrp-model';
 
 export function vrrpPortUp(snapshot: Snapshot, device: Device, port: NetworkInterface) {
@@ -106,9 +107,11 @@ function validateConfig(device: Device, groups: VrrpGroupConfig[]) {
       throw new Error('Dono do VIP não reduz prioridade por tracking.');
     for (const track of group.track ?? []) {
       const key =
-        track.port ??
-        track.route ??
-        'service:' + track.service + ':' + (track.service === 'http' ? (track.servicePort ?? 80) : '');
+        track.object !== undefined
+          ? 'object:' + track.object
+          : (track.port ??
+            track.route ??
+            'service:' + track.service + ':' + (track.service === 'http' ? (track.servicePort ?? 80) : ''));
       if (
         tracked.has(key) ||
         (track.port && !device.interfaces.some((p) => p.id === track.port)) ||
@@ -160,30 +163,34 @@ function transition(engine: SimulationEngine, device: Device, group: VrrpGroup, 
     { port: group.port }
   );
 }
+/** Whether a VRRP tracked object, interface, route or service is up. */
+export function vrrpTrackUp(snapshot: Snapshot, device: Device, track: VrrpTrack) {
+  if (track.object !== undefined)
+    return !!device.monitoring?.tracks.find((o) => o.id === track.object)?.state;
+  if (track.service) {
+    const available = {
+      dns: !!device.dnsServer?.enabled,
+      http: !!device.tcpServices?.some(
+        (s) => s.kind === 'http' && s.port === (track.servicePort ?? 80) && s.enabled
+      ),
+      ntp: !!device.networkClock?.server,
+      syslog: !!device.syslogServer?.enabled,
+      mqtt: !!device.broker?.enabled,
+      modbus: !!device.modbus?.enabled,
+      dhcp: !!device.dhcpServer?.enabled,
+      database: !!device.database?.enabled,
+      radius: (!!device.aaaServer?.enabled && !!device.aaaServer.radius) || !!device.eapServer?.enabled,
+      proxy: !!device.proxy?.enabled,
+    };
+    return available[track.service];
+  }
+  const port = track.port
+    ? device.interfaces.find((p) => p.id === track.port)
+    : resolveRoute(device, track.route!)?.port;
+  return !!port && interfaceOperational(snapshot, device, port);
+}
 export function vrrpEffectivePriority(snapshot: Snapshot, device: Device, group: VrrpGroupConfig) {
-  const failed = (group.track ?? []).filter((track) => {
-    if (track.service) {
-      const available = {
-        dns: !!device.dnsServer?.enabled,
-        http: !!device.tcpServices?.some(
-          (s) => s.kind === 'http' && s.port === (track.servicePort ?? 80) && s.enabled
-        ),
-        ntp: !!device.networkClock?.server,
-        syslog: !!device.syslogServer?.enabled,
-        mqtt: !!device.broker?.enabled,
-        modbus: !!device.modbus?.enabled,
-        dhcp: !!device.dhcpServer?.enabled,
-        database: !!device.database?.enabled,
-        radius: (!!device.aaaServer?.enabled && !!device.aaaServer.radius) || !!device.eapServer?.enabled,
-        proxy: !!device.proxy?.enabled,
-      };
-      return !available[track.service];
-    }
-    const port = track.port
-      ? device.interfaces.find((p) => p.id === track.port)
-      : resolveRoute(device, track.route!)?.port;
-    return !port || !interfaceOperational(snapshot, device, port);
-  });
+  const failed = (group.track ?? []).filter((track) => !vrrpTrackUp(snapshot, device, track));
   return Math.max(1, group.priority - failed.reduce((sum, track) => sum + track.decrement, 0));
 }
 const priorityOf = (group: VrrpGroup) => group.effectivePriority ?? group.priority;

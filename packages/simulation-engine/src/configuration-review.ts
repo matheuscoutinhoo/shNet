@@ -38,6 +38,8 @@ function configuration(value: unknown): unknown {
   const volatile = new Set([
     'logs',
     'syslogBuffer',
+    'consoleLog',
+    'debug',
     'loggedAt',
     'logPending',
     'booted',
@@ -46,6 +48,9 @@ function configuration(value: unknown): unknown {
     'ages',
     'lastSource',
     'violations',
+    'successes',
+    'failures',
+    'lastRun',
     'copies',
     'rx',
     'tx',
