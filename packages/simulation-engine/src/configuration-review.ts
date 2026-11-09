@@ -58,6 +58,8 @@ function configuration(value: unknown): unknown {
     'tx',
     'errors',
     'lineProtocol',
+    'aaaStats',
+    'aaaQueries',
     'urpfDrops',
     'dropped',
     'macTable',

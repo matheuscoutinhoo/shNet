@@ -110,14 +110,14 @@ export function showInterfaces(e: SimulationEngine, d: Device, brief = false, se
       ports
         .map(
           (p) =>
-            `${p.name.padEnd(23)}${(p.ip ?? 'unassigned').padEnd(16)}YES ${p.ipv4Mode === 'dhcp' ? 'DHCP  ' : 'manual'} ${interfaceStatus(e, d, p).padEnd(23)}${interfaceOperational(e.state, d, p) ? 'up' : 'down'}`
+            `${(longInterfaceName(p.name) + ' ').padEnd(23)}${(p.ip ?? 'unassigned').padEnd(16)}YES ${p.ipv4Mode === 'dhcp' ? 'DHCP  ' : 'manual'} ${interfaceStatus(e, d, p).padEnd(23)}${interfaceOperational(e.state, d, p) ? 'up' : 'down'}`
         )
         .join('\n')
     );
   return ports
     .map(
       (p) =>
-        `${p.name} is ${interfaceStatus(e, d, p)}, line protocol is ${interfaceOperational(e.state, d, p) ? 'up' : 'down'}\n` +
+        `${longInterfaceName(p.name)} is ${interfaceStatus(e, d, p)}, line protocol is ${interfaceOperational(e.state, d, p) ? 'up' : 'down'}\n` +
         `  Hardware is ${p.iosTunnel ? 'Tunnel' : p.media}, address is ${p.mac}\n` +
         (p.description ? `  Description: ${p.description}\n` : '') +
         (p.ip ? `  Internet address is ${p.ip}/${p.prefix}\n` : '') +

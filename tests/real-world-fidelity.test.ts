@@ -779,10 +779,15 @@ describe('IOS day-0 management plane', () => {
     // The SNMPv3 user and the RSA key pair are private configuration: never printed.
     expect(running).not.toMatch(/snmp-server user|Auth-Pass-1|crypto key/);
     expect(t.execute('show ip ssh')).toMatch(/^SSH Enabled - version 2\.0/);
-    expect(new TerminalSession(e, r.id).banners).toBe('\nAuthorized access only\n\nDisconnect now\n');
+    // A new console connection gets the MOTD banner and the AAA login.
+    expect(new TerminalSession(e, r.id).banners).toBe(
+      '\nAuthorized access only\n\nDisconnect now\n\n\nUser Access Verification\n'
+    );
     ok(t, ['write memory', 'reload', '']);
     advance(RELOAD_MS);
-    ok(t, ['enable']);
+    // After the reload the console logs in again: ISE does not answer, so the local database is used.
+    expect(t.prompt).toBe('Username: ');
+    ok(t, ['admin', 'Adm1n-Pass', 'enable']);
     expect(t.execute('show running-config')).toBe(running);
     expect(e.device(r.id).bootLog).toEqual([]);
     expect(t.execute('show ip ssh')).toMatch(/^SSH Enabled - version 2\.0/);

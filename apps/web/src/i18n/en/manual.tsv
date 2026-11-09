@@ -198,3 +198,7 @@ mqy31ava	Paste an IOS configuration (show running-config).
 09st2m9w	IOS configuration imported: {0} of {1} lines applied.
 m6g6zush	Power on the device before importing a configuration.
 hm26076h	The imported configuration accepts up to 4096 lines.
+0v385qiu	TACACS+ command authorization TCP/{0}: {1}.
+qz5nfmop	TACACS+ CHAP, authorization and accounting TCP/{0}: {1}.
+t53x50eu	TACACS+: command "{0}" from {1} authorized.
+fntpv839	TACACS+: command "{0}" from {1} denied.

@@ -247,7 +247,7 @@ describe('Cisco CLI behavior', () => {
     expect(cli.execute('sh ip int br')).toContain('IP-Address');
     run(cli, ['conf t', 'hostname LAB', 'interface GigabitEthernet0/1', 'description uplink', 'mtu 1400']);
     expect(cli.execute('show ip interface brief')).toMatch(/^%/);
-    expect(cli.execute('do sh ip int br')).toContain('Gi0/1');
+    expect(cli.execute('do sh ip int br')).toContain('GigabitEthernet0/1');
     expect(cli.prompt).toBe('LAB(config-if)#');
     run(cli, ['no description', 'end']);
     expect(cli.execute('show running-config | include mtu')).toBe(' mtu 1400');

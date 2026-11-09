@@ -137,6 +137,14 @@ export const consoleSessionsSchema = z
               .object({ kind: z.literal('enable'), attempts: z.number().int().min(0).max(2) })
               .strict()
               .optional(),
+            consoleLogin: z
+              .object({
+                stage: z.enum(['idle', 'username', 'password']),
+                username: z.string().max(64).optional(),
+                failures: z.number().int().min(0).max(3),
+              })
+              .strict()
+              .optional(),
           })
           .strict(),
         history: z.array(z.string().max(512)).max(200),

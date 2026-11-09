@@ -40,6 +40,10 @@
   "RST encerrou sessão {0}."
  ],
  [
+  "0v385qiu",
+  "TACACS+ autorização de comando TCP/{0}: {1}."
+ ],
+ [
   "0y0cu6fw",
   "{0} em fila · {1} drops"
  ],
@@ -892,6 +896,10 @@
   "{0}: Hello/Dead {1}/{2} s vs {3}/{4} s; a adjacência não forma."
  ],
  [
+  "fntpv839",
+  "TACACS+: comando \"{0}\" de {1} negado."
+ ],
+ [
   "fq36j678",
   "1000Base{0}X SFP"
  ],
@@ -994,10 +1002,6 @@
  [
   "hg8av45r",
   "Linha {0}{1} da tabela tem {2} colunas; esperado {3}."
- ],
- [
-  "hh2f4ebz",
-  "TACACS+ CHAP, autorização e accounting TCP/49: {0}."
  ],
  [
   "ht3oqz9w",
@@ -1476,6 +1480,10 @@
   "{0}-cenarios"
  ],
  [
+  "qz5nfmop",
+  "TACACS+ CHAP, autorização e accounting TCP/{0}: {1}."
+ ],
+ [
   "r29dfwez",
   "HSRP {0}: autenticação divergente de {1}."
  ],
@@ -1562,6 +1570,10 @@
  [
   "stw4a1te",
   "Frame recebido em {0}."
+ ],
+ [
+  "t53x50eu",
+  "TACACS+: comando \"{0}\" de {1} autorizado."
  ],
  [
   "tcp83e5v",

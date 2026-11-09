@@ -120,6 +120,8 @@ export interface Context {
   vty?: VtyConnection;
   // A session reached over Telnet/SSH: the server end of its TCP connection ("show users").
   vtySession?: string;
+  // Console login dialog: "Press RETURN to get started" (idle), then Username/Password.
+  consoleLogin?: { stage: 'idle' | 'username' | 'password'; username?: string; failures: number };
 }
 export interface Command {
   pattern: RegExp;
@@ -199,6 +201,16 @@ export class CommandRegistry {
       (w) => !w.startsWith('<') && w.toLowerCase().startsWith(tail.toLowerCase())
     );
     return words.length === 1 ? head + words[0] + ' ' : input;
+  }
+  /** Whether a command also exists in user EXEC: a privilege level 1 command in IOS terms. */
+  userLevel(input: string, d: Device) {
+    const user: Context = { mode: 'user' };
+    return this.commands.some(
+      (command) =>
+        command.modes.includes('user') &&
+        command.pattern.test(input) &&
+        (!command.available || command.available(d, user))
+    );
   }
   private find(input: string, d: Device, c: Context) {
     let wrongMode = false;

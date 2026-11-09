@@ -19,6 +19,7 @@ import { sendWithArp } from './arp';
 import { isUnicast } from './dhcp-config';
 import { completeDot1x } from './dot1x';
 import { openTacacs } from './tacacs';
+import { closeTcp } from './tcp';
 export const eapProof = (_username: string, password: string, challenge: string) =>
   chapProof(password, challenge);
 export function aaaServerConfig(d: Device) {
@@ -117,7 +118,7 @@ function sendRadius(e: SimulationEngine, d: Device, q: AaaQuery) {
     dst: q.server,
     ttl: 64,
     sourcePort: q.sourcePort!,
-    destinationPort: 1812,
+    destinationPort: q.serverPort ?? 1812,
     bytes: 28 + m.wire.length / 2,
     payload: { protocol: 'RADIUS', message: m },
   };
@@ -140,7 +141,9 @@ export function startRadius(
   e: SimulationEngine,
   d: Device,
   input: Pick<AaaQuery, 'username' | 'key' | 'server' | 'challenge' | 'proof' | 'sourceIp'> &
-    Partial<Pick<AaaQuery, 'port' | 'mac' | 'session'>>
+    Partial<
+      Pick<AaaQuery, 'port' | 'mac' | 'session' | 'serverPort' | 'timeoutMs' | 'maxAttempts' | 'purpose'>
+    >
 ) {
   d.aaaQueries ??= [];
   if (d.aaaQueries.length >= 128) {
@@ -160,6 +163,7 @@ export function startRadius(
     d.snmpQueries?.some((q) => q.status === 'pending' && q.sourcePort === sourcePort)
   )
     sourcePort++;
+  const timeoutMs = input.timeoutMs ?? 3000;
   const q = aaaQuerySchema.parse({
     ...input,
     id: e.id('radius'),
@@ -167,14 +171,14 @@ export function startRadius(
     sourcePort,
     status: 'pending',
     startedAt: e.state.clock,
-    deadline: e.state.clock + 3000,
+    deadline: e.state.clock + timeoutMs,
     attempts: 1,
     requestAuthenticator: '0'.repeat(32),
   });
   q.requestAuthenticator = radiusRequest(q).authenticator;
   d.aaaQueries.push(q);
   sendRadius(e, d, q);
-  e.schedule(3000, { kind: 'aaa-timeout', device: d.id, query: q.id, at: q.deadline });
+  e.schedule(timeoutMs, { kind: 'aaa-timeout', device: d.id, query: q.id, at: q.deadline });
   return q;
 }
 export function completeAaa(e: SimulationEngine, d: Device, q: AaaQuery, m?: RadiusResponse) {
@@ -188,15 +192,18 @@ export function completeAaa(e: SimulationEngine, d: Device, q: AaaQuery, m?: Rad
     (x) => x.action.kind !== 'aaa-timeout' || x.action.device !== d.id || x.action.query !== q.id
   );
   if (q.port) completeDot1x(e, d, q);
-  else if (q.status === 'accepted')
-    d.networkAuth = {
-      query: q.id,
-      commands: q.commands ?? ['*'],
-      username: q.username,
-      privilege: q.privilege!,
-      expiresAt: q.expiresAt!,
-    };
-  else delete d.networkAuth;
+  // An IOS login or command authorization is read by the terminal that asked for it.
+  else if (!q.purpose) {
+    if (q.status === 'accepted')
+      d.networkAuth = {
+        query: q.id,
+        commands: q.commands ?? ['*'],
+        username: q.username,
+        privilege: q.privilege!,
+        expiresAt: q.expiresAt!,
+      };
+    else delete d.networkAuth;
+  }
   e.emit('AAA_RESULT', d.id, q.method.toUpperCase() + ': ' + q.username + ' ' + q.status + '.');
 }
 export function receiveRadius(e: SimulationEngine, d: Device, packet: UdpPacket) {
@@ -205,8 +212,9 @@ export function receiveRadius(e: SimulationEngine, d: Device, packet: UdpPacket)
   const m = packet.payload.message;
   if (m.type === 'Access-Request') {
     const s = d.aaaServer;
+    // Like Cisco ISE, the server answers on both RADIUS authentication ports (IOS defaults to 1645).
     if (
-      packet.destinationPort !== 1812 ||
+      ![1812, 1645].includes(packet.destinationPort) ||
       !s?.enabled ||
       !s.radius ||
       (s.clients.length && !s.clients.includes(packet.src)) ||
@@ -239,7 +247,7 @@ export function receiveRadius(e: SimulationEngine, d: Device, packet: UdpPacket)
       src: packet.dst,
       dst: packet.src,
       ttl: 64,
-      sourcePort: 1812,
+      sourcePort: packet.destinationPort,
       destinationPort: packet.sourcePort,
       bytes: 28 + response.wire.length / 2,
       payload: { protocol: 'RADIUS', message: response },
@@ -253,7 +261,7 @@ export function receiveRadius(e: SimulationEngine, d: Device, packet: UdpPacket)
         q.server === packet.src &&
         q.sourceIp === packet.dst &&
         q.sourcePort === packet.destinationPort &&
-        packet.sourcePort === 1812
+        packet.sourcePort === (q.serverPort ?? 1812)
     );
     if (!q || m.requestAuthenticator !== q.requestAuthenticator || !verifyRadius(m, q.key)) {
       e.drop(d, 'RADIUS: resposta sem consulta/autenticador correspondente.');
@@ -266,14 +274,20 @@ export function handleAaaTimeout(e: SimulationEngine, a: Extract<Action, { kind:
   const d = e.device(a.device),
     q = d.aaaQueries?.find((q) => q.id === a.query && q.status === 'pending' && q.deadline === a.at);
   if (!q) return;
-  if (q.method === 'tacacs' || q.attempts >= 3) {
+  if (q.method === 'tacacs' || q.attempts >= (q.maxAttempts ?? 3)) {
+    // A TACACS+ server that did not answer in time: the connection is abandoned.
+    const connection =
+      q.method === 'tacacs' ? d.tcpConnections?.find((c) => c.id === q.connection) : undefined;
     completeAaa(e, d, q);
+    if (connection && !['CLOSED', 'RESET', 'TIMED-OUT'].includes(connection.state))
+      closeTcp(e, d, connection.id, true);
     return;
   }
+  const timeoutMs = q.timeoutMs ?? 3000;
   q.attempts++;
-  q.deadline = e.state.clock + 3000;
+  q.deadline = e.state.clock + timeoutMs;
   sendRadius(e, d, q);
-  e.schedule(3000, { kind: 'aaa-timeout', device: d.id, query: q.id, at: q.deadline });
+  e.schedule(timeoutMs, { kind: 'aaa-timeout', device: d.id, query: q.id, at: q.deadline });
 }
 export function loginNetwork(e: SimulationEngine, d: Device, username: string, password: string) {
   supplicantConfigSchema.parse({ enabled: true, username, password });

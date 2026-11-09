@@ -255,15 +255,53 @@ O relatório de compatibilidade mostra quantas linhas foram aplicadas e lista, c
 
 O servidor segue as linhas VTY do IOS: `line vty 0 4` (e `5 15` nos switches) existe sempre, com `login` e `transport input telnet ssh` por padrão. `transport input ssh|telnet|none|all` e `access-class ACL in` (ACL IPv4 padrão/estendida, com contadores) recusam a conexão com reset TCP (`% Connection refused by remote host`); sem rota aparece `% Destination unreachable; gateway or host down` e sem resposta `% Connection timed out; remote host not responding`. O SSH só responde depois de `crypto key generate rsa` (que exige `hostname` e `ip domain-name`).
 
-A autenticação usa `login` (senha da linha; sem senha o Telnet mostra `Password required, but none set`), `login local` (`username NOME [privilege N] secret|password`), `no login` ou, com `aaa new-model`, a lista `login authentication LISTA` (ou `default`, ou o banco local) com os métodos `local`, `line`, `enable` e `none`. O SSH exige usuário (local/AAA); somente a senha da linha encerra a conexão (`aborted: error status 0`). Três falhas encerram a sessão (`% Login invalid` no Telnet, `% Authentication failed.` no SSH). Usuários com privilégio 15 entram em EXEC privilegiado; os demais usam `enable` com o `enable secret` remoto. `show users` lista o console e as sessões VTY com usuário, ociosidade e origem.
+A autenticação usa `login` (senha da linha; sem senha o Telnet mostra `Password required, but none set`), `login local` (`username NOME [privilege N] secret|password`), `no login` ou, com `aaa new-model`, a lista `login authentication LISTA` (ou `default`, ou o banco local) com os métodos `group tacacs+|radius|GRUPO`, `local`, `line`, `enable` e `none`. O SSH exige usuário (local/AAA); somente a senha da linha encerra a conexão (`aborted: error status 0`). Três falhas encerram a sessão (`% Login invalid` no Telnet, `% Authentication failed.` no SSH). Sem AAA, `login local` aplica o privilégio do usuário (privilégio 15 entra em EXEC privilegiado); os demais usam `enable` com o `enable secret` remoto. `show users` lista o console e as sessões VTY com usuário, ociosidade e origem.
 
-Limites: os métodos `group tacacs+|radius` das listas AAA são tratados como servidor indisponível (passa ao próximo método); as teclas digitadas não trafegam como dados TCP/SSH (a conexão TCP é real, a sessão é entregue ao CLI remoto); `exec-timeout`, `ip ssh time-out` e a suspensão de sessões (Ctrl-Shift-6 x, `resume`) não são modelados.
+Limites: as teclas digitadas não trafegam como dados TCP/SSH (a conexão TCP é real, a sessão é entregue ao CLI remoto); `exec-timeout`, `ip ssh time-out` e a suspensão de sessões (Ctrl-Shift-6 x, `resume`) não são modelados.
+
+## AAA com TACACS+ e RADIUS (login, autorização e accounting)
+
+Com `aaa new-model`, os métodos `group tacacs+`, `group radius` e `group NOME` (`aaa group server tacacs+|radius NOME` com `server name`) consultam servidores reais na rede simulada. Os servidores são definidos com `tacacs server`/`radius server` (`address ipv4`, `key`, `port`, `timeout`, `retransmit`) ou com a sintaxe antiga `tacacs-server host`. O TACACS+ usa TCP/49. O RADIUS usa por padrão a porta UDP 1645, como o IOS, ou o `auth-port` configurado; o servidor AAA do simulador atende em 1645 e 1812, como o ISE. A origem é `ip tacacs|radius source-interface`, a do grupo ou a interface de saída.
+
+A semântica segue o IOS:
+
+- Os servidores do grupo são consultados em ordem. Uma rejeição encerra o login (`% Login invalid`), sem tentar o próximo método.
+- Um servidor que não responde (timeout de 5 s, mais 3 retransmissões no RADIUS) passa ao próximo servidor. Sem nenhuma resposta, o método é um erro e o IOS tenta o próximo método da lista, por exemplo `local`.
+- Uma conexão recusada (reset TCP) ou a falta de rota até o servidor fazem o IOS passar adiante na hora.
+- O privilégio vem de `aaa authorization exec` (lista `default` ou `authorization exec LISTA` na linha). Pelo servidor, é o `priv-lvl` do TACACS+ ou o privilégio do Access-Accept RADIUS; pelo banco local, é o `privilege` do usuário. Sem autorização exec, toda sessão começa no nível da linha (1), mesmo para usuários com privilégio 15, que é a armadilha clássica do `aaa new-model`. Se nenhum método autoriza, a sessão é recusada com `% Authorization failed.`.
+- O console é autenticado pela lista `default`, mas só é autorizado com `aaa authorization console`.
+- `aaa authorization commands 15 default group ...` envia cada comando de nível 15 ao TACACS+ antes de executá-lo. O conjunto de comandos do usuário no servidor decide, e um comando negado mostra `Command authorization failed.`. Comandos que existem no EXEC de usuário (nível 1, como `show ip interface brief`) não são autorizados.
+- `aaa accounting exec default start-stop group ...` registra START no login e STOP na saída. `aaa accounting commands 15 default start-stop group ...` registra cada comando de nível 15. Os registros aparecem no servidor AAA.
+
+`show aaa servers` mostra cada servidor com os contadores de autenticação, autorização e accounting (pedidos, timeouts, aceites e rejeições, tempo da última resposta); `clear aaa counters servers all` zera os contadores. `test aaa group GRUPO USUÁRIO SENHA legacy` testa a autenticação fora de um login (`User was successfully authenticated.`, `User authentication request was rejected by server.` ou `No authoritative response from any server.`).
+
+```text
+aaa new-model
+tacacs server ISE-1
+ address ipv4 10.0.50.10
+ key Tac-Key-1
+aaa group server tacacs+ ISE
+ server name ISE-1
+aaa authentication login default group ISE local
+aaa authorization exec default group ISE local
+aaa authorization commands 15 default group ISE local
+aaa accounting exec default start-stop group ISE
+aaa accounting commands 15 default start-stop group ISE
+```
+
+Limites: o RADIUS não envia accounting (Accounting-Request), e `aaa authentication enable` com servidores não é modelado (o `enable` usa o `enable secret`).
+
+## Login no console
+
+A linha `line con 0` segue o IOS: por padrão o console não pede nada. `password SENHA` com `login` pede a senha da linha, que é perguntada de novo em silêncio quando errada; na terceira falha aparece `% Bad passwords`. `login local` pede usuário e senha do banco local. Com `aaa new-model`, o console usa `login authentication LISTA` ou a lista `default`; sem lista `default`, o console não pede login.
+
+`exit`, `logout` ou `quit` no EXEC encerram a sessão do console (`Router con0 is now available ... Press RETURN to get started.`); ENTER abre uma nova sessão, com o banner MOTD e o login quando configurado. Uma nova conexão ao console, um `reload` ou um ciclo de energia também exigem novo login. Alterar a linha não afeta a sessão aberta, só a próxima.
 
 ## uRPF e show ip interface
 
 `ip verify unicast source reachable-via rx [allow-default]` (modo estrito; `ip verify unicast reverse-path` é a forma antiga) aceita um pacote só quando a rota de volta à origem sai pela interface de chegada, considerando caminhos de mesmo custo; `reachable-via any` (modo loose) exige apenas que exista rota. A rota padrão só conta com `allow-default` e uma rota para Null0 nunca conta; DHCP (0.0.0.0 → 255.255.255.255) é isento. Cada descarte gera um evento explicando a origem e incrementa o contador `verification drops`.
 
-`show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, proxy ARP, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores.
+`show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, proxy ARP, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores. `show ip interface brief` e `show interfaces` usam os nomes completos do IOS (`GigabitEthernet0/1`).
 
 Proxy ARP vem ativo, como no IOS, nas interfaces roteadas de roteadores e switches L3. O roteador responde com o próprio MAC a um ARP de um host da sub-rede da interface quando o endereço consultado está fora dessa sub-rede e é alcançável por outra interface. Isso permite que um host com máscara larga demais ou sem gateway alcance outras redes. A rota padrão não conta, e com HSRP/VRRP só o roteador ativo responde, com o MAC virtual. `no ip proxy-arp` desativa a função e aparece na running-config.
 

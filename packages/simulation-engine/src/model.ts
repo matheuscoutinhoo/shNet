@@ -94,6 +94,7 @@ import {
   aaaServerSchema,
   aaaClientSchema,
   aaaQuerySchema,
+  aaaServerStatsSchema,
   dot1xStateSchema,
   supplicantStateSchema,
   eapolSchema,
@@ -1180,6 +1181,8 @@ export const deviceSchema = z
     aaaServer: aaaServerSchema.optional(),
     aaaClient: aaaClientSchema.optional(),
     aaaQueries: z.array(aaaQuerySchema).max(128).optional(),
+    // IOS AAA client counters per configured server ("show aaa servers"); they restart at boot.
+    aaaStats: z.array(aaaServerStatsSchema).max(16).optional(),
     networkAuth: z
       .object({
         query: id,

@@ -381,12 +381,10 @@ hhh768lg	Syslog has no source IPv4 address.
 wvweb5iq	Message {0} sent over UDP/514; no delivery confirmation.
 9w3sqwpv	Syslog: invalid datagram or timestamp.
 otseo1nx	Syslog collector disabled.
-hh2f4ebz	TACACS+ CHAP, authorization, and accounting over TCP/49: {0}.
 6ppnuaz6	TACACS+ session without a key.
 xp5098ff	Unauthorized TACACS+ NAS/sequence.
 btitdqm3	Unsupported TACACS+ service.
 z86q0awj	Invalid TACACS+ response sequence.
-5utf4k4i	TACACS+ response without a query.
 5kw6lfjn	TACACS+ response outside the session/phase.
 pk4iy526	Invalid Authentication REPLY.
 o4o6h322	Invalid TACACS+ policy.

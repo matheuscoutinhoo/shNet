@@ -107,6 +107,21 @@ export const radiusResponseSchema = z
   })
   .strict();
 export const radiusMessageSchema = z.union([radiusRequestSchema, radiusResponseSchema]);
+const counter = z.number().int().nonnegative();
+/** IOS AAA client counters of one configured server ("show aaa servers"); runtime state. */
+export const aaaServerStatsSchema = z
+  .object({
+    kind: z.enum(['radius', 'tacacs']),
+    name: z.string().regex(/^[\w.+@-]{1,64}$/),
+    since: timeSchema,
+    authen: z.object({ request: counter, timeouts: counter, accept: counter, reject: counter }).strict(),
+    author: z.object({ request: counter, timeouts: counter, pass: counter, fail: counter }).strict(),
+    account: z.object({ request: counter }).strict(),
+    // Response time of the last answer, in milliseconds.
+    lastMs: counter.optional(),
+  })
+  .strict();
+export type AaaServerStats = z.infer<typeof aaaServerStatsSchema>;
 export const aaaQuerySchema = z
   .object({
     id: idSchema,
@@ -120,7 +135,19 @@ export const aaaQuerySchema = z
     status: z.enum(['pending', 'accepted', 'rejected', 'timeout']),
     startedAt: timeSchema,
     deadline: timeSchema,
-    attempts: z.number().int().min(1).max(3),
+    // RADIUS retransmits (IOS "retransmit", 3 by default) after each timeout.
+    attempts: z.number().int().min(1).max(101),
+    maxAttempts: z.number().int().min(1).max(101).optional(),
+    timeoutMs: z.number().int().min(1000).max(1_000_000).optional(),
+    // Server port: RADIUS auth-port (IOS default 1645) or TACACS+ port (49).
+    serverPort: portNumberSchema.optional(),
+    // IOS login (VTY/console) or command authorization: the caller reads the result, which does
+    // not become the device's network login.
+    purpose: z.enum(['login', 'authorization']).optional(),
+    // TACACS+ login: the authorization and accounting phases run only when IOS needs them.
+    authorize: z.boolean().optional(),
+    account: z.boolean().optional(),
+    command: z.string().max(512).optional(),
     sourceIp: ipv4Schema,
     sourcePort: portNumberSchema.optional(),
     connection: idSchema.optional(),

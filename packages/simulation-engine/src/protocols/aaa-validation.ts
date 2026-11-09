@@ -36,7 +36,7 @@ export function validateAaa(s: Snapshot) {
               (connection.service !== 'aaa' ||
                 connection.role !== 'client' ||
                 connection.remoteIp !== q.server ||
-                connection.remotePort !== 49)))) ||
+                connection.remotePort !== (q.serverPort ?? 49))))) ||
         (q.status === 'accepted' && (q.privilege === undefined || q.expiresAt === undefined))
       )
         throw new Error('Consulta/autorização AAA inválida.');

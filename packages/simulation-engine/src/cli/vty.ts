@@ -8,6 +8,7 @@ import { waitFor } from './ping';
 import { verifyIosSecret } from './local-security';
 import { findInterface } from '../protocols/interface-name';
 import { openTcp } from '../protocols/tcp';
+import { aaaAuthenticate, execPrivilege, wantsServerExecAuthorization } from './aaa-login';
 
 /** A Telnet/SSH connection opened from a terminal, waiting for its login to complete. */
 export interface VtyConnection {
@@ -19,46 +20,82 @@ export interface VtyConnection {
   transport: VtyTransport;
   username?: string;
 }
-type Method = 'local' | 'line' | 'enable' | 'none' | 'group';
-/** How the VTY line authenticates: IOS "login", "login local" or an AAA method list. */
-export function vtyLogin(d: Device, line: IosLine): { methods: Method[]; noLogin?: boolean } {
-  const aaa = d.iosSystem?.aaa;
+type Method = 'local' | 'line' | 'enable' | 'none' | `group ${string}`;
+/**
+ * How a line authenticates: IOS "login" (line password), "login local" or an AAA method list.
+ * With "aaa new-model" a line without "login authentication" uses the default list; without a
+ * default list VTY lines use the local database and the console needs no login. Without AAA the
+ * console asks for nothing unless "login" (with a password) or "login local" is configured, while
+ * VTY lines default to "login" with the line password.
+ */
+export function vtyLogin(d: Device, line: IosLine | undefined): { methods: Method[]; noLogin?: boolean } {
+  const aaa = d.iosSystem?.aaa,
+    console = line?.kind === 'con';
   const list = (name: string) =>
     aaa?.authentication
       .find((a) => a.kind === 'login' && a.list === name)
-      ?.methods.map((m): Method =>
-        m.startsWith('group') ? 'group' : m === 'local-case' ? 'local' : (m as Method)
-      );
+      ?.methods.map((m) => (m === 'local-case' ? 'local' : m) as Method);
   if (aaa?.newModel) {
-    // Without a named list the line uses "default", and without that the local database.
-    const name = typeof line.login === 'object' ? line.login.list : 'default';
-    return { methods: list(name) ?? ['local'] };
+    const named = typeof line?.login === 'object' ? list(line.login.list) : undefined;
+    const methods = named ?? list('default');
+    if (methods) return { methods };
+    return console ? { methods: ['none'], noLogin: true } : { methods: ['local'] };
   }
-  if (line.noLogin) return { methods: ['none'], noLogin: true };
-  if (line.login === 'local') return { methods: ['local'] };
+  if (console) {
+    if (line?.login === 'local') return { methods: ['local'] };
+    if (line?.login === 'line' && line.password) return { methods: ['line'] };
+    return { methods: ['none'], noLogin: true };
+  }
+  if (line?.noLogin) return { methods: ['none'], noLogin: true };
+  if (line?.login === 'local') return { methods: ['local'] };
   // A VTY line defaults to "login" with the line password.
   return { methods: ['line'] };
 }
 /** Whether the login asks for a username first (local database or AAA servers). */
-export const vtyNeedsUsername = (d: Device, line: IosLine) => {
+export const vtyNeedsUsername = (d: Device, line: IosLine | undefined) => {
   const first = vtyLogin(d, line).methods[0];
-  return first === 'local' || first === 'group';
+  return first === 'local' || first.startsWith('group ');
 };
+export type LoginResult = { privilege: number; via: string } | 'invalid' | 'unauthorized';
 /**
  * Checks a login against the methods in order. A method that cannot answer (no local users, no
- * line password, AAA servers) passes to the next one; a wrong password fails the login.
+ * line password, AAA servers that do not respond) passes to the next one; a wrong password or a
+ * server reject fails the login. The EXEC privilege then follows IOS exec authorization.
  */
-export function verifyVtyLogin(d: Device, line: IosLine, username: string | undefined, password: string) {
+export function verifyVtyLogin(
+  e: SimulationEngine,
+  d: Device,
+  line: IosLine | undefined,
+  username: string | undefined,
+  password: string
+): LoginResult {
+  const grant = (how: Parameters<typeof execPrivilege>[2]): LoginResult => {
+    const privilege = execPrivilege(e.device(d.id), line, how);
+    return privilege === undefined ? 'unauthorized' : { privilege, via: how.via };
+  };
   for (const method of vtyLogin(d, line).methods) {
-    if (method === 'none') return { privilege: line.privilege ?? 1 };
-    if (method === 'group') continue;
+    if (method === 'none') return grant({ via: 'none', user: username });
+    if (method.startsWith('group ')) {
+      if (!username) continue;
+      const result = aaaAuthenticate(
+        e,
+        d,
+        method,
+        username,
+        password,
+        wantsServerExecAuthorization(d, line, method)
+      );
+      if (result.status === 'error') continue;
+      if (result.status === 'fail') return 'invalid';
+      return grant({ via: result.kind, user: username, privilege: result.privilege });
+    }
     if (method === 'line') {
-      if (!line.password) continue;
-      return line.password === password ? { privilege: line.privilege ?? 1 } : undefined;
+      if (!line?.password) continue;
+      return line.password === password ? grant({ via: 'line' }) : 'invalid';
     }
     if (method === 'enable') {
       if (!d.enableSecret) continue;
-      return verifyIosSecret(password, d.enableSecret) ? { privilege: line.privilege ?? 1 } : undefined;
+      return verifyIosSecret(password, d.enableSecret) ? grant({ via: 'enable' }) : 'invalid';
     }
     const users = d.iosSystem?.users ?? [];
     if (!users.length) continue;
@@ -68,9 +105,9 @@ export function verifyVtyLogin(d: Device, line: IosLine, username: string | unde
       (user.secret
         ? /^\$[89]\$/.test(user.secret) && verifyIosSecret(password, user.secret)
         : user.password === password);
-    return ok ? { privilege: user!.privilege ?? line.privilege ?? 1 } : undefined;
+    return ok ? grant({ via: 'local', user: username }) : 'invalid';
   }
-  return undefined;
+  return 'invalid';
 }
 
 function resolveHost(e: SimulationEngine, target: string) {

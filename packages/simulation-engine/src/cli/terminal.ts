@@ -17,8 +17,31 @@ import { deleteVlanDat } from './ios-show2';
 import { vtyLogin, vtyNeedsUsername, vtyServerConnection, verifyVtyLogin, type VtyConnection } from './vty';
 import { vtyLineFor } from '../protocols/vty';
 import type { IosLine } from '../protocols/ios-system-model';
+import type { Device } from '../model';
+import { accountCommand, accountExec, authorizeCommand } from './aaa-login';
+
+/** IOS routers and switches have a console line with its own login. */
+const iosConsole = (d: Device) => (d.type === 'router' || d.type === 'switch') && !terminalIdentity(d).host;
+const consoleLine = (d: Device): IosLine =>
+  d.iosSystem?.lines?.find((l) => l.kind === 'con') ?? { kind: 'con', first: 0, last: 0 };
+/** Whether the console asks for a login, and whether it starts with a username. */
+function consoleLogin(d: Device) {
+  if (!iosConsole(d)) return undefined;
+  const line = consoleLine(d);
+  return vtyLogin(d, line).noLogin ? undefined : { username: vtyNeedsUsername(d, line) };
+}
+const consoleAvailable = (d: Device) =>
+  '\n' + d.hostname + ' con0 is now available\n\n\n\n\n\nPress RETURN to get started.';
+// Commands that move between modes or end the session; IOS does not authorize or account them.
+const SESSION_COMMAND = /^(?:end|exit|disable|logout|quit)$/i;
 export class TerminalSession {
   private ownContext: Context = { mode: 'user' };
+  // The device's boot this session belongs to: a reboot ends the console session.
+  private bootEpoch?: number;
+  // Who is logged in to this EXEC session and on which line, for AAA authorization and accounting.
+  execUser?: string;
+  execLine?: IosLine;
+  private execTask?: string;
   // Telnet/SSH session opened from this terminal: its login dialog, then the remote CLI.
   private remote?: {
     v: VtyConnection;
@@ -47,7 +70,96 @@ export class TerminalSession {
   constructor(
     readonly engine: SimulationEngine,
     readonly deviceId: string
-  ) {}
+  ) {
+    const d = engine.state.devices.find((v) => v.id === deviceId);
+    this.bootEpoch = d?.bootStartedAt;
+    const login = d && consoleLogin(d);
+    if (login)
+      this.ownContext.consoleLogin = { stage: login.username ? 'username' : 'password', failures: 0 };
+  }
+  /**
+   * A console session belongs to one boot of the device: after a reload or power cycle the
+   * console starts over and, if the line requires it, asks for a new login.
+   */
+  private syncConsole() {
+    if (this.remote || this.ownContext.vtySession) return;
+    const d = this.engine.state.devices.find((v) => v.id === this.deviceId);
+    if (!d || d.bootStartedAt === this.bootEpoch || !d.power || d.reloading) return;
+    this.bootEpoch = d.bootStartedAt;
+    delete this.execTask;
+    delete this.execUser;
+    const login = consoleLogin(d);
+    if (login)
+      this.ownContext = {
+        mode: 'user',
+        consoleLogin: { stage: login.username ? 'username' : 'password', failures: 0 },
+      };
+  }
+  /** Starts an authenticated EXEC session: exec accounting START when configured. */
+  beginExec(user: string | undefined, line: IosLine | undefined) {
+    this.execUser = user;
+    this.execLine = line;
+    this.execTask = this.engine.id('exec');
+    accountExec(this.engine, this.engine.device(this.deviceId), line, user, 'start', this.execTask);
+  }
+  /** Ends the EXEC session: exec accounting STOP when configured. */
+  endExec() {
+    const task = this.execTask,
+      d = this.engine.state.devices.find((v) => v.id === this.deviceId);
+    delete this.execTask;
+    if (task && d?.power && !d.reloading)
+      accountExec(this.engine, d, this.execLine, this.execUser, 'stop', task);
+    delete this.execUser;
+  }
+  /** Console login dialog: "Press RETURN to get started", then Username/Password. */
+  private consoleLoginStep(input: string) {
+    const d = this.engine.device(this.deviceId),
+      login = this.ownContext.consoleLogin!,
+      need = consoleLogin(d),
+      banners = d.iosSystem?.banners;
+    if (!need) {
+      // Nothing to ask (or the line changed meanwhile): RETURN opens the EXEC session.
+      delete this.ownContext.consoleLogin;
+      this.beginExec(undefined, consoleLine(d));
+      return [banners?.motd, banners?.exec].filter((b) => b !== undefined).join('\n');
+    }
+    if (login.stage === 'idle') {
+      this.ownContext.consoleLogin = { stage: need.username ? 'username' : 'password', failures: 0 };
+      return [banners?.motd, banners?.login, '\nUser Access Verification\n']
+        .filter((b) => b !== undefined)
+        .join('\n');
+    }
+    if (login.stage === 'username') {
+      const name = input.trim();
+      if (!name) return '';
+      login.username = name;
+      login.stage = 'password';
+      return '';
+    }
+    const line = consoleLine(d),
+      user = login.username,
+      result = verifyVtyLogin(this.engine, d, line, user, input),
+      device = this.engine.device(this.deviceId);
+    if (typeof result === 'object') {
+      this.ownContext = { mode: result.privilege >= 15 ? 'privileged' : 'user' };
+      this.beginExec(user, line);
+      return device.iosSystem?.banners?.exec ?? '';
+    }
+    if (result === 'unauthorized') {
+      this.ownContext.consoleLogin = { stage: 'idle', failures: 0 };
+      return '% Authorization failed.\n' + consoleAvailable(device);
+    }
+    // A line password is asked again silently; IOS gives up after three attempts.
+    const linePassword = vtyLogin(device, line).methods[0] === 'line';
+    if (++login.failures >= 3) {
+      this.ownContext.consoleLogin = { stage: 'idle', failures: 0 };
+      return (linePassword ? '% Bad passwords' : '% Login invalid') + '\n' + consoleAvailable(device);
+    }
+    if (linePassword) return '';
+    login.stage = need.username ? 'username' : 'password';
+    delete login.username;
+    return '% Login invalid\n';
+  }
   get identity() {
     return terminalIdentity(this.engine.device(this.deviceId));
   }
@@ -58,6 +170,10 @@ export class TerminalSession {
         : this.remote.stage === 'password'
           ? 'Password: '
           : this.remote.session!.prompt;
+    this.syncConsole();
+    const login = this.ownContext.consoleLogin;
+    if (login)
+      return login.stage === 'username' ? 'Username: ' : login.stage === 'password' ? 'Password: ' : '';
     if (this.secretInput) return 'Password:';
     const confirm = this.context.confirm;
     if (confirm)
@@ -125,17 +241,24 @@ export class TerminalSession {
       return (
         this.remote.stage === 'password' || (this.remote.stage === 'open' && this.remote.session!.secretInput)
       );
-    return !!this.context.auth;
+    this.syncConsole();
+    return !!this.context.auth || this.ownContext.consoleLogin?.stage === 'password';
   }
-  /** Text IOS shows when this session opens: the MOTD banner, then the exec banner. */
+  /** Text IOS shows when this session opens: the MOTD banner, then the exec banner or the login. */
   get banners() {
-    return sessionBanners(this.engine.device(this.deviceId)).join('\n');
+    const d = this.engine.device(this.deviceId),
+      login = this.ownContext.consoleLogin;
+    if (login && login.stage !== 'idle')
+      return [d.iosSystem?.banners?.motd, d.iosSystem?.banners?.login, '\nUser Access Verification\n']
+        .filter((b) => b !== undefined)
+        .join('\n');
+    return sessionBanners(d).join('\n');
   }
   displayInput(input: string): string {
     if (this.remote)
       return this.remote.session ? this.remote.session.displayInput(input) : this.secretInput ? '' : input;
     if (this.secretInput) return '';
-    if (this.context.confirm) return input;
+    if (this.context.confirm || this.ownContext.consoleLogin) return input;
     try {
       const canonical = this.registry.normalize(
           input.trim(),
@@ -160,7 +283,7 @@ export class TerminalSession {
   }
   help(input: string): string {
     if (this.remote) return this.remote.session ? this.remote.session.help(input) : '';
-    if (this.secretInput || this.context.confirm) return '';
+    if (this.secretInput || this.context.confirm || this.ownContext.consoleLogin) return '';
     try {
       return this.registry.help(input, this.engine.device(this.deviceId), this.context);
     } catch (error) {
@@ -169,7 +292,7 @@ export class TerminalSession {
   }
   complete(input: string): string {
     if (this.remote) return this.remote.session ? this.remote.session.complete(input) : input;
-    if (this.secretInput || this.context.confirm) return input;
+    if (this.secretInput || this.context.confirm || this.ownContext.consoleLogin) return input;
     try {
       return this.registry.complete(input, this.engine.device(this.deviceId), this.context);
     } catch {
@@ -246,6 +369,7 @@ export class TerminalSession {
   execute(input: string): string {
     if (this.remote) return this.executeRemote(input);
     this.lastMark = undefined;
+    this.syncConsole();
     const reloading = this.engine.device(this.deviceId).reloading;
     if (reloading) {
       // The console only shows boot progress until the reload finishes.
@@ -269,6 +393,7 @@ export class TerminalSession {
       return '% Bad secrets';
     }
     if (this.context.confirm) return this.answerReload(input.trim().toLowerCase());
+    if (this.ownContext.consoleLogin) return this.consoleLoginStep(input);
     let line = input.trim();
     // Inside a multi-line banner every line is literal text until the delimiter.
     const banner = !!this.context.banner;
@@ -276,6 +401,19 @@ export class TerminalSession {
     if (line.length > 512 || [...line].some((c) => c.charCodeAt(0) < 32)) return '% Entrada inválida';
     if (!banner && line.startsWith('!')) return '';
     if (!banner && line.endsWith('?')) return this.help(line.slice(0, -1).trimEnd());
+    const device = this.engine.device(this.deviceId);
+    // exit/logout in EXEC ends the console session; the console waits for RETURN.
+    if (
+      !banner &&
+      iosConsole(device) &&
+      !this.ownContext.vtySession &&
+      ['user', 'privileged'].includes(this.context.mode) &&
+      /^(?:exi?t?|logo(?:ut?)?|quit)$/i.test(line)
+    ) {
+      this.endExec();
+      this.ownContext = { mode: 'user', consoleLogin: { stage: 'idle', failures: 0 } };
+      return consoleAvailable(device);
+    }
     const context = { ...this.context };
     let before: StateMark | undefined;
     try {
@@ -310,6 +448,24 @@ export class TerminalSession {
         )
       )
         throw new Error('AAA: comando não autorizado pela política do servidor.');
+      // IOS "aaa authorization commands 15": privilege 15 commands are authorized before they run.
+      const level15 =
+        !banner &&
+        iosConsole(d) &&
+        this.context.mode !== 'user' &&
+        !SESSION_COMMAND.test(authorized) &&
+        !this.registry.userLevel(authorized, d);
+      const audited = redactNetworkSecrets(authorized);
+      if (
+        level15 &&
+        !authorizeCommand(
+          this.engine,
+          d,
+          { console: !this.ownContext.vtySession, user: this.execUser },
+          audited
+        )
+      )
+        return 'Command authorization failed.';
       // Reads and mode changes need no rollback point, protocol refresh or revalidation.
       const readOnly = !banner && READ_ONLY.test(authorized);
       if (!readOnly) before = this.engine.mark();
@@ -332,6 +488,7 @@ export class TerminalSession {
       }
       if (!/^aaa (?:login|logout)(?:\s|$)/i.test(line))
         accountTacacs(this.engine, d, redactNetworkSecrets(line));
+      if (level15) accountCommand(this.engine, this.engine.device(this.deviceId), this.execUser, audited);
       // IOS prints nothing for a successful configuration command.
       if (result === 'OK' && /IOS/.test(this.identity.family)) result = '';
       // "telnet"/"ssh" opened a connection: the login dialog of the remote device follows.
@@ -378,6 +535,7 @@ export class TerminalSession {
     const r = this.remote;
     if (!r) return;
     r.session?.disconnect();
+    r.session?.endExec();
     delete this.remote;
     const origin = this.engine.state.devices.find((d) => d.id === this.deviceId);
     const client = origin?.tcpConnections?.find((c) => c.id === r.v.connection);
@@ -429,6 +587,7 @@ export class TerminalSession {
       mode: privilege >= 15 ? 'privileged' : 'user',
       ...(server ? { vtySession: server.id } : {}),
     };
+    session.beginExec(r.username, r.line);
     r.session = session;
     r.stage = 'open';
     return target.iosSystem?.banners?.exec ?? '';
@@ -449,8 +608,9 @@ export class TerminalSession {
       return '';
     }
     if (r.stage === 'password') {
-      const result = verifyVtyLogin(target, r.line, r.username, input);
-      if (result) return this.openRemote(result.privilege);
+      const result = verifyVtyLogin(this.engine, target, r.line, r.username, input);
+      if (typeof result === 'object') return this.openRemote(result.privilege);
+      if (result === 'unauthorized') return this.closed('% Authorization failed.');
       const telnet = r.v.transport === 'telnet';
       const message = telnet ? '% Login invalid' : '% Authentication failed.';
       if (++r.failures >= 3) return this.closed(message);
@@ -476,7 +636,8 @@ export class TerminalSession {
   /** Whether a line only reads state, so callers can skip undo checkpoints and revalidation. */
   readOnly(input: string): boolean {
     if (this.remote) return this.remote.session ? this.remote.session.readOnly(input) : false;
-    if (this.secretInput || this.context.confirm || this.context.banner) return false;
+    if (this.secretInput || this.context.confirm || this.context.banner || this.ownContext.consoleLogin)
+      return false;
     const trimmed = input.trim();
     let line: string;
     try {

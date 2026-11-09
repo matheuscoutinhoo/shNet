@@ -10,6 +10,7 @@ import { registerTunnelCommands, tunnelRunningConfig } from './tunnel';
 import { registerWirelessCommands, wirelessRunningConfig } from './wireless';
 import { registerIpv6Commands, ipv6RunningConfig } from './ipv6';
 import { registerAcl6Commands, acl6RunningConfig } from './acl6';
+import { registerAaaLoginCommands } from './aaa-login';
 import { registerLayer3Commands, layer3RunningConfig, staticRouteLine } from './layer3';
 import { registerLacpCommands, lacpRunningConfig } from './lacp';
 import { registerBgpCommands, bgpRunningConfig } from './bgp';
@@ -125,6 +126,7 @@ export function makeRegistry() {
   registerVxlanCommands(r);
   registerIpv6Commands(r);
   registerAcl6Commands(r);
+  registerAaaLoginCommands(r);
   registerLayer3Commands(r);
   registerLacpCommands(r);
   registerDhcpCommands(r);
