@@ -4,6 +4,7 @@ import { databaseConfigSchema } from './protocols/database-model';
 import { discoveryConfigSchema } from './protocols/discovery-model';
 import { hsrpGroupConfigSchema } from './protocols/hsrp-model';
 import { eigrpConfigSchema } from './protocols/eigrp-model';
+import { ospf3ConfigSchema } from './protocols/ospf3-model';
 function pick(value: unknown, keys: string[]) {
   return value && typeof value === 'object'
     ? Object.fromEntries(Object.entries(value).filter(([key]) => keys.includes(key)))
@@ -111,68 +112,70 @@ function configuration(value: unknown): unknown {
             ? configuration(pick(val, ['mode', 'intervalMs']))
             : key === 'eigrp'
               ? configuration(pick(val, Object.keys(eigrpConfigSchema.shape)))
-              : key === 'monitoring' &&
-                  val &&
-                  typeof val === 'object' &&
-                  'operations' in val &&
-                  'tracks' in val
-                ? configuration({
-                    operations: (val.operations as unknown[]).map((o) =>
-                      pick(o, ['id', 'target', 'sourcePort', 'timeoutMs', 'frequencyMs', 'scheduled'])
-                    ),
-                    tracks: (val.tracks as unknown[]).map((t) =>
-                      pick(t, ['id', 'kind', 'operation', 'port'])
-                    ),
-                  })
-                : key === 'discovery'
-                  ? configuration(pick(val, Object.keys(discoveryConfigSchema.shape)))
-                  : key === 'hsrp' &&
-                      val &&
-                      typeof val === 'object' &&
-                      'groups' in val &&
-                      Array.isArray(val.groups)
-                    ? configuration({
-                        groups: val.groups.map((g: unknown) =>
-                          pick(g, Object.keys(hsrpGroupConfigSchema.shape))
-                        ),
-                      })
-                    : key === 'plcProcess'
-                      ? configuration(pick(val, Object.keys(plcProcessConfigSchema.shape)))
-                      : key === 'databaseClient'
-                        ? configuration(pick(val, ['config']))
-                        : key === 'databaseHa'
-                          ? true
-                          : key === 'database' && 'databaseHa' in value
-                            ? configuration(pick(val, Object.keys(databaseConfigSchema.shape)))
-                            : key === 'quorum'
-                              ? configuration(pick(val, ['ports']))
-                              : key === 'dhcpHa'
-                                ? configuration(pick(val, ['peer', 'port', 'role']))
-                                : key === 'hmiScan'
-                                  ? configuration(pick(val, Object.keys(hmiScanConfigSchema.shape)))
-                                  : key === 'bond'
-                                    ? configuration(pick(val, ['number', 'members', 'primary', 'monitor']))
-                                    : key === 'modbus' && 'plcProcess' in value
-                                      ? configuration(processBanks(val, value.plcProcess))
-                                      : key === 'stateSync' && val && typeof val === 'object'
-                                        ? Object.fromEntries(
-                                            Object.entries(val).filter(([k]) =>
-                                              ['peer', 'port', 'portMap'].includes(k)
-                                            )
-                                          )
-                                        : key === 'spanningTree' && val && typeof val === 'object'
+              : key === 'ospf3'
+                ? configuration(pick(val, Object.keys(ospf3ConfigSchema.shape)))
+                : key === 'monitoring' &&
+                    val &&
+                    typeof val === 'object' &&
+                    'operations' in val &&
+                    'tracks' in val
+                  ? configuration({
+                      operations: (val.operations as unknown[]).map((o) =>
+                        pick(o, ['id', 'target', 'sourcePort', 'timeoutMs', 'frequencyMs', 'scheduled'])
+                      ),
+                      tracks: (val.tracks as unknown[]).map((t) =>
+                        pick(t, ['id', 'kind', 'operation', 'port'])
+                      ),
+                    })
+                  : key === 'discovery'
+                    ? configuration(pick(val, Object.keys(discoveryConfigSchema.shape)))
+                    : key === 'hsrp' &&
+                        val &&
+                        typeof val === 'object' &&
+                        'groups' in val &&
+                        Array.isArray(val.groups)
+                      ? configuration({
+                          groups: val.groups.map((g: unknown) =>
+                            pick(g, Object.keys(hsrpGroupConfigSchema.shape))
+                          ),
+                        })
+                      : key === 'plcProcess'
+                        ? configuration(pick(val, Object.keys(plcProcessConfigSchema.shape)))
+                        : key === 'databaseClient'
+                          ? configuration(pick(val, ['config']))
+                          : key === 'databaseHa'
+                            ? true
+                            : key === 'database' && 'databaseHa' in value
+                              ? configuration(pick(val, Object.keys(databaseConfigSchema.shape)))
+                              : key === 'quorum'
+                                ? configuration(pick(val, ['ports']))
+                                : key === 'dhcpHa'
+                                  ? configuration(pick(val, ['peer', 'port', 'role']))
+                                  : key === 'hmiScan'
+                                    ? configuration(pick(val, Object.keys(hmiScanConfigSchema.shape)))
+                                    : key === 'bond'
+                                      ? configuration(pick(val, ['number', 'members', 'primary', 'monitor']))
+                                      : key === 'modbus' && 'plcProcess' in value
+                                        ? configuration(processBanks(val, value.plcProcess))
+                                        : key === 'stateSync' && val && typeof val === 'object'
                                           ? Object.fromEntries(
                                               Object.entries(val).filter(([k]) =>
-                                                [
-                                                  'enabled',
-                                                  'mode',
-                                                  'priority',
-                                                  'stpEdge',
-                                                  'stpCost',
-                                                ].includes(k)
+                                                ['peer', 'port', 'portMap'].includes(k)
                                               )
                                             )
-                                          : configuration(val),
+                                          : key === 'spanningTree' && val && typeof val === 'object'
+                                            ? Object.fromEntries(
+                                                Object.entries(val).filter(([k]) =>
+                                                  [
+                                                    'enabled',
+                                                    'mode',
+                                                    'priority',
+                                                    'stpEdge',
+                                                    'stpCost',
+                                                  ].includes(k)
+                                                )
+                                              )
+                                            : configuration(val),
       ])
   );
 }

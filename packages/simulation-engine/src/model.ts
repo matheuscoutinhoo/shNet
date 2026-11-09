@@ -201,6 +201,8 @@ import { ripMessageSchema, ripStateSchema, ripTimerSchema } from './protocols/ri
 export * from './protocols/rip-model';
 import { eigrpPacketSchema, eigrpStateSchema, eigrpTimerSchema } from './protocols/eigrp-model';
 export * from './protocols/eigrp-model';
+import { ospf3StateSchema, ospf3TimerSchema } from './protocols/ospf3-model';
+export * from './protocols/ospf3-model';
 import { snmpAgentSchema, snmpMessageSchema, snmpQuerySchema, snmpTimerSchema } from './protocols/snmp-model';
 import {
   syslogClientSchema,
@@ -1245,6 +1247,7 @@ export const deviceSchema = z
     ospf: ospfStateSchema.optional(),
     rip: ripStateSchema.optional(),
     eigrp: eigrpStateSchema.optional(),
+    ospf3: ospf3StateSchema.optional(),
     vrrp: vrrpStateSchema.optional(),
     bgp: bgpStateSchema.optional(),
     snmpAgent: snmpAgentSchema.optional(),
@@ -1577,6 +1580,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   ospfTimerSchema,
   ripTimerSchema,
   eigrpTimerSchema,
+  ospf3TimerSchema,
   vrrpTimerSchema,
   bgpTimerSchema,
   snmpTimerSchema,

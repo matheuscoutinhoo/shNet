@@ -356,27 +356,42 @@ export function Timeline({
                   <dd>{ipv6Messages[event.frame.ipv6.kind]}</dd>
                   <dt>Tamanho</dt>
                   <dd>{event.frame.ipv6.bytes} bytes</dd>
-                  {event.frame.ipv6.target && (
+                  {event.frame.ipv6.protocol === 'ICMPv6' && event.frame.ipv6.target && (
                     <>
                       <dt>Alvo NDP</dt>
                       <dd>{event.frame.ipv6.target}</dd>
                     </>
                   )}
-                  {event.frame.ipv6.mtu && (
+                  {event.frame.ipv6.protocol === 'ICMPv6' && event.frame.ipv6.mtu && (
                     <>
                       <dt>MTU anunciada</dt>
                       <dd>{event.frame.ipv6.mtu}</dd>
                     </>
                   )}
+                  {event.frame.ipv6.protocol === 'OSPFv3' && (
+                    <>
+                      <dt>Router ID</dt>
+                      <dd>{event.frame.ipv6.routerId}</dd>
+                      <dt>Area</dt>
+                      <dd>{event.frame.ipv6.area}</dd>
+                      <dt>OSPFv3</dt>
+                      <dd>
+                        {event.frame.ipv6.message.type === 'hello'
+                          ? `Hello · DR ${event.frame.ipv6.message.dr} · BDR ${event.frame.ipv6.message.bdr} · ${event.frame.ipv6.message.neighbors.length} vizinho(s)`
+                          : `LS Update · ${event.frame.ipv6.message.lsas.length} LSA(s)`}
+                      </dd>
+                    </>
+                  )}
                 </PacketFields>
-                {event.frame.ipv6.prefixes?.map((p) => (
-                  <p key={p.network}>
-                    {p.network}/{p.prefix} · Rede neste enlace: {p.onLink ? 'sim' : 'não'} · Permite SLAAC:{' '}
-                    {p.autonomous ? 'sim' : 'não'} · Endereço válido por {p.validMs / 1000} s e preferido para
-                    novas comunicações por {p.preferredMs / 1000} s
-                  </p>
-                ))}
-                {event.frame.ipv6.quote && (
+                {event.frame.ipv6.protocol === 'ICMPv6' &&
+                  event.frame.ipv6.prefixes?.map((p) => (
+                    <p key={p.network}>
+                      {p.network}/{p.prefix} · Rede neste enlace: {p.onLink ? 'sim' : 'não'} · Permite SLAAC:{' '}
+                      {p.autonomous ? 'sim' : 'não'} · Endereço válido por {p.validMs / 1000} s e preferido
+                      para novas comunicações por {p.preferredMs / 1000} s
+                    </p>
+                  ))}
+                {event.frame.ipv6.protocol === 'ICMPv6' && event.frame.ipv6.quote && (
                   <p>
                     Pacote citado: {event.frame.ipv6.quote.src} → {event.frame.ipv6.quote.dst}
                   </p>

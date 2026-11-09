@@ -12,6 +12,7 @@ import { receiveTcpMtu } from './tcp-pmtud';
 import { permitIds } from './ids';
 import { receiveUdp6 } from './udp6';
 import { permitFirewall6 } from './firewall6';
+import { receiveOspf3 } from './ospf3';
 
 export function configureRoute6(e: SimulationEngine, d: Device, input: unknown, remove = false) {
   const r = route6Schema.parse(input),
@@ -180,6 +181,10 @@ export function receiveIp6(
   if (packet && !permitIds(e, d, p, packet)) return;
   if (!packet || !p.ipv6 || !interfaceUp(d, p)) return;
   if (inbound && !permit6(e, d, p, 'in', packet)) return;
+  if (packet.protocol === 'OSPFv3') {
+    if (inbound) receiveOspf3(e, d, p, packet, frame.src);
+    return;
+  }
   if (receiveNdp(e, d, p, frame)) return;
   if (
     packet.protocol === 'UDP' &&

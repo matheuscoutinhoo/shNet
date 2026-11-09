@@ -16,6 +16,7 @@ import { multiSpanningTreeConfigSchema } from './model';
 import { ospfConfigSchema } from './protocols/ospf-model';
 import { ripConfigSchema } from './protocols/rip-model';
 import { eigrpConfigSchema } from './protocols/eigrp-model';
+import { ospf3ConfigSchema } from './protocols/ospf3-model';
 import {
   dhcp6ServerConfigSchema,
   dhcp6ClientConfigSchema,
@@ -69,6 +70,7 @@ export const configurationSchemas = {
   ospf: ospfConfigSchema,
   rip: ripConfigSchema,
   eigrp: eigrpConfigSchema,
+  ospf3: ospf3ConfigSchema,
   dhcp6: {
     client: dhcp6ClientConfigSchema,
     server: dhcp6ServerConfigSchema,

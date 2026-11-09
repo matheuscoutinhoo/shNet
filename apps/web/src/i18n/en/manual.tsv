@@ -177,3 +177,6 @@ asmeqhca	Nbr {0}: Prepare dbase exchange
 y0pdmmxo	Xmit Queue PeerQ Mean Pacing Time Multicast Pending
 vkyq92mj	Topology : 0 (base)
 i7yrmszl	holding time expired
+0oh7sae9	OSPFv3 packet exchanged between routers on the same link
+fgu54bzf	Hello · DR {0} · BDR {1} · {2} neighbor(s)
+l8nnp08j	ADV Router Age Seq# Fragment ID Link count Bits

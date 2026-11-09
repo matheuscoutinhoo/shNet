@@ -4,6 +4,7 @@ import { linkLocal6, network6, normalize6 } from '../protocols/ipv6-address';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 import { interfaceName } from './operational';
 import { findInterface } from '../protocols/interface-name';
+import { showIpv6Interface, showIpv6InterfaceBrief, showIpv6Neighbors, showIpv6Route } from './ipv6-show';
 function cidr(value: string) {
   const [ip, mask] = value.split('/'),
     prefix = Number(mask);
@@ -154,7 +155,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
   });
   r.register({
     pattern:
-      /^ipv6 traffic-filter (in|out) (permit|deny) (any|echo-request|echo-reply|ndp|error) (\S+) (\S+)$/i,
+      /^ipv6 traffic-filter (in|out) (permit|deny) (any|echo-request|echo-reply|ndp|error|ospf) (\S+) (\S+)$/i,
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c),
@@ -258,64 +259,37 @@ export function registerIpv6Commands(r: CommandRegistry) {
       Array.from({ length: 8 }, (_, i) => `${i + 1}: ${e.ping6(d.id, m[1], i + 1, m[2])}`).join('\n'),
   });
   r.register({
-    pattern: /^show ipv6 (interface|neighbors|route|probes)$/i,
+    pattern: /^show ipv6 route(?: vrf (\S+))?(?: (connected|local|static|ospf))?$/i,
+    syntax: ['show ipv6 route [vrf NAME] [connected|local|static|ospf]'],
     modes: ALL_MODES,
-    run: (m, e, d) => {
-      switch (m[1].toLowerCase()) {
-        case 'interface':
-          return (
-            d.interfaces
-              .filter((p) => p.ipv6)
-              .map(
-                (p) =>
-                  p.name +
-                  ' VRF=' +
-                  (p.vrf ?? 'default') +
-                  '\n' +
-                  p.ipv6!.addresses.map((a) => `${a.ip}/${a.prefix} ${a.origin} ${a.state}`).join('\n') +
-                  '\n' +
-                  p.ipv6!.routers.map((r) => `RA default via ${r.ip}`).join('\n')
-              )
-              .join('\n') || 'IPv6 não configurado'
-          );
-        case 'neighbors':
-          return (
-            [
-              ...(d.neighbors6?.map(
-                (n) => `${n.ip} ${n.mac} ${n.port} ${n.state ?? 'REACHABLE'} expires=${n.expiresAt}`
-              ) ?? []),
-              ...(d.resolutions6?.map((r) => `${r.ip} ${r.port} INCOMPLETE ${r.attempts}/3`) ?? []),
-            ].join('\n') || 'Sem vizinhos NDP'
-          );
-        case 'route':
-          return (
-            [
-              ...d.interfaces
-                .filter((p) => p.ipv6)
-                .flatMap((p) =>
-                  p
-                    .ipv6!.addresses.filter((a) => a.onLink && ['preferred', 'deprecated'].includes(a.state))
-                    .map(
-                      (a) => `C ${network6(a.ip, a.prefix)}/${a.prefix} ${p.name} VRF=${p.vrf ?? 'default'}`
-                    )
-                ),
-              ...(d.routes6 ?? []).map(
-                (r) => `S ${r.network}/${r.prefix} via ${r.nextHop} ${r.port} VRF=${r.vrf ?? 'default'}`
-              ),
-              ...d.interfaces.flatMap(
-                (p) => p.ipv6?.routers.map((r) => `RA ::/0 via ${r.ip} ${p.name}`) ?? []
-              ),
-            ].join('\n') || 'Sem rotas IPv6'
-          );
-        default:
-          return (
-            e.state.probes6
-              ?.filter((p) => p.device === d.id)
-              .map((p) => `${p.id} ${p.target} ${p.status} ${p.rtt ?? '-'} ms${p.mtu ? ' MTU=' + p.mtu : ''}`)
-              .join('\n') || 'Sem probes IPv6'
-          );
-      }
-    },
+    run: (m, e, d) => showIpv6Route(e, d, m[2]?.toLowerCase(), m[1]),
+  });
+  r.register({
+    pattern: /^show ipv6 interface brief$/i,
+    syntax: 'show ipv6 interface brief',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showIpv6InterfaceBrief(e, d),
+  });
+  r.register({
+    pattern: /^show ipv6 interface(?: (.+))?$/i,
+    syntax: 'show ipv6 interface [interface]',
+    modes: ALL_MODES,
+    run: (m, e, d) => showIpv6Interface(e, d, m[1]?.trim()),
+  });
+  r.register({
+    pattern: /^show ipv6 neighbors$/i,
+    syntax: 'show ipv6 neighbors',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showIpv6Neighbors(e, d),
+  });
+  r.register({
+    pattern: /^show ipv6 probes$/i,
+    modes: ALL_MODES,
+    run: (_m, e, d) =>
+      e.state.probes6
+        ?.filter((p) => p.device === d.id)
+        .map((p) => `${p.id} ${p.target} ${p.status} ${p.rtt ?? '-'} ms${p.mtu ? ' MTU=' + p.mtu : ''}`)
+        .join('\n') || 'Sem probes IPv6',
   });
 }
 export function ipv6RunningConfig(d: Device) {

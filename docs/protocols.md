@@ -214,6 +214,31 @@ show ip route eigrp
 
 Limites: somente IPv4 no modo clássico (`router eigrp AS`); modo nomeado, métricas wide, IPv6, leak-maps, filtros `distribute-list` e sumarização automática não são modelados. A troca INIT é simplificada (o roteador envia a tabela completa ao formar a adjacência). Os pacotes têm codec binário conforme a [RFC 7868](https://www.rfc-editor.org/rfc/rfc7868.html) para captura pcap.
 
+## OSPFv3 (IPv6)
+
+OSPFv3 exige `ipv6 unicast-routing` (sem ele o IOS responde `% IPv6 routing not enabled`). `ipv6 ospf PID area A` na interface habilita o processo, criando `ipv6 router ospf PID` quando ele ainda não existe, como no IOS. O router ID vem de `router-id`, senão do maior IPv4 de loopback (ou de qualquer interface); sem nenhum, o processo não sobe e registra `%OSPFv3-4-NORTRID`. O router ID é fixado ao iniciar o processo; `clear ipv6 ospf process` o escolhe de novo.
+
+Hellos saem do endereço link-local para FF02::5 (próximo cabeçalho 89, hop limit 1) a cada 10 s, com dead de 40 s (`ipv6 ospf hello-interval`/`dead-interval`; mudar o hello ajusta o dead para 4 hellos). Hello/dead divergentes e área diferente impedem a adjacência. Em enlaces broadcast há eleição de DR/BDR sem preempção após a espera de um dead interval (`ipv6 ospf priority`, 0 = inelegível); adjacências FULL se formam com DR e BDR e os demais ficam em 2WAY. `ipv6 ospf network point-to-point` dispensa a eleição. Mudanças de adjacência geram `%OSPFv3-5-ADJCHG` (`from LOADING to FULL, Loading Done`, `from FULL to DOWN, Neighbor Down: Dead timer expired`/`Interface down or detached`).
+
+Cada roteador origina Router LSAs (vizinhos e custos), Intra-Area-Prefix LSAs (prefixos das interfaces ativas; loopbacks como /128, salvo com `ipv6 ospf network point-to-point`) e, quando é ABR (interfaces ativas na área 0 e em outra área), Inter-Area-Prefix LSAs com as rotas das demais áreas. O SPF por área usa apenas enlaces bidirecionais; rotas intra-área (O) têm preferência sobre inter-área (OI), com distância 110, próximo salto link-local e até `maximum-paths` caminhos de mesmo custo. O custo é `ipv6 ospf cost` ou `auto-cost reference-bandwidth` (100 Mbit/s) dividido pela banda da interface. `passive-interface [default]` mantém o prefixo anunciado sem hellos.
+
+```text
+ipv6 unicast-routing
+interface GigabitEthernet0/1
+ ipv6 address 2001:DB8:12::1/64
+ ipv6 ospf 1 area 0
+ ipv6 ospf priority 10
+ipv6 router ospf 1
+ router-id 1.1.1.1
+show ipv6 ospf neighbor
+show ipv6 ospf interface brief
+show ipv6 ospf
+show ipv6 ospf database
+show ipv6 route [ospf|connected|local|static]
+```
+
+`show ipv6 route` segue o formato do IOS (códigos C, L, S, O, OI, ND; distância/métrica e `via`). Limites: um processo por roteador, sem address-families IPv4, stub/NSSA, LSAs externas (redistribuição), virtual links, autenticação IPsec nem Link LSAs; a troca de banco de dados é condensada (a adjacência recebe o banco inteiro da área em LS Updates). Os pacotes têm codec binário conforme a [RFC 5340](https://www.rfc-editor.org/rfc/rfc5340.html).
+
 ## running-config e startup-config
 
 `show running-config` imprime o texto do IOS: cabeçalho `Building configuration...`, `version`, `!` entre blocos, nomes completos de interface e `end`. Valores padrão não aparecem (`no shutdown`, VLAN 1 de acesso/nativa, trunk com todas as VLANs, timers CDP/LLDP, prioridade e timers de VRRP); interfaces roteadas sem IPv4 mostram `no ip address` e as linhas `line con 0`/`line vty` aparecem sempre. ACLs numeradas aparecem na forma `access-list N ...`. A NVRAM guarda o mesmo texto sem o cabeçalho; ao iniciar, linhas na margem esquerda voltam ao modo global, de modo que colar um `show running-config` reconstrói a configuração.

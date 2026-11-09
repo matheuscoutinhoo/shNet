@@ -9,6 +9,7 @@ import { encodeDiscovery, decodeDiscovery } from './discovery-codec';
 import { encodeHsrp, decodeHsrp } from './hsrp-codec';
 import { encodeOspf, decodeOspf } from './ospf-codec';
 import { encodeEigrp, decodeEigrp } from './eigrp-codec';
+import { encodeOspf3, decodeOspf3 } from './ospf3-codec';
 import { encodeBfd, decodeBfd } from './bfd-codec';
 import { encodeLacp, decodeLacp } from './lacp-codec';
 import { encodeEapol, decodeEapol } from './eapol-codec';
@@ -411,6 +412,9 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
     } else if (p.protocol === 'ICMPv6') {
       protocol = 58;
       transport = icmp6(p);
+    } else if (p.protocol === 'OSPFv3') {
+      protocol = 89;
+      transport = encodeOspf3(p);
     } else {
       protocol = 17;
       const d = p.datagram,
@@ -449,6 +453,7 @@ export interface DecodedEthernet {
   discovery?: ReturnType<typeof decodeDiscovery>;
   ospf?: ReturnType<typeof decodeOspf>;
   eigrp?: ReturnType<typeof decodeEigrp>;
+  ospf3?: ReturnType<typeof decodeOspf3>;
   lacp?: ReturnType<typeof decodeLacp>;
   eapol?: ReturnType<typeof decodeEapol>;
   udld?: ReturnType<typeof decodeUdld>;
@@ -678,6 +683,8 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
     }
   } else if (r.protocol === 89 && r.family === 4) {
     r.ospf = decodeOspf(body);
+  } else if (r.protocol === 89 && r.family === 6) {
+    r.ospf3 = decodeOspf3(body, r.src!, r.dst!);
   } else if (r.protocol === 88 && r.family === 4) {
     r.eigrp = decodeEigrp(body);
   } else if (r.protocol === 47 && r.family === 4) {

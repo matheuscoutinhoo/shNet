@@ -263,6 +263,7 @@ import {
 import { OSPF } from '../protocols/ospf-model';
 import { configureRip, handleRipTick } from '../protocols/rip';
 import { configureEigrp, handleEigrpTick } from '../protocols/eigrp';
+import { configureOspf3, handleOspf3Tick } from '../protocols/ospf3';
 import { RIP } from '../protocols/rip-model';
 import { EIGRP } from '../protocols/eigrp-model';
 import { logLineProtocolChanges, noteLineProtocol } from '../protocols/line-protocol';
@@ -1375,6 +1376,9 @@ export class SimulationEngine {
   configureEigrp(deviceId: string, input: unknown) {
     configureEigrp(this, this.device(deviceId), input);
   }
+  configureOspf3(deviceId: string, input: unknown) {
+    configureOspf3(this, this.device(deviceId), input);
+  }
   openTcp(
     deviceId: string,
     target: string,
@@ -2020,6 +2024,7 @@ export class SimulationEngine {
     else if (a.kind === 'ospf-tick') handleOspfTick(this, a);
     else if (a.kind === 'rip-tick') handleRipTick(this, a);
     else if (a.kind === 'eigrp-tick') handleEigrpTick(this, a);
+    else if (a.kind === 'ospf3-tick') handleOspf3Tick(this, a);
     else if (a.kind === 'vrrp-timer') handleVrrpTimer(this, a);
     else if (a.kind === 'bgp-tick') handleBgpTick(this, a);
     else if (a.kind === 'firewall-expire') expireFirewall(this, this.device(a.device), a.session, a.at);

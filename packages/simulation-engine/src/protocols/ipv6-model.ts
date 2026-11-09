@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ipv6Schema } from './ipv6-address';
 import { tcpPacketSchema } from './tcp-model';
 import { udp6DatagramSchema, udp6PayloadBytes } from './udp6-model';
+import { ospf3PacketSchema } from './ospf3-model';
 const id = z.string().min(1).max(80),
   time = z.number().finite().nonnegative();
 const mac = z.string().regex(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i);
@@ -37,7 +38,7 @@ export const acl6RuleSchema = z
     sourcePrefix: z.number().int().min(0).max(128),
     destination: ipv6Schema,
     destinationPrefix: z.number().int().min(0).max(128),
-    kind: z.enum(['any', 'echo-request', 'echo-reply', 'ndp', 'error', 'tcp', 'udp']),
+    kind: z.enum(['any', 'echo-request', 'echo-reply', 'ndp', 'error', 'tcp', 'udp', 'ospf']),
     hits: z.number().int().nonnegative().default(0),
   })
   .strict();
@@ -158,7 +159,12 @@ const udp6Schema = z
   .object({ ...transport6, protocol: z.literal('UDP'), kind: z.literal('udp'), datagram: udp6DatagramSchema })
   .strict()
   .refine((p) => p.bytes === 48 + udp6PayloadBytes(p.datagram.payload), 'Tamanho UDP/IPv6 inconsistente.');
-export const packet6Schema = z.discriminatedUnion('protocol', [icmp6Schema, tcp6Schema, udp6Schema]);
+export const packet6Schema = z.discriminatedUnion('protocol', [
+  icmp6Schema,
+  tcp6Schema,
+  udp6Schema,
+  ospf3PacketSchema,
+]);
 export const route6Schema = z
   .object({
     network: ipv6Schema,
