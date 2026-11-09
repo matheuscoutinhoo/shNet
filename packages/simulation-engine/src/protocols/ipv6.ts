@@ -90,7 +90,7 @@ export function sendIp6(
     { port: route.port.id }
   );
   if (ingress && !permitFirewall6(e, d, ingress, route.port, packet)) return;
-  if (!permit6(e, d, route.port, 'out', packet)) return;
+  if (!permit6(e, d, route.port, 'out', packet, !!ingress)) return;
   if (packet.bytes > route.port.mtu) {
     e.drop(d, 'IPv6: pacote excede MTU ' + route.port.mtu + '; roteador não fragmenta.', route.port.id);
     if (ingress) error6(e, d, ingress, packet, 'packet-too-big', route.port.mtu);

@@ -4,14 +4,21 @@ import { LIMITS } from '../model';
 import { multicast6, multicastMac6, sameSubnet6, solicitedNode6 } from './ipv6-address';
 import { source6 } from './ipv6-routing';
 import { interfaceOperational } from './layer3';
+import { filter6 } from './acl6';
 
 export function permit6(
   e: SimulationEngine,
   d: Device,
   p: NetworkInterface,
   direction: 'in' | 'out',
-  packet: Packet6
+  packet: Packet6,
+  forwarded = false
 ) {
+  // IOS outbound ACLs do not filter traffic the router originates itself.
+  if (direction === 'in' || forwarded) {
+    const named = filter6(e, d, p, direction, packet);
+    if (named !== undefined) return named;
+  } else if (p.ipv6FilterOut) return true;
   const rules = direction === 'in' ? p.ipv6?.aclIn : p.ipv6?.aclOut;
   if (!rules?.length) return true;
   const kind = ['ns', 'na', 'rs', 'ra'].includes(packet.kind)

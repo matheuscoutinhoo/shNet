@@ -5,6 +5,7 @@ import type { SimulationEngine } from '../core/engine';
 import { ipNumber, ipString, mask, parsePrefix, sameSubnet } from '../protocols/ipv4';
 import { syncNat } from '../protocols/state-sync';
 import { registerNativeAclCommands, aclEntryText, aclRunningLines } from './acl';
+import { showIpv6AccessLists } from './acl6';
 import { interfaceName, longInterfaceName } from './operational';
 
 export function policyNetwork(value: string) {
@@ -201,7 +202,14 @@ export function registerPolicyCommands(registry: CommandRegistry) {
       'show ip access-lists <name>',
     ],
     modes: ALL_MODES,
-    run: (match, _engine, device) => showAccessLists(device, match[1]) || 'Nenhuma ACL',
+    run: (match, _engine, device) =>
+      [
+        showAccessLists(device, match[1]),
+        // "show ip access-lists" is IPv4 only; "show access-lists" also lists IPv6 ACLs.
+        /^show access-lists/i.test(match[0]) ? showIpv6AccessLists(device, match[1]) : '',
+      ]
+        .filter(Boolean)
+        .join('\n') || 'Nenhuma ACL',
   });
   registry.register({
     pattern: /^show ip nat translations(?: (verbose))?$/i,

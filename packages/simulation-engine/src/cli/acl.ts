@@ -3,7 +3,7 @@ import { ipNumber, ipString, mask, parsePrefix, subnet } from '../protocols/ipv4
 import type { CommandRegistry } from './registry';
 
 // IOS port keywords; show commands print these names instead of the numbers.
-const TCP_PORTS: Record<string, number> = {
+export const TCP_PORTS: Record<string, number> = {
   bgp: 179,
   chargen: 19,
   cmd: 514,
@@ -36,7 +36,7 @@ const TCP_PORTS: Record<string, number> = {
   whois: 43,
   www: 80,
 };
-const UDP_PORTS: Record<string, number> = {
+export const UDP_PORTS: Record<string, number> = {
   biff: 512,
   bootpc: 68,
   bootps: 67,
@@ -66,7 +66,7 @@ const UDP_PORTS: Record<string, number> = {
   xdmcp: 177,
 };
 // Accepted as input for convenience; IOS prints these ports as numbers.
-const PORT_ALIASES: Record<string, number> = { http: 80, https: 443, ssh: 22 };
+export const PORT_ALIASES: Record<string, number> = { http: 80, https: 443, ssh: 22 };
 // IOS ICMP message keywords: [type] or [type, code].
 const ICMP_TYPES: Record<string, [number, number?]> = {
   'administratively-prohibited': [3, 13],

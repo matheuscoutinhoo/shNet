@@ -86,6 +86,7 @@ export class TerminalSession {
       router: '(config-router)#',
       'address-family': '(config-router-af)#',
       acl: this.context.aclType === 'standard' ? '(config-std-nacl)#' : '(config-ext-nacl)#',
+      'ipv6-acl': '(config-ipv6-acl)#',
       line: '(config-line)#',
       vrf: '(config-vrf)#',
       mst: '(config-mst)#',

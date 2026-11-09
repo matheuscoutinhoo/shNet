@@ -279,6 +279,11 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       implicitDrops: 0,
       rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
     }));
+  if (d.ipv6AccessLists)
+    copy.ipv6AccessLists = structuredClone(d.ipv6AccessLists).map((acl) => ({
+      ...acl,
+      rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
+    }));
   if (d.dnsServer) copy.dnsServer = structuredClone(d.dnsServer);
   if (d.tcpServices)
     copy.tcpServices = structuredClone(d.tcpServices).filter(

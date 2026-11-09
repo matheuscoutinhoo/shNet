@@ -14,6 +14,7 @@ export type Mode =
   | 'router'
   | 'address-family'
   | 'acl'
+  | 'ipv6-acl'
   | 'line'
   | 'vrf'
   | 'mst'
@@ -49,6 +50,7 @@ export const CONFIG_MODES: Mode[] = [
   'router',
   'address-family',
   'acl',
+  'ipv6-acl',
   'line',
   'vrf',
   'mst',

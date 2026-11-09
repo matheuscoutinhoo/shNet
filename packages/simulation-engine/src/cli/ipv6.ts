@@ -5,6 +5,7 @@ import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './re
 import { interfaceName } from './operational';
 import { findInterface } from '../protocols/interface-name';
 import { showIpv6Interface, showIpv6InterfaceBrief, showIpv6Neighbors, showIpv6Route } from './ipv6-show';
+import { acl6InterfaceLines } from './acl6';
 function cidr(value: string) {
   const [ip, mask] = value.split('/'),
     prefix = Number(mask);
@@ -307,26 +308,27 @@ export function ipv6RunningConfig(d: Device) {
     ...(d.udp6Services?.map((s) => `${s.enabled ? '' : 'no '}service udp6 echo ${s.port}`) ?? []),
     ...(d.ipv6Routing ? ['ipv6 unicast-routing'] : []),
     ...d.interfaces
-      .filter((p) => p.ipv6)
+      .filter((p) => p.ipv6 || p.ipv6FilterIn || p.ipv6FilterOut)
       .flatMap((p) => [
         'interface ' + p.name,
-        ' ipv6 enable',
+        ...(p.ipv6 ? [' ipv6 enable'] : []),
         ...(p.dhcp6
           ? [
               ` ${p.dhcp6.enabled ? '' : 'no '}ipv6 dhcp client ${p.dhcp6.requestAddress ? (p.dhcp6.requestPrefix ? 'both' : 'address') : 'prefix'}${p.dhcp6.delegatePort ? ' delegate ' + d.interfaces.find((v) => v.id === p.dhcp6!.delegatePort)!.name : ''}${p.dhcp6.rapidCommit ? ' rapid-commit' : ''}`,
             ]
           : []),
-        ...(p.ipv6!.auto ? [' ipv6 address autoconfig'] : []),
-        ...p
-          .ipv6!.addresses.filter((a) => a.origin === 'static')
-          .map((a) => ` ipv6 address ${a.ip}/${a.prefix}`),
-        ...(p.ipv6!.ra?.prefixes.map(
+        ...(p.ipv6?.auto ? [' ipv6 address autoconfig'] : []),
+        ...(p.ipv6?.addresses
+          .filter((a) => a.origin === 'static')
+          .map((a) => ` ipv6 address ${a.ip}/${a.prefix}`) ?? []),
+        ...(p.ipv6?.ra?.prefixes.map(
           (a) =>
             ` ipv6 nd prefix ${a.network}/${a.prefix} valid ${a.validMs / 1000} preferred ${a.preferredMs / 1000}`
         ) ?? []),
+        ...acl6InterfaceLines(p),
         ...(['aclIn', 'aclOut'] as const).flatMap(
           (key) =>
-            p.ipv6![key]?.map(
+            p.ipv6?.[key]?.map(
               (r) =>
                 ` ipv6 traffic-filter ${key === 'aclIn' ? 'in' : 'out'} ${r.action} ${r.kind} ${r.source}/${r.sourcePrefix} ${r.destination}/${r.destinationPrefix}`
             ) ?? []

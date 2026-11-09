@@ -9,6 +9,7 @@ import { registerForwardingCommands, forwardingRunningConfig } from './forwardin
 import { registerTunnelCommands, tunnelRunningConfig } from './tunnel';
 import { registerWirelessCommands, wirelessRunningConfig } from './wireless';
 import { registerIpv6Commands, ipv6RunningConfig } from './ipv6';
+import { registerAcl6Commands, acl6RunningConfig } from './acl6';
 import { registerLayer3Commands, layer3RunningConfig, staticRouteLine } from './layer3';
 import { registerLacpCommands, lacpRunningConfig } from './lacp';
 import { registerBgpCommands, bgpRunningConfig } from './bgp';
@@ -123,6 +124,7 @@ export function makeRegistry() {
   registerForwardingCommands(r);
   registerVxlanCommands(r);
   registerIpv6Commands(r);
+  registerAcl6Commands(r);
   registerLayer3Commands(r);
   registerLacpCommands(r);
   registerDhcpCommands(r);
@@ -615,6 +617,7 @@ export function makeRegistry() {
           ...aaaRunningConfig(d),
           ...vxlanRunningConfig(d),
           ...policyRunningConfig(d).filter((line) => !/^(?:no )?(?:ip nat|service nat)/.test(line)),
+          ...acl6RunningConfig(d),
           ...stateSyncRunningConfig(_e.state, d),
           // VLANs live in vlan.dat; IOS lists them in running-config only in VTP transparent/off mode.
           ...(d.type === 'switch' && ['transparent', 'off'].includes(d.iosSystem?.vtp?.mode ?? '')

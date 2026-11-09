@@ -42,6 +42,50 @@ export const acl6RuleSchema = z
     hits: z.number().int().nonnegative().default(0),
   })
   .strict();
+const acl6PortSchema = z
+  .object({
+    op: z.enum(['eq', 'neq', 'gt', 'lt', 'range']),
+    port: z.number().int().min(0).max(65535),
+    end: z.number().int().min(0).max(65535).optional(),
+  })
+  .strict();
+export const ACL6_ICMP_TYPES = [
+  'echo-request',
+  'echo-reply',
+  'nd-ns',
+  'nd-na',
+  'router-solicitation',
+  'router-advertisement',
+  'unreachable',
+  'time-exceeded',
+  'packet-too-big',
+] as const;
+/** An entry of an IOS named IPv6 ACL ("ipv6 access-list NAME"). */
+export const acl6EntrySchema = z
+  .object({
+    sequence: z.number().int().min(1).max(4294967295),
+    action: z.enum(['permit', 'deny']),
+    protocol: z.enum(['ipv6', 'icmp', 'tcp', 'udp', 'ospf']),
+    source: ipv6Schema,
+    sourcePrefix: z.number().int().min(0).max(128),
+    destination: ipv6Schema,
+    destinationPrefix: z.number().int().min(0).max(128),
+    sourcePort: acl6PortSchema.optional(),
+    destinationPort: acl6PortSchema.optional(),
+    icmpType: z.enum(ACL6_ICMP_TYPES).optional(),
+    established: z.boolean().optional(),
+    log: z.boolean().optional(),
+    remarks: z.array(z.string().min(1).max(100)).max(8).optional(),
+    hits: z.number().int().nonnegative().default(0),
+  })
+  .strict();
+export const acl6ListSchema = z
+  .object({
+    name: z.string().regex(/^[A-Za-z0-9_.-]{1,64}$/),
+    rules: z.array(acl6EntrySchema).max(256),
+    remarks: z.array(z.string().min(1).max(100)).max(8).optional(),
+  })
+  .strict();
 export const ipv6ConfigSchema = z
   .object({
     auto: z.boolean(),

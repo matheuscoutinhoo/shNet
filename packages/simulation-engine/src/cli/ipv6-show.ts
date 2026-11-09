@@ -207,6 +207,13 @@ export function showIpv6Interface(e: SimulationEngine, d: Device, selected?: str
               '  Hosts use stateless autoconfig for addresses.',
             ]
           : []),
+        ...(p!.ipv6FilterIn || p!.ipv6FilterOut
+          ? [
+              '  Input features: ' + (p!.ipv6FilterIn ? 'Access List' : ''),
+              ...(p!.ipv6FilterIn ? ['  Inbound access list ' + p!.ipv6FilterIn] : []),
+              ...(p!.ipv6FilterOut ? ['  Outgoing access list ' + p!.ipv6FilterOut] : []),
+            ].filter((line) => line !== '  Input features: ')
+          : []),
       ].join('\n');
     })
     .join('\n');

@@ -261,6 +261,32 @@ Limites: os métodos `group tacacs+|radius` das listas AAA são tratados como se
 
 `show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores. Proxy ARP não é modelado e aparece como desabilitado.
 
+## ACLs IPv6 nomeadas
+
+`ipv6 access-list NOME` abre o modo `(config-ipv6-acl)#`, com entradas `[sequence N] permit|deny PROTOCOLO ORIGEM [porta] DESTINO [porta] [tipo-icmp] [established] [log]`. Protocolos: `ipv6`, `icmp` (58), `tcp` (6), `udp` (17) e `ospf` (89). Endereços: `any`, `host X:X::X` ou `X:X::X/N`. Portas: `eq|neq|gt|lt|range`, com as palavras-chave do IOS (`www`, `domain`...). Tipos ICMPv6: `echo-request`, `echo-reply`, `nd-ns`, `nd-na`, `router-solicitation`, `router-advertisement`, `unreachable`, `time-exceeded` e `packet-too-big`. A numeração padrão vai de 10 em 10. `remark`, `no sequence N` e `no permit|deny ...` editam a lista.
+
+Na interface, `ipv6 traffic-filter NOME in|out` aplica a lista. A semântica segue o IOS:
+
+- Toda lista termina com `permit icmp any any nd-na`, `permit icmp any any nd-ns` e `deny ipv6 any any` implícitos. NDP continua funcionando, mas RS/RA precisam de entradas explícitas.
+- Um filtro que aponta para uma lista inexistente permite tudo.
+- O filtro de saída não afeta o tráfego originado pelo próprio roteador.
+
+Cada pacote descartado gera um evento com a regra (`IPv6 ACL NOME in: sequence 10 deny` ou `implicit deny ipv6 any any`). Entradas com `log` geram `%IPV6_ACL-6-ACCESSLOGP`.
+
+```text
+ipv6 access-list WEB-IN
+ permit tcp any host 2001:DB8:2::10 eq www
+ permit icmp any any echo-request
+ deny ipv6 any any log
+interface GigabitEthernet0/1
+ ipv6 traffic-filter WEB-IN in
+show ipv6 access-list [NOME]
+show access-lists
+clear ipv6 access-list [NOME]
+```
+
+`show ipv6 access-list` imprime `permit tcp any any eq www (3 matches) sequence 10`, no formato do IOS. `show access-lists` inclui as listas IPv6, e `show ipv6 interface` mostra `Inbound access list`/`Outgoing access list`. A running-config grava as entradas como `sequence N permit ...`, no estilo do IOS-XE, e colá-la reconstrói a lista. A sintaxe antiga `ipv6 traffic-filter in|out permit|deny TIPO ORIGEM DESTINO` do simulador continua aceita para laboratórios salvos.
+
 ## TCP, echo e HTTP
 
 TCP usa IPv4 protocolo 6 e IPv6 Next Header 6 e passa por ARP/Ethernet, roteamento, VLAN/STP, perda, MTU, ACL e NAT. O modelo executa SYN → SYN/ACK → ACK, entrega ordenada sem duplicação, ACK cumulativo, FIN com half-close, fechamento simultâneo, RST e TIME-WAIT. Porta fechada responde RST; uma conexão bloqueada esgota as tentativas. Eventos mostram estados, descartes e retransmissões; o packet inspector mostra flags, sequência, ACK, janela e dados.

@@ -349,6 +349,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         lastAt: e.state.clock,
       };
     if (d.accessLists) copy.accessLists = remap(copy.accessLists, d);
+    if (d.ipv6AccessLists) copy.ipv6AccessLists = remap(copy.ipv6AccessLists, d);
     if (d.firewall) e.configureFirewall(copy.id, remap(copy.firewall, d));
     if (d.nat) e.configureNat(copy.id, remap({ ...d.nat, bindings: [] }, d));
     if (d.dnsServer) copy.dnsServer = remap(copy.dnsServer, d);

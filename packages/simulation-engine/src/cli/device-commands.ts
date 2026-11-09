@@ -73,6 +73,12 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^(?:cdp|lldp|show (?:cdp|lldp))\b/.test(line))
     return (c.routing || c.switching) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');
   if (/^ip access-list /.test(line)) return c.routing || c.switching;
+  if (
+    /^(?:ipv6 access-list|ipv6 traffic-filter (?!in |out )|show ipv6 access-list|clear ipv6 access-list)/.test(
+      line
+    )
+  )
+    return (c.routing || c.switching) && !c.endpoint;
   if (/^(ipconfig|ip (addr|address|link|route) (show|add|del|set)|route print|arp -a|hostname$)/.test(line))
     return c.endpoint;
   if (/^wifi /.test(line)) return c.wireless && c.endpoint;

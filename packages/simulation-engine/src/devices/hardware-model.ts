@@ -57,6 +57,7 @@ export const consoleSessionsSchema = z
               'router',
               'address-family',
               'acl',
+              'ipv6-acl',
               'line',
               'vrf',
               'mst',

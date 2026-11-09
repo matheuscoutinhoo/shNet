@@ -155,6 +155,7 @@ import {
   hmiScanTimerSchema,
 } from './protocols/industrial-process-model';
 import {
+  acl6ListSchema,
   ipv6InterfaceSchema,
   packet6Schema,
   route6Schema,
@@ -748,6 +749,9 @@ export const interfaceSchema = z
     ip: ipv4Schema.optional(),
     prefix: z.number().int().min(0).max(32).optional(),
     ipv6: ipv6InterfaceSchema.optional(),
+    // "ipv6 traffic-filter NAME in|out": named IPv6 ACLs applied to the interface.
+    ipv6FilterIn: z.string().max(64).optional(),
+    ipv6FilterOut: z.string().max(64).optional(),
     dhcp6: dhcp6ClientStateSchema.optional(),
     dhcp6Relay: dhcp6RelayStateSchema.optional(),
     ipv4Mode: z.enum(['static', 'dhcp']).optional(),
@@ -1194,6 +1198,7 @@ export const deviceSchema = z
     udp6Services: z.array(udp6ServiceSchema).max(32).optional(),
     udp6Records: z.array(udp6RecordSchema).max(256).optional(),
     routes6: z.array(route6Schema).max(256).optional(),
+    ipv6AccessLists: z.array(acl6ListSchema).max(64).optional(),
     neighbors6: z.array(neighbor6Schema).max(2048).optional(),
     pending6: z.array(pending6Schema).max(256).optional(),
     resolutions6: z.array(resolution6Schema).max(256).optional(),
