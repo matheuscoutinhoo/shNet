@@ -715,6 +715,8 @@ export const interfaceSchema = z
     bandwidthKbps: z.number().int().min(1).max(100000000).optional(),
     // "delay N": interface delay in tens of microseconds (EIGRP metric).
     delayTens: z.number().int().min(1).max(16777215).optional(),
+    // Line protocol state last logged (%LINK/%LINEPROTO), so changes are logged once.
+    lineProtocol: z.boolean().optional(),
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),

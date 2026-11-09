@@ -53,6 +53,8 @@ function emptyPort(input: Device['interfaces'][number], live?: NetworkInterface)
     rx: 0,
     tx: 0,
     errors: 0,
+    // Ports come up during the boot, which IOS logs (%LINK-3-UPDOWN ... up).
+    ...(input.logical || input.loopback ? {} : { lineProtocol: false }),
   });
 }
 /**

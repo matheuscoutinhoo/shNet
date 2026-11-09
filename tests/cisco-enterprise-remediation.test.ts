@@ -50,17 +50,18 @@ describe('Cisco enterprise audit regressions', () => {
     e.setDevicePower(d.id, true);
     const t = new TerminalSession(e, d.id);
     commands(t, ['en']);
-    expect(t.execute('show version')).toContain('uptime: 0.000');
+    expect(t.execute('show version')).toMatch(/^\S+ uptime is 0 minutes$/m);
     const before = e.snapshot();
-    e.advanceTo(62000);
-    expect(t.execute('show version')).toContain('uptime: 2.000');
+    e.advanceTo(60000 + 125_000);
+    expect(t.execute('show version')).toMatch(/^\S+ uptime is 2 minutes$/m);
     expect(configurationDiff(before, e.snapshot())).toEqual([]);
     commands(t, ['reload', 'no', '']);
     // Uptime restarts when the reload finishes booting.
     e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
     commands(t, ['en']);
-    expect(t.execute('show version')).toContain('uptime: 0.000');
-    expect(e.state.clock).toBe(62000 + RELOAD_BOOT_MS);
+    expect(t.execute('show version')).toMatch(/^\S+ uptime is 0 minutes$/m);
+    expect(t.execute('show version')).toContain('Last reload reason: Reload Command');
+    expect(e.state.clock).toBe(60000 + 125_000 + RELOAD_BOOT_MS);
   });
   it('relays DHCP on multilayer SVIs only through active HSRP and recovers after primary failure', () => {
     const e = new SimulationEngine(),

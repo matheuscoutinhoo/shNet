@@ -2708,6 +2708,43 @@ describe('IOS operational show, debug and console logging', () => {
     expect(t1.execute('show vrrp')).toContain('  State is Master\n');
     expect(t2.execute('show vrrp')).toContain('  State is Backup\n');
   });
+  it('logs physical link changes and reports the platform in show version like IOS', () => {
+    const {
+      e,
+      devices: [r1, r2],
+      terminals: [t1, t2],
+      cable,
+      advance,
+    } = lab('router', 'router');
+    const link = cable(r1, 'Gi0/1', r2, 'Gi0/1');
+    advance(1000);
+    const lines = (text: RegExp) =>
+      (t1.execute('do show logging').match(new RegExp(text, 'gm')) ?? []).length;
+    expect(lines(/%LINK-3-UPDOWN: Interface GigabitEthernet0\/1, changed state to up$/)).toBe(1);
+    // The peer shuts its port: R1 sees its own line go down without any local command.
+    ok(t2, ['interface Gi0/1', 'shutdown', 'end']);
+    advance(1000);
+    expect(lines(/%LINK-3-UPDOWN: Interface GigabitEthernet0\/1, changed state to down$/)).toBe(1);
+    expect(
+      lines(/%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0\/1, changed state to down$/)
+    ).toBe(1);
+    ok(t2, ['configure terminal', 'interface Gi0/1', 'no shutdown', 'end']);
+    advance(1000);
+    expect(
+      lines(/%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0\/1, changed state to up$/)
+    ).toBe(2);
+    // Unplugging the cable is logged the same way, and only once.
+    e.removeLink(link.id);
+    advance(5000);
+    expect(lines(/%LINK-3-UPDOWN: Interface GigabitEthernet0\/1, changed state to down$/)).toBe(2);
+    const version = t1.execute('do show version');
+    expect(version).toMatch(/^Cisco IOS XE Software, Version 17\.12\.04a\n/);
+    expect(version).toContain('cisco ISR4331/K9 (1RU) processor with');
+    expect(version).toMatch(/^\S+ uptime is \d+ minutes?$/m);
+    expect(version).toMatch(/^\d+ Gigabit Ethernet interfaces$/m);
+    expect(version).toContain('System image file is "flash:packages.conf"');
+    expect(version.endsWith('Configuration register is 0x2102')).toBe(true);
+  });
   it('debugs ICMP, IP packets, ARP and OSPF adjacencies, and logs to the console like IOS', () => {
     const RELOAD_MS = 60_000;
     const {

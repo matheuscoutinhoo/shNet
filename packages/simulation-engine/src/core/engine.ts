@@ -265,6 +265,7 @@ import { configureRip, handleRipTick } from '../protocols/rip';
 import { configureEigrp, handleEigrpTick } from '../protocols/eigrp';
 import { RIP } from '../protocols/rip-model';
 import { EIGRP } from '../protocols/eigrp-model';
+import { logLineProtocolChanges, noteLineProtocol } from '../protocols/line-protocol';
 import { VRRP } from '../protocols/vrrp-model';
 import {
   configureVrrp,
@@ -876,6 +877,7 @@ export class SimulationEngine {
     });
     if (this.state.links.length >= 8000) throw new Error('Limite de cabos atingido');
     validateConnection(this.state, link);
+    logLineProtocolChanges(this);
     this.state.links.push(link);
     negotiateLink(this.state, link);
     refreshPower(this);
@@ -891,9 +893,11 @@ export class SimulationEngine {
       }
     );
     this.refreshSpanningTree();
+    logLineProtocolChanges(this);
     return link;
   }
   removeLink(id: string, refreshProtocols = true) {
+    logLineProtocolChanges(this);
     const removed = this.state.links.find((l) => l.id === id);
     for (const d of this.state.devices) d.consoleSessions = d.consoleSessions?.filter((c) => c.link !== id);
     this.state.links = this.state.links.filter((l) => l.id !== id);
@@ -929,6 +933,7 @@ export class SimulationEngine {
         }
     }
     if (refreshProtocols) this.refreshSpanningTree();
+    logLineProtocolChanges(this);
   }
   /** Renegotiates the cable attached to a port after its speed configuration changed. */
   renegotiatePort(deviceId: string, portId: string) {
@@ -964,6 +969,7 @@ export class SimulationEngine {
             `%LINEPROTO-5-UPDOWN: Line protocol on Interface ${name}, changed state to ${operational ? 'up' : 'down'}`,
             { port: portId }
           );
+        noteLineProtocol(this, deviceId, portId, operational);
       }
     } else
       this.emit(
@@ -2066,6 +2072,7 @@ export class SimulationEngine {
         refreshHsrp(this, afterEvent);
         refreshDhcpClients(this);
         refreshIosTunnels(this);
+        logLineProtocolChanges(this);
       }
       refreshBgp(this);
       if (!afterEvent || !this.networkDirty) return;
@@ -2285,6 +2292,7 @@ export class SimulationEngine {
       refreshBgp(this);
       refreshDhcpClients(this);
       refreshIosTunnels(this);
+      logLineProtocolChanges(this);
     }
     let count = 0;
     while (

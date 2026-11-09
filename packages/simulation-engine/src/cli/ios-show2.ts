@@ -9,6 +9,7 @@ import { networkTime } from '../protocols/ntp';
 import { ALL_MODES, type CommandRegistry } from './registry';
 import { interfaceName } from './operational';
 import { stpTrees } from './ios-show';
+import { iosPlatform } from './ios-version';
 
 /** IOS views of routing, redundancy and system state that complement ios-show.ts. */
 const hms = (ms: number) => {
@@ -702,7 +703,7 @@ function showClock(e: SimulationEngine, d: Device, detail: boolean) {
   );
 }
 function iosImage(d: Device) {
-  return d.type === 'switch' ? 'cat9k_iosxe.17.09.04a.SPA.bin' : 'isr4300-universalk9.17.09.04a.SPA.bin';
+  return iosPlatform(d).image;
 }
 function showFlash(d: Device) {
   const files = [

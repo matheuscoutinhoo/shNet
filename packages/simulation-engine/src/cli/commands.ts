@@ -68,6 +68,7 @@ import { registerZbfCommands, zbfRunningConfig } from './zbf';
 import { registerIosShow2 } from './ios-show2';
 import { registerDebugCommands } from './debug';
 import { eigrpRunningConfig, registerEigrpCommands } from './eigrp';
+import { showVersion } from './ios-version';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -576,7 +577,9 @@ export function makeRegistry() {
     syntax: 'show version',
     modes: all,
     run: (_m, e, d) =>
-      `${terminalIdentity(d).family}\nshLab educational behavioral simulator; supported IOS/IOS XE command subset.\nVirtual hardware: ${terminalIdentity(d).name}\n${d.hostname} uptime: ${(Math.max(0, e.state.clock - (d.bootStartedAt ?? 0)) / 1000).toFixed(3)} simulated seconds\n${d.interfaces.length} network interfaces; no vendor firmware is executed.`,
+      terminalIdentity(d).host
+        ? `${terminalIdentity(d).family}\nshLab educational behavioral simulator.\nVirtual hardware: ${terminalIdentity(d).name}\n${d.hostname} uptime: ${(Math.max(0, e.state.clock - (d.bootStartedAt ?? 0)) / 1000).toFixed(3)} simulated seconds\n${d.interfaces.length} network interfaces.`
+        : showVersion(e, d),
   });
   r.register({
     pattern: /^show running-config$/i,

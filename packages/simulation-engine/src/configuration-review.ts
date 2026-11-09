@@ -56,6 +56,7 @@ function configuration(value: unknown): unknown {
     'rx',
     'tx',
     'errors',
+    'lineProtocol',
     'dropped',
     'macTable',
     'arpTable',
