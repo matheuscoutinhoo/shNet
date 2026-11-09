@@ -58,6 +58,7 @@ import { validateBfd } from '../protocols/bfd';
 import { validateRoutingPolicy } from '../protocols/routing-policy';
 import { validateMqc } from '../protocols/mqc';
 import { validateRip } from '../protocols/rip-validation';
+import { validateEigrp } from '../protocols/eigrp';
 import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
 import { validateStateSync } from '../protocols/state-sync';
@@ -142,6 +143,7 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   validateUdld(s);
   validateBfd(s);
   validateRip(s);
+  validateEigrp(s);
   validateManagement(s);
   validateArp(s);
   validateVrrp(s);

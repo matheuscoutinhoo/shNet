@@ -25,6 +25,7 @@ function portMatches(value: number, port: number, op: AclRule['sourcePortOp'], e
           : value >= port && value <= end!;
 }
 const PROTOCOL_NUMBERS: Partial<Record<Packet['protocol'], number>> = {
+  EIGRP: 88,
   OSPF: 89,
   VRRP: 112,
   GRE: 47,

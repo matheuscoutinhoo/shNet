@@ -305,19 +305,21 @@ export function registerBgpCommands(registry: CommandRegistry) {
   });
   registry.register({
     pattern:
-      /^(no )?redistribute (connected|static|rip|ospf)(?: (\d+))?(?: metric (\d+))?(?: route-map ([\w-]{1,32}))?$/i,
+      /^(no )?redistribute (connected|static|rip|ospf|eigrp)(?: (\d+))?(?: metric (\d+))?(?: route-map ([\w-]{1,32}))?$/i,
     syntax: [
       'redistribute connected [metric N] [route-map NAME]',
       'redistribute static [metric N] [route-map NAME]',
       'redistribute ospf <process> [metric N] [route-map NAME]',
+      'redistribute eigrp <asn> [metric N] [route-map NAME]',
     ],
     modes: ['router', 'address-family'],
     available: (_d, c) => c.router === 'bgp',
     run: (m, e, d, c) => {
       bgpRouter(c);
-      const source = m[2].toLowerCase() as 'connected' | 'static' | 'rip' | 'ospf';
-      if (source === 'ospf' && !m[3]) throw new Error('Incomplete command.');
-      if (source !== 'ospf' && m[3]) throw new Error('Invalid input detected at: ' + m[3]);
+      const source = m[2].toLowerCase() as 'connected' | 'static' | 'rip' | 'ospf' | 'eigrp';
+      const numbered = source === 'ospf' || source === 'eigrp';
+      if (numbered && !m[3]) throw new Error('Incomplete command.');
+      if (!numbered && m[3]) throw new Error('Invalid input detected at: ' + m[3]);
       const value = config(d);
       const process = m[3] ? Number(m[3]) : undefined;
       const others = (value.redistribute ?? []).filter(

@@ -256,7 +256,7 @@ export const ospfConfigSchema = z
       .array(
         z
           .object({
-            source: z.enum(['connected', 'static', 'bgp', 'rip']),
+            source: z.enum(['connected', 'static', 'bgp', 'rip', 'eigrp']),
             process: z.number().int().min(1).max(4294967295).optional(),
             metric: z.number().int().min(1).max(16777214).optional(),
             metricType: z.enum(['E1', 'E2']).optional(),
@@ -317,7 +317,7 @@ export const dynamicRouteSchema = z
     nextHop: ipv4Schema,
     port: idSchema,
     metric: z.number().int().min(0).max(16777215),
-    protocol: z.enum(['OSPF', 'RIP']),
+    protocol: z.enum(['OSPF', 'RIP', 'EIGRP']),
     distance: z.number().int().min(1).max(255),
     area: area.optional(),
     pathType: z.enum(['intra', 'inter', 'E1', 'E2', 'N1', 'N2']).optional(),

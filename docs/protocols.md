@@ -188,6 +188,38 @@ RIPv2 possui codec, autenticação, filtros, hold-down, next hop e redistribuiç
 
 Os dois protocolos passam por ACL. OSPF aceita regras de protocolo `ospf`; RIP aceita regras UDP com porta 520. A comparação de rotas usa primeiro o prefixo mais específico, depois distância administrativa e métrica. Tráfego de controle fica no segmento local e não passa por NAT. Rotas estáticas continuam configuradas separadamente. Decisões de arquitetura: [ADR-010](adr/010-dynamic-routing.md).
 
+## EIGRP (IPv4, DUAL)
+
+`router eigrp AS` habilita o processo; `network A.B.C.D [wildcard]` seleciona as interfaces (sem wildcard, a rede é tratada como classful; uma máscara de sub-rede é convertida em wildcard, como no IOS). Hellos vão para 224.0.0.10 (IP 88) a cada 5 s com hold time de 15 s (`ip hello-interval eigrp AS N`, `ip hold-time eigrp AS N`). A adjacência exige o mesmo AS, os mesmos valores K (`metric weights 0 k1 k2 k3 k4 k5`), a mesma sub-rede e, quando configurada, a mesma autenticação MD5 (`ip authentication mode eigrp AS md5` + `ip authentication key-chain eigrp AS NOME`). Mudanças de vizinho geram `%DUAL-5-NBRCHANGE`.
+
+Update, Query e Reply são confiáveis: cada pacote é confirmado por um ACK e retransmitido a cada 1 s; após 16 tentativas o vizinho cai com `retry limit exceeded`. Pacotes respeitam a MTU da interface (o EIGRP não fragmenta). A métrica é a clássica: 256 × (10⁷/menor banda em kbit/s + soma dos atrasos em dezenas de µs), com `bandwidth` e `delay` por interface (GigabitEthernet: 2816 conectada; loopback: 128256).
+
+O DUAL mantém a tabela de topologia com a distância relatada por vizinho. Sucessores e sucessores viáveis obedecem à condição de viabilidade (RD < FD); a troca para um sucessor viável é imediata. Sem sucessor viável a rota fica ativa e o roteador envia Queries aos vizinhos (exceto stubs), aguardando todas as Replies antes de voltar a passivo; vizinhos que não respondem em 3 min são derrubados (stuck in active). Split horizon com poison reverse vale por padrão (`no ip split-horizon eigrp AS`). `variance` e `maximum-paths` controlam caminhos múltiplos; ECMP de mesmo custo divide o tráfego por fluxo, e caminhos de custo desigual aparecem na tabela, mas o tráfego segue o de menor métrica.
+
+`ip summary-address eigrp AS rede máscara` anuncia o sumário na interface, suprime os componentes nela e instala a rota para Null0 com distância 5. `eigrp stub [connected|summary|static|redistributed|receive-only]` anuncia apenas as rotas escolhidas e faz os vizinhos deixarem de consultá-lo. `redistribute static|connected|ospf N|bgp N|rip [metric bw delay rel load mtu]` gera rotas externas (D EX, distância 170); static e connected herdam a métrica da interface e as demais fontes exigem `metric` ou `default-metric`. `distance eigrp INT EXT`, `eigrp router-id`, `passive-interface [default]` e `clear ip eigrp neighbors` seguem o IOS. OSPF e BGP redistribuem EIGRP com `redistribute eigrp AS`.
+
+```text
+router eigrp 100
+ network 10.0.0.0 0.0.255.255
+ passive-interface Loopback0
+ eigrp router-id 1.1.1.1
+interface GigabitEthernet0/1
+ ip summary-address eigrp 100 172.16.0.0 255.255.0.0
+show ip eigrp neighbors [detail]
+show ip eigrp topology [all-links]
+show ip eigrp interfaces [detail]
+show ip eigrp traffic
+show ip route eigrp
+```
+
+Limites: somente IPv4 no modo clássico (`router eigrp AS`); modo nomeado, métricas wide, IPv6, leak-maps, filtros `distribute-list` e sumarização automática não são modelados. A troca INIT é simplificada (o roteador envia a tabela completa ao formar a adjacência). Os pacotes têm codec binário conforme a [RFC 7868](https://www.rfc-editor.org/rfc/rfc7868.html) para captura pcap.
+
+## running-config e startup-config
+
+`show running-config` imprime o texto do IOS: cabeçalho `Building configuration...`, `version`, `!` entre blocos, nomes completos de interface e `end`. Valores padrão não aparecem (`no shutdown`, VLAN 1 de acesso/nativa, trunk com todas as VLANs, timers CDP/LLDP, prioridade e timers de VRRP); interfaces roteadas sem IPv4 mostram `no ip address` e as linhas `line con 0`/`line vty` aparecem sempre. ACLs numeradas aparecem na forma `access-list N ...`. A NVRAM guarda o mesmo texto sem o cabeçalho; ao iniciar, linhas na margem esquerda voltam ao modo global, de modo que colar um `show running-config` reconstrói a configuração.
+
+As VLANs ficam no `vlan.dat` (flash): aparecem na running-config só em VTP transparent/off, sobrevivem a `reload` e `write erase`, e `delete flash:vlan.dat` (com as confirmações do IOS) restaura a base padrão no próximo boot. Nomes padrão seguem o IOS (`VLAN0010`). As interfaces aceitam as abreviações do IOS (`g0/1`, `gig 0/1`, `GigabitEthernet0/1`, `po1`, `lo0`, `vl10`). Endereços sobrepostos são recusados apenas no mesmo equipamento; equipamentos diferentes podem repetir um endereço, o que gera `%IP-4-DUPADDR` ao receber ARP conflitante.
+
 ## TCP, echo e HTTP
 
 TCP usa IPv4 protocolo 6 e IPv6 Next Header 6 e passa por ARP/Ethernet, roteamento, VLAN/STP, perda, MTU, ACL e NAT. O modelo executa SYN → SYN/ACK → ACK, entrega ordenada sem duplicação, ACK cumulativo, FIN com half-close, fechamento simultâneo, RST e TIME-WAIT. Porta fechada responde RST; uma conexão bloqueada esgota as tentativas. Eventos mostram estados, descartes e retransmissões; o packet inspector mostra flags, sequência, ACK, janela e dados.

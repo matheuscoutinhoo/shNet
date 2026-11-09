@@ -197,9 +197,12 @@ export function receiveSvi(engine: SimulationEngine, device: Device, vlan: numbe
   if (!port || !sviOperational(engine.state, device, port)) return false;
   const directed = frame.dst === port.mac || acceptsHsrpMac(engine.state, device, port, frame.dst);
   const hsrp = frame.packet?.protocol === 'UDP' && frame.packet.payload.protocol === 'HSRP';
+  // Routing and redundancy protocols use the local network control block (224.0.0.0/24).
+  const control = !!frame.packet && frame.dst.startsWith('01:00:5e:00:00:');
   if (
     !directed &&
     !hsrp &&
+    !control &&
     frame.dst !== 'ff:ff:ff:ff:ff:ff' &&
     !(frame.ipv6 && frame.dst.startsWith('33:33:'))
   )

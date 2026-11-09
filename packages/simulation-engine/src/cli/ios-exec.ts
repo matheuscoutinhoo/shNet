@@ -16,6 +16,7 @@ import { clearOspfProcess } from '../protocols/ospf';
 import { ospfAreaType } from '../protocols/ospf-security';
 import { RIP } from '../protocols/rip-model';
 import { withConfigHeader } from './running-config';
+import { eigrpProtocolsSection } from './eigrp';
 
 // ---------------------------------------------------------------------------------------------
 // Output modifiers: "show ... | include|exclude|begin|section|count REGEX".
@@ -324,6 +325,7 @@ export function showIpProtocols(e: SimulationEngine, d: Device) {
       '  Distance: (default is 110)',
     ]);
   }
+  if (d.eigrp?.enabled) blocks.push(eigrpProtocolsSection(d));
   const bgp = d.bgp;
   if (bgp) {
     blocks.push([
@@ -404,13 +406,14 @@ export function registerIosExec(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^show ip route (connected|static|ospf|bgp|rip)(?: \d+)?$/i,
+    pattern: /^show ip route (connected|static|ospf|bgp|rip|eigrp)(?: \d+)?$/i,
     syntax: [
       'show ip route connected',
       'show ip route static',
       'show ip route ospf',
       'show ip route bgp',
       'show ip route rip',
+      'show ip route eigrp',
     ],
     modes: ALL_MODES,
     run: (m, e, d) => showRoutes(e, d, undefined, m[1].toLowerCase() as RouteFilter),

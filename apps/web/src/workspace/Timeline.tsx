@@ -633,6 +633,7 @@ export function Timeline({
                               UDP: '17 (UDP)',
                               TCP: '6 (TCP)',
                               OSPF: '89 (OSPF)',
+                              EIGRP: '88 (EIGRP)',
                               VRRP: '112 (VRRP)',
                               GRE: '47 (GRE)',
                               ESP: '50 (ESP)',
@@ -728,6 +729,25 @@ export function Timeline({
                       </details>
                     ) : event.frame.packet.protocol === 'TCP' ? (
                       <TcpPacketDetails packet={event.frame.packet} />
+                    ) : event.frame.packet.protocol === 'EIGRP' ? (
+                      <details open>
+                        <summary>
+                          <span>03</span> EIGRP
+                        </summary>
+                        <PacketFields>
+                          <dt>AS</dt>
+                          <dd>{event.frame.packet.asn}</dd>
+                          <dt>Opcode</dt>
+                          <dd>{event.frame.packet.message.opcode}</dd>
+                          <dt>Seq / Ack</dt>
+                          <dd>
+                            {event.frame.packet.sequence} / {event.frame.packet.ack}
+                          </dd>
+                        </PacketFields>
+                        <pre tabIndex={0} aria-label="EIGRP">
+                          {JSON.stringify(event.frame.packet.message, null, 2)}
+                        </pre>
+                      </details>
                     ) : event.frame.packet.protocol === 'GRE' ? (
                       <details open>
                         <summary>

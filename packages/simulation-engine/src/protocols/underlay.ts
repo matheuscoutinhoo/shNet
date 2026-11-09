@@ -1,4 +1,5 @@
 import { ripRoutes } from './rip';
+import { eigrpRoutes } from './eigrp';
 import type { Device, NetworkInterface, Snapshot } from '../model';
 import { sameSubnet, resolveRoute } from './ipv4';
 import { interfaceOperational, routingEnabled } from './layer3';
@@ -21,6 +22,7 @@ export function resolveUnderlay(
     ...device.routes.filter((r) => !r.vrf),
     ...(device.ospf?.routes ?? []),
     ...ripRoutes(device),
+    ...eigrpRoutes(device),
     ...(device.bgp?.routes ?? []),
   ]
     .filter(

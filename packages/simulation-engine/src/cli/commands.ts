@@ -67,6 +67,7 @@ import { registerIosExec, showIosArp, showIosMacTable } from './ios-exec';
 import { registerZbfCommands, zbfRunningConfig } from './zbf';
 import { registerIosShow2 } from './ios-show2';
 import { registerDebugCommands } from './debug';
+import { eigrpRunningConfig, registerEigrpCommands } from './eigrp';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
 const privileged: Mode[] = ['privileged', ...config];
@@ -100,6 +101,8 @@ export function makeRegistry() {
   registerIosExec(r);
   registerIosShow2(r);
   registerDebugCommands(r);
+  // Before OSPF/RIP/BGP: shared router-mode words (network, passive-interface...) are EIGRP's here.
+  registerEigrpCommands(r);
   registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);
@@ -678,6 +681,7 @@ export function makeRegistry() {
             ...(i.adminUp ? [] : [' shutdown']),
             ...(i.duplex === 'half' && !i.logical && !i.loopback ? [' duplex half'] : []),
             ...(i.speedAuto === false && !i.logical && !i.loopback ? [' speed ' + i.speed] : []),
+            ...(i.delayTens !== undefined ? [' delay ' + i.delayTens] : []),
             ...(i.udld ? [' udld port' + (i.udld.mode === 'aggressive' ? ' aggressive' : '')] : []),
             ...bfdInterfaceRunningConfig(i),
             ...(i.stpEdge
@@ -716,6 +720,7 @@ export function makeRegistry() {
             : []),
           ...ospfRunningConfig(d),
           ...ripRunningConfig(d),
+          ...eigrpRunningConfig(d),
           ...vrrpRunningConfig(d),
           ...bgpRunningConfig(d),
           ...managementRunningConfig(d),

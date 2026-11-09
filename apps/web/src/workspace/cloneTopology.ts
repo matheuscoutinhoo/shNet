@@ -379,6 +379,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
     for (const [key, configure, schema] of [
       ['ospf', e.configureOspf.bind(e), configurationSchemas.ospf],
       ['rip', e.configureRip.bind(e), configurationSchemas.rip],
+      ['eigrp', e.configureEigrp.bind(e), configurationSchemas.eigrp],
       ['dhcpSnooping', e.configureDhcpSnooping.bind(e), configurationSchemas.dhcpProtection],
       ['dhcp6Server', e.configureDhcp6Server.bind(e), configurationSchemas.dhcp6.server],
       ['eapServer', e.configureEapServer.bind(e), configurationSchemas.advancedNetwork.eapServer],

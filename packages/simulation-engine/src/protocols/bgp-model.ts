@@ -58,7 +58,7 @@ export const bgpNeighborSchema = z
   .strict();
 const redistributionSchema = z
   .object({
-    source: z.enum(['connected', 'static', 'ospf', 'rip']),
+    source: z.enum(['connected', 'static', 'ospf', 'rip', 'eigrp']),
     process: z.number().int().min(1).max(65535).optional(),
     metric: z.number().int().min(0).max(4294967295).optional(),
     routeMap: z

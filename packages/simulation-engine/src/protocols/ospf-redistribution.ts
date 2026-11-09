@@ -2,6 +2,7 @@ import type { Device } from '../model';
 import { staticRouteInstalled, subnet } from './ipv4';
 import { interfaceUp } from './layer3';
 import { ripRoutes } from './rip';
+import { eigrpRoutes } from './eigrp';
 import { applyRouteMap } from './routing-policy';
 
 type External = NonNullable<Device['ospf']>['externalRoutes'][number];
@@ -36,7 +37,11 @@ export function ospfRedistributedRoutes(device: Device): External[] {
             ? device.bgp?.enabled && (r.process === undefined || device.bgp.asn === r.process)
               ? device.bgp.routes.filter((route) => route.distance === 20)
               : []
-            : ripRoutes(device);
+            : r.source === 'eigrp'
+              ? device.eigrp && (r.process === undefined || device.eigrp.asn === r.process)
+                ? eigrpRoutes(device)
+                : []
+              : ripRoutes(device);
     for (const route of routes) {
       const key = route.network + '/' + route.prefix;
       if (result.has(key)) continue;

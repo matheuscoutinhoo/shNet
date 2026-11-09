@@ -87,7 +87,7 @@ export interface Context {
   vlan?: number;
   pool?: string;
   ports?: string[];
-  router?: 'ospf' | 'bgp' | 'rip';
+  router?: 'ospf' | 'bgp' | 'rip' | 'eigrp';
   process?: number;
   acl?: string;
   aclType?: 'standard' | 'extended';

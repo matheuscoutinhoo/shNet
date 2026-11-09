@@ -224,19 +224,21 @@ export function registerOspfCommands(registry: CommandRegistry) {
   });
   registry.register({
     pattern:
-      /^(no )?redistribute (connected|static|rip|bgp)(?: (\d+))?((?: (?:subnets|metric \d+|metric-type [12]|tag \d+|route-map [\w-]{1,32}))*)$/i,
+      /^(no )?redistribute (connected|static|rip|bgp|eigrp)(?: (\d+))?((?: (?:subnets|metric \d+|metric-type [12]|tag \d+|route-map [\w-]{1,32}))*)$/i,
     syntax: [
       'redistribute connected [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
       'redistribute static [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
       'redistribute bgp <asn> [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
+      'redistribute eigrp <asn> [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
     ],
     modes: ['router'],
     available: (_d, c) => c.router === 'ospf',
     run: (m, e, d, c) => {
       ospfRouter(c);
-      const source = m[2].toLowerCase() as 'connected' | 'static' | 'rip' | 'bgp';
-      if (source === 'bgp' && !m[3]) throw new Error('Incomplete command.');
-      if (source !== 'bgp' && m[3]) throw new Error('Invalid input detected at: ' + m[3]);
+      const source = m[2].toLowerCase() as 'connected' | 'static' | 'rip' | 'bgp' | 'eigrp';
+      const numbered = source === 'bgp' || source === 'eigrp';
+      if (numbered && !m[3]) throw new Error('Incomplete command.');
+      if (!numbered && m[3]) throw new Error('Invalid input detected at: ' + m[3]);
       const options = m[4] ?? '';
       const option = (name: string) => new RegExp(`(?:^| )${name} (\\S+)`, 'i').exec(options)?.[1];
       if (m[1] && /(?:^| )subnets(?: |$)/i.test(options) && !option('metric') && !option('route-map'))

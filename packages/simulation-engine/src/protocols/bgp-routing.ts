@@ -12,6 +12,7 @@ import {
 import { applyRouteMap, prefixListPermits } from './routing-policy';
 import { interfaceUp } from './layer3';
 import { ripRoutes } from './rip';
+import { eigrpRoutes } from './eigrp';
 
 export function validBgpPrefix(path: { network: string; prefix: number }) {
   return subnet(path.network, path.prefix).network === path.network && ipNumber(path.network) < 0xe0000000;
@@ -89,7 +90,11 @@ function redistributedRoutes(device: Device, r: BgpRedistribution) {
                 (route) => !route.pathType || ['intra', 'inter'].includes(route.pathType)
               )
             : []
-          : ripRoutes(device);
+          : r.source === 'eigrp'
+            ? device.eigrp && (r.process === undefined || device.eigrp.asn === r.process)
+              ? eigrpRoutes(device)
+              : []
+            : ripRoutes(device);
   const unique = new Map(routes.map((route) => [bgpPrefixKey(route), route]));
   return [...unique.values()].map((route) => ({
     network: route.network,

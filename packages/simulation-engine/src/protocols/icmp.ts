@@ -13,6 +13,7 @@ export function isIcmpError(
 export function quotePacket(packet: Packet): IcmpQuote | undefined {
   if (
     packet.protocol === 'OSPF' ||
+    packet.protocol === 'EIGRP' ||
     packet.protocol === 'VRRP' ||
     packet.protocol === 'GRE' ||
     packet.protocol === 'ESP' ||

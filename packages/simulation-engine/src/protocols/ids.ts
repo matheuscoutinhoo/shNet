@@ -57,7 +57,7 @@ function assemble(d: Device, p: TcpPacket, clock: number) {
 export function permitIds(e: SimulationEngine, d: Device, port: NetworkInterface, p: Packet | Packet6) {
   const c = d.ids;
   if (!c?.enabled) return true;
-  if (p.protocol === 'OSPF' || p.protocol === 'VRRP') return true;
+  if (p.protocol === 'OSPF' || p.protocol === 'EIGRP' || p.protocol === 'VRRP') return true;
   const tcp = p.protocol === 'TCP' ? ('segment' in p ? p.segment : p) : undefined;
   const text = tcp ? assemble(d, tcp, e.state.clock) : payloadText(p);
   const destinationPort =

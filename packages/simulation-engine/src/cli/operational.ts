@@ -11,6 +11,7 @@ import {
   subnet,
 } from '../protocols/ipv4';
 import { ripRoutes } from '../protocols/rip';
+import { eigrpRoutes, eigrpSummaryRoutes } from '../protocols/eigrp';
 import { RIP } from '../protocols/rip-model';
 import { routeInstalledAt } from '../protocols/route-age';
 import { canonicalInterfaceName } from '../protocols/interface-name';
@@ -141,7 +142,7 @@ interface RouteRow {
   learnedAt?: number;
   // The protocol entry behind a dynamic route, for "show ip route <address>".
   origin?:
-    | { kind: 'ospf' | 'rip'; route: DynamicRoute }
+    | { kind: 'ospf' | 'rip' | 'eigrp'; route: DynamicRoute }
     | { kind: 'bgp'; route: NonNullable<Device['bgp']>['routes'][number] };
   legacy: string;
 }
@@ -191,22 +192,31 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
   }
   for (const r of vrf
     ? []
-    : [...(d.ospf?.enabled ? d.ospf.routes : []), ...(d.bgp?.enabled ? d.bgp.routes : []), ...ripRoutes(d)]) {
+    : [
+        ...(d.ospf?.enabled ? d.ospf.routes : []),
+        ...(d.bgp?.enabled ? d.bgp.routes : []),
+        ...ripRoutes(d),
+        ...eigrpRoutes(d),
+      ]) {
     const p = d.interfaces.find((p) => p.id === r.port && usable(p));
     if (!p || !resolveRoute(d, r.nextHop, vrf, e.state)) continue;
     const code = !('protocol' in r)
       ? 'B'
       : r.protocol === 'RIP'
         ? 'R'
-        : 'O' +
-          (r.pathType === 'inter' ? ' IA' : r.pathType && r.pathType !== 'intra' ? ' ' + r.pathType : '');
+        : r.protocol === 'EIGRP'
+          ? r.distance === (d.eigrp?.distance?.external ?? 170)
+            ? 'D EX'
+            : 'D'
+          : 'O' +
+            (r.pathType === 'inter' ? ' IA' : r.pathType && r.pathType !== 'intra' ? ' ' + r.pathType : '');
     const learnedAt = !('protocol' in r)
       ? d.bgp?.rib.find(
           (path) => path.peer === r.peer && path.network === r.network && path.prefix === r.prefix
         )?.learnedAt
       : r.protocol === 'RIP'
         ? ripLastUpdate(d, r)
-        : routeInstalledAt(d, 'ospf', r, e.state.clock);
+        : routeInstalledAt(d, r.protocol === 'EIGRP' ? 'eigrp' : 'ospf', r, e.state.clock);
     rows.push({
       code,
       network: r.network,
@@ -218,10 +228,22 @@ function routeRows(e: SimulationEngine, d: Device, vrf?: string): RouteRow[] {
       ...(learnedAt !== undefined ? { learnedAt } : {}),
       origin: !('protocol' in r)
         ? { kind: 'bgp', route: r }
-        : { kind: r.protocol === 'RIP' ? 'rip' : 'ospf', route: r },
+        : { kind: r.protocol === 'RIP' ? 'rip' : r.protocol === 'EIGRP' ? 'eigrp' : 'ospf', route: r },
       legacy: `${code} ${r.network}/${r.prefix} [${r.distance}/${r.metric}] via ${r.nextHop}, ${p.name}`,
     });
   }
+  // An EIGRP summary is installed to Null0 with distance 5.
+  for (const r of vrf ? [] : eigrpSummaryRoutes(d))
+    rows.push({
+      code: 'D',
+      network: r.network,
+      prefix: r.prefix,
+      distance: 5,
+      metric: 0,
+      port: 'Null0',
+      connected: true,
+      legacy: `D ${r.network}/${r.prefix} is a summary, Null0`,
+    });
   // Prefixes learned from a simulator IPsec tunnel peer are installed like reverse-route injection.
   if (routingEnabled(d))
     for (const p of d.interfaces.filter((p) => p.tunnel?.status === 'up' && usable(p)))
@@ -289,6 +311,7 @@ function age(e: SimulationEngine, at?: number) {
     .join(':');
 }
 function routeTail(e: SimulationEngine, r: RouteRow) {
+  if (r.code === 'D' && r.port === 'Null0') return 'is a summary, Null0';
   if (r.connected || (r.code === 'S' && !r.nextHop))
     return 'is directly connected, ' + longInterfaceName(r.port!);
   const when = age(e, r.learnedAt);
@@ -306,13 +329,14 @@ function ripLastUpdate(d: Device, r: DynamicRoute) {
   );
   return entry?.expiresAt !== undefined ? entry.expiresAt - RIP.timeoutMs : undefined;
 }
-export type RouteFilter = 'connected' | 'static' | 'ospf' | 'bgp' | 'rip';
+export type RouteFilter = 'connected' | 'static' | 'ospf' | 'bgp' | 'rip' | 'eigrp';
 const FILTER_CODES: Record<RouteFilter, RegExp> = {
   connected: /^[CL]$/,
   static: /^S/,
   ospf: /^O/,
   bgp: /^B/,
   rip: /^R/,
+  eigrp: /^D/,
 };
 
 export function showRoutes(e: SimulationEngine, d: Device, vrf?: string, filter?: RouteFilter) {

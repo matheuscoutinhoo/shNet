@@ -115,7 +115,13 @@ export function permitFirewall(
   original6?: Packet6
 ) {
   const config = device.firewall;
-  if (!config?.enabled || packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return true;
+  if (
+    !config?.enabled ||
+    packet.protocol === 'OSPF' ||
+    packet.protocol === 'EIGRP' ||
+    packet.protocol === 'VRRP'
+  )
+    return true;
   if (packet.protocol === 'GRE' || packet.protocol === 'ESP')
     return permitTunnelTransport(engine, device, input, output, packet);
   const zoned = !!config.zonePolicy;

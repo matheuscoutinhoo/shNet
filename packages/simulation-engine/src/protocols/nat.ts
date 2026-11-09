@@ -244,7 +244,7 @@ function translateOutbound(
   output: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return packet;
+  if (packet.protocol === 'OSPF' || packet.protocol === 'EIGRP' || packet.protocol === 'VRRP') return packet;
   const hp = hairpinOutbound(engine, device, input, output, packet);
   if (hp) return hp;
   const nat = device.nat;
@@ -410,7 +410,7 @@ function translateInbound(
   port: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return packet;
+  if (packet.protocol === 'OSPF' || packet.protocol === 'EIGRP' || packet.protocol === 'VRRP') return packet;
   if (port.natRole === 'inside') return hairpinInbound(engine, device, port, packet);
   const nat = device.nat;
   if (!nat?.enabled || port.natRole !== 'outside') return packet;

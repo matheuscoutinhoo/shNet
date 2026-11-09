@@ -262,7 +262,9 @@ import {
 } from '../protocols/ospf';
 import { OSPF } from '../protocols/ospf-model';
 import { configureRip, handleRipTick } from '../protocols/rip';
+import { configureEigrp, handleEigrpTick } from '../protocols/eigrp';
 import { RIP } from '../protocols/rip-model';
+import { EIGRP } from '../protocols/eigrp-model';
 import { VRRP } from '../protocols/vrrp-model';
 import {
   configureVrrp,
@@ -1364,6 +1366,9 @@ export class SimulationEngine {
   configureRip(deviceId: string, input: unknown) {
     configureRip(this, this.device(deviceId), input);
   }
+  configureEigrp(deviceId: string, input: unknown) {
+    configureEigrp(this, this.device(deviceId), input);
+  }
   openTcp(
     deviceId: string,
     target: string,
@@ -2008,6 +2013,7 @@ export class SimulationEngine {
     else if (a.kind === 'dhcp6-tick') handleDhcp6Tick(this, a);
     else if (a.kind === 'ospf-tick') handleOspfTick(this, a);
     else if (a.kind === 'rip-tick') handleRipTick(this, a);
+    else if (a.kind === 'eigrp-tick') handleEigrpTick(this, a);
     else if (a.kind === 'vrrp-timer') handleVrrpTimer(this, a);
     else if (a.kind === 'bgp-tick') handleBgpTick(this, a);
     else if (a.kind === 'firewall-expire') expireFirewall(this, this.device(a.device), a.session, a.at);
@@ -2239,6 +2245,7 @@ export class SimulationEngine {
       ) &&
       !(a.frame.packet?.protocol === 'VRRP' && a.frame.dst === VRRP.mac) &&
       !(a.frame.packet?.protocol === 'OSPF' && a.frame.dst === OSPF.mac) &&
+      !(a.frame.packet?.protocol === 'EIGRP' && a.frame.dst === EIGRP.mac) &&
       !(
         a.frame.packet?.protocol === 'UDP' &&
         a.frame.packet.payload.protocol === 'RIP' &&

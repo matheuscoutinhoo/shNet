@@ -8,6 +8,7 @@ import { encodeDns } from './dns-codec';
 import { encodeDiscovery, decodeDiscovery } from './discovery-codec';
 import { encodeHsrp, decodeHsrp } from './hsrp-codec';
 import { encodeOspf, decodeOspf } from './ospf-codec';
+import { encodeEigrp, decodeEigrp } from './eigrp-codec';
 import { encodeBfd, decodeBfd } from './bfd-codec';
 import { encodeLacp, decodeLacp } from './lacp-codec';
 import { encodeEapol, decodeEapol } from './eapol-codec';
@@ -228,7 +229,7 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
   if (f.fragment) {
     const p = f.fragment;
     type = 0x0800;
-    const protocol = { ICMP: 1, TCP: 6, UDP: 17, OSPF: 89, VRRP: 112 }[p.protocol];
+    const protocol = { ICMP: 1, TCP: 6, UDP: 17, EIGRP: 88, OSPF: 89, VRRP: 112 }[p.protocol];
     const h = concat(
       new Uint8Array([0x45, (p.dscp ?? 0) << 2]),
       u16(p.bytes),
@@ -292,6 +293,9 @@ export function encodeEthernet(input: Frame, depth = 0): Uint8Array {
     } else if (p.protocol === 'OSPF') {
       protocol = 89;
       transport = encodeOspf(p);
+    } else if (p.protocol === 'EIGRP') {
+      protocol = 88;
+      transport = encodeEigrp(p);
     } else if (p.protocol === 'UDP') {
       protocol = 17;
       let payload: Uint8Array;
@@ -444,6 +448,7 @@ export interface DecodedEthernet {
   arp?: { operation: number; senderIp: string; targetIp: string };
   discovery?: ReturnType<typeof decodeDiscovery>;
   ospf?: ReturnType<typeof decodeOspf>;
+  eigrp?: ReturnType<typeof decodeEigrp>;
   lacp?: ReturnType<typeof decodeLacp>;
   eapol?: ReturnType<typeof decodeEapol>;
   udld?: ReturnType<typeof decodeUdld>;
@@ -673,6 +678,8 @@ export function decodeEthernet(bytes: Uint8Array, depth = 0): DecodedEthernet {
     }
   } else if (r.protocol === 89 && r.family === 4) {
     r.ospf = decodeOspf(body);
+  } else if (r.protocol === 88 && r.family === 4) {
+    r.eigrp = decodeEigrp(body);
   } else if (r.protocol === 47 && r.family === 4) {
     need(body, 0, 4);
     const keyed = !!(body[0] & 0x20),

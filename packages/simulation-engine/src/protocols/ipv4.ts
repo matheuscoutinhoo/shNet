@@ -8,6 +8,7 @@ import { receiveTcp } from './tcp';
 import { receiveTcpMtu } from './tcp-pmtud';
 import { receiveOspf } from './ospf';
 import { ripRoutes } from './rip';
+import { eigrpRoutes, eigrpSummaryRoutes, receiveEigrp } from './eigrp';
 import { sendIcmpError } from './icmp';
 import { receiveVrrp, acceptsVrrpAddress } from './vrrp';
 import { receiveHsrp, acceptsHsrpAddress } from './hsrp';
@@ -221,6 +222,7 @@ export function bestRoute(
         : [
             ...(device.ospf?.enabled ? device.ospf.routes : []),
             ...ripRoutes(device),
+            ...eigrpRoutes(device),
             ...(device.bgp?.enabled ? device.bgp.routes : []),
           ]) {
         const port = device.interfaces.find(
@@ -241,6 +243,16 @@ export function bestRoute(
             distance: route.distance,
           });
       }
+      // An EIGRP summary installs a discard route (Null0, distance 5) for the whole range.
+      for (const summary of vrf ? [] : eigrpSummaryRoutes(device))
+        if (sameSubnet(summary.network, dst, summary.prefix))
+          candidates.push({
+            prefix: summary.prefix,
+            metric: 0,
+            distance: 5,
+            nextHop: '0.0.0.0',
+            discard: true,
+          });
     }
     // Resolve candidates only when they can win the RIB selection. Eagerly
     // resolving less-specific routes can expand a cyclic graph exponentially,
@@ -295,6 +307,7 @@ export function receiveIp(
   if (
     fromWire &&
     (packet.protocol === 'OSPF' ||
+      packet.protocol === 'EIGRP' ||
       packet.protocol === 'VRRP' ||
       (packet.protocol === 'UDP' &&
         (packet.payload.protocol === 'HSRP' || packet.payload.protocol === 'RIP'))) &&
@@ -331,6 +344,10 @@ export function receiveIp(
     receiveOspf(e, d, port, packet, sourceMac);
     return;
   }
+  if (packet.protocol === 'EIGRP') {
+    receiveEigrp(e, d, port, packet, sourceMac);
+    return;
+  }
   if (packet.protocol === 'UDP' && packet.payload.protocol === 'RIP') {
     receiveUdp(e, d, port, packet, sourceMac);
     return;
@@ -340,7 +357,7 @@ export function receiveIp(
     if (!translated) return;
     packet = translated;
   }
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return;
+  if (packet.protocol === 'OSPF' || packet.protocol === 'EIGRP' || packet.protocol === 'VRRP') return;
   if (
     d.interfaces.some((i) => interfaceUp(d, i) && i.vrf === port.vrf && i.ip === packet.dst) ||
     acceptsHsrpAddress(e.state, d, packet.dst, port.vrf) ||

@@ -89,6 +89,7 @@ export function sessionDirection(
 ): boolean | undefined {
   if (
     packet.protocol === 'OSPF' ||
+    packet.protocol === 'EIGRP' ||
     packet.protocol === 'VRRP' ||
     isIcmpError(packet as Packet) ||
     session.protocol !== packet.protocol

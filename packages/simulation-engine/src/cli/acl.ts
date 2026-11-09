@@ -100,6 +100,7 @@ const protocolNumbers: Record<string, string> = {
   '17': 'udp',
   '47': 'gre',
   '50': 'esp',
+  '88': 'eigrp',
   '89': 'ospf',
   '112': 'vrrp',
 };
@@ -280,7 +281,7 @@ export function registerNativeAclCommands(r: CommandRegistry) {
         standard = c.aclType === 'standard';
       const keyword = standard ? 'ip' : tokens.shift()!.toLowerCase(),
         protocol = protocolNumbers[keyword] ?? keyword;
-      if (!['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp', 'gre', 'esp'].includes(protocol))
+      if (!['ip', 'icmp', 'udp', 'tcp', 'ospf', 'eigrp', 'vrrp', 'gre', 'esp'].includes(protocol))
         throw new Error('Unsupported ACL protocol.');
       const source = address(tokens),
         sourcePort = standard ? undefined : port(tokens, protocol);

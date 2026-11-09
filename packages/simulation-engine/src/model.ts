@@ -199,6 +199,8 @@ import { ripConfigSchema } from './protocols/rip-model';
 export * from './protocols/ospf-model';
 import { ripMessageSchema, ripStateSchema, ripTimerSchema } from './protocols/rip-model';
 export * from './protocols/rip-model';
+import { eigrpPacketSchema, eigrpStateSchema, eigrpTimerSchema } from './protocols/eigrp-model';
+export * from './protocols/eigrp-model';
 import { snmpAgentSchema, snmpMessageSchema, snmpQuerySchema, snmpTimerSchema } from './protocols/snmp-model';
 import {
   syslogClientSchema,
@@ -249,7 +251,7 @@ export const aclRuleSchema = z
   .object({
     sequence: z.number().int().min(1).max(65535),
     action: z.enum(['permit', 'deny']),
-    protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp', 'gre', 'esp']),
+    protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'eigrp', 'vrrp', 'gre', 'esp']),
     source: subnetSchema,
     destination: subnetSchema,
     sourceWildcard: ipv4Schema.optional(),
@@ -711,6 +713,8 @@ export const interfaceSchema = z
     iosTunnel: iosTunnelSchema.optional(),
     // "bandwidth N" (kbit/s): what routing protocols use for cost, not the line rate.
     bandwidthKbps: z.number().int().min(1).max(100000000).optional(),
+    // "delay N": interface delay in tens of microseconds (EIGRP metric).
+    delayTens: z.number().int().min(1).max(16777215).optional(),
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),
@@ -965,6 +969,7 @@ export const packetSchema = z
     vrrpPacketSchema,
     grePacketSchema,
     espPacketSchema,
+    eigrpPacketSchema,
   ])
   .superRefine((packet, ctx) => {
     if (packet.protocol === 'TCP' && packet.family === 6)
@@ -1237,6 +1242,7 @@ export const deviceSchema = z
     stateSync: stateSyncSchema.optional(),
     ospf: ospfStateSchema.optional(),
     rip: ripStateSchema.optional(),
+    eigrp: eigrpStateSchema.optional(),
     vrrp: vrrpStateSchema.optional(),
     bgp: bgpStateSchema.optional(),
     snmpAgent: snmpAgentSchema.optional(),
@@ -1446,6 +1452,9 @@ export const eventSchema = z
       'RIP_REQUEST',
       'RIP_UPDATE',
       'RIP_RECEIVED',
+      'EIGRP_SENT',
+      'EIGRP_RECEIVED',
+      'EIGRP_NEIGHBOR_CHANGED',
       'ROUTE_ADDED',
       'ROUTE_REMOVED',
       'SNMP_QUERY',
@@ -1565,6 +1574,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
     .strict(),
   ospfTimerSchema,
   ripTimerSchema,
+  eigrpTimerSchema,
   vrrpTimerSchema,
   bgpTimerSchema,
   snmpTimerSchema,

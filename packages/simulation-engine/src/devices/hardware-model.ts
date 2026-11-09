@@ -89,7 +89,7 @@ export const consoleSessionsSchema = z
             vlan: z.number().int().min(1).max(4094).optional(),
             pool: z.string().max(50).optional(),
             ports: z.array(idSchema).max(48).optional(),
-            router: z.enum(['ospf', 'bgp', 'rip']).optional(),
+            router: z.enum(['ospf', 'bgp', 'rip', 'eigrp']).optional(),
             process: z.number().int().min(1).max(65535).optional(),
             acl: z.string().max(32).optional(),
             aclType: z.enum(['standard', 'extended']).optional(),
