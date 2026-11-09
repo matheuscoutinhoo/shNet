@@ -143,10 +143,13 @@ export function bgpCandidates(device: Device): BgpCandidate[] {
       !prefixListPermits(device, config.importPrefixList, path)
     )
       continue;
-    const mapped = applyRouteMap(device, config.importRouteMap, path);
+    // Inbound policy is applied continuously: the neighbor's LOCAL_PREF (eBGP) and route-map take
+    // effect as soon as they change, without waiting for the peer to send the path again.
+    const inbound = { ...path, localPref: config.remoteAs === state.asn ? path.localPref : config.localPref };
+    const mapped = applyRouteMap(device, config.importRouteMap, inbound);
     if (!mapped) continue;
     paths.push({
-      ...path,
+      ...inbound,
       ...mapped,
       port: resolved.port.id,
       gateway: resolved.nextHop,

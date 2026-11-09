@@ -166,7 +166,6 @@ qqy8u5of	Firewall {0}{1}{2}: zone-pair {3} → {4} drops it; {5} → {6}.
 ah01wm2o	to the router on
 argvwch1	originated by the router on
 oqajazuo	all or 1,10,20-30
-12ywrl66	LACP negotiates members with control frames. Active starts; passive answers. At least one side must be active. Mode on bundles without negotiation and needs on at both ends. The port-channel load-balance hash (src-dst-ip by default on switches) picks a member; a failure redistributes the flows among the remaining ones.
 pdv6a5m6	EtherChannel mode
 pz2n7z0e	% Failed to make the bridge root for vlan {0}
 5a1r7oyu	DHCP snooping: {0} pps limit exceeded on {1}.
@@ -180,3 +179,5 @@ i7yrmszl	holding time expired
 0oh7sae9	OSPFv3 packet exchanged between routers on the same link
 fgu54bzf	Hello · DR {0} · BDR {1} · {2} neighbor(s)
 l8nnp08j	ADV Router Age Seq# Fragment ID Link count Bits
+064lwt45	LACP negotiates members with control frames. Active initiates; passive responds. At least one side must be active. Cisco PAgP uses desirable (initiates) and auto (responds) with the same rule and does not negotiate with LACP. Mode on bundles without negotiating and requires on at both ends. The port-channel load-balance hash (src-dst-ip by default on switches) picks a member; a failure redistributes the flows among the remaining ones.
+8mks2s65	No PDU received

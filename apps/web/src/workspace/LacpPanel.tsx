@@ -8,9 +8,9 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
     <div className="lacp-panel protocol-panel">
       <p className="muted">
         LACP negocia membros por frames de controle. Active inicia; passive responde. Pelo menos um lado deve
-        ser active. O modo on agrega sem negociar e exige on dos dois lados. O hash do port-channel
-        load-balance (padrão src-dst-ip nos switches) escolhe um membro; a falha redistribui os fluxos entre
-        os restantes.
+        ser active. PAgP, da Cisco, usa desirable (inicia) e auto (responde) com a mesma regra e não negocia
+        com LACP. O modo on agrega sem negociar e exige on dos dois lados. O hash do port-channel load-balance
+        (padrão src-dst-ip nos switches) escolhe um membro; a falha redistribui os fluxos entre os restantes.
       </p>
       <section className="table-section">
         <h4>EtherChannels</h4>
@@ -43,7 +43,7 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
                     </td>
                     <td>
                       {[...new Set(p.aggregate!.received.map((r) => r.pdu.actor.system))].join(', ') ||
-                        'Sem LACP recebido'}
+                        'Sem PDU recebido'}
                     </td>
                   </tr>
                 ))}
@@ -75,7 +75,7 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
             e.configureLacp(
               device.id,
               Number(f.get('number')),
-              String(f.get('mode')) as 'active' | 'passive' | 'on',
+              String(f.get('mode')) as 'active' | 'passive' | 'on' | 'desirable' | 'auto',
               f.getAll('members').map(String),
               Number(f.get('minLinks'))
             )
@@ -101,6 +101,8 @@ export function LacpPanel({ lab, device }: { lab: LabController; device: Device 
             <select name="mode" defaultValue={selected?.aggregate?.mode ?? 'active'}>
               <option>active</option>
               <option>passive</option>
+              <option>desirable</option>
+              <option>auto</option>
               <option>on</option>
             </select>
           </label>

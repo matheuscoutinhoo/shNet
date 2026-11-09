@@ -55,6 +55,26 @@ describe('BGP por sessões TCP reais do modelo', () => {
     );
     validateSnapshot(engine.snapshot());
   });
+  it('aplica e desfaz LOCAL_PREF de entrada sem reiniciar a sessão', () => {
+    const { engine, a } = topology();
+    const best = () => a.bgp!.routes.find((path) => path.network === '192.168.20.0')?.nextHop;
+    engine.advanceTo(15000);
+    expect(best()).toBe('10.0.13.3');
+    const sessions = () => a.bgp!.peers.map((peer) => peer.establishedAt);
+    const before = sessions();
+    for (const [localPref, nextHop] of [
+      [200, '10.0.12.2'],
+      [100, '10.0.13.3'],
+    ] as const) {
+      const config = bgpConfig(a)!;
+      config.neighbors.find((n) => n.ip === '10.0.12.2')!.localPref = localPref;
+      engine.configureBgp(a.id, config);
+      engine.advanceTo(engine.state.clock + 2000);
+      expect(best(), 'local-pref ' + localPref).toBe(nextHop);
+    }
+    expect(sessions()).toEqual(before);
+    validateSnapshot(engine.snapshot());
+  });
   it('aplica LOCAL_PREF e filtro de saída ao fluxo de anúncios', () => {
     const { engine, a, c } = topology();
     const config = bgpConfig(a)!;
