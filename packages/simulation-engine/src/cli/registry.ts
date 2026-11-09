@@ -3,6 +3,7 @@ import type { Device, NetworkInterface } from '../model';
 import { commandSupported, terminalIdentity } from './device-commands';
 import { expandCommand, nextKeywords, type Syntax } from './syntax';
 import { continueBanner } from './banner';
+import type { VtyConnection } from './vty';
 export type Mode =
   | 'user'
   | 'privileged'
@@ -113,6 +114,10 @@ export interface Context {
       'save' | 'reload' | 'clear-counters' | 'clear-logging' | 'clear-ospf' | 'delete-name' | 'delete-file';
     port?: string;
   };
+  // Set by "telnet"/"ssh" once the TCP connection is open; the terminal then runs the login.
+  vty?: VtyConnection;
+  // A session reached over Telnet/SSH: the server end of its TCP connection ("show users").
+  vtySession?: string;
 }
 export interface Command {
   pattern: RegExp;

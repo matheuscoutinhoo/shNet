@@ -176,6 +176,8 @@ export function consoleCommand(e: SimulationEngine, source: string, linkId: stri
   const output = session.execute(line),
     current = e.device(target.id),
     sessions = (current.consoleSessions ??= []);
+  // A console UART command runs in a session rebuilt for each line: it cannot keep a Telnet/SSH open.
+  session.disconnect();
   const old = sessions.findIndex((s) => s.link === link.id);
   if (old >= 0) sessions.splice(old, 1);
   sessions.push({ link: link.id, context: session.context, history: session.history });

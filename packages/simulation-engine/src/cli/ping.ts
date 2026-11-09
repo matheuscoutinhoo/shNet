@@ -7,7 +7,7 @@ import { terminalIdentity } from './device-commands';
 type Result = { status: Probe['status']; rtt?: number; responder?: string };
 
 /** Runs the simulation until done() holds or the virtual deadline passes (IOS waits per echo). */
-function waitFor(e: SimulationEngine, done: () => boolean, timeoutMs: number, lost?: () => boolean) {
+export function waitFor(e: SimulationEngine, done: () => boolean, timeoutMs: number, lost?: () => boolean) {
   const deadline = e.state.clock + timeoutMs;
   let steps = 0,
     checkedAt = e.state.clock;

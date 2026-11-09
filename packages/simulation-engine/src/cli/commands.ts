@@ -69,6 +69,7 @@ import { registerIosShow2 } from './ios-show2';
 import { registerDebugCommands } from './debug';
 import { eigrpRunningConfig, registerEigrpCommands } from './eigrp';
 import { ospf3RunningConfig, registerOspf3Commands } from './ospf3';
+import { registerVtyCommands } from './vty';
 import { showVersion } from './ios-version';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
@@ -106,6 +107,7 @@ export function makeRegistry() {
   // Before OSPF/RIP/BGP: shared router-mode words (network, passive-interface...) are EIGRP's here.
   registerEigrpCommands(r);
   registerOspf3Commands(r);
+  registerVtyCommands(r);
   registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);

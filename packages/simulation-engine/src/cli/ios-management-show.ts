@@ -261,18 +261,6 @@ export function registerIosManagementShow(r: CommandRegistry) {
     run: (_m, _e, d) => showSsh(d),
   });
   r.register({
-    pattern: /^show users$/i,
-    syntax: 'show users',
-    modes: ALL_MODES,
-    run: () =>
-      [
-        '    Line       User       Host(s)              Idle       Location',
-        '*  0 con 0                idle                 00:00:00',
-        '',
-        '  Interface    User               Mode         Idle     Peer Address',
-      ].join('\n'),
-  });
-  r.register({
     pattern: /^show errdisable recovery$/i,
     syntax: 'show errdisable recovery',
     modes: ALL_MODES,

@@ -245,6 +245,16 @@ show ipv6 route [ospf|connected|local|static]
 
 As VLANs ficam no `vlan.dat` (flash): aparecem na running-config só em VTP transparent/off, sobrevivem a `reload` e `write erase`, e `delete flash:vlan.dat` (com as confirmações do IOS) restaura a base padrão no próximo boot. Nomes padrão seguem o IOS (`VLAN0010`). As interfaces aceitam as abreviações do IOS (`g0/1`, `gig 0/1`, `GigabitEthernet0/1`, `po1`, `lo0`, `vl10`). Endereços sobrepostos são recusados apenas no mesmo equipamento; equipamentos diferentes podem repetir um endereço, o que gera `%IP-4-DUPADDR` ao receber ARP conflitante.
 
+## Telnet e SSH entre equipamentos
+
+`telnet HOST [porta] [/vrf NOME] [/source-interface INTF]` e `ssh -l USUÁRIO [-p porta] [-vrf NOME] HOST` abrem uma conexão TCP real (portas 23 e 22) a partir do modo EXEC e entregam o terminal ao equipamento remoto; `exit`/`logout` no EXEC remoto fecha a conexão (`[Connection to X closed by foreign host]`) e volta ao equipamento de origem. Sessões podem ser encadeadas (R1 → R2 → R3) e caem quando o remoto recarrega, desliga ou perde a conexão.
+
+O servidor segue as linhas VTY do IOS: `line vty 0 4` (e `5 15` nos switches) existe sempre, com `login` e `transport input telnet ssh` por padrão. `transport input ssh|telnet|none|all` e `access-class ACL in` (ACL IPv4 padrão/estendida, com contadores) recusam a conexão com reset TCP (`% Connection refused by remote host`); sem rota aparece `% Destination unreachable; gateway or host down` e sem resposta `% Connection timed out; remote host not responding`. O SSH só responde depois de `crypto key generate rsa` (que exige `hostname` e `ip domain-name`).
+
+A autenticação usa `login` (senha da linha; sem senha o Telnet mostra `Password required, but none set`), `login local` (`username NOME [privilege N] secret|password`), `no login` ou, com `aaa new-model`, a lista `login authentication LISTA` (ou `default`, ou o banco local) com os métodos `local`, `line`, `enable` e `none`. O SSH exige usuário (local/AAA); somente a senha da linha encerra a conexão (`aborted: error status 0`). Três falhas encerram a sessão (`% Login invalid` no Telnet, `% Authentication failed.` no SSH). Usuários com privilégio 15 entram em EXEC privilegiado; os demais usam `enable` com o `enable secret` remoto. `show users` lista o console e as sessões VTY com usuário, ociosidade e origem.
+
+Limites: os métodos `group tacacs+|radius` das listas AAA são tratados como servidor indisponível (passa ao próximo método); as teclas digitadas não trafegam como dados TCP/SSH (a conexão TCP é real, a sessão é entregue ao CLI remoto); `exec-timeout`, `ip ssh time-out` e a suspensão de sessões (Ctrl-Shift-6 x, `resume`) não são modelados.
+
 ## TCP, echo e HTTP
 
 TCP usa IPv4 protocolo 6 e IPv6 Next Header 6 e passa por ARP/Ethernet, roteamento, VLAN/STP, perda, MTU, ACL e NAT. O modelo executa SYN → SYN/ACK → ACK, entrega ordenada sem duplicação, ACK cumulativo, FIN com half-close, fechamento simultâneo, RST e TIME-WAIT. Porta fechada responde RST; uma conexão bloqueada esgota as tentativas. Eventos mostram estados, descartes e retransmissões; o packet inspector mostra flags, sequência, ACK, janela e dados.

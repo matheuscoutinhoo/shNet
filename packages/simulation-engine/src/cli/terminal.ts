@@ -14,8 +14,32 @@ import { beginReload, saveStartup } from './startup';
 import { sessionBanners } from './ios-management';
 import { answerClear, applyOutputModifier, parseOutputModifier } from './ios-exec';
 import { deleteVlanDat } from './ios-show2';
+import { vtyLogin, vtyNeedsUsername, vtyServerConnection, verifyVtyLogin, type VtyConnection } from './vty';
+import { vtyLineFor } from '../protocols/vty';
+import type { IosLine } from '../protocols/ios-system-model';
 export class TerminalSession {
-  context: Context = { mode: 'user' };
+  private ownContext: Context = { mode: 'user' };
+  // Telnet/SSH session opened from this terminal: its login dialog, then the remote CLI.
+  private remote?: {
+    v: VtyConnection;
+    line: IosLine;
+    stage: 'username' | 'password' | 'open';
+    username?: string;
+    failures: number;
+    session?: TerminalSession;
+  };
+  /** The mode and dialog state of the CLI the operator is typing into (the remote one over Telnet/SSH). */
+  get context(): Context {
+    return this.remote?.session?.context ?? this.ownContext;
+  }
+  set context(value: Context) {
+    if (this.remote?.session) this.remote.session.context = value;
+    else this.ownContext = value;
+  }
+  /** Whether a Telnet/SSH session opened from this terminal is active. */
+  get connected() {
+    return !!this.remote;
+  }
   history: string[] = [];
   /** State before the last successful mutating command, for undo history (see StateMark). */
   lastMark?: StateMark;
@@ -27,7 +51,13 @@ export class TerminalSession {
   get identity() {
     return terminalIdentity(this.engine.device(this.deviceId));
   }
-  get prompt() {
+  get prompt(): string {
+    if (this.remote)
+      return this.remote.stage === 'username'
+        ? 'Username: '
+        : this.remote.stage === 'password'
+          ? 'Password: '
+          : this.remote.session!.prompt;
     if (this.secretInput) return 'Password:';
     const confirm = this.context.confirm;
     if (confirm)
@@ -89,14 +119,20 @@ export class TerminalSession {
       (this.context.ports?.length && this.context.mode === 'interface' ? '(config-if-range)#' : suffix)
     );
   }
-  get secretInput() {
+  get secretInput(): boolean {
+    if (this.remote)
+      return (
+        this.remote.stage === 'password' || (this.remote.stage === 'open' && this.remote.session!.secretInput)
+      );
     return !!this.context.auth;
   }
   /** Text IOS shows when this session opens: the MOTD banner, then the exec banner. */
   get banners() {
     return sessionBanners(this.engine.device(this.deviceId)).join('\n');
   }
-  displayInput(input: string) {
+  displayInput(input: string): string {
+    if (this.remote)
+      return this.remote.session ? this.remote.session.displayInput(input) : this.secretInput ? '' : input;
     if (this.secretInput) return '';
     if (this.context.confirm) return input;
     try {
@@ -112,10 +148,17 @@ export class TerminalSession {
     }
   }
   cancel() {
+    if (this.remote) {
+      // Ctrl-C during the login abandons the connection; inside the session it reaches the remote CLI.
+      if (this.remote.session) this.remote.session.cancel();
+      else this.disconnect();
+      return;
+    }
     delete this.context.auth;
     delete this.context.confirm;
   }
-  help(input: string) {
+  help(input: string): string {
+    if (this.remote) return this.remote.session ? this.remote.session.help(input) : '';
     if (this.secretInput || this.context.confirm) return '';
     try {
       return this.registry.help(input, this.engine.device(this.deviceId), this.context);
@@ -123,7 +166,8 @@ export class TerminalSession {
       return '% ' + (error instanceof Error ? error.message : 'Invalid input');
     }
   }
-  complete(input: string) {
+  complete(input: string): string {
+    if (this.remote) return this.remote.session ? this.remote.session.complete(input) : input;
     if (this.secretInput || this.context.confirm) return input;
     try {
       return this.registry.complete(input, this.engine.device(this.deviceId), this.context);
@@ -132,6 +176,10 @@ export class TerminalSession {
     }
   }
   end() {
+    if (this.remote) {
+      this.remote.session?.end();
+      return;
+    }
     if (!CONFIG_MODES.includes(this.context.mode)) return;
     this.context = { mode: 'privileged' };
     if (!this.identity.host)
@@ -194,7 +242,8 @@ export class TerminalSession {
       return '% ' + cliErrorText(error);
     }
   }
-  execute(input: string) {
+  execute(input: string): string {
+    if (this.remote) return this.executeRemote(input);
     this.lastMark = undefined;
     const reloading = this.engine.device(this.deviceId).reloading;
     if (reloading) {
@@ -284,6 +333,12 @@ export class TerminalSession {
         accountTacacs(this.engine, d, redactNetworkSecrets(line));
       // IOS prints nothing for a successful configuration command.
       if (result === 'OK' && /IOS/.test(this.identity.family)) result = '';
+      // "telnet"/"ssh" opened a connection: the login dialog of the remote device follows.
+      const vty = this.ownContext.vty;
+      if (vty) {
+        delete this.ownContext.vty;
+        return this.startRemote(vty, terminalText(result));
+      }
       if (readOnly) return terminalText(result);
       this.engine.refreshSpanningTree();
       this.engine.refreshBgp();
@@ -295,7 +350,7 @@ export class TerminalSession {
         !/^(ipconfig(?: \/all)?$|ip (?:addr|address|link|route) show$|route print$|arp -a$|wifi scan$)/i.test(
           authorized
         ) &&
-        !/^(show|help|\?|ping|traceroute|tracert|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf|debug|no debug|u\w* all|undebug|terminal|clear)/i.test(
+        !/^(show|help|\?|ping|traceroute|tracert|nslookup|tcp|http|snmp (?:get|get-next)|syslog send|enable|end|exit|conf|debug|no debug|u\w* all|undebug|terminal|clear|telnet|ssh)/i.test(
           authorized
         )
       )
@@ -317,8 +372,109 @@ export class TerminalSession {
       return '% ' + cliErrorText(error);
     }
   }
+  /** Closes the Telnet/SSH session opened from this terminal, if any. */
+  disconnect() {
+    const r = this.remote;
+    if (!r) return;
+    r.session?.disconnect();
+    delete this.remote;
+    const origin = this.engine.state.devices.find((d) => d.id === this.deviceId);
+    const client = origin?.tcpConnections?.find((c) => c.id === r.v.connection);
+    if (client && ['ESTABLISHED', 'CLOSE-WAIT'].includes(client.state))
+      this.engine.closeTcp(this.deviceId, r.v.connection);
+  }
+  private closed(text: string) {
+    const address = this.remote!.v.address;
+    this.disconnect();
+    return (text ? text + '\n' : '') + '\n[Connection to ' + address + ' closed by foreign host]';
+  }
+  /** Login dialog after "telnet"/"ssh" connected: banners, then Username/Password as the VTY line requires. */
+  private startRemote(v: VtyConnection, output: string) {
+    const target = this.engine.device(v.target);
+    const line = vtyLineFor(target, v.transport)!;
+    this.remote = {
+      v,
+      line,
+      stage: 'password',
+      failures: 0,
+      ...(v.username ? { username: v.username } : {}),
+    };
+    const login = vtyLogin(target, line);
+    const banners = [target.iosSystem?.banners?.motd, target.iosSystem?.banners?.login].filter(
+      (b): b is string => b !== undefined
+    );
+    const head = [output, ...banners].filter(Boolean).join('\n');
+    if (login.noLogin) return [head, this.openRemote(line.privilege ?? 1)].filter(Boolean).join('\n');
+    if (v.transport === 'ssh') {
+      // The SSH server authenticates users: the local database or AAA, never a line password alone.
+      if (!vtyNeedsUsername(target, line)) {
+        this.disconnect();
+        return [head, '[Connection to ' + v.address + ' aborted: error status 0]'].filter(Boolean).join('\n');
+      }
+      return head;
+    }
+    if (login.methods.length === 1 && login.methods[0] === 'line' && !line.password)
+      return this.closed([head, '', 'Password required, but none set'].join('\n'));
+    if (vtyNeedsUsername(target, line)) this.remote.stage = 'username';
+    return [head, '', 'User Access Verification', ''].join('\n');
+  }
+  private openRemote(privilege: number) {
+    const r = this.remote!;
+    const target = this.engine.device(r.v.target);
+    const server = vtyServerConnection(this.engine, this.engine.device(this.deviceId), r.v);
+    if (server && r.username) server.vtyUser = r.username;
+    const session = new TerminalSession(this.engine, r.v.target);
+    session.context = {
+      mode: privilege >= 15 ? 'privileged' : 'user',
+      ...(server ? { vtySession: server.id } : {}),
+    };
+    r.session = session;
+    r.stage = 'open';
+    return target.iosSystem?.banners?.exec ?? '';
+  }
+  private executeRemote(input: string): string {
+    const r = this.remote!;
+    this.lastMark = undefined;
+    const origin = this.engine.state.devices.find((d) => d.id === this.deviceId);
+    const target = this.engine.state.devices.find((d) => d.id === r.v.target);
+    const client = origin?.tcpConnections?.find((c) => c.id === r.v.connection);
+    // The remote end went away (reload, power, link loss reset the TCP connection).
+    if (!target?.power || target.reloading || client?.state !== 'ESTABLISHED') return this.closed('');
+    if (r.stage === 'username') {
+      const name = input.trim();
+      if (!name) return '';
+      r.username = name;
+      r.stage = 'password';
+      return '';
+    }
+    if (r.stage === 'password') {
+      const result = verifyVtyLogin(target, r.line, r.username, input);
+      if (result) return this.openRemote(result.privilege);
+      const telnet = r.v.transport === 'telnet';
+      const message = telnet ? '% Login invalid' : '% Authentication failed.';
+      if (++r.failures >= 3) return this.closed(message);
+      if (telnet && vtyNeedsUsername(target, r.line)) r.stage = 'username';
+      return message + (telnet ? '\n' : '');
+    }
+    const session = r.session!;
+    const line = input.trim();
+    if (
+      !session.connected &&
+      ['user', 'privileged'].includes(session.context.mode) &&
+      /^(?:exi?t?|logo(?:ut?)?|quit)$/i.test(line)
+    )
+      return this.closed('');
+    if (line && !session.secretInput) {
+      this.history.push(redactNetworkSecrets(line));
+      if (this.history.length > 200) this.history.shift();
+    }
+    const output = session.execute(input);
+    this.lastMark = session.lastMark;
+    return output;
+  }
   /** Whether a line only reads state, so callers can skip undo checkpoints and revalidation. */
-  readOnly(input: string) {
+  readOnly(input: string): boolean {
+    if (this.remote) return this.remote.session ? this.remote.session.readOnly(input) : false;
     if (this.secretInput || this.context.confirm || this.context.banner) return false;
     const trimmed = input.trim();
     let line: string;
