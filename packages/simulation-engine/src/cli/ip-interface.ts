@@ -1,6 +1,6 @@
 import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface } from '../model';
-import { interfaceOperational } from '../protocols/layer3';
+import { interfaceOperational, routingEnabled } from '../protocols/layer3';
 import { eigrpPorts } from '../protocols/eigrp';
 import { findInterface, longInterfaceName } from '../protocols/interface-name';
 import { ALL_MODES, currentPort, type CommandRegistry } from './registry';
@@ -36,7 +36,7 @@ function showIpInterface(e: SimulationEngine, d: Device, p: NetworkInterface) {
     '  Outgoing access list is ' + (p.aclOut ?? 'not set'),
     '  Inbound Common access list is not set',
     '  Inbound  access list is ' + (p.aclIn ?? 'not set'),
-    '  Proxy ARP is disabled',
+    '  Proxy ARP is ' + (routingEnabled(d) && p.proxyArp !== false ? 'enabled' : 'disabled'),
     '  Local Proxy ARP is disabled',
     '  Security level is default',
     '  Split horizon is enabled',
@@ -97,6 +97,18 @@ export function registerIpInterfaceCommands(r: CommandRegistry) {
     },
   });
   r.register({
+    pattern: /^(no )?ip proxy-arp$/i,
+    syntax: ['ip proxy-arp', 'no ip proxy-arp'],
+    modes: ['interface'],
+    run: (m, _e, d, c) => {
+      const p = currentPort(d, c);
+      if (d.type !== 'router' && d.type !== 'switch')
+        throw new Error("% Invalid input detected at '^' marker.");
+      if (m[1]) p.proxyArp = false;
+      else delete p.proxyArp;
+    },
+  });
+  r.register({
     pattern: /^show ip interface(?: (?!brief$)(.+))?$/i,
     syntax: 'show ip interface [interface]',
     modes: ALL_MODES,
@@ -113,9 +125,14 @@ export function registerIpInterfaceCommands(r: CommandRegistry) {
     },
   });
 }
-/** uRPF lines of an interface block in running-config. */
+/** uRPF and proxy ARP lines of an interface block in running-config. */
 export function urpfRunningConfig(p: NetworkInterface) {
-  return p.urpf
-    ? [` ip verify unicast source reachable-via ${p.urpf.mode}${p.urpf.allowDefault ? ' allow-default' : ''}`]
-    : [];
+  return [
+    ...(p.urpf
+      ? [
+          ` ip verify unicast source reachable-via ${p.urpf.mode}${p.urpf.allowDefault ? ' allow-default' : ''}`,
+        ]
+      : []),
+    ...(p.proxyArp === false ? [' no ip proxy-arp'] : []),
+  ];
 }

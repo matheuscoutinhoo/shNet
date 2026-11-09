@@ -864,6 +864,8 @@ export const interfaceSchema = z
     aclIn: z.string().max(32).optional(),
     aclOut: z.string().max(32).optional(),
     natRole: z.enum(['inside', 'outside']).optional(),
+    // "no ip proxy-arp": IOS answers proxy ARP on routed interfaces unless disabled.
+    proxyArp: z.literal(false).optional(),
     // IOS "zone-member security ZONE".
     zoneMember: z
       .string()

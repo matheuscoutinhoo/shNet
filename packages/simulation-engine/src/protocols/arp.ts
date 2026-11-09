@@ -18,6 +18,8 @@ import { natOwnsAddress } from './nat';
 import { isUnicast } from './dhcp-config';
 import { observeDhcpArp } from './dhcp-client';
 import { dottedMac, longInterfaceName } from './interface-name';
+import { routingEnabled } from './layer3';
+import { resolveRoute, sameSubnet } from './ipv4';
 
 type Resolution = NonNullable<Device['arpResolutions']>[number];
 type ArpTimer = Extract<Action, { kind: 'arp-timeout' }>;
@@ -186,6 +188,26 @@ export function handleArpTimer(engine: SimulationEngine, action: ArpTimer) {
   );
 }
 
+/**
+ * IOS proxy ARP, enabled by default on routed interfaces ("no ip proxy-arp" disables it): the
+ * router answers with its own MAC for an address it reaches through another interface. The
+ * default route does not count, and with HSRP/VRRP only the active router answers, with the
+ * virtual MAC.
+ */
+function proxyArpMac(engine: SimulationEngine, device: Device, port: NetworkInterface, frame: Frame) {
+  const arp = frame.arp!;
+  if (arp.kind !== 'request' || port.proxyArp === false || !port.ip || port.prefix === undefined) return;
+  if (!routingEnabled(device) || !isUnicast(arp.senderIp) || arp.senderIp === arp.targetIp) return;
+  if (!sameSubnet(arp.senderIp, port.ip, port.prefix) || sameSubnet(arp.targetIp, port.ip, port.prefix))
+    return;
+  const route = resolveRoute(device, arp.targetIp, port.vrf, engine.state);
+  if (!route || route.prefix === 0 || route.port.id === port.id) return;
+  const redundant =
+    device.hsrp?.groups.some((g) => g.port === port.id) ||
+    device.vrrp?.groups.some((g) => g.port === port.id);
+  return redundant ? activeVirtualRouter(engine.state, device, port)?.mac : port.mac;
+}
+
 export function receiveArp(engine: SimulationEngine, device: Device, port: NetworkInterface, frame: Frame) {
   const arp = frame.arp;
   if (!arp || arp.senderMac !== frame.src) return;
@@ -222,9 +244,14 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
   const announcement = arp.kind === 'request' && arp.senderIp === arp.targetIp && isUnicast(arp.senderIp);
   const knownAnnouncement =
     announcement && device.arpTable.some((entry) => entry.port === port.id && entry.ip === arp.senderIp);
+  const proxyMac =
+    arp.targetIp !== port.ip && !virtual && !natOwnsAddress(device, port, arp.targetIp)
+      ? proxyArpMac(engine, device, port, frame)
+      : undefined;
   if (
     arp.targetIp !== port.ip &&
     !virtual &&
+    !proxyMac &&
     !natOwnsAddress(device, port, arp.targetIp) &&
     !knownAnnouncement &&
     !(arp.kind === 'reply' && detachedRelease)
@@ -254,7 +281,7 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
     const natVirtual = natOwnsAddress(device, port, arp.targetIp)
       ? activeVirtualRouter(engine.state, device, port)
       : undefined;
-    const replyMac = (virtual ?? natVirtual)?.mac ?? port.mac;
+    const replyMac = proxyMac ?? (virtual ?? natVirtual)?.mac ?? port.mac;
     const reply: Frame = {
       src: replyMac,
       dst: arp.senderMac,
@@ -262,10 +289,14 @@ export function receiveArp(engine: SimulationEngine, device: Device, port: Netwo
       hops: LIMITS.l2Hops,
       arp: { kind: 'reply', senderIp: arp.targetIp, senderMac: replyMac, targetIp: arp.senderIp },
     };
-    engine.emit('ARP_REPLY', device.id, 'O IP consultado pertence a esta interface. Resposta unicast.', {
-      port: port.id,
-      frame: reply,
-    });
+    engine.emit(
+      'ARP_REPLY',
+      device.id,
+      proxyMac
+        ? `Proxy ARP: ${arp.targetIp} é alcançável por outra interface; o roteador responde com o próprio MAC.`
+        : 'O IP consultado pertence a esta interface. Resposta unicast.',
+      { port: port.id, frame: reply }
+    );
     engine.sendFrame(device.id, port.id, reply);
   }
   device.pending = device.pending.filter((entry) => !pending.includes(entry));
