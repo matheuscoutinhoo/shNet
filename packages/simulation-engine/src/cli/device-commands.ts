@@ -32,6 +32,13 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   const c = deviceCapabilities(d);
   if (!c.active) return /^(help|\?|show interfaces)$/i.test(input);
   const line = input.toLowerCase().replace(/^no /, '');
+  // IOS zone-based policy firewall: an ISR router feature.
+  if (
+    /^(?:zone(?:-pair)? security|zone-member security|(?:class|policy)-map type inspect|show (?:zone(?:-pair)? security|(?:class|policy)-map type inspect))\b/.test(
+      line
+    )
+  )
+    return d.type === 'router' && c.routing;
   if (/^(?:class-map|policy-map|service-policy|show policy-map)\b/.test(line))
     return (c.routing || c.switching) && !c.endpoint;
   if (
@@ -51,10 +58,27 @@ export function commandSupported(d: Device, input: string, context: Context): bo
   if (/^(?:write\b|copy\b|erase startup-config\b|reload$|show startup-config$)/.test(line))
     return (c.routing || c.switching) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');
   if (/^enable (?:secret|algorithm-type)\b/.test(line)) return (c.routing || c.switching) && !c.endpoint;
+  // IOS management plane (day-0 configuration): identity, AAA, lines, banners, logging, SNMP, NTP.
+  if (
+    /^(?:aaa (?:new-model|authentication|authorization|accounting|group server|session-id)|(?:tacacs|radius)(?: server|-server)|ip (?:tacacs|radius) source-interface|username|line (?:con|aux|vty)|banner|service (?:timestamps|pad|tcp-keepalives|sequence-numbers|config|call-home|internal|compress-config|counters)|ip (?:domain|ssh|scp|http|source-route|bootp server|finger|gratuitous-arps)|crypto key (?:generate|zeroize) rsa|logging (?:buffered|console|monitor|trap|facility|source-interface)|snmp-server (?:location|contact|host|enable traps|trap-source|group|user|ifindex)|ntp (?:source|authenticate|authentication-key|trusted-key)|errdisable recovery|login block-for|show (?:ip ssh|line|users|logging|aaa servers|errdisable recovery|banner|snmp (?:location|contact|host|user|group)))\b/.test(
+      line
+    )
+  )
+    return (c.routing || c.switching) && !c.endpoint;
+  if (/^(?:vtp|storm-control|monitor session|show (?:vtp|storm-control|monitor))\b/.test(line))
+    return c.switching;
+  if (/^(?:crypto (?:isakmp|ipsec|ikev2)|show crypto)\b/.test(line))
+    return d.type === 'router' && c.routingProtocols;
   if (/^(?:standby|show standby)\b/.test(line)) return c.routingProtocols;
   if (/^(?:cdp|lldp|show (?:cdp|lldp))\b/.test(line))
     return (c.routing || c.switching) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');
   if (/^ip access-list /.test(line)) return c.routing || c.switching;
+  if (
+    /^(?:ipv6 access-list|ipv6 traffic-filter (?!in |out )|show ipv6 access-list|clear ipv6 access-list)/.test(
+      line
+    )
+  )
+    return (c.routing || c.switching) && !c.endpoint;
   if (/^(ipconfig|ip (addr|address|link|route) (show|add|del|set)|route print|arp -a|hostname$)/.test(line))
     return c.endpoint;
   if (/^wifi /.test(line)) return c.wireless && c.endpoint;

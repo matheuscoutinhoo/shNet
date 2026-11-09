@@ -8,10 +8,15 @@ import { receiveTcp } from './tcp';
 import { receiveTcpMtu } from './tcp-pmtud';
 import { receiveOspf } from './ospf';
 import { ripRoutes } from './rip';
+import { eigrpRoutes, eigrpSummaryRoutes, receiveEigrp } from './eigrp';
 import { sendIcmpError } from './icmp';
 import { receiveVrrp, acceptsVrrpAddress } from './vrrp';
 import { receiveHsrp, acceptsHsrpAddress } from './hsrp';
 import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
+import { receiveTunnelPacket } from './ios-tunnel';
+import { permitSelfZone } from './zbf-policy';
+import { debugEchoReply, debugReceived } from './ip-debug';
+import { permitUrpf } from './urpf';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
   if (cached !== undefined) return cached;
@@ -88,6 +93,37 @@ export function resolveDefaultRoutes(device: Device, vrf?: string) {
   }
   return routes;
 }
+type RouteEntry = Device['routes'][number];
+/** Identifies a static route on a recursive next-hop resolution path. */
+export const staticRouteKey = (r: RouteEntry) =>
+  JSON.stringify([r.vrf, r.network, r.prefix, r.nextHop, r.port]);
+type Resolution = { port: NetworkInterface; nextHop: string; prefix: number };
+/** The longest match is a Null0 route (or a permanent route that lost its path): the packet is dropped. */
+export type RouteDiscard = { discard: true; prefix: number };
+/** Whether IOS keeps a static route in the routing table (ignoreTrack: judge only the path). */
+export function staticRouteInstalled(
+  device: Device,
+  r: RouteEntry,
+  snapshot?: Snapshot,
+  ignoreTrack = false
+) {
+  if (r.distance === 255 && !ignoreTrack) return false;
+  if (!ignoreTrack && r.track && !device.monitoring?.tracks.find((t) => t.id === r.track)?.state)
+    return false;
+  if (r.discard || r.permanent) return true;
+  if (r.port)
+    return device.interfaces.some(
+      (p) =>
+        p.id === r.port &&
+        p.vrf === r.vrf &&
+        p.ip !== undefined &&
+        p.prefix !== undefined &&
+        interfaceUp(device, p) &&
+        (!snapshot || interfaceOperational(snapshot, device, p)) &&
+        (r.nextHop === '0.0.0.0' || sameSubnet(p.ip, r.nextHop, p.prefix))
+    );
+  return !!bestRoute(device, r.nextHop, r.vrf, snapshot, new Set([staticRouteKey(r)]));
+}
 export function resolveRoute(
   device: Device,
   dst: string,
@@ -95,11 +131,23 @@ export function resolveRoute(
   snapshot?: Snapshot,
   visited: ReadonlySet<string> = new Set(),
   flowKey?: string
-): { port: NetworkInterface; nextHop: string; prefix: number } | undefined {
-  type Resolution = { port: NetworkInterface; nextHop: string; prefix: number };
+): Resolution | undefined {
+  const route = bestRoute(device, dst, vrf, snapshot, visited, flowKey);
+  return route && 'discard' in route ? undefined : route;
+}
+/** Routing table lookup: the forwarding resolution, a discard (Null0) or no route. */
+export function bestRoute(
+  device: Device,
+  dst: string,
+  vrf?: string,
+  snapshot?: Snapshot,
+  visited: ReadonlySet<string> = new Set(),
+  flowKey?: string
+): Resolution | RouteDiscard | undefined {
+  type Lookup = Resolution | RouteDiscard | undefined;
   const work = { remaining: 1024 },
-    direct = new Map<string, Resolution | undefined>();
-  function lookup(dst: string, visited: ReadonlySet<string>, directOnly = false): Resolution | undefined {
+    direct = new Map<string, Lookup>();
+  function lookup(dst: string, visited: ReadonlySet<string>, directOnly = false): Lookup {
     const usable = (p: NetworkInterface) =>
       interfaceUp(device, p) && (!snapshot || interfaceOperational(snapshot, device, p));
     const connected = device.interfaces
@@ -119,6 +167,8 @@ export function resolveRoute(
       metric: number;
       distance: number;
       key?: string;
+      discard?: boolean;
+      permanent?: boolean;
     }[] = [
       ...connected.map((port) => ({ port, nextHop: dst, prefix: port.prefix!, metric: -1, distance: 0 })),
       ...(visited.size ? [] : resolveDefaultRoutes(device, vrf).map((route) => ({ ...route, distance: 1 }))),
@@ -136,9 +186,14 @@ export function resolveRoute(
             });
       for (const r of device.routes.filter((r) => r.vrf === vrf && sameSubnet(r.network, dst, r.prefix))) {
         if (r.track && !device.monitoring?.tracks.find((t) => t.id === r.track)?.state) continue;
-        const key = JSON.stringify([vrf, r.network, r.prefix, r.nextHop, r.port]);
+        const key = staticRouteKey(r);
         if (r.distance === 255 || visited.has(key) || visited.size >= 16 || (visited.size && !r.prefix))
           continue;
+        const entry = { prefix: r.prefix, metric: r.metric, distance: r.distance ?? 1 };
+        if (r.discard) {
+          candidates.push({ ...entry, nextHop: '0.0.0.0', discard: true });
+          continue;
+        }
         const port = r.port
           ? device.interfaces.find(
               (p) =>
@@ -150,14 +205,17 @@ export function resolveRoute(
                 (r.nextHop === '0.0.0.0' || sameSubnet(p.ip, r.nextHop, p.prefix))
             )
           : undefined;
-        if (r.port && !port) continue;
+        if (r.port && !port) {
+          // A permanent route keeps its prefix while the exit interface is down.
+          if (r.permanent) candidates.push({ ...entry, nextHop: '0.0.0.0', discard: true });
+          continue;
+        }
         candidates.push({
+          ...entry,
           port,
           nextHop: r.nextHop === '0.0.0.0' && port ? dst : r.nextHop,
-          prefix: r.prefix,
-          metric: r.metric,
-          distance: r.distance ?? 1,
           key,
+          ...(r.permanent ? { permanent: true } : {}),
         });
       }
       for (const route of vrf
@@ -165,6 +223,7 @@ export function resolveRoute(
         : [
             ...(device.ospf?.enabled ? device.ospf.routes : []),
             ...ripRoutes(device),
+            ...eigrpRoutes(device),
             ...(device.bgp?.enabled ? device.bgp.routes : []),
           ]) {
         const port = device.interfaces.find(
@@ -185,6 +244,16 @@ export function resolveRoute(
             distance: route.distance,
           });
       }
+      // An EIGRP summary installs a discard route (Null0, distance 5) for the whole range.
+      for (const summary of vrf ? [] : eigrpSummaryRoutes(device))
+        if (sameSubnet(summary.network, dst, summary.prefix))
+          candidates.push({
+            prefix: summary.prefix,
+            metric: 0,
+            distance: 5,
+            nextHop: '0.0.0.0',
+            discard: true,
+          });
     }
     // Resolve candidates only when they can win the RIB selection. Eagerly
     // resolving less-specific routes can expand a cyclic graph exponentially,
@@ -202,6 +271,7 @@ export function resolveRoute(
       candidates.unshift(...equal.slice(offset), ...equal.slice(0, offset));
     }
     for (const candidate of candidates) {
+      if (candidate.discard) return { discard: true, prefix: candidate.prefix };
       if (candidate.port) {
         if (usable(candidate.port))
           return { port: candidate.port, nextHop: candidate.nextHop, prefix: candidate.prefix };
@@ -209,7 +279,7 @@ export function resolveRoute(
       }
       if (!candidate.key || directOnly) continue;
       const path = new Set([...visited, candidate.key]);
-      let resolved: Resolution | undefined;
+      let resolved: Lookup;
       if (work.remaining > 0) {
         work.remaining--;
         resolved = lookup(candidate.nextHop, path);
@@ -218,7 +288,9 @@ export function resolveRoute(
           direct.set(candidate.nextHop, lookup(candidate.nextHop, path, true));
         resolved = direct.get(candidate.nextHop);
       }
+      // A next hop that resolves to Null0 sends the traffic to Null0 as well.
       if (resolved) return { ...resolved, prefix: candidate.prefix };
+      if (candidate.permanent) return { discard: true, prefix: candidate.prefix };
     }
   }
   return lookup(dst, visited);
@@ -232,6 +304,18 @@ export function receiveIp(
   fromWire = true
 ) {
   if (fromWire && !permitPacket(e, d, port, 'in', packet)) return;
+  if (fromWire && port.urpf && !permitUrpf(e, d, port, packet)) return;
+  // Routing and redundancy protocols terminate on the router: the IOS self zone applies to them.
+  if (
+    fromWire &&
+    (packet.protocol === 'OSPF' ||
+      packet.protocol === 'EIGRP' ||
+      packet.protocol === 'VRRP' ||
+      (packet.protocol === 'UDP' &&
+        (packet.payload.protocol === 'HSRP' || packet.payload.protocol === 'RIP'))) &&
+    !permitSelfZone(e, d, port, packet, true)
+  )
+    return;
   if (packet.protocol === 'UDP' && packet.payload.protocol === 'HSRP') {
     receiveHsrp(e, d, port, packet);
     return;
@@ -262,6 +346,10 @@ export function receiveIp(
     receiveOspf(e, d, port, packet, sourceMac);
     return;
   }
+  if (packet.protocol === 'EIGRP') {
+    receiveEigrp(e, d, port, packet, sourceMac);
+    return;
+  }
   if (packet.protocol === 'UDP' && packet.payload.protocol === 'RIP') {
     receiveUdp(e, d, port, packet, sourceMac);
     return;
@@ -271,14 +359,16 @@ export function receiveIp(
     if (!translated) return;
     packet = translated;
   }
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return;
+  if (packet.protocol === 'OSPF' || packet.protocol === 'EIGRP' || packet.protocol === 'VRRP') return;
   if (
     d.interfaces.some((i) => interfaceUp(d, i) && i.vrf === port.vrf && i.ip === packet.dst) ||
     acceptsHsrpAddress(e.state, d, packet.dst, port.vrf) ||
     (packet.dst === virtual?.vip ? localVirtual : acceptsVrrpAddress(e.state, d, packet.dst, port.vrf)) ||
     (packet.protocol === 'UDP' && packet.dst === '255.255.255.255')
   ) {
+    if (fromWire && !permitSelfZone(e, d, port, packet, true)) return;
     e.emit('PACKET_RECEIVED', d.id, 'Pacote destinado a este equipamento.', { port: port.id });
+    if (d.debug) debugReceived(e, d, port, packet);
     if (packet.protocol === 'TCP') {
       receiveTcp(e, d, packet, port.vrf);
       return;
@@ -291,14 +381,20 @@ export function receiveIp(
       receiveUdp(e, d, port, packet, sourceMac);
       return;
     }
-    if (packet.kind === 'echo-request')
+    // GRE (47) and ESP (50) terminate on an IOS tunnel interface.
+    if (packet.protocol === 'GRE' || packet.protocol === 'ESP') {
+      receiveTunnelPacket(e, d, packet);
+      return;
+    }
+    if (packet.kind === 'echo-request') {
       e.sendIp(
         d.id,
         { ...packet, src: packet.dst, dst: packet.src, ttl: 64, kind: 'echo-reply' },
         undefined,
         port.vrf
       );
-    else {
+      if (d.debug) debugEchoReply(e, d, packet);
+    } else {
       if (
         packet.kind === 'unreachable' &&
         packet.error?.code === 4 &&

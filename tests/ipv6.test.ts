@@ -110,7 +110,11 @@ describe('IPv6, ICMPv6 e descoberta por frames', () => {
     e.advanceTo(start + 31000);
     expect(e.state.probes6?.find((p) => p.id === missed)?.status).toBe('timeout');
     const requests = e.state.events.filter(
-      (v) => v.type === 'NDP_SENT' && v.device === a.id && v.frame?.ipv6?.target === '2001:db8:1::dead'
+      (v) =>
+        v.type === 'NDP_SENT' &&
+        v.device === a.id &&
+        v.frame?.ipv6?.protocol === 'ICMPv6' &&
+        v.frame.ipv6.target === '2001:db8:1::dead'
     );
     expect(requests).toHaveLength(3);
     expect(a.pending6).toEqual([]);
@@ -289,7 +293,9 @@ describe('IPv6, ICMPv6 e descoberta por frames', () => {
     ])
       expect(t.execute(cmd), cmd).not.toMatch(/^%/);
     expect(t.execute('show running-config')).toContain('ipv6 address 2001:db8::1/64');
-    expect(t.execute('show ipv6 route')).toContain('2001:db8:2::/64');
+    expect(t.execute('show ipv6 route')).toMatch(
+      /S {3}2001:DB8:2::\/64 \[1\/0\]\n {5}via 2001:DB8::2, GigabitEthernet0\/1/
+    );
     t.execute('conf t');
     t.execute('interface Gi0/1');
     const before = e.snapshot();

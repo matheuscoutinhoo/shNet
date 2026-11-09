@@ -1,7 +1,7 @@
 import type { Device } from '../model';
 import { monitoring, scheduleMonitoring } from '../protocols/monitoring';
 import { interfaceName } from './operational';
-import { ALL_MODES, type CommandRegistry } from './registry';
+import type { CommandRegistry } from './registry';
 export function registerMonitoring(r: CommandRegistry) {
   r.register({
     pattern: /^ip sla (\d+)$/i,
@@ -75,27 +75,6 @@ export function registerMonitoring(r: CommandRegistry) {
       ];
       scheduleMonitoring(e, d);
     },
-  });
-  r.register({
-    pattern: /^show (track|ip sla statistics)(?: (\d+))?$/i,
-    modes: ALL_MODES,
-    run: (m, _e, d) =>
-      m[1].toLowerCase() === 'track'
-        ? (d.monitoring?.tracks ?? [])
-            .filter((t) => !m[2] || t.id === Number(m[2]))
-            .map(
-              (t) =>
-                `Track ${t.id}: ${t.state ? 'Up' : 'Down'}, ${t.kind}, changed at ${Math.round(t.changedAt)} ms`
-            )
-            .join('\n')
-        : (d.monitoring?.operations ?? [])
-            .filter((o) => !m[2] || o.id === Number(m[2]))
-            .map(
-              // IOS reports whole milliseconds; sub-millisecond lab RTTs show as 1.
-              (o) =>
-                `Operation ${o.id}: ${o.status}, target ${o.target ?? 'unset'}, RTT ${o.rtt === undefined ? '-' : Math.max(1, Math.round(o.rtt))} ms`
-            )
-            .join('\n'),
   });
 }
 export function monitoringRunning(d: Device) {

@@ -392,7 +392,6 @@ j021381x	Three switches, a common spanning tree, and an alternate path.
 g2lvk305	Specify NETWORK/PREFIX.
 ljigefjv	Misaligned BGP prefix.
 900pwt61	Specify permit|deny NETWORK/PREFIX.
-ghf1ollz	BGP not configured.
 8fk5npsr	The variable table must have a "hostname" column.
 hg8av45r	Table row {0}{1} has {2} columns; expected {3}.
 bds1638r	Variable with no value: {0}
@@ -411,13 +410,9 @@ qtr55vtf	Transceiver requires SFP/QSFP.
 6ifxyj27	MTU must be between 576 and 9216
 33m1dx70	Use an SVI or no switchport to configure IPv4.
 i9bno1bd	Use a host address, not network/broadcast
-egxhfjsy	IP already used by another interface
 jyqjes41	Use ip route on the router; gateway is a host setting
 cqrc7s3h	VLANs are configured on the switch
 0w4zobfl	VLAN limit reached
 g4mq1k7s	VLAN 1 is reserved
 bcqpczno	Switch-only command
-gscl44pj	Static routes require a router or L3 switch
-tv0cypqf	Specify a network address aligned to the prefix
-pcr36p95	Route limit reached
 qs31famq	Shows this device's commands and usage examples.

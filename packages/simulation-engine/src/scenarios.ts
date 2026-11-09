@@ -1,4 +1,5 @@
 import { SimulationEngine } from './core/engine';
+import { slaProbeIds } from './protocols/monitoring';
 import { ENGINE_CONTRACT_VERSION, ENGINE_BUILD } from './version';
 import { observeAssertion } from './scenario-assertions';
 import { canonicalScenarioJson } from './canonical-json';
@@ -72,7 +73,9 @@ export class ScenarioRunner {
   constructor(snapshot: Snapshot, input: unknown) {
     this.scenario = scenarioSchema.parse(input);
     this.engine = new SimulationEngine(snapshot);
-    this.engine.state.probes = [];
+    // A run starts with an empty ping history, except replies IP SLA operations are waiting for.
+    const sla = slaProbeIds(this.engine.state);
+    this.engine.state.probes = this.engine.state.probes.filter((p) => sla.has(p.id));
     this.engine.state.probes6 = [];
     this.warnings = preflight(this.engine.state);
     this.started = this.engine.state.clock + (this.scenario.warmupMs ?? 0);

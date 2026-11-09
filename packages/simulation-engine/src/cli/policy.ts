@@ -1,9 +1,12 @@
 import { ALL_MODES, CONFIG_MODES, CommandRegistry, currentPort } from './registry';
 import { showAccessLists, showNatTranslations } from './ios-show';
-import { type Device, type NatConfig } from '../model';
-import { parsePrefix, sameSubnet } from '../protocols/ipv4';
-import { registerNativeAclCommands, aclAddress } from './acl';
-import { interfaceName } from './operational';
+import { ipv4Schema, type Device, type NatConfig, type NetworkInterface } from '../model';
+import type { SimulationEngine } from '../core/engine';
+import { ipNumber, ipString, mask, parsePrefix, sameSubnet } from '../protocols/ipv4';
+import { syncNat } from '../protocols/state-sync';
+import { registerNativeAclCommands, aclEntryText, aclRunningLines } from './acl';
+import { showIpv6AccessLists } from './acl6';
+import { interfaceName, longInterfaceName } from './operational';
 
 export function policyNetwork(value: string) {
   if (value.toLowerCase() === 'any') return { network: '0.0.0.0', prefix: 0 };
@@ -26,6 +29,7 @@ function outside(device: Device, address: string) {
 }
 export function registerPolicyCommands(registry: CommandRegistry) {
   registerNativeAclCommands(registry);
+  registerIosNatCommands(registry);
   registry.register({
     pattern: /^(no )?ip nat inside source list ([\w-]+) interface (\S+) overload$/i,
     modes: CONFIG_MODES,
@@ -173,7 +177,13 @@ export function registerPolicyCommands(registry: CommandRegistry) {
     modes: CONFIG_MODES,
     run: (match, engine, device) => {
       const nat = currentNat(device);
-      engine.configureNat(device.id, { ...nat, pools: nat.pools.filter((pool) => pool.name !== match[1]) });
+      if (nat.poolRules?.some((rule) => rule.pool === match[1]))
+        throw new Error(`Pool ${match[1]} in use, cannot destroy`);
+      engine.configureNat(device.id, {
+        ...nat,
+        pools: nat.pools.filter((pool) => pool.name !== match[1]),
+        iosPools: (nat.iosPools ?? []).filter((pool) => pool.name !== match[1]),
+      });
     },
   });
   registry.register({
@@ -192,32 +202,194 @@ export function registerPolicyCommands(registry: CommandRegistry) {
       'show ip access-lists <name>',
     ],
     modes: ALL_MODES,
-    run: (match, _engine, device) => showAccessLists(device, match[1]) || 'Nenhuma ACL',
+    run: (match, _engine, device) =>
+      [
+        showAccessLists(device, match[1]),
+        // "show ip access-lists" is IPv4 only; "show access-lists" also lists IPv6 ACLs.
+        /^show access-lists/i.test(match[0]) ? showIpv6AccessLists(device, match[1]) : '',
+      ]
+        .filter(Boolean)
+        .join('\n') || 'Nenhuma ACL',
   });
   registry.register({
-    pattern: /^show ip nat translations$/i,
+    pattern: /^show ip nat translations(?: (verbose))?$/i,
+    syntax: ['show ip nat translations', 'show ip nat translations verbose'],
     modes: ALL_MODES,
     run: (_match, _engine, device) => showNatTranslations(device),
   });
+  registry.register({
+    pattern: /^show ip nat statistics$/i,
+    syntax: 'show ip nat statistics',
+    modes: ALL_MODES,
+    run: (_match, engine, device) => showNatStatistics(engine, device),
+  });
+  registry.register({
+    pattern: /^clear ip nat translation \*$/i,
+    syntax: 'clear ip nat translation *',
+    modes: ['privileged'],
+    run: (_match, engine, device) => {
+      if (device.nat) clearNatTranslations(engine, device);
+      return '';
+    },
+  });
+}
+/** IOS "ip nat pool": "netmask A.B.C.D" or "prefix-length N". */
+function poolPrefix(kind: string, value: string) {
+  const prefix = kind.toLowerCase() === 'netmask' ? parsePrefix(value) : Number(value);
+  if (!Number.isInteger(prefix) || prefix < 8 || prefix > 32)
+    throw new Error('Invalid input detected at: ' + value);
+  return prefix;
+}
+export function registerIosNatCommands(registry: CommandRegistry) {
+  registry.register({
+    pattern: /^ip nat pool ([\w-]{1,32}) ([\d.]+) ([\d.]+) (netmask|prefix-length) ([\d.]+)$/i,
+    syntax: [
+      'ip nat pool <name> <start> <end> netmask <mask>',
+      'ip nat pool <name> <start> <end> prefix-length <length>',
+    ],
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      if (d.type !== 'router') throw new Error('NAT exige roteador.');
+      const nat = currentNat(d);
+      const pool = {
+        name: m[1],
+        start: ipv4Schema.parse(m[2]),
+        end: ipv4Schema.parse(m[3]),
+        prefix: poolPrefix(m[4], m[5]),
+      };
+      e.configureNat(d.id, {
+        ...nat,
+        iosPools: [...(nat.iosPools ?? []).filter((entry) => entry.name !== pool.name), pool],
+      });
+    },
+  });
+  registry.register({
+    pattern: /^(no )?ip nat inside source list ([\w-]{1,32}) pool ([\w-]{1,32})( overload)?$/i,
+    syntax: ['ip nat inside source list <acl> pool <name> [overload]'],
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      const nat = currentNat(d);
+      const others = (nat.poolRules ?? []).filter((rule) => rule.acl !== m[2]);
+      if (!m[1] && !nat.iosPools?.some((pool) => pool.name === m[3]))
+        throw new Error(`Pool ${m[3]} not found`);
+      e.configureNat(d.id, {
+        ...nat,
+        poolRules: m[1] ? others : [...others, { acl: m[2], pool: m[3], overload: !!m[4] }],
+      });
+    },
+  });
+  registry.register({
+    pattern:
+      /^(no )?ip nat inside source static (tcp|udp) ([\d.]+) (\d+) ([\d.]+) (\d+)( extendable)?( no-alias)?$/i,
+    syntax: [
+      'ip nat inside source static tcp <local> <port> <global> <port> [extendable]',
+      'ip nat inside source static udp <local> <port> <global> <port> [extendable]',
+    ],
+    modes: CONFIG_MODES,
+    run: (m, e, d) => {
+      if (d.type !== 'router') throw new Error('NAT exige roteador.');
+      const nat = currentNat(d);
+      const port = (value: string) => {
+        const n = Number(value);
+        if (n < 1 || n > 65535) throw new Error('Invalid input detected at: ' + value);
+        return n;
+      };
+      const entry = {
+        protocol: m[2].toLowerCase() as 'tcp' | 'udp',
+        inside: ipv4Schema.parse(m[3]),
+        insidePort: port(m[4]),
+        global: ipv4Schema.parse(m[5]),
+        globalPort: port(m[6]),
+        ...(m[7] ? { extendable: true as const } : {}),
+      };
+      const others = (nat.portStatics ?? []).filter(
+        (other) =>
+          !(
+            other.protocol === entry.protocol &&
+            other.inside === entry.inside &&
+            other.insidePort === entry.insidePort &&
+            other.global === entry.global &&
+            other.globalPort === entry.globalPort
+          )
+      );
+      e.configureNat(d.id, { ...nat, portStatics: m[1] ? others : [...others, entry] });
+    },
+  });
+}
+/** Removes dynamic translations; static mappings stay (IOS "clear ip nat translation *"). */
+export function clearNatTranslations(engine: SimulationEngine, device: Device) {
+  const nat = device.nat!;
+  for (const binding of nat.bindings) syncNat(engine, device, binding, true);
+  nat.bindings = [];
+  engine.state.queue = engine.state.queue.filter(
+    ({ action }) => action.kind !== 'nat-expire' || action.device !== device.id
+  );
+  engine.emit('CONFIG_CHANGED', device.id, 'Traduções NAT dinâmicas removidas.');
+}
+function showNatStatistics(engine: SimulationEngine, device: Device) {
+  const nat = device.nat;
+  const name = (p: NetworkInterface) => '  ' + longInterfaceName(p.name);
+  const bindings = nat?.bindings.filter((b) => b.expiresAt > engine.state.clock) ?? [];
+  const statics = (nat?.statics.length ?? 0) + (nat?.portStatics?.length ?? 0);
+  const extended = bindings.filter((b) => b.protocol !== 'ip').length + (nat?.portStatics?.length ?? 0);
+  const rules = [
+    ...(nat?.interfaceRules ?? []).map(
+      (rule) =>
+        `access-list ${rule.acl} interface ${longInterfaceName(device.interfaces.find((p) => p.id === rule.outside)?.name ?? '')}`
+    ),
+    ...(nat?.poolRules ?? []).map((rule) => `access-list ${rule.acl} pool ${rule.pool}`),
+  ];
+  return [
+    `Total active translations: ${bindings.length + statics} (${statics} static, ${bindings.length} dynamic; ${extended} extended)`,
+    'Outside interfaces:',
+    ...device.interfaces.filter((p) => p.natRole === 'outside').map(name),
+    'Inside interfaces: ',
+    ...device.interfaces.filter((p) => p.natRole === 'inside').map(name),
+    'Dynamic mappings:',
+    ...(rules.length ? ['-- Inside Source'] : []),
+    ...rules.flatMap((rule, index) => {
+      const pool = /pool (\S+)$/.exec(rule)?.[1];
+      const entry = pool ? nat?.iosPools?.find((p) => p.name === pool) : undefined;
+      const refcount = bindings.filter((b) => b.pool === (pool ?? nat?.interfaceRules?.[index]?.name)).length;
+      if (!entry) return [`[Id: ${index + 1}] ${rule} refcount ${refcount}`];
+      const total = ipNumber(entry.end) - ipNumber(entry.start) + 1,
+        allocated = new Set(bindings.filter((b) => b.pool === pool).map((b) => b.global)).size;
+      return [
+        `[Id: ${index + 1}] ${rule} refcount ${refcount}`,
+        ` pool ${entry.name}: netmask ${ipString(mask(entry.prefix))}`,
+        `\tstart ${entry.start} end ${entry.end}`,
+        `\ttype generic, total addresses ${total}, allocated ${allocated} (${Math.floor((allocated * 100) / total)}%), misses 0`,
+      ];
+    }),
+  ].join('\n');
 }
 
 export function policyRunningConfig(device: Device) {
   return [
-    ...(device.accessLists?.flatMap((acl) => [
-      `ip access-list ${acl.kind ?? 'extended'} ${acl.name}`,
-      ...acl.rules.map(
-        (rule) =>
-          ` ${rule.sequence} ${rule.action} ` +
-          (acl.kind === 'standard'
-            ? aclAddress(rule.source, rule.sourceWildcard)
-            : `${rule.protocol} ${aclAddress(rule.source, rule.sourceWildcard)}${rule.sourcePort ? ' eq ' + rule.sourcePort : ''} ${aclAddress(rule.destination, rule.destinationWildcard)}${rule.destinationPort ? ' eq ' + rule.destinationPort : ''}${rule.established ? ' established' : ''}`)
-      ),
-      'exit',
-    ]) ?? []),
-    ...(device.nat ? [device.nat.enabled ? 'service nat' : 'no service nat'] : []),
+    ...(device.accessLists?.flatMap((acl) =>
+      // Numbered ACLs keep their legacy "access-list N ..." form, without sequence numbers.
+      /^\d+$/.test(acl.name)
+        ? [
+            ...acl.rules.flatMap((rule) => [
+              ...(rule.remarks ?? []).map((text) => `access-list ${acl.name} remark ${text}`),
+              `access-list ${acl.name} ${aclEntryText(rule, acl.kind)}`,
+            ]),
+            ...(acl.remarks ?? []).map((text) => `access-list ${acl.name} remark ${text}`),
+          ]
+        : [`ip access-list ${acl.kind ?? 'extended'} ${acl.name}`, ...aclRunningLines(acl), 'exit']
+    ) ?? []),
+    // NAT runs as soon as it is configured (IOS has no global switch); "no service nat" is the
+    // simulator's way to pause it.
+    ...(device.nat && !device.nat.enabled ? ['no service nat'] : []),
+    ...(device.nat?.iosPools ?? []).map(
+      (pool) => `ip nat pool ${pool.name} ${pool.start} ${pool.end} netmask ${ipString(mask(pool.prefix))}`
+    ),
     ...(device.nat?.interfaceRules ?? []).map(
       (rule) =>
         `ip nat inside source list ${rule.acl} interface ${device.interfaces.find((p) => p.id === rule.outside)!.name} overload`
+    ),
+    ...(device.nat?.poolRules ?? []).map(
+      (rule) => `ip nat inside source list ${rule.acl} pool ${rule.pool}${rule.overload ? ' overload' : ''}`
     ),
     ...(device.nat?.statics.map(
       (entry) =>
@@ -228,6 +400,10 @@ export function policyRunningConfig(device: Device) {
         ' ' +
         entry.global
     ) ?? []),
+    ...(device.nat?.portStatics ?? []).map(
+      (entry) =>
+        `ip nat inside source static ${entry.protocol} ${entry.inside} ${entry.insidePort} ${entry.global} ${entry.globalPort}${entry.extendable ? ' extendable' : ''}`
+    ),
     ...(device.nat?.hairpin !== undefined ? [(device.nat.hairpin ? '' : 'no ') + 'ip nat hairpin'] : []),
     ...(device.nat?.algSip !== undefined ? [(device.nat.algSip ? '' : 'no ') + 'ip nat alg sip'] : []),
     ...(device.nat?.pools.map(

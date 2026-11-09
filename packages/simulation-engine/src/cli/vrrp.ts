@@ -1,9 +1,25 @@
 import type { Device } from '../model';
 import { vrrpConfigGroups } from '../protocols/vrrp';
-import { vrrpMac, vrrpTrackSchema } from '../protocols/vrrp-model';
-import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { vrrpTrackSchema } from '../protocols/vrrp-model';
+import { findInterface } from '../protocols/interface-name';
+import { CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 
 export function registerVrrpCommands(registry: CommandRegistry) {
+  registry.register({
+    pattern: /^(no )?vrrp (\d+) track (\d+)(?: decrement (\d+))?$/i,
+    syntax: ['vrrp <group> track <object> decrement <priority>', 'no vrrp <group> track <object>'],
+    modes: ['interface'],
+    run: (m, e, d, c) => {
+      const groups = vrrpConfigGroups(d),
+        group = groups.find((g) => g.port === currentPort(d, c).id && g.vrid === Number(m[2]));
+      if (!group) throw new Error('Configure o grupo VRRP antes do tracking.');
+      const object = Number(m[3]);
+      group.track = (group.track ?? []).filter((t) => t.object !== object);
+      // IOS decrements the priority by 10 unless told otherwise.
+      if (!m[1]) group.track.push(vrrpTrackSchema.parse({ object, decrement: Number(m[4] ?? 10) }));
+      e.configureVrrp(d.id, { enabled: d.vrrp?.enabled ?? true, groups });
+    },
+  });
   registry.register({
     pattern: /^(no )?vrrp (\d+) track service (\w+)(?::(\d+))?(?: decrement (\d+))?$/i,
     modes: ['interface'],
@@ -41,10 +57,7 @@ export function registerVrrpCommands(registry: CommandRegistry) {
       const groups = vrrpConfigGroups(d),
         group = groups.find((g) => g.port === currentPort(d, c).id && g.vrid === Number(m[2]));
       if (!group) throw new Error('Configure o grupo VRRP antes do tracking.');
-      const port =
-        m[3].toLowerCase() === 'interface'
-          ? d.interfaces.find((p) => p.name.toLowerCase() === m[4].toLowerCase())?.id
-          : undefined;
+      const port = m[3].toLowerCase() === 'interface' ? findInterface(d, m[4])?.id : undefined;
       if (m[3].toLowerCase() === 'interface' && !port) throw new Error('Interface de tracking inexistente.');
       const route = m[3].toLowerCase() === 'route' ? m[4] : undefined;
       group.track = (group.track ?? []).filter((t) => t.port !== port || t.route !== route);
@@ -88,6 +101,18 @@ export function registerVrrpCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
+    pattern: /^vrrp (\d+) timers advertise (msec )?(\d+)$/i,
+    syntax: ['vrrp <group> timers advertise <seconds>', 'vrrp <group> timers advertise msec <milliseconds>'],
+    modes: ['interface'],
+    run: (m, e, d, c) => {
+      const groups = vrrpConfigGroups(d),
+        group = groups.find((g) => g.port === currentPort(d, c).id && g.vrid === Number(m[1]));
+      if (!group) throw new Error('Configure vrrp VRID ip VIP nesta interface.');
+      group.advertMs = m[2] ? Number(m[3]) : Number(m[3]) * 1000;
+      e.configureVrrp(d.id, { enabled: d.vrrp?.enabled ?? true, groups });
+    },
+  });
+  registry.register({
     pattern: /^(no )?vrrp (\d+)(?: (priority|advertisement-interval) (\d+)| (preempt))?$/i,
     modes: ['interface'],
     run: (match, engine, device, context) => {
@@ -107,45 +132,35 @@ export function registerVrrpCommands(registry: CommandRegistry) {
       engine.configureVrrp(device.id, { enabled: device.vrrp?.enabled ?? true, groups });
     },
   });
-  registry.register({
-    pattern: /^show vrrp$/i,
-    modes: ALL_MODES,
-    run: (_match, engine, device) => {
-      engine.refreshVrrp();
-      if (!device.vrrp) return 'VRRP não configurado.';
-      return (
-        `VRRPv3 IPv4 ${device.vrrp.enabled ? 'ativo' : 'inativo'}\n` +
-        device.vrrp.groups
-          .map(
-            (group) =>
-              `${device.interfaces.find((port) => port.id === group.port)!.name} VRID ${group.vrid} VIP ${group.vip} ${group.state}\n` +
-              ` MAC ${vrrpMac(group.vrid)} · prioridade ${group.priority} (efetiva ${group.effectivePriority ?? group.priority}) · preempt ${group.preempt ? 'on' : 'off'} · anúncios ${group.advertMs} ms\n` +
-              ` Ativo ${group.state === 'ACTIVE' ? 'local' : (group.activeIp ?? 'desconhecido')} · timer ${((group.downAt ?? group.advertAt ?? engine.state.clock) - engine.state.clock).toFixed(3)} ms · TX/RX ${group.sent}/${group.received}`
-          )
-          .join('\n')
-      );
-    },
-  });
 }
 export function vrrpRunningConfig(device: Device) {
+  // IOS shows only what differs from the defaults (priority 100, 1 s adverts, preemption on).
   return device.vrrp
     ? [
         ...device.vrrp.groups.flatMap((group) => [
           'interface ' + device.interfaces.find((port) => port.id === group.port)!.name,
           ` vrrp ${group.vrid} ip ${group.vip}`,
-          ` vrrp ${group.vrid} priority ${group.priority}`,
-          ` vrrp ${group.vrid} advertisement-interval ${group.advertMs}`,
-          ` ${group.preempt ? '' : 'no '}vrrp ${group.vrid} preempt`,
+          ...(group.priority !== 100 && !(group.priority === 255 && group.vip === portIp(device, group.port))
+            ? [` vrrp ${group.vrid} priority ${group.priority}`]
+            : []),
+          ...(group.advertMs !== 1000
+            ? [
+                ` vrrp ${group.vrid} timers advertise ` +
+                  (group.advertMs % 1000 ? 'msec ' + group.advertMs : String(group.advertMs / 1000)),
+              ]
+            : []),
+          ...(group.preempt ? [] : [` no vrrp ${group.vrid} preempt`]),
           ...(group.acceptMode === undefined
             ? []
             : [` ${group.acceptMode ? '' : 'no '}vrrp ${group.vrid} accept-mode`]),
           ...(group.track ?? []).map(
             (track) =>
-              ` vrrp ${group.vrid} track ${track.port ? 'interface ' + device.interfaces.find((p) => p.id === track.port)!.name : track.service ? 'service ' + track.service + (track.servicePort === undefined ? '' : ':' + track.servicePort) : 'route ' + track.route} decrement ${track.decrement}`
+              ` vrrp ${group.vrid} track ${track.object !== undefined ? track.object : track.port ? 'interface ' + device.interfaces.find((p) => p.id === track.port)!.name : track.service ? 'service ' + track.service + (track.servicePort === undefined ? '' : ':' + track.servicePort) : 'route ' + track.route} decrement ${track.decrement}`
           ),
           'exit',
         ]),
-        `${device.vrrp.enabled ? '' : 'no '}service vrrp`,
+        ...(device.vrrp.enabled ? [] : ['no service vrrp']),
       ]
     : [];
 }
+const portIp = (d: Device, id: string) => d.interfaces.find((p) => p.id === id)?.ip;

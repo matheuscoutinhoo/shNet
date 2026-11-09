@@ -79,6 +79,8 @@ function HeadingView({ data }: NodeProps<HeadingNode>) {
 }
 const annotationColors = { cyan: '#0c9ca5', lime: '#63a423', blue: '#217ddd', rose: '#c95b88' };
 const COLLAPSED_GROUP = { width: 260, height: 74 };
+// Above this playback rate packets are no longer animated one by one (see Canvas).
+const DENSE_EVENTS_PER_SECOND = 300;
 function AnnotationView({ data, selected }: NodeProps<AnnotationNode>) {
   const item = data.item;
   if (item.kind === 'group' && item.collapsed)
@@ -585,7 +587,10 @@ function Canvas({
   const motion = useCanvasMotion();
   const projection = useMemo(() => topologyView(engine.state, view), [engine, tick, view]);
   const activities = useCanvasActivities(lab, motion.visible);
-  const canMove = motion.visible && !motion.reduced;
+  // At large-lab event rates individual packet motion is unreadable and costs the UI most of its
+  // time; links and devices still show their activity, without movement.
+  const dense = lab.playing && lab.playbackMetrics.eventsPerSecond > DENSE_EVENTS_PER_SECOND;
+  const canMove = motion.visible && !motion.reduced && !dense;
   const zoom = useStore((state) => state.transform[2]);
   // Control-plane views always use compact nodes with one connection point.
   const overview = projection.compact || (engine.state.devices.length > 20 && zoom < 0.55);

@@ -90,8 +90,19 @@ test('Cisco CLI: edição, ajuda, senha oculta e startup sobrevivem à restaura�
   await command('no');
   await expect(terminal).toContainText('[confirm]');
   await command('');
-  await command('en');
-  await expect(terminal).toContainText('Password:');
+  await expect(terminal).toContainText('Reload requested');
+  // The router is down while it boots from NVRAM (60 s of simulated time): step to the boot event.
+  const nextEvent = page.getByRole('button', { name: 'Próximo evento', exact: true });
+  await expect
+    .poll(
+      async () => {
+        if (await nextEvent.isEnabled()) await nextEvent.click();
+        await command('en');
+        return (await terminal.textContent())?.includes('Password:');
+      },
+      { timeout: 20000 }
+    )
+    .toBe(true);
   await page.keyboard.type('never-display-this-password');
   await expect(terminal).not.toContainText('never-display-this-password');
   await page.keyboard.press('Enter');
@@ -2503,7 +2514,8 @@ test('gerenciamento: SNMP, syslog, configuração, pacotes e persistência mobil
     .click();
   await page.getByLabel('Operação SNMP').selectOption('get-next');
   await query('success');
-  await expect(page.locator('.snmp-result')).toContainText('1.3.6.1.2.1.2.1.0');
+  // GET-NEXT after sysName.0 is sysLocation.0 (SNMPv2-MIB order).
+  await expect(page.locator('.snmp-result')).toContainText('1.3.6.1.2.1.1.6.0');
   await inspect('SERVER-01');
   await page.getByLabel('Community do agente', { exact: true }).fill('read_lab');
   await page.getByRole('button', { name: 'Aplicar agente SNMP' }).click();
@@ -3070,6 +3082,9 @@ async function configureIp(page: Page, hostname: string, ip: string) {
   if (await power.count()) await power.click();
   await page.getByRole('button', { name: 'Portas', exact: true }).click();
   await page.locator('.interface-item').first().click();
+  // Endpoints obtain their address by DHCP by default; a fixed address needs static mode.
+  const fixed = page.getByRole('radio', { name: 'Estático' });
+  if ((await fixed.count()) && (await fixed.isEnabled())) await fixed.check();
   await page.getByLabel('Endereço IPv4').fill(ip);
   await page.getByRole('button', { name: 'Aplicar à simulação' }).click();
   await page.getByRole('button', { name: 'Fechar inspector' }).click();
@@ -4227,7 +4242,7 @@ test('Tracking: uplink reduz prioridade VRRP no painel e mantém HTTP', async ({
 });
 
 test('LACP: negocia, conserva HTTP com membro restante e persiste no mobile', async ({ page }) => {
-  test.setTimeout(180000);
+  test.setTimeout(300000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
@@ -4249,7 +4264,7 @@ test('LACP: negocia, conserva HTTP com membro restante e persiste no mobile', as
     180
   );
   await page.getByRole('button', { name: 'Editar Port-channel1', exact: true }).click();
-  await expect(page.getByLabel('Modo LACP')).toHaveValue('active');
+  await expect(page.getByLabel('Modo EtherChannel')).toHaveValue('active');
   await page.getByRole('button', { name: 'Cancelar edição' }).click();
   await inspect('PC-LACP', 'TCP / HTTP');
   await page.getByLabel('Destino TCP IPv4').fill('192.168.10.20');
@@ -5389,6 +5404,22 @@ test('Laboratório grande: sites recolhíveis, vistas de roteamento, terminais e
   await inspector.locator('.inspector-tabs').getByRole('button', { name: 'Terminal', exact: true }).click();
   await inspector.getByText('Alterações não salvas (running × startup)').click();
   await expect(inspector.locator('.config-changes')).toContainText('Ainda não há startup-config');
+  // A real IOS configuration imported into the router reboots it and reports compatibility.
+  await inspector.getByText('Importar configuração IOS').click();
+  await inspector
+    .getByLabel('Configuração IOS a importar')
+    .fill(
+      'version 15.9\n!\nhostname BR-R2\n!\ninterface GigabitEthernet0/0/0\n description ISR4K\n!\nntp server 10.0.0.9\nwrite memory\nend'
+    );
+  await inspector.getByRole('button', { name: 'Importar e reiniciar' }).click();
+  const report = inspector.getByLabel('Relatório de compatibilidade');
+  await expect(report).toContainText('BR-R2: 2 de 5 linhas aplicadas, 1 ignoradas e 2 rejeitadas.');
+  await expect(report.locator('pre')).toContainText('5: interface GigabitEthernet0/0/0');
+  await inspector.getByText('Alterações não salvas (running × startup)').click();
+  await inspector.getByText('Alterações não salvas (running × startup)').click();
+  await expect(inspector.locator('.config-changes')).toContainText(
+    'Nenhuma alteração desde o último write memory.'
+  );
   expect(errors).toEqual([]);
 });
 

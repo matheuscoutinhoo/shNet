@@ -131,6 +131,7 @@ export function Terminal({
     };
     resultRef.current = result;
     if (!state.initialized) {
+      const banners = cli.banners;
       appendTerminalOutput(
         state,
         '\x1b[36m' +
@@ -141,7 +142,8 @@ export function Terminal({
           tr('Terminal simulado') +
           '\x1b[0m\r\n' +
           tr('Digite help para ver os comandos disponíveis.') +
-          '\r\n\r\n'
+          '\r\n\r\n' +
+          (banners ? banners.replace(/\r?\n/g, '\r\n') + '\r\n\r\n' : '')
       );
       state.initialized = true;
     }
@@ -162,7 +164,16 @@ export function Terminal({
       appendTerminalOutput(state, coloredTerminalInput(state.prompt, cli.displayInput(input)) + '\r\n');
       // Password and reload-dialog answers have no command mark, so they use a full checkpoint.
       const dialog = cli.secretInput || !!cli.context.confirm;
-      const output = labRef.current.change(() => cli.execute(input), dialog, true, true);
+      // Reading state (show, enable, mode changes) neither pauses the simulation nor creates
+      // unsaved changes, unless the command still produced records (e.g. AAA accounting).
+      const lab = labRef.current,
+        sequence = lab.engine.state.sequence;
+      const output =
+        !dialog && cli.readOnly(input)
+          ? cli.execute(input)
+          : lab.change(() => cli.execute(input), dialog, true, true);
+      if (lab.engine.state.sequence !== sequence && !cli.lastMark)
+        lab.change(() => undefined, false, true, true);
       const changed = !!cli.lastMark;
       if (undoStep && cli.lastMark) labRef.current.remember(cli.lastMark);
       const shown = output && localized(output);
@@ -381,6 +392,15 @@ export function Terminal({
           ? 'Reply from ' + p.responder + ': time=' + p.rtt?.toFixed(2) + 'ms TTL probe=' + p.ttl
           : 'Probe TTL ' + p.ttl + ': ' + p.status + (p.responder ? ' from ' + p.responder : '')
       );
+    }
+    // IOS console logging: syslog and debug messages appear as they are generated.
+    const log = lab.engine.device(deviceId).consoleLog;
+    // A reload rebuilds the device and restarts the numbering.
+    if ((log?.sequence ?? 0) < state.consoleSeen) state.consoleSeen = 0;
+    if (log && log.sequence > state.consoleSeen) {
+      const fresh = Math.min(log.lines.length, log.sequence - state.consoleSeen);
+      for (const line of log.lines.slice(log.lines.length - fresh)) result(line);
+      state.consoleSeen = log.sequence;
     }
   }, [lab.tick, lab.engine, deviceId]);
   const device = lab.engine.device(deviceId),

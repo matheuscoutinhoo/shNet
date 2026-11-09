@@ -6,6 +6,8 @@ import { eapProof, startRadius } from './aaa';
 import { chapChallenge } from './aaa-codec';
 import { interfaceOperational } from './layer3';
 import { isUnicast } from './dhcp-config';
+import { resolveRoute } from './ipv4';
+import { sourceInterfaceAddress } from './source-interface';
 const destination = '01:80:c2:00:00:03';
 function physical(p: NetworkInterface) {
   return p.media !== 'wifi' && !p.logical && !p.aggregate && !p.bond && !p.channel && !p.tunnel && !p.vxlan;
@@ -13,8 +15,45 @@ function physical(p: NetworkInterface) {
 export function dot1xConfig(p: NetworkInterface) {
   const a = p.dot1x;
   if (!a) throw new Error('Porta sem 802.1X.');
-  const { enabled, server, key, underlay, reauthMs } = a;
-  return { enabled, server, key, underlay, reauthMs };
+  const { enabled, server, key, underlay, aaa, reauthMs } = a;
+  return aaa ? { enabled, aaa, reauthMs } : { enabled, server, key, underlay, reauthMs };
+}
+/**
+ * The RADIUS server IOS uses for 802.1X: the first server of "aaa authentication dot1x default
+ * group radius|GROUP" with an address and a key, sourced from "ip radius source-interface" or, by
+ * default, from the interface the routing table (or "ip default-gateway") uses to reach it.
+ */
+export function dot1xRadiusServer(e: SimulationEngine, d: Device) {
+  const s = d.iosSystem;
+  const methods = s?.aaa?.authentication.find((x) => x.kind === 'dot1x' && x.list === 'default')?.methods;
+  for (const method of methods ?? []) {
+    const name = /^group (\S+)$/.exec(method)?.[1];
+    const group =
+      name && name !== 'radius'
+        ? s?.aaaGroups?.find((g) => g.kind === 'radius' && g.name === name)
+        : undefined;
+    if (!name || (name !== 'radius' && !group)) continue;
+    const servers = group
+      ? group.servers.flatMap(
+          (ref) =>
+            s?.aaaServers?.filter((x) => x.kind === 'radius' && (x.name === ref || x.address === ref)) ?? []
+        )
+      : (s?.aaaServers ?? []).filter((x) => x.kind === 'radius');
+    const sourceName = group?.sourceInterface ?? s?.aaaSourceInterface?.radius;
+    for (const server of servers) {
+      if (!server.address || !server.key) continue;
+      const fixed = sourceName && sourceInterfaceAddress(e.state, d, sourceName),
+        route = resolveRoute(d, server.address, undefined, e.state),
+        sourceIp = fixed || route?.port.ip;
+      if (route && sourceIp) return { server: server.address, key: server.key, sourceIp };
+    }
+  }
+  return undefined;
+}
+function radiusServer(e: SimulationEngine, d: Device, a: NonNullable<NetworkInterface['dot1x']>) {
+  if (a.aaa) return dot1xRadiusServer(e, d);
+  const wan = d.interfaces.find((p) => p.id === a.underlay);
+  return wan?.ip && a.server && a.key ? { server: a.server, key: a.key, sourceIp: wan.ip } : undefined;
 }
 export function supplicantConfig(p: NetworkInterface) {
   const a = p.supplicant;
@@ -56,13 +95,17 @@ export function configureDot1x(e: SimulationEngine, d: Device, p: NetworkInterfa
     !physical(p) ||
     p.mode !== 'access' ||
     p.supplicant ||
-    !isUnicast(c.server) ||
-    !wan?.ip ||
-    wan.mode !== 'routed' ||
-    wan.vrf ||
-    wan.tunnel ||
-    wan.vxlan ||
-    wan === p
+    (c.aaa
+      ? c.server !== undefined || c.key !== undefined || c.underlay !== undefined
+      : !c.server ||
+        !c.key ||
+        !isUnicast(c.server) ||
+        !wan?.ip ||
+        wan.mode !== 'routed' ||
+        wan.vrf ||
+        wan.tunnel ||
+        wan.vxlan ||
+        wan === p)
   )
     throw new Error('802.1X exige porta access física e underlay IPv4 routed para RADIUS.');
   const baseVlan = p.dot1x?.baseVlan ?? p.accessVlan;
@@ -83,6 +126,15 @@ export function configureDot1x(e: SimulationEngine, d: Device, p: NetworkInterfa
     'Controle de acesso 802.1X ' + (c.enabled ? 'habilitado' : 'desabilitado') + '.',
     { port: p.id }
   );
+}
+/** Takes 802.1X off a port: it returns to its configured VLAN and forwards without authentication. */
+export function removeDot1x(e: SimulationEngine, d: Device, p: NetworkInterface) {
+  if (!p.dot1x) return;
+  invalidateProtocolIndex(e.state);
+  clearTimer(e, d, p);
+  reset(e, d, p);
+  delete p.dot1x;
+  e.emit('CONFIG_CHANGED', d.id, 'Controle de acesso 802.1X removido da porta.', { port: p.id });
 }
 export function configureSupplicant(e: SimulationEngine, d: Device, p: NetworkInterface, input: unknown) {
   invalidateProtocolIndex(e.state);
@@ -160,12 +212,27 @@ export function receiveEapol(e: SimulationEngine, d: Device, p: NetworkInterface
       a.lastAt = e.state.clock;
       send(e, d, p, { type: 'challenge', session: a.session!, challenge: a.challenge }, frame.src);
     } else if (m.type === 'response' && m.username === a.username && a.challenge && !a.query) {
-      const wan = d.interfaces.find((p) => p.id === a.underlay)!;
+      const radius = radiusServer(e, d, a);
+      if (!radius) {
+        // IOS: with no RADIUS server reachable the method list fails and the port stays closed.
+        const mac = a.mac!,
+          session = a.session!,
+          identifier = Number.parseInt(chapChallenge(a.challenge).slice(0, 2), 16);
+        reset(e, d, p);
+        send(e, d, p, { type: 'failure', session, identifier }, mac);
+        e.emit(
+          'DOT1X_STATE',
+          d.id,
+          `%DOT1X-5-FAIL: Authentication failed for client (${mac}) on Interface ${p.name}: no RADIUS server is available.`,
+          { port: p.id }
+        );
+        return;
+      }
       const q = startRadius(e, d, {
         username: m.username,
-        key: a.key,
-        server: a.server,
-        sourceIp: wan.ip!,
+        key: radius.key,
+        server: radius.server,
+        sourceIp: radius.sourceIp,
         challenge: a.challenge,
         proof: m.proof,
         port: p.id,

@@ -1,5 +1,6 @@
 import { receiveFragment } from './fragment';
 import { spanningPortState } from './stp-scope';
+import { trunkAllows } from './trunk';
 import { lacpMembers } from './lacp-members';
 import { bondActive } from './bond-members';
 import { interfaceSchema, type Device, type Frame, type NetworkInterface, type Snapshot } from '../model';
@@ -10,6 +11,7 @@ import { receiveArp } from './arp';
 import { receiveIp } from './ipv4';
 import { receiveIp6 } from './ipv6';
 import { acceptsHsrpMac } from './hsrp';
+import { defaultVlanName } from './interface-name';
 
 export const routingEnabled = (device: Device) =>
   device.type === 'router' || (device.type === 'switch' && device.ipRouting === true);
@@ -21,6 +23,7 @@ export const interfaceUp = (device: Device, port: NetworkInterface) =>
   port.adminUp &&
   !port.errDisabled &&
   (!port.tunnel || (port.tunnel.enabled && port.tunnel.status === 'up')) &&
+  (!port.iosTunnel || port.iosTunnel.status === 'up') &&
   (!port.vxlan || port.vxlan.enabled) &&
   (!port.logical?.parent || device.interfaces.some((p) => p.id === port.logical!.parent && p.adminUp));
 export function requireVrf(device: Device, vrf?: string) {
@@ -48,7 +51,7 @@ export function createLogicalInterface(
   if (device.interfaces.length >= 48) throw new Error('Limite de 48 interfaces.');
   if (kind === 'svi' && !device.vlans.some((entry) => entry.id === vlan)) {
     if (device.vlans.length >= 256) throw new Error('Limite de VLANs.');
-    device.vlans.push({ id: vlan, name: 'VLAN' + vlan });
+    device.vlans.push({ id: vlan, name: defaultVlanName(vlan) });
   }
   const base = parent ?? device.interfaces[0];
   const macs = new Set(engine.state.devices.flatMap((d) => d.interfaces.map((p) => p.mac)));
@@ -121,29 +124,49 @@ export function createLogicalInterface(
   return port;
 }
 export function sviOperational(snapshot: Snapshot, device: Device, port: NetworkInterface) {
-  return (
-    device.power &&
-    port.adminUp &&
-    port.logical?.kind === 'svi' &&
-    device.vlans.some((v) => v.id === port.logical!.vlan) &&
-    device.interfaces.some(
-      (p) =>
-        !p.logical &&
-        !p.channel &&
-        p.mode !== 'routed' &&
-        p.adminUp &&
-        (!spanningPortState(device, p, port.logical!.vlan) ||
-          spanningPortState(device, p, port.logical!.vlan)?.state === 'forwarding') &&
-        (p.mode === 'trunk'
-          ? p.allowedVlans.includes(port.logical!.vlan)
-          : p.accessVlan === port.logical!.vlan) &&
-        interfaceOperational(snapshot, device, p)
+  const vlan = port.logical?.kind === 'svi' ? port.logical.vlan : undefined;
+  if (vlan === undefined || !device.power || !port.adminUp || !device.vlans.some((v) => v.id === vlan))
+    return false;
+  // Same conditions as before, cheapest first: VLAN membership, then STP state, then carrier.
+  return device.interfaces.some((p) => {
+    if (
+      p.logical ||
+      p.channel ||
+      p.mode === 'routed' ||
+      !p.adminUp ||
+      !(p.mode === 'trunk' ? trunkAllows(p, vlan) : p.accessVlan === vlan)
     )
-  );
+      return false;
+    const stp = spanningPortState(device, p, vlan);
+    return (!stp || stp.state === 'forwarding') && interfaceOperational(snapshot, device, p);
+  });
 }
 export function interfaceOperational(snapshot: Snapshot, device: Device, port: NetworkInterface): boolean {
+  if (!operationalMemo) return computeOperational(snapshot, device, port);
+  let value = operationalMemo.get(port);
+  if (value === undefined) operationalMemo.set(port, (value = computeOperational(snapshot, device, port)));
+  return value;
+}
+let operationalMemo: Map<NetworkInterface, boolean> | undefined;
+/**
+ * Runs a pass that only reads carrier, STP and bundle state (e.g. re-evaluating every first-hop
+ * redundancy group) with each interface's operational status computed once. The pass must not
+ * change link, port, STP, LACP or power state.
+ */
+export function withOperationalMemo<T>(pass: () => T): T {
+  if (operationalMemo) return pass();
+  operationalMemo = new Map();
+  try {
+    return pass();
+  } finally {
+    operationalMemo = undefined;
+  }
+}
+function computeOperational(snapshot: Snapshot, device: Device, port: NetworkInterface): boolean {
   if (!device.power || !interfaceUp(device, port)) return false;
   if (port.loopback) return true;
+  // A tunnel's line protocol already reflects its transport, keepalives and IPsec.
+  if (port.iosTunnel) return true;
   if (port.capwapPeer)
     return (
       !!device.wlc?.enabled &&
@@ -174,9 +197,12 @@ export function receiveSvi(engine: SimulationEngine, device: Device, vlan: numbe
   if (!port || !sviOperational(engine.state, device, port)) return false;
   const directed = frame.dst === port.mac || acceptsHsrpMac(engine.state, device, port, frame.dst);
   const hsrp = frame.packet?.protocol === 'UDP' && frame.packet.payload.protocol === 'HSRP';
+  // Routing and redundancy protocols use the local network control block (224.0.0.0/24).
+  const control = !!frame.packet && frame.dst.startsWith('01:00:5e:00:00:');
   if (
     !directed &&
     !hsrp &&
+    !control &&
     frame.dst !== 'ff:ff:ff:ff:ff:ff' &&
     !(frame.ipv6 && frame.dst.startsWith('33:33:'))
   )

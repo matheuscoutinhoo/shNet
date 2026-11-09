@@ -1,6 +1,8 @@
 import type { Device, NetworkInterface } from '../model';
 import { interfaceUp } from './layer3';
 import { linkLocal6, sameSubnet6 } from './ipv6-address';
+import { ospf3Routes } from './ospf3';
+import { OSPF3 } from './ospf3-model';
 export const usable6 = (p: NetworkInterface) =>
   p.ipv6?.addresses.filter((a) => ['preferred', 'deprecated'].includes(a.state)) ?? [];
 export function source6(port: NetworkInterface, target: string) {
@@ -62,6 +64,21 @@ export function resolveRoute6(device: Device, target: string, now: number, vrf?:
           distance: 1,
           metric: route.metric,
           origin: 'static',
+        });
+    }
+  if (!linkLocal6(target) && !vrf)
+    for (const route of ospf3Routes(device)) {
+      const port = device.interfaces.find(
+        (p) => p.id === route.port && !p.vrf && p.ipv6 && interfaceUp(device, p)
+      );
+      if (port && (!scope || scope === port.id) && sameSubnet6(target, route.network, route.prefix))
+        choices.push({
+          port,
+          nextHop: route.nextHop,
+          prefix: route.prefix,
+          distance: OSPF3.distance,
+          metric: route.metric,
+          origin: route.pathType === 'inter' ? 'OSPFv3 inter-area' : 'OSPFv3',
         });
     }
   choices.sort(

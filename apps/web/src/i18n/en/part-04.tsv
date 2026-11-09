@@ -117,7 +117,6 @@ edksknda	Zones per interface
 pmql05xt	No zone
 oilhx4a3	Inter-zone rules
 idkwk9vl	One rule per line: sequence, source zone, destination zone, action, and protocol. Use eq to filter the TCP/UDP destination port.
-evz96elt	The lowest matching sequence wins. inspect tracks the session and allows return traffic; permit allows traffic without a session; deny blocks, including return traffic. Without a rule, traffic between zones or without a zone is dropped. Within the same zone, it is permitted. Related ICMP errors go through the same ACLs and deny rules. The router's own traffic follows the ACLs.
 aiojev7e	Apply firewall
 st49rnea	Transit firewall
 nvn3hirh	Controls TCP, UDP, and ping between interfaces or zones, including return traffic and ICMP errors related to the sessions. ACLs still apply. Changing the policy clears the sessions.
@@ -381,15 +380,12 @@ ldcpl578	Changes not yet evaluated
 6wcevlya	Lab complete
 6rn6f4eh	Evaluation unavailable.
 c107xwwh	Validate lab
-9py7bwzz	LACP negotiates members using control frames. Active initiates; passive responds. At least one side must be active. The per-flow hash selects a member; a failure redistributes the flows among the remaining members.
 nb2rqjbh	Group
 jhh57s61	Members / state
 uv1h6ykf	· minimum
-0fnapfou	No LACP received
 hhriz70a	Edit group
 hzkfjqha	Create group
 zv6zt90l	EtherChannel number
-00utsdyw	LACP mode
 74cb6ngp	Minimum members
 k8n6zjqh	Physical interfaces in the group
 dvecf9r9	Members need the same speed, full duplex, and no IP stack or policy configuration. Configure VLAN/trunk or IPv4 on the Port-channel interface from the Ports tab. To diagnose a failure, shut down a physical member and advance the simulation.

@@ -1,10 +1,11 @@
 import type { NetworkInterface, Snapshot } from './model';
 import type { OspfInterface } from './protocols/ospf-model';
+import { trunkAllows, trunkVlans } from './protocols/trunk';
 import { bgpCandidates } from './protocols/bgp-routing';
 import { bgpPrefixKey } from './protocols/bgp-model';
 import { linkOperational } from './links/physical';
 import { networkDomains } from './network-domains';
-import { ipNumber, sameSubnet, subnet } from './protocols/ipv4';
+import { ipNumber, sameSubnet, staticRouteInstalled, subnet } from './protocols/ipv4';
 import { sameSubnet6, linkLocal6 } from './protocols/ipv6-address';
 import { stateSyncStatus, stateSyncPending } from './protocols/state-sync';
 import { dhcpHaStatus, dhcpHaCompatible } from './protocols/dhcp-ha';
@@ -252,19 +253,16 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           `${d.hostname}: rota ${route.network}/${route.prefix} contém bits de host.`,
           'Use o endereço de rede canônico para tornar a revisão inequívoca.'
         );
-      if (
-        !d.interfaces.some(
-          (p) => p.vrf === route.vrf && p.ip && p.prefix !== undefined && sameSubnet(p.ip, gateway, p.prefix)
-        )
-      )
+      // IOS resolves a next hop recursively (connected, static or dynamic routes), like the forwarding engine.
+      if (!staticRouteInstalled(d, route, s, true))
         add(
           'ROUTE_UNRESOLVED_NEXT_HOP',
           'warning',
           [d.id],
-          `${d.hostname}: próximo salto ${gateway} sem interface IPv4 na sub-rede/VRF da rota.`,
-          'Corrija endereço, máscara ou VRF. O motor resolve rotas estáticas por interface conectada; a revisão não comprova disponibilidade.'
+          `${d.hostname}: rota ${route.network}/${route.prefix} via ${gateway} não resolve na tabela de rotas da VRF.`,
+          'Confira endereço, máscara, VRF e o protocolo que deveria anunciar o próximo salto. Rotas recursivas dependem de uma rota conectada, estática ou dinâmica até o salto.'
         );
-      if (!gateway) continue;
+      if (route.discard) continue;
       const peer = s.devices.find(
         (x) =>
           x.interfaces.some((p) => p.ip === gateway) &&
@@ -655,8 +653,8 @@ export function preflight(s: Snapshot): PreflightIssue[] {
           'Use a mesma VLAN nas duas pontas ou um trunk; CDP do IOS reportaria native VLAN mismatch.'
         );
       else if (a.mode === 'trunk') {
-        const onlyA = a.allowedVlans.filter((v) => !b.allowedVlans.includes(v)),
-          onlyB = b.allowedVlans.filter((v) => !a.allowedVlans.includes(v));
+        const onlyA = trunkVlans(da, a).filter((v) => !trunkAllows(b, v)),
+          onlyB = trunkVlans(db, b).filter((v) => !trunkAllows(a, v));
         if (onlyA.length || onlyB.length)
           add(
             'TRUNK_ALLOWED_MISMATCH',

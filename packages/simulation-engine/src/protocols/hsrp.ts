@@ -16,8 +16,11 @@ import {
   hsrpMulticast,
   type HsrpConfig,
   type HsrpGroup,
+  type HsrpMessage,
 } from './hsrp-model';
-import { interfaceOperational, routingEnabled } from './layer3';
+import { hsrpDigest } from '../wire/hsrp-codec';
+import { interfaceOperational, routingEnabled, withOperationalMemo } from './layer3';
+import { removeQueued } from '../core/queue';
 import { ipNumber, sameSubnet, subnet } from './ipv4';
 import { isUnicast } from './dhcp-config';
 import { checkDevice, deviceTimers, validatedDevice } from '../core/validation-scope';
@@ -126,16 +129,41 @@ const priority = (s: Snapshot, d: Device, g: HsrpConfig) =>
   );
 const rank = (a: { ip: string; priority: number }, b: { ip: string; priority: number }) =>
   b.priority - a.priority || ipNumber(b.ip) - ipNumber(a.ip);
-function cancel(e: SimulationEngine, d: Device, g: HsrpGroup) {
-  e.state.queue = e.state.queue.filter(
-    (q) => q.action.kind !== 'hsrp-tick' || q.action.device !== d.id || q.action.token !== g.token
+/**
+ * "preempt delay minimum S reload R": a router waits S after its group comes up, and R after the
+ * device boots, before taking over from a lower-priority active router.
+ */
+function preemptAt(d: Device, g: HsrpGroup) {
+  return Math.max(
+    g.startedAt + (g.preemptDelayMs ?? 0),
+    g.preemptReloadMs ? (d.bootStartedAt ?? 0) + g.preemptReloadMs : 0
   );
+}
+function cancel(e: SimulationEngine, d: Device, g: HsrpGroup) {
+  // validateHsrp: a group has a queued tick exactly when tickAt is set, at that time.
+  if (g.tickAt === undefined) return;
+  const own = (a: Action) => a.kind === 'hsrp-tick' && a.device === d.id && a.token === g.token;
+  if (!removeQueued(e.state, g.tickAt, own)) e.state.queue = e.state.queue.filter((q) => !own(q.action));
   delete g.tickAt;
 }
 function send(e: SimulationEngine, d: Device, g: HsrpGroup, opcode: 'hello' | 'coup' | 'resign' = 'hello') {
   const p = d.interfaces.find((p) => p.id === g.port)!;
   if (!g.vip || !portUp(e.state, d, p) || !['SPEAK', 'STANDBY', 'ACTIVE'].includes(g.state)) return;
   const target = hsrpMulticast(g.version);
+  const message: HsrpMessage = {
+    version: g.version,
+    group: g.group,
+    opcode,
+    state: g.state as 'SPEAK' | 'STANDBY' | 'ACTIVE',
+    priority: g.effectivePriority,
+    helloMs: g.helloMs,
+    holdMs: g.holdMs,
+    vip: g.vip,
+    ...(g.authentication?.mode === 'text' && g.authentication.key !== 'cisco'
+      ? { authText: g.authentication.key }
+      : {}),
+  };
+  if (g.authentication?.mode === 'md5') message.md5 = hsrpDigest(message, g.authentication.key);
   e.sendFrame(d.id, p.id, {
     src: g.version === 1 && g.state === 'ACTIVE' ? hsrpMac(g) : p.mac,
     dst: target.mac,
@@ -148,23 +176,45 @@ function send(e: SimulationEngine, d: Device, g: HsrpGroup, opcode: 'hello' | 'c
       protocol: 'UDP',
       sourcePort: 1985,
       destinationPort: 1985,
-      bytes: g.version === 1 ? 48 : 70,
-      payload: {
-        protocol: 'HSRP',
-        message: {
-          version: g.version,
-          group: g.group,
-          opcode,
-          state: g.state as 'SPEAK' | 'STANDBY' | 'ACTIVE',
-          priority: g.effectivePriority,
-          helloMs: g.helloMs,
-          holdMs: g.holdMs,
-          vip: g.vip,
-        },
-      },
+      // IP and UDP headers, the group-state data and any authentication TLV.
+      bytes:
+        28 + (g.version === 1 ? 20 : 42) + (message.md5 ? 30 : message.authText && g.version === 2 ? 10 : 0),
+      payload: { protocol: 'HSRP', message },
     },
   });
   g.sent++;
+}
+/** The text ("cisco" by default) or MD5 key-string of both routers must match. */
+function authentic(g: HsrpGroup, m: HsrpMessage) {
+  const auth = g.authentication;
+  if (auth?.mode === 'md5') return !!m.md5 && m.md5 === hsrpDigest(m, auth.key);
+  return !m.md5 && (m.authText ?? 'cisco') === (auth?.key ?? 'cisco');
+}
+// Last %HSRP-4-BADAUTH per group and sender, to log a misconfiguration once per 30 s like IOS.
+const badAuthLogged = new WeakMap<HsrpGroup, Map<string, number>>();
+function rejectAuthentication(
+  e: SimulationEngine,
+  d: Device,
+  p: NetworkInterface,
+  g: HsrpGroup,
+  from: string,
+  m: HsrpMessage
+) {
+  const logged = badAuthLogged.get(g) ?? new Map<string, number>();
+  badAuthLogged.set(g, logged);
+  const last = logged.get(from),
+    log = last === undefined || e.state.clock - last >= 30000 || e.state.clock < last;
+  if (log) logged.set(from, e.state.clock);
+  const state = m.state[0] + m.state.slice(1).toLowerCase();
+  d.dropped++;
+  e.emit(
+    'PACKET_DROPPED',
+    d.id,
+    log
+      ? `%HSRP-4-BADAUTH: Bad authentication from ${from}, group ${m.group}, remote state ${state}`
+      : `HSRP ${m.group}: autenticação divergente de ${from}.`,
+    { port: p.id }
+  );
 }
 function transition(e: SimulationEngine, d: Device, g: HsrpGroup, state: HsrpGroup['state']) {
   if (g.state === state) return;
@@ -192,7 +242,7 @@ function elect(e: SimulationEngine, d: Device, g: HsrpGroup) {
   const self = { ip: p.ip!, priority: g.effectivePriority };
   const active = g.peers.filter((peer) => peer.state === 'ACTIVE').sort(rank)[0];
   if (active) {
-    if ((g.state === 'ACTIVE' || g.preempt) && rank(self, active) < 0) {
+    if ((g.state === 'ACTIVE' || (g.preempt && now >= preemptAt(d, g))) && rank(self, active) < 0) {
       if (g.state !== 'ACTIVE') send(e, d, g, 'coup');
       transition(e, d, g, 'ACTIVE');
       return;
@@ -220,15 +270,18 @@ function elect(e: SimulationEngine, d: Device, g: HsrpGroup) {
   transition(e, d, g, won ? 'ACTIVE' : candidates[1]?.ip === self.ip ? 'STANDBY' : 'LISTEN');
   if (!won) g.activeDeadline = now + g.holdMs;
 }
-function refreshGroup(e: SimulationEngine, d: Device, g: HsrpGroup) {
+function refreshGroup(e: SimulationEngine, d: Device, g: HsrpGroup, schedule = true, settled = false) {
   const p = d.interfaces.find((p) => p.id === g.port)!;
   if (!g.vip || !portUp(e.state, d, p)) {
     cancel(e, d, g);
     transition(e, d, g, 'INIT');
-    g.peers = [];
+    if (g.peers.length) g.peers = [];
     return;
   }
   const effective = priority(e.state, d, g);
+  // Hellos and the group's own timers run the election; between them only carrier and
+  // tracking changes (or leaving INIT) can change the outcome.
+  if (settled && g.state !== 'INIT' && effective === g.effectivePriority && g.tickAt !== undefined) return;
   if (effective !== g.effectivePriority) g.nextHello = e.state.clock;
   g.effectivePriority = effective;
   if (g.state === 'INIT') {
@@ -238,11 +291,14 @@ function refreshGroup(e: SimulationEngine, d: Device, g: HsrpGroup) {
     transition(e, d, g, 'SPEAK');
   }
   elect(e, d, g);
+  if (!schedule) return;
   const at = Math.max(
     e.state.clock + 0.001,
     Math.min(
       g.state === 'LISTEN' ? Infinity : g.nextHello,
       g.state === 'ACTIVE' ? Infinity : g.activeDeadline,
+      // A delayed preemption is re-evaluated when its delay ends.
+      g.preempt && g.state !== 'ACTIVE' && preemptAt(d, g) > e.state.clock ? preemptAt(d, g) : Infinity,
       ...g.peers.map((peer) => peer.expiresAt),
       e.state.clock + g.helloMs
     )
@@ -287,15 +343,20 @@ export function configureHsrp(e: SimulationEngine, d: Device, input: unknown) {
   invalidateProtocolIndex(e.state);
   refreshHsrp(e);
 }
-export function refreshHsrp(e: SimulationEngine) {
-  for (const d of protocolDevices(e.state, 'hsrp')) for (const g of d.hsrp!.groups) refreshGroup(e, d, g);
+/** Re-evaluates every group; `settled` (after each simulation event) only reacts to carrier and tracking. */
+export function refreshHsrp(e: SimulationEngine, settled = false) {
+  withOperationalMemo(() => {
+    for (const d of protocolDevices(e.state, 'hsrp'))
+      for (const g of d.hsrp!.groups) refreshGroup(e, d, g, true, settled);
+  });
 }
 export function handleHsrpTick(e: SimulationEngine, a: Extract<Action, { kind: 'hsrp-tick' }>) {
   const d = e.device(a.device),
     g = d.hsrp?.groups.find((g) => g.token === a.token);
   if (!g) return;
   delete g.tickAt;
-  refreshGroup(e, d, g);
+  // Run the election first; the timer is rescheduled once, after the hello.
+  refreshGroup(e, d, g, false);
   if (g.state !== 'INIT' && g.state !== 'LISTEN' && g.nextHello <= e.state.clock) {
     send(e, d, g);
     g.nextHello = e.state.clock + g.helloMs;
@@ -325,6 +386,10 @@ export function receiveHsrp(
     !isUnicast(packet.src)
   )
     return;
+  if (!authentic(g, m)) {
+    rejectAuthentication(e, d, p, g, packet.src, m);
+    return;
+  }
   g.received++;
   g.peers = g.peers.filter((peer) => peer.ip !== packet.src);
   if (m.opcode === 'resign') {

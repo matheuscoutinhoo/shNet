@@ -86,7 +86,7 @@ Há até 1024 sessões por roteador. O inspector mostra protocolo, estado e expi
 
 Erros Time Exceeded e Destination Unreachable incluem uma citação limitada ao cabeçalho IPv4 e aos campos de transporte, sem copiar dados da aplicação. O firewall autoriza ICMP RELATED apenas quando o fluxo citado corresponde a uma sessão viva. O erro pode vir de um roteador intermediário; não muda o estado nem renova a sessão. NAT estático/dinâmico/PAT traduzem o cabeçalho externo e a citação nos dois sentidos, restaurando portas/identificadores sem criar ou renovar bindings. O inspector mostra código, IPs, portas e sequência citados.
 
-No modo Zonas, atribua nomes às interfaces e escreva regras ordenadas por sequência. A primeira correspondência decide: inspect rastreia e autoriza retorno, permit libera sem sessão, deny bloqueia inclusive retorno e ICMP relacionado. Sem regra, tráfego entre zonas ou sem zona é descartado; dentro da mesma zona é permitido. Protocolos e portas são definidos pelas regras, independentemente da seleção global do modo legado. Alterar configuração reinicia sessões.
+No modo Zonas, atribua nomes às interfaces e escreva regras ordenadas por sequência. A primeira correspondência decide: inspect rastreia e autoriza retorno, permit libera sem sessão, deny bloqueia novas conexões e ICMP relacionado. Como no IOS, a tabela de sessões é consultada antes das regras: o retorno de uma sessão inspecionada passa mesmo que uma regra deny do sentido oposto o alcance. Sem regra, tráfego entre zonas, ou entre uma zona e uma interface sem zona, é descartado; dentro da mesma zona e entre interfaces sem zona é permitido. Protocolos e portas são definidos pelas regras, independentemente da seleção global do modo legado. Alterar configuração reinicia sessões.
 
 ```text
 enable
@@ -103,9 +103,33 @@ show firewall zones
 show firewall
 ```
 
+**Firewall por zonas do IOS (ZBF):** a sintaxe nativa do IOS também é aceita e substitui os comandos `firewall mode/zone/rule` no mesmo roteador. `class-map type inspect [match-any|match-all]` aceita `match protocol` (http, https, dns, ssh, icmp, tcp, udp e outros nomes do PAM), `match access-group name ACL` e `match class-map`; `policy-map type inspect` usa `class type inspect` e `class class-default` com `inspect`, `pass [log]` ou `drop [log]` (sem ação, ou class-default implícita, a ação é drop). `zone security`, `zone-pair security NOME source A destination B` com `service-policy type inspect` e `zone-member security` na interface ativam o filtro. A zona `self` protege o próprio roteador: sem zone-pair com self, o tráfego para/do roteador é livre; com política, ela decide, inclusive OSPF, HSRP, VRRP e RIP recebidos, e o retorno de tráfego gerado pelo roteador só passa com inspect self→zona ou regra explícita. `drop log` gera `%FW-6-DROP_PKT` no buffer de logging. Consulte com `show zone security`, `show zone-pair security`, `show class-map type inspect`, `show policy-map type inspect` e `show policy-map type inspect zone-pair [NOME] sessions`.
+
+```text
+class-map type inspect match-any INSIDE-OUT
+ match protocol http
+ match protocol dns
+ match protocol icmp
+policy-map type inspect IN-OUT
+ class type inspect INSIDE-OUT
+  inspect
+ class class-default
+  drop log
+zone security INSIDE
+zone security OUTSIDE
+zone-pair security IN-OUT source INSIDE destination OUTSIDE
+ service-policy type inspect IN-OUT
+interface Gi0/1
+ zone-member security INSIDE
+interface Gi0/2
+ zone-member security OUTSIDE
+```
+
+Limites do ZBF: sem parameter-maps nem contadores por classe; inspect não abre canais secundários de FTP; tráfego OSPF/HSRP/VRRP/RIP gerado pelo roteador não passa pela política self→zona.
+
 O template **Três zonas, caminhos controlados** demonstra HTTP com PAT na WAN, inspeção por TCP/80 na DMZ e bloqueio dos demais acessos entre zonas. No PC-01, `traceroute 192.168.20.10` mostra erros de TTL atravessando PAT e firewall.
 
-Limites: identificação Echo conceitual; erros UDP não abortam transportes. DF/Fragmentation Needed e PMTUD TCP estão nos ADRs 030/035; inspeção HTTP/DNS e IDS/IPS nos ADRs 026/032. Host Unreachable após ARP e redirects permanecem ausentes. Tráfego destinado/originado no roteador usa ACLs. Decisões em [ADR-012](adr/012-multiprotocol-firewall.md) e [ADR-015](adr/015-firewall-zones-and-related-icmp.md).
+Limites: identificação Echo conceitual; erros UDP não abortam transportes. DF/Fragmentation Needed e PMTUD TCP estão nos ADRs 030/035; inspeção HTTP/DNS e IDS/IPS nos ADRs 026/032. Host Unreachable após ARP e redirects permanecem ausentes. Sem ZBF, tráfego destinado/originado no roteador usa ACLs. Decisões em [ADR-012](adr/012-multiprotocol-firewall.md) e [ADR-015](adr/015-firewall-zones-and-related-icmp.md).
 
 ## OSPF
 
@@ -164,6 +188,111 @@ RIPv2 possui codec, autenticação, filtros, hold-down, next hop e redistribuiç
 
 Os dois protocolos passam por ACL. OSPF aceita regras de protocolo `ospf`; RIP aceita regras UDP com porta 520. A comparação de rotas usa primeiro o prefixo mais específico, depois distância administrativa e métrica. Tráfego de controle fica no segmento local e não passa por NAT. Rotas estáticas continuam configuradas separadamente. Decisões de arquitetura: [ADR-010](adr/010-dynamic-routing.md).
 
+## EIGRP (IPv4, DUAL)
+
+`router eigrp AS` habilita o processo; `network A.B.C.D [wildcard]` seleciona as interfaces (sem wildcard, a rede é tratada como classful; uma máscara de sub-rede é convertida em wildcard, como no IOS). Hellos vão para 224.0.0.10 (IP 88) a cada 5 s com hold time de 15 s (`ip hello-interval eigrp AS N`, `ip hold-time eigrp AS N`). A adjacência exige o mesmo AS, os mesmos valores K (`metric weights 0 k1 k2 k3 k4 k5`), a mesma sub-rede e, quando configurada, a mesma autenticação MD5 (`ip authentication mode eigrp AS md5` + `ip authentication key-chain eigrp AS NOME`). Mudanças de vizinho geram `%DUAL-5-NBRCHANGE`.
+
+Update, Query e Reply são confiáveis: cada pacote é confirmado por um ACK e retransmitido a cada 1 s; após 16 tentativas o vizinho cai com `retry limit exceeded`. Pacotes respeitam a MTU da interface (o EIGRP não fragmenta). A métrica é a clássica: 256 × (10⁷/menor banda em kbit/s + soma dos atrasos em dezenas de µs), com `bandwidth` e `delay` por interface (GigabitEthernet: 2816 conectada; loopback: 128256).
+
+O DUAL mantém a tabela de topologia com a distância relatada por vizinho. Sucessores e sucessores viáveis obedecem à condição de viabilidade (RD < FD); a troca para um sucessor viável é imediata. Sem sucessor viável a rota fica ativa e o roteador envia Queries aos vizinhos (exceto stubs), aguardando todas as Replies antes de voltar a passivo; vizinhos que não respondem em 3 min são derrubados (stuck in active). Split horizon com poison reverse vale por padrão (`no ip split-horizon eigrp AS`). `variance` e `maximum-paths` controlam caminhos múltiplos; ECMP de mesmo custo divide o tráfego por fluxo, e caminhos de custo desigual aparecem na tabela, mas o tráfego segue o de menor métrica.
+
+`ip summary-address eigrp AS rede máscara` anuncia o sumário na interface, suprime os componentes nela e instala a rota para Null0 com distância 5. `eigrp stub [connected|summary|static|redistributed|receive-only]` anuncia apenas as rotas escolhidas e faz os vizinhos deixarem de consultá-lo. `redistribute static|connected|ospf N|bgp N|rip [metric bw delay rel load mtu]` gera rotas externas (D EX, distância 170); static e connected herdam a métrica da interface e as demais fontes exigem `metric` ou `default-metric`. `distance eigrp INT EXT`, `eigrp router-id`, `passive-interface [default]` e `clear ip eigrp neighbors` seguem o IOS. OSPF e BGP redistribuem EIGRP com `redistribute eigrp AS`.
+
+```text
+router eigrp 100
+ network 10.0.0.0 0.0.255.255
+ passive-interface Loopback0
+ eigrp router-id 1.1.1.1
+interface GigabitEthernet0/1
+ ip summary-address eigrp 100 172.16.0.0 255.255.0.0
+show ip eigrp neighbors [detail]
+show ip eigrp topology [all-links]
+show ip eigrp interfaces [detail]
+show ip eigrp traffic
+show ip route eigrp
+```
+
+Limites: somente IPv4 no modo clássico (`router eigrp AS`); modo nomeado, métricas wide, IPv6, leak-maps, filtros `distribute-list` e sumarização automática não são modelados. A troca INIT é simplificada (o roteador envia a tabela completa ao formar a adjacência). Os pacotes têm codec binário conforme a [RFC 7868](https://www.rfc-editor.org/rfc/rfc7868.html) para captura pcap.
+
+## OSPFv3 (IPv6)
+
+OSPFv3 exige `ipv6 unicast-routing` (sem ele o IOS responde `% IPv6 routing not enabled`). `ipv6 ospf PID area A` na interface habilita o processo, criando `ipv6 router ospf PID` quando ele ainda não existe, como no IOS. O router ID vem de `router-id`, senão do maior IPv4 de loopback (ou de qualquer interface); sem nenhum, o processo não sobe e registra `%OSPFv3-4-NORTRID`. O router ID é fixado ao iniciar o processo; `clear ipv6 ospf process` o escolhe de novo.
+
+Hellos saem do endereço link-local para FF02::5 (próximo cabeçalho 89, hop limit 1) a cada 10 s, com dead de 40 s (`ipv6 ospf hello-interval`/`dead-interval`; mudar o hello ajusta o dead para 4 hellos). Hello/dead divergentes e área diferente impedem a adjacência. Em enlaces broadcast há eleição de DR/BDR sem preempção após a espera de um dead interval (`ipv6 ospf priority`, 0 = inelegível); adjacências FULL se formam com DR e BDR e os demais ficam em 2WAY. `ipv6 ospf network point-to-point` dispensa a eleição. Mudanças de adjacência geram `%OSPFv3-5-ADJCHG` (`from LOADING to FULL, Loading Done`, `from FULL to DOWN, Neighbor Down: Dead timer expired`/`Interface down or detached`).
+
+Cada roteador origina Router LSAs (vizinhos e custos), Intra-Area-Prefix LSAs (prefixos das interfaces ativas; loopbacks como /128, salvo com `ipv6 ospf network point-to-point`) e, quando é ABR (interfaces ativas na área 0 e em outra área), Inter-Area-Prefix LSAs com as rotas das demais áreas. O SPF por área usa apenas enlaces bidirecionais; rotas intra-área (O) têm preferência sobre inter-área (OI), com distância 110, próximo salto link-local e até `maximum-paths` caminhos de mesmo custo. O custo é `ipv6 ospf cost` ou `auto-cost reference-bandwidth` (100 Mbit/s) dividido pela banda da interface. `passive-interface [default]` mantém o prefixo anunciado sem hellos.
+
+```text
+ipv6 unicast-routing
+interface GigabitEthernet0/1
+ ipv6 address 2001:DB8:12::1/64
+ ipv6 ospf 1 area 0
+ ipv6 ospf priority 10
+ipv6 router ospf 1
+ router-id 1.1.1.1
+show ipv6 ospf neighbor
+show ipv6 ospf interface brief
+show ipv6 ospf
+show ipv6 ospf database
+show ipv6 route [ospf|connected|local|static]
+```
+
+`show ipv6 route` segue o formato do IOS (códigos C, L, S, O, OI, ND; distância/métrica e `via`). Limites: um processo por roteador, sem address-families IPv4, stub/NSSA, LSAs externas (redistribuição), virtual links, autenticação IPsec nem Link LSAs; a troca de banco de dados é condensada (a adjacência recebe o banco inteiro da área em LS Updates). Os pacotes têm codec binário conforme a [RFC 5340](https://www.rfc-editor.org/rfc/rfc5340.html).
+
+## running-config e startup-config
+
+`show running-config` imprime o texto do IOS: cabeçalho `Building configuration...`, `version`, `!` entre blocos, nomes completos de interface e `end`. Valores padrão não aparecem (`no shutdown`, VLAN 1 de acesso/nativa, trunk com todas as VLANs, timers CDP/LLDP, prioridade e timers de VRRP); interfaces roteadas sem IPv4 mostram `no ip address` e as linhas `line con 0`/`line vty` aparecem sempre. ACLs numeradas aparecem na forma `access-list N ...`. A NVRAM guarda o mesmo texto sem o cabeçalho; ao iniciar, linhas na margem esquerda voltam ao modo global, de modo que colar um `show running-config` reconstrói a configuração.
+
+As VLANs ficam no `vlan.dat` (flash): aparecem na running-config só em VTP transparent/off, sobrevivem a `reload` e `write erase`, e `delete flash:vlan.dat` (com as confirmações do IOS) restaura a base padrão no próximo boot. Nomes padrão seguem o IOS (`VLAN0010`). As interfaces aceitam as abreviações do IOS (`g0/1`, `gig 0/1`, `GigabitEthernet0/1`, `po1`, `lo0`, `vl10`). Endereços sobrepostos são recusados apenas no mesmo equipamento; equipamentos diferentes podem repetir um endereço, o que gera `%IP-4-DUPADDR` ao receber ARP conflitante.
+
+**Importar configuração IOS** (aba CLI do inspetor, ou `importIosConfig` na API do motor): cole um `show running-config` real de um roteador ou switch. O texto vira a startup-config e o equipamento reinicia com ele na hora, como em `copy tftp: startup-config` seguido de `reload`; a configuração anterior é substituída.
+
+O relatório de compatibilidade mostra quantas linhas foram aplicadas e lista, com o número da linha e a mensagem do parser, cada linha rejeitada. Exemplos: interfaces que não existem no hardware simulado, como `GigabitEthernet0/0/0` de um ISR 4000, e comandos não suportados. Também lista as linhas ignoradas, que são comandos EXEC como `write memory`. Ao final, a NVRAM guarda a configuração como o equipamento a entendeu, de modo que um `reload` posterior não pede para salvar.
+
+## Telnet e SSH entre equipamentos
+
+`telnet HOST [porta] [/vrf NOME] [/source-interface INTF]` e `ssh -l USUÁRIO [-p porta] [-vrf NOME] HOST` abrem uma conexão TCP real (portas 23 e 22) a partir do modo EXEC e entregam o terminal ao equipamento remoto; `exit`/`logout` no EXEC remoto fecha a conexão (`[Connection to X closed by foreign host]`) e volta ao equipamento de origem. Sessões podem ser encadeadas (R1 → R2 → R3) e caem quando o remoto recarrega, desliga ou perde a conexão.
+
+O servidor segue as linhas VTY do IOS: `line vty 0 4` (e `5 15` nos switches) existe sempre, com `login` e `transport input telnet ssh` por padrão. `transport input ssh|telnet|none|all` e `access-class ACL in` (ACL IPv4 padrão/estendida, com contadores) recusam a conexão com reset TCP (`% Connection refused by remote host`); sem rota aparece `% Destination unreachable; gateway or host down` e sem resposta `% Connection timed out; remote host not responding`. O SSH só responde depois de `crypto key generate rsa` (que exige `hostname` e `ip domain-name`).
+
+A autenticação usa `login` (senha da linha; sem senha o Telnet mostra `Password required, but none set`), `login local` (`username NOME [privilege N] secret|password`), `no login` ou, com `aaa new-model`, a lista `login authentication LISTA` (ou `default`, ou o banco local) com os métodos `local`, `line`, `enable` e `none`. O SSH exige usuário (local/AAA); somente a senha da linha encerra a conexão (`aborted: error status 0`). Três falhas encerram a sessão (`% Login invalid` no Telnet, `% Authentication failed.` no SSH). Usuários com privilégio 15 entram em EXEC privilegiado; os demais usam `enable` com o `enable secret` remoto. `show users` lista o console e as sessões VTY com usuário, ociosidade e origem.
+
+Limites: os métodos `group tacacs+|radius` das listas AAA são tratados como servidor indisponível (passa ao próximo método); as teclas digitadas não trafegam como dados TCP/SSH (a conexão TCP é real, a sessão é entregue ao CLI remoto); `exec-timeout`, `ip ssh time-out` e a suspensão de sessões (Ctrl-Shift-6 x, `resume`) não são modelados.
+
+## uRPF e show ip interface
+
+`ip verify unicast source reachable-via rx [allow-default]` (modo estrito; `ip verify unicast reverse-path` é a forma antiga) aceita um pacote só quando a rota de volta à origem sai pela interface de chegada, considerando caminhos de mesmo custo; `reachable-via any` (modo loose) exige apenas que exista rota. A rota padrão só conta com `allow-default` e uma rota para Null0 nunca conta; DHCP (0.0.0.0 → 255.255.255.255) é isento. Cada descarte gera um evento explicando a origem e incrementa o contador `verification drops`.
+
+`show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, proxy ARP, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores.
+
+Proxy ARP vem ativo, como no IOS, nas interfaces roteadas de roteadores e switches L3. O roteador responde com o próprio MAC a um ARP de um host da sub-rede da interface quando o endereço consultado está fora dessa sub-rede e é alcançável por outra interface. Isso permite que um host com máscara larga demais ou sem gateway alcance outras redes. A rota padrão não conta, e com HSRP/VRRP só o roteador ativo responde, com o MAC virtual. `no ip proxy-arp` desativa a função e aparece na running-config.
+
+## ACLs IPv6 nomeadas
+
+`ipv6 access-list NOME` abre o modo `(config-ipv6-acl)#`, com entradas `[sequence N] permit|deny PROTOCOLO ORIGEM [porta] DESTINO [porta] [tipo-icmp] [established] [log]`. Protocolos: `ipv6`, `icmp` (58), `tcp` (6), `udp` (17) e `ospf` (89). Endereços: `any`, `host X:X::X` ou `X:X::X/N`. Portas: `eq|neq|gt|lt|range`, com as palavras-chave do IOS (`www`, `domain`...). Tipos ICMPv6: `echo-request`, `echo-reply`, `nd-ns`, `nd-na`, `router-solicitation`, `router-advertisement`, `unreachable`, `time-exceeded` e `packet-too-big`. A numeração padrão vai de 10 em 10. `remark`, `no sequence N` e `no permit|deny ...` editam a lista.
+
+Na interface, `ipv6 traffic-filter NOME in|out` aplica a lista. A semântica segue o IOS:
+
+- Toda lista termina com `permit icmp any any nd-na`, `permit icmp any any nd-ns` e `deny ipv6 any any` implícitos. NDP continua funcionando, mas RS/RA precisam de entradas explícitas.
+- Um filtro que aponta para uma lista inexistente permite tudo.
+- O filtro de saída não afeta o tráfego originado pelo próprio roteador.
+
+Cada pacote descartado gera um evento com a regra (`IPv6 ACL NOME in: sequence 10 deny` ou `implicit deny ipv6 any any`). Entradas com `log` geram `%IPV6_ACL-6-ACCESSLOGP`.
+
+```text
+ipv6 access-list WEB-IN
+ permit tcp any host 2001:DB8:2::10 eq www
+ permit icmp any any echo-request
+ deny ipv6 any any log
+interface GigabitEthernet0/1
+ ipv6 traffic-filter WEB-IN in
+show ipv6 access-list [NOME]
+show access-lists
+clear ipv6 access-list [NOME]
+```
+
+`show ipv6 access-list` imprime `permit tcp any any eq www (3 matches) sequence 10`, no formato do IOS. `show access-lists` inclui as listas IPv6, e `show ipv6 interface` mostra `Inbound access list`/`Outgoing access list`. A running-config grava as entradas como `sequence N permit ...`, no estilo do IOS-XE, e colá-la reconstrói a lista. A sintaxe antiga `ipv6 traffic-filter in|out permit|deny TIPO ORIGEM DESTINO` do simulador continua aceita para laboratórios salvos.
+
 ## TCP, echo e HTTP
 
 TCP usa IPv4 protocolo 6 e IPv6 Next Header 6 e passa por ARP/Ethernet, roteamento, VLAN/STP, perda, MTU, ACL e NAT. O modelo executa SYN → SYN/ACK → ACK, entrega ordenada sem duplicação, ACK cumulativo, FIN com half-close, fechamento simultâneo, RST e TIME-WAIT. Porta fechada responde RST; uma conexão bloqueada esgota as tentativas. Eventos mostram estados, descartes e retransmissões; o packet inspector mostra flags, sequência, ACK, janela e dados.
@@ -197,7 +326,7 @@ Referências: [TCP RFC 9293](https://www.rfc-editor.org/rfc/rfc9293.html), [RTO 
 | Recurso    | Implementação                                                              | Limite                                                  |
 | ---------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
 | Ethernet   | unicast/broadcast, source learning, MAC aging, flooding por VLAN           | FCS e multicast especializado não modelados             |
-| 802.1Q     | access, trunk, allowed, native VLAN                                        | sem DTP, QinQ, SVI ou subinterfaces                     |
+| 802.1Q     | access, trunk, allowed (padrão IOS: todas as VLANs), native VLAN           | sem DTP, QinQ, SVI ou subinterfaces                     |
 | ARP        | broadcast request, unicast reply, cache por porta, pending queue e timeout | sem retransmissões, proxy ARP ou gratuitous ARP         |
 | IPv4       | validação, CIDR, máscaras contíguas, redes /0–/32                          | fragmentação/reassembly IPv4; DF gera ICMP MTU          |
 | ICMP       | echo request/reply, time-exceeded, RTT                                     | não emite todas as variantes de Destination Unreachable |
@@ -237,6 +366,17 @@ show running-config
 `spanning-tree mode stp` seleciona o modo clássico; `no spanning-tree` desabilita a árvore; `no spanning-tree cost` restaura o custo automático e `no spanning-tree portfast` remove a configuração edge. Snapshots com portas bloqueadas em forwarding, timers ausentes ou referências inconsistentes são rejeitados.
 
 Switches do catálogo seguem o padrão do Catalyst IOS XE: no primeiro boot e após reload sem configuração de STP, executam Rapid PVST+ em todas as VLANs (`spanning-tree mode rapid-pvst` no `show running-config`). Portas para hosts sem PortFast levam 2 × forward delay (30 s) até encaminhar. `no spanning-tree vlan 1-4094` desabilita a árvore e aparece na configuração; `spanning-tree vlan 1-4094` a reativa. PVST e MST são exibidos na forma IOS (`spanning-tree vlan N priority P`, `spanning-tree mst configuration`).
+
+`spanning-tree vlan N root primary` é a macro do IOS: usa 24576 se isso vence a eleição atual, senão 4096 abaixo da prioridade do root corrente; `root secondary` usa 28672 e `no spanning-tree vlan N root` volta a 32768. Como no IOS, o running-config guarda apenas a prioridade calculada. Trunks transportam todas as VLANs enquanto não houver `switchport trunk allowed vlan` (o running-config omite esse padrão); `show interfaces trunk` mostra as VLANs permitidas, ativas e em forwarding no formato IOS.
+
+## EtherChannel, HSRP e segurança de acesso
+
+- **EtherChannel:** `channel-group N mode active|passive` (LACP), `mode desirable|auto [non-silent]` (PAgP da Cisco) ou `mode on` (estático, sem PDUs; exige `on` nas duas pontas). Misturar `on`, LACP e PAgP no mesmo grupo é recusado (`Invalid etherchnl mode`). Um lado ativo (`active`/`desirable`) é necessário: `passive`/`passive` e `auto`/`auto` não agregam; LACP e PAgP não negociam entre si e um lado LACP ou PAgP diante de `on` também não (membros `I`). Os PDUs PAgP vão para 01:00:0C:CC:CC:CC em LLC/SNAP (PID 0x0104) com codec binário. `port-channel load-balance` escolhe os campos do hash (padrão src-dst-ip nos switches). `show etherchannel summary` (coluna Protocol LACP/PAgP/-), `show etherchannel load-balance`, `show lacp neighbor` e `show pagp neighbor` seguem o formato IOS.
+- **HSRP:** `standby N preempt delay minimum S [reload S] [sync S]` adia a preempção após a interface subir (ou após o boot, com reload); `standby N authentication md5 key-string CHAVE` ou `authentication text|<string>` (padrão "cisco") vão no pacote como no IOS (TLV MD5/texto) e divergências geram `%HSRP-4-BADAUTH` e dois Active; `standby N name NOME`. `show standby [brief]` e o running-config omitem os padrões do IOS. HSRP IPv6 (`standby N ipv6`) não é modelado.
+- **DHCP snooping:** `ip dhcp snooping limit rate N` coloca a porta em err-disable (`dhcp-rate-limit`, com `%DHCP_SNOOPING-4-DHCP_SNOOPING_ERRDISABLE_WARNING` e `%PM-4-ERR_DISABLE`) quando chegam mais de N pacotes DHCP por segundo; `errdisable recovery cause dhcp-rate-limit` a recupera. `ip source binding` é aceito antes da VLAN ou do snooping, como no IOS. `[no] ip dhcp snooping information option` é registrado, mas a inserção da opção 82 não é modelada (equivale a `no ... information option`). `show ip dhcp snooping [binding]` usa o formato IOS.
+- **Port security:** `switchport port-security aging time N` e `aging type absolute|inactivity` removem endereços dinâmicos; `mac-address sticky` converte os aprendidos em `mac-address sticky MAC` no running-config, que sobrevivem ao reload. Violações geram `%PORT_SECURITY-2-PSECURE_VIOLATION` (e `%PM-4-ERR_DISABLE` no modo shutdown). `show port-security [interface X | address]` e `clear port-security all|dynamic|sticky|configured` seguem o IOS. Endereços dinâmicos não são apagados quando o enlace cai.
+- **fair-queue:** aceito em interfaces físicas de roteador e exclusivo com `service-policy output`, e também dentro de uma classe de `policy-map` (CBWFQ, recusado em classe `priority`). Sem política de QoS, os enlaces não formam fila, então WFQ e FIFO se comportam igual; dentro da classe a fila é FIFO.
+- **switchport host:** a macro do IOS coloca a porta em access, liga PortFast e a retira do EtherChannel, com as três mensagens do IOS. `ip dhcp snooping trust` e `ip arp inspection trust` são aceitos nas interfaces-membro de um EtherChannel; o Port-channel é confiável quando ele ou seus membros são.
 
 ## UDP e DHCPv4
 

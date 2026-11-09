@@ -3,6 +3,7 @@ import {
   SimulationEngine,
   TerminalSession,
   validateSnapshot,
+  RELOAD_BOOT_MS,
   type Frame,
 } from '../packages/simulation-engine/src';
 it('native MQC classifies DSCP, prioritizes voice, shapes and survives startup replay', () => {
@@ -67,7 +68,8 @@ it('native MQC classifies DSCP, prioritizes voice, shapes and survives startup r
   validateSnapshot(e.snapshot());
   expect(t.execute('write memory')).toContain('[OK]');
   expect(t.execute('reload')).not.toMatch(/^%/);
-  expect(t.execute('')).toBe('Reload complete.');
+  expect(t.execute('')).toMatch(/%SYS-5-RELOAD: Reload requested by console/);
+  e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
   expect(e.device(a.id).interfaces[0].qos?.scheduler).toBe('llq-cbwfq');
   expect(e.device(a.id).mqc?.attachments[0].policy).toBe('WAN-PARENT');
   validateSnapshot(e.snapshot());

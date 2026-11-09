@@ -213,7 +213,7 @@ export function Workspace({
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        void lab.save().catch(() => {});
+        void lab.saveNow().catch(() => {});
         return;
       }
       if ((e.target as HTMLElement).closest('input,textarea,select,.xterm')) return;
@@ -336,7 +336,7 @@ export function Workspace({
           <button
             aria-label="Salvar"
             className="button header-save"
-            onClick={() => void lab.save().catch(() => {})}
+            onClick={() => void lab.saveNow().catch(() => {})}
           >
             <Save size={16} />
             <span>Salvar</span>

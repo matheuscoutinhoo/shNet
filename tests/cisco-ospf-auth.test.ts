@@ -6,6 +6,7 @@ import {
   validateSnapshot,
   exportPcap,
   decodePcap,
+  RELOAD_BOOT_MS,
 } from '../packages/simulation-engine/src';
 import {
   encodeOspf,
@@ -88,7 +89,8 @@ it('forms only matching native MD5 adjacencies, exports capture and reloads keys
   expect(at.history.join('\n')).not.toContain('md5 matching');
   expect(at.execute('write memory')).toContain('[OK]');
   expect(at.execute('reload')).not.toMatch(/^%/);
-  expect(at.execute('')).toBe('Reload complete.');
+  expect(at.execute('')).toMatch(/%SYS-5-RELOAD: Reload requested by console/);
+  e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
   expect(e.device(a.id).interfaces[0].ospfAuthentication?.key).toBe('matching');
   validateSnapshot(e.snapshot());
 });

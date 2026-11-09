@@ -1,8 +1,17 @@
 import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
+import { findDevice, findPort, linksAt } from '../core/topology-index';
 import { startEnterprise, receiveEnterpriseWifi, tickEnterprise } from './enterprise';
 import { hmacHex } from './security-crypto';
 import type { SimulationEngine } from '../core/engine';
-import { interfaceSchema, LIMITS, type Action, type Device, type Frame, type Snapshot } from '../model';
+import {
+  interfaceSchema,
+  LIMITS,
+  type Action,
+  type Device,
+  type Frame,
+  type Link,
+  type Snapshot,
+} from '../model';
 import { wirelessConfigSchema, type WirelessConfig } from './wireless-model';
 import { radioDistance, wirelessMetrics, wirelessAssociated } from './wireless-radio';
 
@@ -152,16 +161,23 @@ export function configureWireless(e: SimulationEngine, d: Device, input: unknown
     { port: p.id }
   );
 }
-export function refreshWireless(e: SimulationEngine) {
+/**
+ * Keeps radio links and associations current. `radiosChanged` is false after events that only
+ * carried traffic: positions and radio settings change only through edits and state events, so the
+ * access point × client distance scan can be skipped; association aging still runs.
+ */
+export function refreshWireless(e: SimulationEngine, radiosChanged = true) {
   const devices = protocolDevices(e.state, 'wireless');
-  const aps = devices.filter((d) => d.wireless?.role === 'ap'),
-    clients = devices.filter((d) => d.wireless?.role === 'client');
+  const aps = radiosChanged ? devices.filter((d) => d.wireless?.role === 'ap') : [],
+    clients = radiosChanged ? devices.filter((d) => d.wireless?.role === 'client') : [];
+  const radioLinks = new Map<string, Link>();
+  if (aps.length && clients.length)
+    for (const l of e.state.links)
+      if (l.cable === 'wireless') radioLinks.set(l.a.device + '\u0000' + l.b.device, l);
   for (const ap of aps)
     for (const client of clients) {
       const distance = radioDistance(ap, client);
-      let link = e.state.links.find(
-        (l) => l.cable === 'wireless' && l.a.device === ap.id && l.b.device === client.id
-      );
+      let link = radioLinks.get(ap.id + '\u0000' + client.id);
       if (!link && distance <= 300 && e.state.links.length < 800) {
         link = {
           id: e.id('radio'),
@@ -175,10 +191,11 @@ export function refreshWireless(e: SimulationEngine) {
           loss: 0,
         };
         e.state.links.push(link);
+        radioLinks.set(ap.id + '\u0000' + client.id, link);
       }
       if (link) link.distance = distance;
     }
-  for (const d of e.state.devices) {
+  for (const d of devices) {
     const w = d.wireless;
     if (!w) continue;
     const p = d.interfaces.find((p) => p.id === w.port)!;
@@ -192,16 +209,16 @@ export function refreshWireless(e: SimulationEngine) {
     }
     if (w.role === 'ap') {
       state(e, d, 'ap', 'AP ativo.');
-      w.peers = w.peers.filter((peer) => e.state.clock - peer.lastSeen <= 5000);
+      if (w.peers.some((peer) => e.state.clock - peer.lastSeen > 5000))
+        w.peers = w.peers.filter((peer) => e.state.clock - peer.lastSeen <= 5000);
     } else if (w.phase === 'disabled') clearClient(e, d, 'scanning', 'Rádio disponível: buscando SSID.');
     else if (w.association) {
-      const link = e.state.links.find(
-        (l) =>
-          l.cable === 'wireless' &&
-          l.b.device === d.id &&
-          e.state.devices.find((ap) => ap.id === l.a.device)?.interfaces.find((p) => p.id === l.a.port)
-            ?.mac === w.association!.bssid
-      );
+      const bssid = w.association.bssid;
+      const link = linksAt(e.state, d.id, w.port).find((l) => {
+        if (l.cable !== 'wireless' || l.b.device !== d.id) return false;
+        const ap = findDevice(e.state, l.a.device);
+        return !!ap && findPort(ap, l.a.port)?.mac === bssid;
+      });
       if (
         !link ||
         !wirelessMetrics(e.state, link).operational ||

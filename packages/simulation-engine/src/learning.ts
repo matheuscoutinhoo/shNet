@@ -1,5 +1,6 @@
 import { freshSimulation } from './labs';
 import { sameSubnet } from './protocols/ipv4';
+import { trunkAllows } from './protocols/trunk';
 import {
   challengeDefinitionSchema,
   networkTutorial,
@@ -82,7 +83,7 @@ function inspect(
         device.vlans.some((v) => v.id === predicate.vlan) &&
         (predicate.mode === 'access'
           ? port.accessVlan === predicate.vlan
-          : port.allowedVlans.includes(predicate.vlan)),
+          : trunkAllows(port, predicate.vlan)),
       'Modo da porta, VLAN criada e participação verificados.'
     );
   if (predicate.kind === 'dhcp')

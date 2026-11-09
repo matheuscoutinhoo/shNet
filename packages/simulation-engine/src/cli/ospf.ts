@@ -1,32 +1,26 @@
-import type { Device, NetworkInterface, OspfConfig } from '../model';
+import { ipv4Schema, type Device, type NetworkInterface, type OspfConfig } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+import { readSecret } from './secrets';
 import { showOspfNeighbors } from './ios-show';
-import { defaultOspfNetworkType, newOspfInterfaceSettings, selectOspfRouterId } from '../protocols/ospf';
+import {
+  defaultOspfNetworkType,
+  newOspfInterfaceSettings,
+  ospfConfigOf,
+  selectOspfRouterId,
+} from '../protocols/ospf';
 import { OSPF } from '../protocols/ospf-model';
 import { ipNumber } from '../protocols/ipv4';
 import { interfaceName } from './operational';
 import { parsePrefix, subnet, ipString, mask } from '../protocols/ipv4';
 import { registerBfdCommands } from './bfd';
 
+export function ospfConfiguration(device: Device): OspfConfig {
+  return configuration(device);
+}
 function configuration(device: Device): OspfConfig {
   if (!device.ospf) throw new Error('Configure first: router ospf <process-id>');
-  return {
-    areas: structuredClone(device.ospf.areas),
-    externalRoutes: structuredClone(device.ospf.externalRoutes),
-    enabled: device.ospf.enabled,
-    routerId: device.ospf.routerId,
-    processId: device.ospf.processId,
-    autoRouterId: device.ospf.autoRouterId,
-    maximumPaths: device.ospf.maximumPaths,
-    referenceBandwidth: device.ospf.referenceBandwidth,
-    passiveDefault: device.ospf.passiveDefault,
-    passiveOverrides: structuredClone(device.ospf.passiveOverrides),
-    summaryRanges: structuredClone(device.ospf.summaryRanges),
-    defaultOriginate: structuredClone(device.ospf.defaultOriginate),
-    networks: structuredClone(device.ospf.networks),
-    interfaces: structuredClone(device.ospf.interfaces),
-  };
+  return ospfConfigOf(device.ospf);
 }
 type OspfSettings = NonNullable<NetworkInterface['ospfSettings']>;
 /** Record an interface OSPF command (IOS interface config) and apply it to a running OSPF interface. */
@@ -63,29 +57,45 @@ function setOspfInterface<K extends keyof OspfSettings>(
 export function registerOspfCommands(registry: CommandRegistry) {
   registerBfdCommands(registry);
   registry.register({
-    pattern: /^(no )?ip ospf authentication(?: (message-digest))?$/i,
+    pattern: /^(no )?ip ospf authentication(?: (message-digest|null))?$/i,
+    syntax: [
+      'ip ospf authentication message-digest',
+      'ip ospf authentication null',
+      'no ip ospf authentication',
+    ],
     modes: ['interface'],
     run: (m, e, d, c) => {
-      if (!m[1] && !m[2]) throw new Error('Use ip ospf authentication message-digest.');
+      if (!m[1] && !m[2])
+        throw new Error('Simple password authentication is not supported; use message-digest.');
       const p = currentPort(d, c);
-      p.ospfAuthentication = { ...p.ospfAuthentication, enabled: !m[1] };
+      const keys = { ...p.ospfAuthentication };
+      delete keys.enabled;
+      // "no ip ospf authentication" returns to the area setting; "null" disables it here.
+      const enabled = m[1] ? undefined : m[2].toLowerCase() === 'message-digest';
+      const next = { ...keys, ...(enabled !== undefined ? { enabled } : {}) };
+      if (Object.keys(next).length) p.ospfAuthentication = next;
+      else delete p.ospfAuthentication;
       if (d.ospf) e.configureOspf(d.id, configuration(d));
     },
   });
   registry.register({
-    pattern: /^(no )?ip ospf message-digest-key (\d+)(?: md5(?: 0)? (\S+))?$/i,
+    pattern: /^(no )?ip ospf message-digest-key (\d+)(?: md5(?: ([07]))? (\S+))?$/i,
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c),
         keyId = Number(m[2]);
       if (keyId < 1 || keyId > 255) throw new Error('Key ID must be 1..255.');
+      const enabled = p.ospfAuthentication?.enabled,
+        mode = enabled !== undefined ? { enabled } : {};
       if (m[1]) {
         if (p.ospfAuthentication?.keyId === keyId)
-          p.ospfAuthentication = { enabled: p.ospfAuthentication.enabled };
+          if (enabled !== undefined) p.ospfAuthentication = mode;
+          else delete p.ospfAuthentication;
       } else {
-        if (!m[3] || new TextEncoder().encode(m[3]).length > 16)
+        const key = m[4] ? readSecret(m[3], m[4]) : undefined;
+        if (!key || new TextEncoder().encode(key).length > 16)
           throw new Error('MD5 key must contain 1..16 bytes.');
-        p.ospfAuthentication = { enabled: p.ospfAuthentication?.enabled ?? false, keyId, key: m[3] };
+        p.ospfAuthentication = { ...mode, keyId, key };
       }
       if (d.ospf) e.configureOspf(d.id, configuration(d));
     },
@@ -121,17 +131,138 @@ export function registerOspfCommands(registry: CommandRegistry) {
       e.configureOspf(d.id, { ...configuration(d), referenceBandwidth: Number(m[1]) });
     },
   });
+  const areaId = (text: string) => (text.includes('.') ? ipNumber(text) : Number(text));
+  const ospfRouter = (c: { router?: string }) => {
+    if (c.router !== 'ospf') throw new Error('Requires OSPF router mode.');
+  };
   registry.register({
-    pattern: /^area ([\d.]+) (stub|nssa)$/i,
+    pattern: /^(no )?area ([\d.]+) (stub|nssa)(?: (no-summary))?$/i,
+    syntax: ['area <id> stub [no-summary]', 'area <id> nssa [no-summary]', 'no area <id> stub'],
     modes: ['router'],
     run: (m, e, d, c) => {
-      if (c.router !== 'ospf') throw new Error('Requires OSPF router mode.');
+      ospfRouter(c);
       const value = configuration(d),
-        id = m[1].includes('.') ? ipNumber(m[1]) : Number(m[1]);
+        id = areaId(m[2]),
+        old = value.areas.find((a) => a.id === id);
+      if (id === 0) throw new Error('OSPF: Backbone can not be configured as stub or NSSA area');
+      const type = m[1] && !m[4] ? 'normal' : (m[3].toLowerCase() as 'stub' | 'nssa');
+      // "no area N stub no-summary" keeps the stub area and only removes no-summary.
+      const noSummary = m[4] ? !m[1] : undefined;
       value.areas = [
         ...value.areas.filter((a) => a.id !== id),
-        { id, type: m[2].toLowerCase() as 'stub' | 'nssa', defaultCost: 1 },
+        {
+          id,
+          type,
+          defaultCost: old?.defaultCost ?? 1,
+          ...(noSummary && type !== 'normal' ? { noSummary: true } : {}),
+          ...(old?.authentication ? { authentication: old.authentication } : {}),
+        },
       ];
+      e.configureOspf(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?area ([\d.]+) authentication(?: (message-digest))?$/i,
+    syntax: ['area <id> authentication message-digest', 'no area <id> authentication'],
+    modes: ['router'],
+    run: (m, e, d, c) => {
+      ospfRouter(c);
+      if (!m[1] && !m[3])
+        throw new Error('Simple password authentication is not supported; use message-digest.');
+      const value = configuration(d),
+        id = areaId(m[2]),
+        old = value.areas.find((a) => a.id === id) ?? { id, type: 'normal' as const, defaultCost: 1 };
+      const next = { ...old };
+      if (m[1]) delete next.authentication;
+      else next.authentication = 'message-digest';
+      value.areas = [...value.areas.filter((a) => a.id !== id), next];
+      e.configureOspf(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?log-adjacency-changes(?: (detail))?$/i,
+    syntax: ['log-adjacency-changes [detail]', 'no log-adjacency-changes'],
+    modes: ['router'],
+    run: (m, e, d, c) => {
+      ospfRouter(c);
+      const value = configuration(d);
+      // "no log-adjacency-changes detail" returns to the default (FULL/DOWN only).
+      if (m[1]) value.logAdjacencyChanges = m[2] ? undefined : false;
+      else value.logAdjacencyChanges = m[2] ? 'detail' : undefined;
+      if (value.logAdjacencyChanges === undefined) delete value.logAdjacencyChanges;
+      e.configureOspf(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?timers throttle spf(?: (\d+) (\d+) (\d+))?$/i,
+    syntax: ['timers throttle spf <start-ms> <hold-ms> <max-ms>', 'no timers throttle spf'],
+    modes: ['router'],
+    run: (m, e, d, c) => {
+      ospfRouter(c);
+      if (!m[1] && !m[2]) throw new Error('Incomplete command.');
+      const [startMs, holdMs, maxMs] = [m[2], m[3], m[4]].map(Number);
+      if (!m[1] && (holdMs < startMs || maxMs < holdMs || startMs < 1 || maxMs > 600000))
+        throw new Error('Invalid SPF throttle: start <= hold <= max <= 600000 ms.');
+      const value = configuration(d);
+      if (m[1]) delete value.spfThrottle;
+      else value.spfThrottle = { startMs, holdMs, maxMs };
+      e.configureOspf(d.id, value);
+    },
+  });
+  registry.register({
+    pattern: /^(no )?bfd all-interfaces$/i,
+    syntax: 'bfd all-interfaces',
+    modes: ['router'],
+    available: (_d, c) => c.router === 'ospf',
+    run: (m, e, d, c) => {
+      ospfRouter(c);
+      const value = configuration(d);
+      if (m[1]) delete value.bfdAllInterfaces;
+      else value.bfdAllInterfaces = true;
+      e.configureOspf(d.id, value);
+    },
+  });
+  registry.register({
+    pattern:
+      /^(no )?redistribute (connected|static|rip|bgp|eigrp)(?: (\d+))?((?: (?:subnets|metric \d+|metric-type [12]|tag \d+|route-map [\w-]{1,32}))*)$/i,
+    syntax: [
+      'redistribute connected [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
+      'redistribute static [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
+      'redistribute bgp <asn> [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
+      'redistribute eigrp <asn> [metric N] [metric-type 1|2] [route-map NAME] [subnets] [tag N]',
+    ],
+    modes: ['router'],
+    available: (_d, c) => c.router === 'ospf',
+    run: (m, e, d, c) => {
+      ospfRouter(c);
+      const source = m[2].toLowerCase() as 'connected' | 'static' | 'rip' | 'bgp' | 'eigrp';
+      const numbered = source === 'bgp' || source === 'eigrp';
+      if (numbered && !m[3]) throw new Error('Incomplete command.');
+      if (!numbered && m[3]) throw new Error('Invalid input detected at: ' + m[3]);
+      const options = m[4] ?? '';
+      const option = (name: string) => new RegExp(`(?:^| )${name} (\\S+)`, 'i').exec(options)?.[1];
+      if (m[1] && /(?:^| )subnets(?: |$)/i.test(options) && !option('metric') && !option('route-map'))
+        throw new Error(
+          "OSPF supports only classless redistribution, keyword 'subnets' can only be disabled together with redistribution"
+        );
+      const value = configuration(d);
+      const process = m[3] ? Number(m[3]) : undefined;
+      const others = (value.redistribute ?? []).filter(
+        (entry) => entry.source !== source || entry.process !== process
+      );
+      const metric = option('metric');
+      if (metric !== undefined && (Number(metric) < 1 || Number(metric) > 16777214))
+        throw new Error('Invalid input detected at: ' + metric);
+      const entry = {
+        source,
+        ...(process !== undefined ? { process } : {}),
+        ...(metric !== undefined ? { metric: Number(metric) } : {}),
+        ...(option('metric-type') === '1' ? { metricType: 'E1' as const } : {}),
+        ...(option('tag') !== undefined ? { tag: Number(option('tag')) } : {}),
+        ...(option('route-map') ? { routeMap: option('route-map') } : {}),
+      };
+      value.redistribute = m[1] ? others : [...others, entry];
+      if (!value.redistribute.length) delete value.redistribute;
       e.configureOspf(d.id, value);
     },
   });
@@ -190,18 +321,19 @@ export function registerOspfCommands(registry: CommandRegistry) {
       if (device.ospf?.processId && device.ospf.processId !== processId)
         throw new Error('This device currently supports one OSPF process.');
       const routerId = legacy ? match[1] : (device.ospf?.routerId ?? selectOspfRouterId(device));
+      if (device.ospf && !legacy) {
+        // Entering the mode of a running process changes nothing.
+        context.mode = 'router';
+        context.router = 'ospf';
+        context.process = processId;
+        return;
+      }
       engine.configureOspf(device.id, {
+        ...(device.ospf ? ospfConfigOf(device.ospf) : {}),
         enabled: routerId !== '0.0.0.0',
         routerId,
         processId,
         autoRouterId: legacy ? false : (device.ospf?.autoRouterId ?? true),
-        maximumPaths: device.ospf?.maximumPaths,
-        referenceBandwidth: device.ospf?.referenceBandwidth,
-        passiveDefault: device.ospf?.passiveDefault,
-        passiveOverrides: device.ospf?.passiveOverrides,
-        summaryRanges: device.ospf?.summaryRanges,
-        defaultOriginate: device.ospf?.defaultOriginate,
-        networks: device.ospf?.networks,
         areas: device.ospf?.areas ?? [],
         externalRoutes: device.ospf?.externalRoutes ?? [],
         interfaces: device.ospf?.interfaces ?? [],
@@ -212,12 +344,29 @@ export function registerOspfCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^router-id ([\d.]+)$/i,
-    syntax: 'router-id <address>',
+    pattern: /^(no )?router-id(?: ([\d.]+))?$/i,
+    syntax: ['router-id <address>', 'no router-id'],
     modes: ['router'],
     run: (m, e, d, c) => {
       if (c.router !== 'ospf') throw new Error('router-id requires router ospf mode.');
-      e.configureOspf(d.id, { ...configuration(d), routerId: m[1], autoRouterId: false, enabled: true });
+      if (!m[1] && !m[2]) throw new Error('Incomplete command.');
+      const value = configuration(d),
+        state = d.ospf!;
+      const wanted = m[1] ? selectOspfRouterId(d) : ipv4Schema.parse(m[2]);
+      if (!m[1] && (ipNumber(wanted) === 0 || ipNumber(wanted) >= 0xe0000000))
+        throw new Error('Invalid input detected at: ' + m[2]);
+      // A running process keeps its router ID until "clear ip ospf process" or a reload.
+      if (state.enabled && state.routerId !== '0.0.0.0' && state.routerId !== wanted) {
+        e.configureOspf(d.id, { ...value, autoRouterId: !!m[1], pendingRouterId: wanted });
+        return '% OSPF: Reload or use "clear ip ospf process" command, for this to take effect';
+      }
+      delete value.pendingRouterId;
+      e.configureOspf(d.id, {
+        ...value,
+        routerId: wanted,
+        autoRouterId: !!m[1],
+        enabled: wanted !== '0.0.0.0',
+      });
     },
   });
   registry.register({
@@ -336,31 +485,10 @@ export function registerOspfCommands(registry: CommandRegistry) {
     },
   });
   registry.register({
-    pattern: /^show ip ospf(?: (neighbor|database|interface))?$/i,
+    pattern: /^show ip ospf neighbor$/i,
+    syntax: 'show ip ospf neighbor',
     modes: ALL_MODES,
-    run: (match, engine, device) => {
-      const state = device.ospf;
-      if (!state) return 'OSPF não configurado.';
-      if (match[1]?.toLowerCase() === 'neighbor') return showOspfNeighbors(engine, device);
-      if (match[1]?.toLowerCase() === 'database')
-        return (
-          'AREA TYPE     LINK STATE ID       ADVERTISING ROUTER  SEQUENCE AGE(s)\n' +
-          state.lsdb
-            .map(
-              (lsa) =>
-                `${lsa.area} ${lsa.type.padEnd(9)}${lsa.id.padEnd(20)}${lsa.advertisingRouter.padEnd(20)}${lsa.sequence} ${((engine.state.clock - lsa.originatedAt) / 1000).toFixed(1)}${lsa.withdrawn ? ' WITHDRAWN' : ''}`
-            )
-            .join('\n')
-        );
-      if (match[1]?.toLowerCase() === 'interface')
-        return state.interfaces
-          .map((config) => {
-            const runtime = state.ports.find((entry) => entry.port === config.port)!;
-            return `${device.interfaces.find((p) => p.id === config.port)?.name}: area ${config.area}, cost ${config.cost}, ${config.networkType}${config.passive ? ', passive' : ''}, ${runtime.operational ? 'up' : 'down'}\n  Hello ${config.helloMs / 1000}s Dead ${config.deadMs / 1000}s DR ${runtime.dr} BDR ${runtime.bdr}`;
-          })
-          .join('\n');
-      return `OSPF ${state.enabled ? 'ativo' : 'inativo'}, router ID ${state.routerId}\n${state.neighbors.filter((n) => n.state === 'Full').length} adjacências Full, ${state.lsdb.length} LSAs, ${state.routes.length} rotas, ${state.spfRuns} alterações SPF.`;
-    },
+    run: (_match, engine, device) => (device.ospf ? showOspfNeighbors(engine, device) : ''),
   });
 }
 function ospfInterfaceRunning(device: Device): string[] {
@@ -391,13 +519,44 @@ function ospfInterfaceRunning(device: Device): string[] {
 export function ospfRunningConfig(device: Device): string[] {
   const state = device.ospf;
   if (!state) return ospfInterfaceRunning(device);
+  const areaText = (id: number) => String(id);
   return [
     'router ospf ' + (state.processId ?? 1),
-    ...(!state.autoRouterId ? [' router-id ' + state.routerId] : []),
+    ...(!state.autoRouterId ? [' router-id ' + (state.pendingRouterId ?? state.routerId)] : []),
+    ...(state.logAdjacencyChanges === false
+      ? [' no log-adjacency-changes']
+      : state.logAdjacencyChanges === 'detail'
+        ? [' log-adjacency-changes detail']
+        : []),
     ...(state.maximumPaths !== 4 ? [' maximum-paths ' + state.maximumPaths] : []),
     ...(state.referenceBandwidth !== 100
       ? [' auto-cost reference-bandwidth ' + state.referenceBandwidth]
       : []),
+    ...state.areas
+      .filter((a) => a.authentication)
+      .map((a) => ` area ${areaText(a.id)} authentication message-digest`),
+    ...state.areas
+      .filter((a) => a.type !== 'normal')
+      .map((a) => ` area ${areaText(a.id)} ${a.type}${a.noSummary ? ' no-summary' : ''}`),
+    ...state.summaryRanges.map(
+      (r) =>
+        ` area ${r.area} range ${r.network} ${ipString(mask(r.prefix))}${r.cost ? ' cost ' + r.cost : ''}`
+    ),
+    ...(state.spfThrottle
+      ? [
+          ` timers throttle spf ${state.spfThrottle.startMs} ${state.spfThrottle.holdMs} ${state.spfThrottle.maxMs}`,
+        ]
+      : []),
+    // IOS XE no longer prints "subnets": OSPF redistribution is always classless.
+    ...(state.redistribute ?? []).map(
+      (r) =>
+        ` redistribute ${r.source}` +
+        (r.process !== undefined ? ' ' + r.process : '') +
+        (r.metric !== undefined ? ' metric ' + r.metric : '') +
+        (r.metricType === 'E1' ? ' metric-type 1' : '') +
+        (r.tag ? ' tag ' + r.tag : '') +
+        (r.routeMap ? ' route-map ' + r.routeMap : '')
+    ),
     ...(state.passiveDefault ? [' passive-interface default'] : []),
     ...state.passiveOverrides.map(
       (o) =>
@@ -408,19 +567,19 @@ export function ospfRunningConfig(device: Device): string[] {
         (p) => p.passive && !state.passiveDefault && !state.passiveOverrides.some((o) => o.port === p.port)
       )
       .map((p) => ' passive-interface ' + device.interfaces.find((i) => i.id === p.port)!.name),
-    ...state.areas.filter((a) => a.type !== 'normal').map((a) => ` area ${a.id} ${a.type}`),
-    ...state.summaryRanges.map(
-      (r) =>
-        ` area ${r.area} range ${r.network} ${ipString(mask(r.prefix))}${r.cost ? ' cost ' + r.cost : ''}`
-    ),
+    ...(state.networks ?? []).map((n) => ` network ${n.address} ${n.wildcard} area ${n.area}`),
+    ...(state.bfdAllInterfaces ? [' bfd all-interfaces'] : []),
     ...(state.defaultOriginate
       ? [
-          ` default-information originate${state.defaultOriginate.always ? ' always' : ''} metric ${state.defaultOriginate.cost} metric-type ${state.defaultOriginate.metricType === 'E1' ? 1 : 2}`,
+          ' default-information originate' +
+            (state.defaultOriginate.always ? ' always' : '') +
+            (state.defaultOriginate.cost !== 1 ? ' metric ' + state.defaultOriginate.cost : '') +
+            (state.defaultOriginate.metricType === 'E1' ? ' metric-type 1' : ''),
         ]
       : []),
-    ...(state.networks ?? []).map((n) => ` network ${n.address} ${n.wildcard} area ${n.area}`),
+    // OSPF stopped from the simulator panel (IOS has no global equivalent).
+    ...(!state.enabled && state.routerId !== '0.0.0.0' ? [' no service ospf'] : []),
     'exit',
     ...ospfInterfaceRunning(device),
-    (state.enabled ? '' : 'no ') + 'service ospf',
   ];
 }

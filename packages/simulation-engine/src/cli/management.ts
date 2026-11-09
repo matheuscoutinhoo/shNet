@@ -1,6 +1,7 @@
 import type { Device, SnmpQuery } from '../model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
 import { terminalText } from './tcp';
+import { facilityName, levelName } from './ios-management';
 export function formatSnmpQuery(query: SnmpQuery) {
   return terminalText(
     'SNMP [' +
@@ -27,10 +28,13 @@ export function registerManagementCommands(registry: CommandRegistry) {
       'snmp-server community <name> RW',
     ],
     modes: CONFIG_MODES,
+    // The community starts the agent, with or without RO/RW (RO is the default).
     run: (match, engine, device) =>
       engine.configureSnmpAgent(device.id, {
-        enabled: match[2] ? true : (device.snmpAgent?.enabled ?? false),
+        enabled: true,
         community: match[1],
+        ...(match[2]?.toUpperCase() === 'RW' ? { access: 'RW' } : {}),
+        ...(match[3] ? { acl: match[3] } : {}),
       }),
   });
   registry.register({
@@ -40,6 +44,8 @@ export function registerManagementCommands(registry: CommandRegistry) {
       engine.configureSnmpAgent(device.id, {
         enabled: !match[1],
         community: device.snmpAgent?.community ?? 'public',
+        ...(device.snmpAgent?.access ? { access: device.snmpAgent.access } : {}),
+        ...(device.snmpAgent?.acl ? { acl: device.snmpAgent.acl } : {}),
       }),
   });
   registry.register({
@@ -147,21 +153,32 @@ export function registerManagementCommands(registry: CommandRegistry) {
   });
 }
 export function managementRunningConfig(device: Device) {
+  const syslog = device.syslogClient;
   return [
     ...(device.snmpAgent
       ? [
-          'snmp-server community ' + device.snmpAgent.community,
-          (device.snmpAgent.enabled ? '' : 'no ') + 'service snmp',
+          'snmp-server community ' +
+            device.snmpAgent.community +
+            ' ' +
+            (device.snmpAgent.access ?? 'RO') +
+            (device.snmpAgent.acl ? ' ' + device.snmpAgent.acl : ''),
+          // A community whose agent was stopped from the simulator's service panel.
+          ...(device.snmpAgent.enabled ? [] : ['no service snmp']),
         ]
       : []),
     ...(device.syslogServer ? [(device.syslogServer.enabled ? '' : 'no ') + 'service syslog'] : []),
-    ...(device.syslogClient
+    // IOS defaults (trap informational, facility local7) are not shown; a removed host is gone.
+    ...(syslog
       ? [
-          'logging host ' + device.syslogClient.server,
-          'logging severity ' + device.syslogClient.severity,
-          'logging facility ' + device.syslogClient.facility,
-          (device.syslogClient.automatic ? '' : 'no ') + 'logging automatic',
-          ...(!device.syslogClient.enabled ? ['no logging host'] : []),
+          ...(syslog.severity !== 6 ? ['logging trap ' + levelName(syslog.severity)] : []),
+          ...(syslog.facility !== 23 ? ['logging facility ' + facilityName(syslog.facility)] : []),
+          ...(syslog.enabled
+            ? [
+                'logging host ' + syslog.server,
+                ...(syslog.additional ?? []).map((server) => 'logging host ' + server),
+                ...(syslog.automatic ? [] : ['no logging automatic']),
+              ]
+            : []),
         ]
       : []),
   ];

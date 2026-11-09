@@ -4,6 +4,10 @@ import { updateSystem } from '../devices/infrastructure';
 import { invalidateCacheExpiry } from './cache-expiry';
 import { invalidateSpanningRefresh } from '../protocols/stp';
 import { invalidateBgpRefresh } from '../protocols/bgp';
+// Above this size a UI delta compares only what events touched, with a full comparison every
+// FULL_SWEEP_EVERY deltas; smaller labs are always compared in full (it costs little).
+const INCREMENTAL_DEVICES = 40;
+const FULL_SWEEP_EVERY = 10;
 export interface SimulationDelta {
   metadata: Partial<Omit<Snapshot, 'devices' | 'queue' | 'events' | 'diagnostics' | 'capture'>>;
   deletedKeys: (keyof Snapshot)[];
@@ -29,16 +33,20 @@ export interface SimulationDelta {
 }
 export class SimulationRunner {
   readonly engine: SimulationEngine;
-  private devices = new Map<string, string>();
-  private deviceFields = new Map<string, Map<keyof Device, string | undefined>>();
+  // Per device: JSON of each field (and of each port), as last sent to the UI.
+  private devices = new Map<string, DeviceSignature>();
   private queue = new Map<number, string>();
+  // Owning device of each known queue entry: its timers or in-flight frames changed when it goes.
+  private queueDevices = new Map<number, string>();
   private metadata = new Map<keyof Snapshot, string>();
   private lastEvent?: string;
   private lastDiagnostic?: string;
   private lastFrame?: string;
   private advanceTarget?: number;
+  private sinceFullSweep = 0;
   constructor(snapshot: unknown) {
     this.engine = new SimulationEngine(snapshot);
+    this.engine.trackTouched();
     this.delta(0);
   }
   step(maxSteps = 1, wallMs = 20) {
@@ -57,7 +65,7 @@ export class SimulationRunner {
     invalidateBgpRefresh(this.engine.state);
     let processed = 0;
     while (processed < maxSteps && performance.now() - start < wallMs) {
-      if (!this.engine.step(false)) break;
+      if (!this.engine.step(false, processed === 0)) break;
       processed++;
     }
     for (const d of this.engine.state.devices)
@@ -75,56 +83,57 @@ export class SimulationRunner {
       this.advanceTarget = undefined;
     return this.delta(processed);
   }
+  /** A delta that compares the whole state, so the receiver ends with an exact copy. */
+  sync() {
+    this.sinceFullSweep = FULL_SWEEP_EVERY;
+    return this.delta(0);
+  }
   private delta(processed: number): SimulationDelta {
     const s = this.engine.state,
       devices: Device[] = [],
       ids = new Set(s.devices.map((d) => d.id));
-    const devicePatches: NonNullable<SimulationDelta['devicePatches']> = [];
-    const removedDevices = [...this.devices.keys()].filter((id) => !ids.has(id));
-    removedDevices.forEach((id) => {
-      this.devices.delete(id);
-      this.deviceFields.delete(id);
-    });
-    for (const d of s.devices) {
-      const signature = JSON.stringify(d);
-      const previous = this.devices.get(d.id);
-      if (signature !== previous) {
-        if (!previous) {
-          devices.push(d);
-          this.deviceFields.set(
-            d.id,
-            new Map((Object.keys(d) as (keyof Device)[]).map((k) => [k, JSON.stringify(d[k])]))
-          );
-        } else {
-          const fields = this.deviceFields.get(d.id)!,
-            oldInterfaces = fields.get('interfaces')!;
-          const patch = signaturePatch(fields, d);
-          let ports: NonNullable<SimulationDelta['devicePatches']>[number]['ports'];
-          const old = patch.values.interfaces ? (JSON.parse(oldInterfaces) as NetworkInterface[]) : undefined;
-          if (old && old.length === d.interfaces.length && old.every((p, i) => p.id === d.interfaces[i].id)) {
-            delete patch.values.interfaces;
-            ports = d.interfaces.flatMap((p, i) => {
-              const changed = fieldPatch(old[i], p);
-              return Object.keys(changed.values).length || changed.deleted.length
-                ? [{ id: p.id, ...changed }]
-                : [];
-            });
-          }
-          devicePatches.push({ id: d.id, ...patch, ...(ports?.length ? { ports } : {}) });
-        }
-        this.devices.set(d.id, signature);
-      }
-    }
+    // Devices are compared only when an event, record or timer touched them. A periodic full sweep
+    // also picks up bookkeeping refreshed without any of those (resource metrics, aging lists).
+    const touched = this.engine.takeTouched();
+    const full =
+      !touched || s.devices.length <= INCREMENTAL_DEVICES || ++this.sinceFullSweep >= FULL_SWEEP_EVERY;
+    if (full) this.sinceFullSweep = 0;
     const pending = new Set(s.queue.map((q) => q.order)),
       removedQueue = [...this.queue.keys()].filter((id) => !pending.has(id));
-    removedQueue.forEach((id) => this.queue.delete(id));
+    removedQueue.forEach((id) => {
+      const owner = this.queueDevices.get(id);
+      if (owner) touched?.add(owner);
+      this.queue.delete(id);
+      this.queueDevices.delete(id);
+    });
     const queue: Snapshot['queue'] = [];
     for (const q of s.queue) {
+      const known = this.queue.has(q.order);
+      if (known && !full) continue;
       const signature = JSON.stringify(q);
       if (signature !== this.queue.get(q.order)) {
         queue.push(q);
         this.queue.set(q.order, signature);
+        const owner = 'device' in q.action ? (q.action.device as string) : undefined;
+        if (owner) {
+          this.queueDevices.set(q.order, owner);
+          touched?.add(owner);
+        }
       }
+    }
+    const devicePatches: NonNullable<SimulationDelta['devicePatches']> = [];
+    const removedDevices = [...this.devices.keys()].filter((id) => !ids.has(id));
+    removedDevices.forEach((id) => this.devices.delete(id));
+    for (const d of s.devices) {
+      const known = this.devices.get(d.id);
+      if (!full && known && !touched!.has(d.id)) continue;
+      if (!known) {
+        devices.push(d);
+        this.devices.set(d.id, deviceSignature(d));
+        continue;
+      }
+      const patch = devicePatch(known, d);
+      if (patch) devicePatches.push(patch);
     }
     const metadata: SimulationDelta['metadata'] = {},
       deletedKeys: (keyof Snapshot)[] = [];
@@ -185,18 +194,58 @@ function fieldPatch<T extends object>(before: T, after: T) {
     if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) values[key] = after[key];
   return { values, deleted };
 }
-function signaturePatch<T extends object>(before: Map<keyof T, string | undefined>, after: T) {
-  const values: Partial<T> = {};
-  const deleted = [...before.keys()].filter((key) => !(key in after));
-  deleted.forEach((key) => before.delete(key));
-  for (const key of Object.keys(after) as (keyof T)[]) {
-    const signature = JSON.stringify(after[key]);
-    if (signature !== before.get(key)) {
-      values[key] = after[key];
-      before.set(key, signature);
+interface DeviceSignature {
+  fields: Map<keyof Device, string>;
+  ports: Map<string, string>;
+  order: string;
+}
+const portOrder = (d: Device) => d.interfaces.map((p) => p.id).join('\u0000');
+function deviceSignature(d: Device): DeviceSignature {
+  const fields = new Map<keyof Device, string>();
+  for (const key of Object.keys(d) as (keyof Device)[])
+    if (key !== 'interfaces') fields.set(key, JSON.stringify(d[key]));
+  return {
+    fields,
+    ports: new Map(d.interfaces.map((p) => [p.id, JSON.stringify(p)])),
+    order: portOrder(d),
+  };
+}
+/** Changed fields and ports of a device since its signature, serializing each part once. */
+function devicePatch(known: DeviceSignature, d: Device) {
+  const values: Partial<Device> = {},
+    deleted: (keyof Device)[] = [];
+  for (const key of [...known.fields.keys()])
+    if (!(key in d)) {
+      deleted.push(key);
+      known.fields.delete(key);
+    }
+  for (const key of Object.keys(d) as (keyof Device)[]) {
+    if (key === 'interfaces') continue;
+    const signature = JSON.stringify(d[key]);
+    if (signature !== known.fields.get(key)) {
+      Object.assign(values, { [key]: d[key] });
+      known.fields.set(key, signature);
     }
   }
-  return { values, deleted };
+  let ports: NonNullable<SimulationDelta['devicePatches']>[number]['ports'];
+  const order = portOrder(d);
+  if (order !== known.order) {
+    // Ports were added, removed or reordered: send the interface list whole.
+    values.interfaces = d.interfaces;
+    known.order = order;
+    known.ports = new Map(d.interfaces.map((p) => [p.id, JSON.stringify(p)]));
+  } else
+    for (const p of d.interfaces) {
+      const signature = JSON.stringify(p),
+        before = known.ports.get(p.id)!;
+      if (signature === before) continue;
+      known.ports.set(p.id, signature);
+      const changed = fieldPatch(JSON.parse(before) as NetworkInterface, p);
+      if (Object.keys(changed.values).length || changed.deleted.length)
+        (ports ??= []).push({ id: p.id, ...changed });
+    }
+  if (!Object.keys(values).length && !deleted.length && !ports) return undefined;
+  return { id: d.id, values, deleted, ...(ports ? { ports } : {}) };
 }
 export function applySimulationDelta(s: Snapshot, delta: SimulationDelta) {
   const changed = new Map(delta.devices.map((d) => [d.id, d])),

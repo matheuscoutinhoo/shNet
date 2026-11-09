@@ -184,7 +184,7 @@ describe('Interfaces lógicas e tabelas VRF', () => {
       'end',
     ])
       expect(r.execute(cmd)).not.toMatch(/Erro|%/);
-    expect(r.execute('show running-config')).toContain('encapsulation dot1q 20');
+    expect(r.execute('show running-config')).toContain('encapsulation dot1Q 20');
     const before = e.snapshot();
     expect(r.execute('ping vrf ABSENT 10.0.0.1')).toContain('VRF inexistente');
     expect(e.snapshot()).toEqual(before);

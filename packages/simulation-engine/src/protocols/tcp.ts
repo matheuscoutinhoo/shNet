@@ -33,6 +33,7 @@ import {
   makeTcpPacket,
 } from './tcp-wire';
 import { queueTcpText, receiveTcpApplication } from './tcp-services';
+import { vtyAccepts, vtyTransport } from './vty';
 import { reduceTcpWindow, tcpFinAcknowledged, tcpFlow, tcpInReceiveWindow } from './tcp-flow';
 import { initializeTcpExtensions, negotiateTcpExtensions, receiveTcpExtensions } from './tcp-extensions';
 
@@ -288,7 +289,10 @@ export function receiveTcp(
     ack = packet.flags.includes('ACK');
   if (!connection) {
     const service =
-      !packet.family && !vrf && packet.destinationPort === 179 && canListenBgp(device, packet.src)
+      !packet.family &&
+      !vrf &&
+      packet.destinationPort === 179 &&
+      canListenBgp(device, packet.src, engine.state)
         ? { kind: 'bgp' as const, body: '' }
         : !vrf && packet.destinationPort === 53 && device.dnsServer?.enabled
           ? { kind: 'dns' as const, body: '' }
@@ -302,7 +306,9 @@ export function receiveTcp(
               }
             : !vrf && packet.destinationPort === 49 && device.aaaServer?.enabled && device.aaaServer.tacacs
               ? { kind: 'aaa' as const, body: '' }
-              : device.tcpServices?.find((entry) => entry.enabled && entry.port === packet.destinationPort);
+              : !vrf && vtyTransport(packet.destinationPort) && vtyAccepts(device, packet)
+                ? { kind: 'vty' as const, body: '' }
+                : device.tcpServices?.find((entry) => entry.enabled && entry.port === packet.destinationPort);
     if (!service || !syn || ack) {
       sendTcpReset(engine, device, packet, vrf, scope);
       return;

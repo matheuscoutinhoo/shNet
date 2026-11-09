@@ -2,10 +2,12 @@ import type { Device } from '../model';
 import type { SimulationEngine } from '../core/engine';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
 import { showRoutes, showInterfacesStatus } from './operational';
+import { interfaceReference } from './ios-management';
+import { configBody } from './running-config';
 export function archiveRunning(e: SimulationEngine, d: Device, r: CommandRegistry) {
   const a = d.iosSystem?.archive;
   if (!a) throw new Error('Configure archive first.');
-  const configuration = r.execute('show running-config', e, d, { mode: 'privileged' });
+  const configuration = configBody(r.execute('show running-config', e, d, { mode: 'privileged' }));
   if (configuration.length > 65536) throw new Error('Archive configuration exceeds 64 KiB.');
   const name = (a.path + '-' + e.state.clock + '-' + e.id('archive')).slice(0, 160);
   a.copies.push({ at: e.state.clock, name, configuration });
@@ -14,14 +16,51 @@ export function archiveRunning(e: SimulationEngine, d: Device, r: CommandRegistr
 }
 export function registerIosOperations(r: CommandRegistry) {
   r.register({
-    pattern: /^(no )?ntp server ([\d.]+)$/i,
+    pattern: /^(no )?service password-encryption$/i,
+    syntax: ['service password-encryption', 'no service password-encryption'],
+    modes: CONFIG_MODES,
+    run: (m, _e, d) => {
+      d.iosSystem ??= {};
+      if (m[1]) delete d.iosSystem.passwordEncryption;
+      else d.iosSystem.passwordEncryption = true;
+    },
+  });
+  r.register({
+    pattern: /^(no )?ntp server ([\d.]+)((?: (?:prefer|iburst|burst|key \d+|version [1-4]|source \S+))*)$/i,
+    syntax: [
+      'ntp server <address>',
+      'ntp server <address> prefer',
+      'ntp server <address> key <id>',
+      'ntp server <address> source <interface>',
+    ],
     modes: CONFIG_MODES,
     run: (m, e, d) => {
-      const servers = [...(d.ntp?.servers ?? []).filter((s) => s !== m[2]), ...(m[1] ? [] : [m[2]])];
+      const address = m[2],
+        servers = [...(d.ntp?.servers ?? []).filter((s) => s !== address), ...(m[1] ? [] : [address])];
       if (!servers.length) {
         if (d.ntp)
           e.configureNtp(d.id, { enabled: false, servers: d.ntp.servers, intervalMs: d.ntp.intervalMs });
       } else e.configureNtp(d.id, { enabled: true, servers, intervalMs: d.ntp?.intervalMs ?? 64000 });
+      // Re-entering a server replaces its options, as on IOS.
+      const ntp = ((d.iosSystem ??= {}).ntp ??= {});
+      ntp.serverOptions = ntp.serverOptions?.filter((o) => o.address !== address);
+      if (ntp.prefer === address) delete ntp.prefer;
+      if (!m[1]) {
+        const words = m[3].trim().split(/\s+/).filter(Boolean),
+          option: NonNullable<typeof ntp.serverOptions>[number] = { address };
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i].toLowerCase();
+          if (word === 'prefer') ntp.prefer = address;
+          else if (word === 'iburst' || word === 'burst') option.iburst = true;
+          else if (word === 'key') option.key = Number(words[++i]);
+          else if (word === 'version') option.version = Number(words[++i]);
+          else if (word === 'source') option.source = interfaceReference(d, words[++i]);
+        }
+        if (option.key !== undefined && (option.key < 1 || option.key > 65535))
+          throw new Error('NTP key ID is 1-65535.');
+        if (Object.keys(option).length > 1) (ntp.serverOptions ??= []).push(option);
+      }
+      if (!ntp.serverOptions?.length) delete ntp.serverOptions;
     },
   });
   r.register({
@@ -43,19 +82,6 @@ export function registerIosOperations(r: CommandRegistry) {
     run: (m, _e, d) => {
       d.iosSystem ??= {};
       d.iosSystem.timezone = { name: m[1], hours: Number(m[2]), minutes: Number(m[3] ?? 0) };
-    },
-  });
-  r.register({
-    pattern: /^show clock$/i,
-    modes: ALL_MODES,
-    run: (_m, e, d) => {
-      const t = d.iosSystem?.timezone,
-        offset = t ? (t.hours * 60 + (t.hours < 0 ? -1 : 1) * t.minutes) * 60000 : 0;
-      return (
-        new Date(e.state.clock + (d.networkClock?.offsetMs ?? 0) + offset)
-          .toISOString()
-          .replace('Z', ' ' + (t?.name ?? 'UTC')) + ' (virtual clock)'
-      );
     },
   });
   r.register({
@@ -141,6 +167,7 @@ export function iosSystemRunning(d: Device) {
   const t = d.iosSystem?.timezone,
     a = d.iosSystem?.archive;
   return [
+    ...(d.iosSystem?.passwordEncryption ? ['service password-encryption'] : []),
     ...(t ? [`clock timezone ${t.name} ${t.hours} ${t.minutes}`] : []),
     ...(a
       ? [

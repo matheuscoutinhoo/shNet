@@ -349,6 +349,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
         lastAt: e.state.clock,
       };
     if (d.accessLists) copy.accessLists = remap(copy.accessLists, d);
+    if (d.ipv6AccessLists) copy.ipv6AccessLists = remap(copy.ipv6AccessLists, d);
     if (d.firewall) e.configureFirewall(copy.id, remap(copy.firewall, d));
     if (d.nat) e.configureNat(copy.id, remap({ ...d.nat, bindings: [] }, d));
     if (d.dnsServer) copy.dnsServer = remap(copy.dnsServer, d);
@@ -379,6 +380,7 @@ export function cloneTopology(source: Snapshot, selection: string[]) {
     for (const [key, configure, schema] of [
       ['ospf', e.configureOspf.bind(e), configurationSchemas.ospf],
       ['rip', e.configureRip.bind(e), configurationSchemas.rip],
+      ['eigrp', e.configureEigrp.bind(e), configurationSchemas.eigrp],
       ['dhcpSnooping', e.configureDhcpSnooping.bind(e), configurationSchemas.dhcpProtection],
       ['dhcp6Server', e.configureDhcp6Server.bind(e), configurationSchemas.dhcp6.server],
       ['eapServer', e.configureEapServer.bind(e), configurationSchemas.advancedNetwork.eapServer],

@@ -5,12 +5,19 @@ import { managementEnabled } from './layer3';
 import { isUnicast } from './dhcp-config';
 import { managementPacket, validManagementLength } from './management-wire';
 import { SYSLOG, syslogClientSchema, syslogMessageSchema, type SyslogMessage } from './syslog-model';
+import { sourceInterfaceAddress } from './source-interface';
 import { encodeSyslog } from '../wire/syslog-codec';
 
 export function configureSyslog(engine: SimulationEngine, device: Device, input: unknown) {
   // IOS stores "logging host" before any management address exists; sending starts once one does.
   const config = syslogClientSchema.parse(input);
-  if (!isUnicast(config.server)) throw new Error('Coletor syslog deve ser unicast.');
+  if (![config.server, ...(config.additional ?? [])].every(isUnicast))
+    throw new Error('Coletor syslog deve ser unicast.');
+  if (
+    config.additional?.includes(config.server) ||
+    new Set(config.additional).size !== (config.additional?.length ?? 0)
+  )
+    throw new Error('Duplicate syslog collector.');
   config.sourcePort ??= device.syslogClient?.sourcePort ?? 49152 + (engine.state.sequence % 16384);
   device.syslogClient = config;
   engine.state.queue = engine.state.queue.filter(
@@ -64,20 +71,31 @@ export function sendSyslog(
     );
     return message.id;
   }
+  const servers = [config.server, ...(config.additional ?? [])];
   if (
     engine.state.queue.filter(({ action }) => action.kind === 'syslog-send' && action.device === device.id)
-      .length >= SYSLOG.pending
+      .length +
+      servers.length >
+    SYSLOG.pending
   ) {
     engine.emit('SYSLOG_FAILED', device.id, 'Limite de 64 mensagens syslog pendentes atingido.');
     return message.id;
   }
-  engine.schedule(0.001, { kind: 'syslog-send', device: device.id, server: config.server, message });
-  engine.emit('SYSLOG_QUEUED', device.id, 'Mensagem ' + message.id + ' para ' + config.server + ':514.');
+  for (const server of servers) {
+    engine.schedule(0.001, { kind: 'syslog-send', device: device.id, server, message });
+    engine.emit('SYSLOG_QUEUED', device.id, 'Mensagem ' + message.id + ' para ' + server + ':514.');
+  }
   return message.id;
 }
 export function forwardSyslogEvent(engine: SimulationEngine, device: Device, event: NetworkEvent) {
   if (!device.syslogClient?.enabled || !device.syslogClient.automatic || !device.power) return;
   if (!managementEnabled(device)) return;
+  // Messages already worded by IOS (e.g. %SEC-6-IPACCESSLOGP) carry their own severity.
+  const own = /^%[\w-]+-(\d)-\w+:/.exec(event.reason);
+  if (own && /^(ACL_PERMIT|ACL_DENY|CONFIG_CHANGED)$/.test(event.type)) {
+    sendSyslog(engine, device, event.reason.slice(0, 300), Number(own[1]));
+    return;
+  }
   const severity =
     event.type === 'LINK_DOWN'
       ? 4
@@ -104,13 +122,15 @@ export function handleSyslogSend(
     return;
   }
   const route = resolveRoute(device, server),
-    port = route?.port ?? device.interfaces.find((entry) => entry.adminUp && entry.ip);
-  if (!port?.ip) {
+    port = route?.port ?? device.interfaces.find((entry) => entry.adminUp && entry.ip),
+    source =
+      sourceInterfaceAddress(engine.state, device, device.iosSystem?.logging?.sourceInterface) ?? port?.ip;
+  if (!source) {
     engine.emit('SYSLOG_FAILED', device.id, 'Syslog sem endereço IPv4 de origem.');
     return;
   }
   device.syslogClient.sourcePort ??= 49152 + (engine.state.sequence % 16384);
-  const packet = managementPacket(port.ip, server, device.syslogClient.sourcePort, SYSLOG.port, {
+  const packet = managementPacket(source, server, device.syslogClient.sourcePort, SYSLOG.port, {
     protocol: 'SYSLOG',
     message,
   });

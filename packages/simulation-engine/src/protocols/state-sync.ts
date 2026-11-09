@@ -4,7 +4,7 @@ import { natPools } from './nat-selection';
 import { random } from '../core/queue';
 import { cableMetrics, linkOperational } from '../links/physical';
 import { canonicalScenarioJson as canonicalJson } from '../canonical-json';
-import { firewallRule, firewallUnicast } from './firewall-policy';
+import { firewallRule, firewallUnicast, sessionPacket } from './firewall-policy';
 import { ipNumber, sameSubnet } from './ipv4';
 import { stateSyncPairSchema, type StateSyncRecord } from './state-sync-model';
 
@@ -79,14 +79,19 @@ export function stateSyncCompatible(d: Device, peer: Device) {
             ...p,
             outside: translate && p.outside !== '*' ? mapped(x, p.outside) : p.outside,
           })),
-          pools: natPools(x).map((p) => ({ ...p, outside: translate ? mapped(x, p.outside) : p.outside })),
-          accessLists: x.nat.interfaceRules?.length
-            ? x.accessLists?.map((a) => ({
-                ...a,
-                implicitDrops: 0,
-                rules: a.rules.map((r) => ({ ...r, hits: 0 })),
-              }))
-            : undefined,
+          portStatics: x.nat.portStatics ?? [],
+          pools: natPools(x).map((p) => ({
+            ...p,
+            outside: translate && p.outside !== '*' ? mapped(x, p.outside) : p.outside,
+          })),
+          accessLists:
+            x.nat.interfaceRules?.length || x.nat.poolRules?.length
+              ? x.accessLists?.map((a) => ({
+                  ...a,
+                  implicitDrops: 0,
+                  rules: a.rules.map((r) => ({ ...r, hits: 0 })),
+                }))
+              : undefined,
         }
       : null;
   return (
@@ -279,7 +284,8 @@ function install(e: SimulationEngine, d: Device, source: Device, a: Delivery) {
             inside,
             outside,
             session.protocol,
-            session.protocol === 'ICMP' ? undefined : session.serverPort
+            session.protocol === 'ICMP' ? undefined : session.serverPort,
+            sessionPacket(session)
           )?.action === 'inspect'
         : (config.protocols ?? ['TCP']).includes(session.protocol) &&
           config.trustedPorts.includes(inside) &&

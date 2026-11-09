@@ -15,8 +15,10 @@ describe('Terminais por função do equipamento', () => {
       const e = new SimulationEngine(),
         d = e.addFactoryProfile(profile.id),
         cli = new TerminalSession(e, d.id);
-      if (d.interfaces[0]?.mode === 'routed')
+      if (d.interfaces[0]?.mode === 'routed') {
+        if (d.interfaces[0].dhcp) e.disableDhcp(d.id, d.interfaces[0].id);
         Object.assign(d.interfaces[0], { ip: '192.168.10.20', prefix: 24 });
+      }
       const examples = deviceCommandHelp(d, cli.context).filter((entry) =>
         / configure |^service |^dns record |^ip dhcp pool /.test(entry.example)
       );

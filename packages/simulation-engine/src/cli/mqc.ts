@@ -103,6 +103,20 @@ export function registerMqc(r: CommandRegistry) {
     },
   });
   r.register({
+    pattern: /^(no )?fair-queue$/i,
+    syntax: ['fair-queue', 'no fair-queue'],
+    modes: ['policy-class'],
+    run: (m, e, d, c) => {
+      const cl = mqc(d)
+        .policyMaps.find((x) => x.name === c.name)!
+        .classes.find((x) => x.name === c.className)!;
+      if (m[1]) delete cl.fairQueue;
+      else if (cl.priorityPercent) throw new Error('% fair-queue is not allowed in a priority class');
+      else cl.fairQueue = true;
+      compileMqc(e, d);
+    },
+  });
+  r.register({
     pattern: /^(no )?service-policy ([\w-]{1,32})$/i,
     modes: ['policy-class'],
     run: (m, e, d, c) => {
@@ -198,6 +212,8 @@ export function registerMqc(r: CommandRegistry) {
     run: (m, e, d, c) => {
       const p = currentPort(d, c);
       const direction = m[2].toLowerCase() === 'input' ? 'in' : 'out';
+      if (!m[1] && direction === 'out' && p.fairQueue)
+        throw new Error('% Must remove fair-queue configuration first.');
       if (m[1]) {
         if (
           !d.mqc?.attachments.some(
@@ -215,6 +231,20 @@ export function registerMqc(r: CommandRegistry) {
         { port: p.id, policy: m[3], direction },
       ];
       compileMqc(e, d);
+    },
+  });
+  r.register({
+    pattern: /^(no )?fair-queue$/i,
+    syntax: ['fair-queue', 'no fair-queue'],
+    modes: ['interface'],
+    run: (m, _e, d, c) => {
+      const p = currentPort(d, c);
+      if (d.type !== 'router' || p.mode !== 'routed' || p.logical || p.loopback || p.iosTunnel)
+        throw new Error('% fair-queue is supported on physical router interfaces only.');
+      if (m[1]) delete p.fairQueue;
+      else if (d.mqc?.attachments.some((a) => a.port === p.id && (a.direction ?? 'out') === 'out'))
+        throw new Error('% Must remove the output service-policy first.');
+      else p.fairQueue = true;
     },
   });
   r.register({
@@ -257,6 +287,7 @@ export function mqcDefinitions(d: Device) {
         ...(c.policeMbps ? ['  police ' + c.policeMbps * 1e6] : []),
         ...(c.shapeMbps ? ['  shape average ' + c.shapeMbps * 1e6] : []),
         ...(c.queueLimit ? ['  queue-limit ' + c.queueLimit] : []),
+        ...(c.fairQueue ? ['  fair-queue'] : []),
         ...(c.mark !== undefined ? ['  set dscp ' + c.mark] : []),
         ...(c.childPolicy ? ['  service-policy ' + c.childPolicy] : []),
         ' exit',
@@ -282,9 +313,12 @@ function orderedPolicies(d: Device) {
   return result;
 }
 export function mqcAttachments(d: Device) {
-  return (d.mqc?.attachments ?? []).flatMap((a) => [
-    'interface ' + d.interfaces.find((p) => p.id === a.port)!.name,
-    ' service-policy ' + (a.direction === 'in' ? 'input' : 'output') + ' ' + a.policy,
-    'exit',
-  ]);
+  return [
+    ...d.interfaces.filter((p) => p.fairQueue).flatMap((p) => ['interface ' + p.name, ' fair-queue', 'exit']),
+    ...(d.mqc?.attachments ?? []).flatMap((a) => [
+      'interface ' + d.interfaces.find((p) => p.id === a.port)!.name,
+      ' service-policy ' + (a.direction === 'in' ? 'input' : 'output') + ' ' + a.policy,
+      'exit',
+    ]),
+  ];
 }

@@ -4,6 +4,7 @@ import {
   TerminalSession,
   validateSnapshot,
   makeTemplate,
+  RELOAD_BOOT_MS,
   type Frame,
 } from '../packages/simulation-engine/src';
 import { permitDot1x } from '../packages/simulation-engine/src/protocols/dot1x';
@@ -49,17 +50,9 @@ it('native UDLD survives startup replay with independent runtime', () => {
   const e = new SimulationEngine(),
     d = e.addProfile('switch-l3'),
     t = new TerminalSession(e, d.id);
-  run(t, [
-    'en',
-    'conf t',
-    'interface Gi0/1',
-    'udld port aggressive',
-    'end',
-    'write memory',
-    'reload',
-    '',
-    'en',
-  ]);
+  run(t, ['en', 'conf t', 'interface Gi0/1', 'udld port aggressive', 'end', 'write memory', 'reload', '']);
+  e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
+  run(t, ['en']);
   expect(e.device(d.id).interfaces[0].udld?.mode).toBe('aggressive');
   expect(e.device(d.id).interfaces[0].udld?.peers).toEqual([]);
   validateSnapshot(e.snapshot());

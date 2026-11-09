@@ -12,6 +12,8 @@ export type DeviceTerminalState = {
   initialized: boolean;
   historyIndex: number;
   seen: Set<string>;
+  // Console messages already printed (the device's console log sequence).
+  consoleSeen: number;
 };
 
 // The engine belongs to one open lab. No terminal data enters a saved topology,
@@ -38,6 +40,8 @@ export function deviceTerminalState(engine: SimulationEngine, deviceId: string):
       initialized: false,
       historyIndex: 0,
       seen: new Set(),
+      // A console shows messages logged after it connects, not the device's history.
+      consoleSeen: engine.device(deviceId).consoleLog?.sequence ?? 0,
     };
     devices.set(deviceId, state);
   }

@@ -28,12 +28,12 @@
   "Mensagem {0} para {1}:514."
  ],
  [
-  "0mn19gzg",
-  "objetivo-{0}"
+  "09st2m9w",
+  "Configuração IOS importada: {0} de {1} linhas aplicadas."
  ],
  [
-  "0odvunf3",
-  "OSPF {0}, router ID {1} {2} adjacências Full, {3} LSAs, {4} rotas, {5} alterações SPF."
+  "0mn19gzg",
+  "objetivo-{0}"
  ],
  [
   "0olsgjgf",
@@ -260,6 +260,14 @@
   "Equipamento inexistente ou repetido na proposta: {0}"
  ],
  [
+  "58ijy40c",
+  "{0}: {1} → Down; configuração da interface alterada."
+ ],
+ [
+  "5a1r7oyu",
+  "DHCP snooping: limite de {0} pps excedido em {1}."
+ ],
+ [
   "5a3gccgc",
   "{0}: regras NAT sem interface {1}; nada é traduzido."
  ],
@@ -352,10 +360,6 @@
   "{0} comunicando"
  ],
  [
-  "6wdvonid",
-  "{0}: próximo salto {1} sem interface IPv4 na sub-rede/VRF da rota."
- ],
- [
   "6xn8hf4v",
   "MAC destino desconhecido: flooding apenas na VLAN {0}."
  ],
@@ -386,6 +390,10 @@
  [
   "77w1afrs",
   "DHCP: comprimento inválido da opção {0}."
+ ],
+ [
+  "789s5fbx",
+  "Please define a hostname other than {0}."
  ],
  [
   "78jilqdp",
@@ -450,6 +458,10 @@
  [
   "8pbj4s2z",
   "Recuperação local indisponível: {0} Exporte as alterações se o servidor também falhar."
+ ],
+ [
+  "8v28nfn5",
+  "AS Hops {0}"
  ],
  [
   "903iz4bz",
@@ -534,6 +546,10 @@
  [
   "ap87kn76",
   "Estado {0}/{1} revisão {2}."
+ ],
+ [
+  "asmeqhca",
+  "Nbr {0}: Prepare dbase exchange"
  ],
  [
   "avx5ncmu",
@@ -740,6 +756,10 @@
   "Relay DHCPv6 configurado em {0}."
  ],
  [
+  "dmzdady6",
+  "armazenado por {0} s virtuais."
+ ],
+ [
   "doann0by",
   "Policer {0}: orçamento de tokens insuficiente."
  ],
@@ -766,6 +786,10 @@
  [
   "e7i81xyh",
   "Consulta DNS enfileirada [{0}]. Avance a simulação."
+ ],
+ [
+  "eaudp8jp",
+  "Proxy ARP: {0} é alcançável por outra interface; o roteador responde com o próprio MAC."
  ],
  [
   "ee9epgm4",
@@ -836,12 +860,20 @@
   "{0}/{1} tarefas{2}"
  ],
  [
+  "fb5dx6cn",
+  "Nova tentativa em {0} s."
+ ],
+ [
   "fbsbi3jb",
   "Quorum {0}, termo {1}."
  ],
  [
   "fetidt9k",
   "DHCPv6 {0}: {1}."
+ ],
+ [
+  "fgu54bzf",
+  "Hello · DR {0} · BDR {1} · {2} vizinho(s)"
  ],
  [
   "fgvxlzf3",
@@ -1044,6 +1076,10 @@
   "{0} diferenças de configuração"
  ],
  [
+  "jcwwmne7",
+  "Firewall {0} em {1}: sem regra de zona que permita {2} → {3}."
+ ],
+ [
   "jfgik4xa",
   "BGP retirou {0} via {1}."
  ],
@@ -1062,6 +1098,10 @@
  [
   "jz5ln6xw",
   "Editar pool {0}"
+ ],
+ [
+  "k02q96wv",
+  "neighbor {0} ebgp-multihop {1}"
  ],
  [
   "k6pfs7m3",
@@ -1084,6 +1124,10 @@
   "{0} → {1} ({2}): RTT {3} ms, perda {4}%{5}."
  ],
  [
+  "kcxjttuc",
+  "{0}: rota {1}/{2} via {3} não resolve na tabela de rotas da VRF."
+ ],
+ [
   "ke6mh19m",
   "TCP [{0}] enfileirado. Avance a simulação."
  ],
@@ -1094,6 +1138,10 @@
  [
   "kifp4ido",
   "Porta UDP {0} sem serviço ativo."
+ ],
+ [
+  "klfksdii",
+  "snmp-server enable traps {0}"
  ],
  [
   "knopv5gz",
@@ -1150,6 +1198,10 @@
  [
   "ldzv145e",
   "Resposta do servidor {0} entregue na rede de giaddr={1}; UDP 67 → 68."
+ ],
+ [
+  "lfjh8sgg",
+  "{0}: {1} → Down; processo OSPF reiniciado."
  ],
  [
   "lgpn1570",
@@ -1210,6 +1262,10 @@
  [
   "n1nl3oc5",
   "Interface {0} removida."
+ ],
+ [
+  "n2a3acfw",
+  "Recarga solicitada pelo console; o equipamento reinicia em {0} s."
  ],
  [
   "n3kg0uks",
@@ -1356,6 +1412,10 @@
   "Relógio de rede configurado; offset {0} ms."
  ],
  [
+  "pz2n7z0e",
+  "% Failed to make the bridge root for vlan {0}"
+ ],
+ [
   "q1lkd6bi",
   "Datagrama {0} incompleto expirou."
  ],
@@ -1404,12 +1464,20 @@
   "OSPF {0} de {1}, área {2}."
  ],
  [
+  "qqy8u5of",
+  "Firewall {0}{1}{2}: zone-pair {3} → {4} descarta; {5} → {6}."
+ ],
+ [
   "qwxrot43",
   "OSPF {0}{1}/{2} via {3}, custo {4}."
  ],
  [
   "qyf3avek",
   "{0}-cenarios"
+ ],
+ [
+  "r29dfwez",
+  "HSRP {0}: autenticação divergente de {1}."
  ],
  [
   "r3cvn4ot",
@@ -1474,10 +1542,6 @@
  [
   "sfvpggds",
   "Pools {0}/{1}: intervalos sobrepostos no mesmo domínio."
- ],
- [
-  "sgaxv3d4",
-  "{0} → {1} armazenado por 60 s virtuais."
  ],
  [
   "snsuesho",
@@ -1624,6 +1688,10 @@
   "{0}: root {1}, custo {2}."
  ],
  [
+  "vfxqd8cz",
+  "Endereço APIPA {0}/16 em uso."
+ ],
+ [
   "viapbb9h",
   "{0}/{1}: regra IPv6 {2} de {3} coberta por regra anterior."
  ],
@@ -1692,6 +1760,10 @@
   "{0} cabos"
  ],
  [
+  "wbnh1gf0",
+  "Inicializado a partir da startup-config; {0} linha(s) rejeitada(s)."
+ ],
+ [
   "wbxbflyi",
   "Envio syslog/514 {0}."
  ],
@@ -1710,6 +1782,10 @@
  [
   "wjv61lcb",
   "Pool NAT {0} sem endereços disponíveis."
+ ],
+ [
+  "wkmbm2pj",
+  "0 {0}no no Base"
  ],
  [
   "wlcvpauf",
@@ -1734,6 +1810,10 @@
  [
   "ww6v0d48",
   "{0} (recuperado)"
+ ],
+ [
+  "wy5r4038",
+  "Rota estática para Null0 (/{0}) descarta o pacote para {1}."
  ],
  [
   "wz3e1nzm",

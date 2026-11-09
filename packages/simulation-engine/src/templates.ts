@@ -299,19 +299,20 @@ export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
     e.configureVxlan(a.id, { ...base, vlan: 10, peers: ['198.51.100.2'] });
     e.configureVxlan(b.id, { ...base, vlan: 20, peers: ['192.0.2.1'] });
     if (template === 'evpn') {
+      // The VTEPs peer across the transit router: eBGP multihop, as IOS requires.
       e.configureBgp(a.id, {
         enabled: true,
         asn: 65001,
         routerId: '192.0.2.1',
         networks: [],
-        neighbors: [{ ip: '198.51.100.2', remoteAs: 65002 }],
+        neighbors: [{ ip: '198.51.100.2', remoteAs: 65002, ebgpMultihop: 2 }],
       });
       e.configureBgp(b.id, {
         enabled: true,
         asn: 65002,
         routerId: '198.51.100.2',
         networks: [],
-        neighbors: [{ ip: '192.0.2.1', remoteAs: 65001 }],
+        neighbors: [{ ip: '192.0.2.1', remoteAs: 65001, ebgpMultihop: 2 }],
       });
     }
     e.configureTcpService(srv.id, { kind: 'http', port: 80, enabled: true, body: 'HTTP pelo overlay VXLAN' });
@@ -765,7 +766,10 @@ export function makeTemplate(template: TemplateId = 'empty'): Snapshot {
       'Os gateways virtuais são 192.168.10.1 e 192.168.20.1. R-PRIMARY começa ACTIVE (150); R-BACKUP fica BACKUP (100). Faça ping/HTTP de PC-01 para WEB-01, desligue R-PRIMARY e avance 4 s. Repita o tráfego e confira o MAC virtual no ARP. Ao religar, preempt devolve a função ao primário. Rotas estáticas de apoio atendem shutdown administrativo de apenas uma porta. Sessões NAT/firewall não são replicadas.';
     engine.advanceTo(4500);
     engine.state.events = [];
-    for (const device of engine.state.devices) device.logs = [];
+    for (const device of engine.state.devices) {
+      device.logs = [];
+      delete device.syslogBuffer;
+    }
     return engine.snapshot();
   }
   if (template === 'firewall-zones') {

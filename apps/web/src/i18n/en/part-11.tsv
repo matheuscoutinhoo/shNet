@@ -157,7 +157,6 @@ cfi5m0mv	ARP cache miss for {0}: broadcast, attempt {1}/3.
 qfsckzvm	ARP queue full.
 0inhs112	ARP requires a unicast IPv4 address on the interface and on the next hop.
 1mm2zv2j	ARP timed out: {0} did not reply in the broadcast domain; {1} packet(s) dropped.
-sgaxv3d4	{0} → {1} cached for 60 s of virtual time.
 d4t80wmw	The requested IP belongs to this interface. Unicast reply.
 ipc9oakq	Inconsistent ARP resolution, pending packet, or timer.
 j6fs3biq	ARP timer without a matching resolution.

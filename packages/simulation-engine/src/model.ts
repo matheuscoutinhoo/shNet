@@ -119,6 +119,14 @@ import {
 } from './protocols/tunnel-model';
 export * from './protocols/tunnel-model';
 import {
+  iosTunnelSchema,
+  cryptoConfigSchema,
+  grePacketSchema,
+  espPacketSchema,
+  ikeMessageSchema,
+} from './protocols/ios-tunnel-model';
+export * from './protocols/ios-tunnel-model';
+import {
   wirelessStateSchema,
   wifiPduSchema,
   wirelessTimerSchema,
@@ -126,12 +134,12 @@ import {
 } from './protocols/wireless-model';
 export * from './protocols/wireless-model';
 import { bgpStateSchema, bgpTimerSchema, bgpConfigSchema } from './protocols/bgp-model';
-import { aggregateSchema, lacpPduSchema, lacpTimerSchema } from './protocols/lacp-model';
+import { aggregateSchema, lacpPduSchema, lacpTimerSchema, loadBalanceSchema } from './protocols/lacp-model';
 import { bondStateSchema, bondTimerSchema } from './protocols/bond-model';
 export * from './protocols/lacp-model';
 export * from './protocols/bgp-model';
 import { z } from 'zod';
-import { iosSystemSchema } from './protocols/ios-system-model';
+import { iosSnmpUserSchema, iosSystemSchema, iosVtpSchema } from './protocols/ios-system-model';
 import { monitoringSchema, monitoringTimerSchema } from './protocols/monitoring-model';
 import { udldStateSchema, udldMessageSchema, udldTimerSchema } from './protocols/udld-model';
 import { bfdStateSchema, bfdMessageSchema, bfdTimerSchema, bfdTemplatesSchema } from './protocols/bfd-model';
@@ -147,6 +155,7 @@ import {
   hmiScanTimerSchema,
 } from './protocols/industrial-process-model';
 import {
+  acl6ListSchema,
   ipv6InterfaceSchema,
   packet6Schema,
   route6Schema,
@@ -178,7 +187,8 @@ import {
   tcpServiceSchema,
   tcpTimerSchema,
 } from './protocols/tcp-model';
-import { firewallSchema, firewallTimerSchema } from './protocols/firewall-model';
+import { firewallSchema, firewallTimerSchema, zbfSchema } from './protocols/firewall-model';
+import { consoleLogSchema, debugKindSchema } from './protocols/debug-model';
 import { firewallSessionSchema } from './protocols/firewall-model';
 import { stateSyncSchema, stateSyncRecordSchema } from './protocols/state-sync-model';
 import { dhcpHaSchema } from './protocols/dhcp-ha-model';
@@ -190,6 +200,10 @@ import { ripConfigSchema } from './protocols/rip-model';
 export * from './protocols/ospf-model';
 import { ripMessageSchema, ripStateSchema, ripTimerSchema } from './protocols/rip-model';
 export * from './protocols/rip-model';
+import { eigrpPacketSchema, eigrpStateSchema, eigrpTimerSchema } from './protocols/eigrp-model';
+export * from './protocols/eigrp-model';
+import { ospf3StateSchema, ospf3TimerSchema } from './protocols/ospf3-model';
+export * from './protocols/ospf3-model';
 import { snmpAgentSchema, snmpMessageSchema, snmpQuerySchema, snmpTimerSchema } from './protocols/snmp-model';
 import {
   syslogClientSchema,
@@ -234,18 +248,33 @@ export type CanvasItem = z.infer<typeof canvasItemSchema>;
 export const subnetSchema = z
   .object({ network: ipv4Schema, prefix: z.number().int().min(0).max(32) })
   .strict();
+const aclPort = z.number().int().min(0).max(65535);
+const aclRemarks = z.array(z.string().min(1).max(100)).max(8).optional();
 export const aclRuleSchema = z
   .object({
     sequence: z.number().int().min(1).max(65535),
     action: z.enum(['permit', 'deny']),
-    protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'vrrp']),
+    protocol: z.enum(['ip', 'icmp', 'udp', 'tcp', 'ospf', 'eigrp', 'vrrp', 'gre', 'esp']),
     source: subnetSchema,
     destination: subnetSchema,
     sourceWildcard: ipv4Schema.optional(),
     destinationWildcard: ipv4Schema.optional(),
-    sourcePort: z.number().int().min(1).max(65535).optional(),
-    destinationPort: z.number().int().min(1).max(65535).optional(),
+    sourcePort: aclPort.optional(),
+    destinationPort: aclPort.optional(),
+    // IOS port operators besides "eq" (the default): neq, gt, lt and "range LOW HIGH".
+    sourcePortOp: z.enum(['neq', 'gt', 'lt', 'range']).optional(),
+    sourcePortEnd: aclPort.optional(),
+    destinationPortOp: z.enum(['neq', 'gt', 'lt', 'range']).optional(),
+    destinationPortEnd: aclPort.optional(),
+    icmpType: z.number().int().min(0).max(255).optional(),
+    icmpCode: z.number().int().min(0).max(255).optional(),
     established: z.boolean().optional(),
+    log: z.enum(['log', 'log-input']).optional(),
+    // "remark" lines shown before this entry in the running-config.
+    remarks: aclRemarks,
+    // IOS logs the first match at once, then a packet count every 5 minutes.
+    loggedAt: finite.nonnegative().optional(),
+    logPending: z.number().int().nonnegative().optional(),
     hits: z.number().int().nonnegative().default(0),
   })
   .strict()
@@ -253,7 +282,18 @@ export const aclRuleSchema = z
     (rule) =>
       (!rule.established || rule.protocol === 'tcp') &&
       (['udp', 'tcp'].includes(rule.protocol) ||
-        (rule.sourcePort === undefined && rule.destinationPort === undefined)),
+        (rule.sourcePort === undefined && rule.destinationPort === undefined)) &&
+      (rule.icmpType === undefined || rule.protocol === 'icmp') &&
+      (rule.icmpCode === undefined || rule.icmpType !== undefined) &&
+      (['source', 'destination'] as const).every((side) => {
+        const port = rule[`${side}Port`],
+          op = rule[`${side}PortOp`],
+          end = rule[`${side}PortEnd`];
+        return (
+          (op === undefined || port !== undefined) &&
+          (op === 'range' ? end !== undefined && port !== undefined && end >= port : end === undefined)
+        );
+      }),
     'Portas exigem protocolo UDP ou TCP.'
   );
 export const aclSchema = z
@@ -261,6 +301,8 @@ export const aclSchema = z
     name: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
     kind: z.enum(['standard', 'extended']).optional(),
     rules: z.array(aclRuleSchema).max(256),
+    // Remarks typed after the last entry; they attach to the next entry added.
+    remarks: aclRemarks,
     implicitDrops: z.number().int().nonnegative().default(0),
   })
   .strict();
@@ -298,7 +340,42 @@ export const natSchema = z
     sipBindings: z.array(sipAlgBindingSchema).max(256).optional(),
     hairpins: z.array(hairpinBindingSchema).max(256).optional(),
     statics: z.array(z.object({ inside: ipv4Schema, global: ipv4Schema, outside: id }).strict()).max(128),
+    // IOS static PAT (port forwarding): "ip nat inside source static tcp|udp L LP G GP [extendable]".
+    portStatics: z
+      .array(
+        z
+          .object({
+            protocol: z.enum(['tcp', 'udp']),
+            inside: ipv4Schema,
+            insidePort: z.number().int().min(1).max(65535),
+            global: ipv4Schema,
+            globalPort: z.number().int().min(1).max(65535),
+            extendable: z.literal(true).optional(),
+          })
+          .strict()
+      )
+      .max(128)
+      .optional(),
     pools: z.array(natPoolSchema).max(8),
+    // IOS "ip nat pool NAME START END netmask|prefix-length": addresses for "source list ACL pool NAME".
+    iosPools: z
+      .array(
+        z
+          .object({
+            name: z.string().regex(/^[a-zA-Z0-9_-]{1,32}$/),
+            start: ipv4Schema,
+            end: ipv4Schema,
+            prefix: z.number().int().min(8).max(32),
+          })
+          .strict()
+      )
+      .max(16)
+      .optional(),
+    // IOS "ip nat inside source list ACL pool NAME [overload]".
+    poolRules: z
+      .array(z.object({ acl: z.string().max(32), pool: z.string().max(32), overload: z.boolean() }).strict())
+      .max(16)
+      .optional(),
     interfaceRules: z
       .array(z.object({ name: z.string().max(32), acl: z.string().max(32), outside: id }).strict())
       .max(8)
@@ -482,6 +559,8 @@ const dhcpLeaseSchema = z
 const dhcpClientSchema = z
   .object({
     status: z.enum([
+      // RFC 2131 INIT: "obtain an address automatically", waiting for power and a link.
+      'init',
       'selecting',
       'requesting',
       'probing',
@@ -500,11 +579,27 @@ const dhcpClientSchema = z
     lease: dhcpLeaseSchema.optional(),
     pendingLease: dhcpLeaseSchema.optional(),
     probeAt: finite.nonnegative().optional(),
+    // APIPA (169.254.0.0/16) address a host gives itself while no DHCP server answers.
+    autoconfig: ipv4Schema.optional(),
   })
   .strict();
 export const DHCP_MAX_LEASE_MS = 365 * 86400000;
 // Per-server limits sized for a central enterprise DHCP server.
 export const DHCP_LIMITS = { pools: 64, bindings: 8192 } as const;
+const dhcpOptionCode = z.number().int().min(1).max(254);
+// IOS pool "option CODE ip A.B.C.D ..." | "option CODE ascii STRING" | "option CODE hex HEX" (e.g. 150 TFTP).
+export const dhcpPoolOptionSchema = z.union([
+  z.object({ code: dhcpOptionCode, ip: z.array(ipv4Schema).min(1).max(8) }).strict(),
+  z.object({ code: dhcpOptionCode, ascii: z.string().min(1).max(255) }).strict(),
+  z
+    .object({
+      code: dhcpOptionCode,
+      hex: z.string().regex(/^(?:[0-9a-f]{2}){1,255}$/),
+    })
+    .strict(),
+]);
+export type DhcpPoolOption = z.infer<typeof dhcpPoolOptionSchema>;
+const dhcpPoolOptions = z.array(dhcpPoolOptionSchema).max(16).optional();
 export const dhcpPoolSchema = z
   .object({
     name: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/),
@@ -531,6 +626,7 @@ export const dhcpPoolSchema = z
       .string()
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$/)
       .optional(),
+    options: dhcpPoolOptions,
   })
   .strict();
 // An IOS pool that cannot be bound yet (no network statement or no routed IPv4 interface).
@@ -555,6 +651,7 @@ export const dhcpPendingPoolSchema = z
       .string()
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$/)
       .optional(),
+    options: dhcpPoolOptions,
   })
   .strict();
 export type DhcpPendingPool = z.infer<typeof dhcpPendingPoolSchema>;
@@ -615,12 +712,25 @@ export const interfaceSchema = z
     bond: bondStateSchema.optional(),
     installedNic: z.boolean().optional(),
     tunnel: tunnelStateSchema.optional(),
+    // IOS "interface TunnelN" (GRE or IPsec VTI).
+    iosTunnel: iosTunnelSchema.optional(),
+    // "bandwidth N" (kbit/s): what routing protocols use for cost, not the line rate.
+    bandwidthKbps: z.number().int().min(1).max(100000000).optional(),
+    // "delay N": interface delay in tens of microseconds (EIGRP metric).
+    delayTens: z.number().int().min(1).max(16777215).optional(),
+    // Line protocol state last logged (%LINK/%LINEPROTO), so changes are logged once.
+    lineProtocol: z.boolean().optional(),
     vxlan: vxlanStateSchema.optional(),
     loopback: z.literal(true).optional(),
     qos: qosStateSchema.optional(),
     ingressQos: qosStateSchema.optional(),
     dot1x: dot1xStateSchema.optional(),
     authenticationControl: z.enum(['auto', 'force-authorized', 'force-unauthorized']).optional(),
+    // "dot1x pae authenticator": with "authentication port-control auto" the port runs 802.1X.
+    dot1xPae: z.literal('authenticator').optional(),
+    // "authentication periodic" / "authentication timer reauthenticate N|server".
+    authenticationPeriodic: z.boolean().optional(),
+    reauthenticate: z.union([z.number().int().min(1).max(65535), z.literal('server')]).optional(),
     udld: udldStateSchema.optional(),
     bfd: bfdStateSchema.optional(),
     supplicant: supplicantStateSchema.optional(),
@@ -631,10 +741,17 @@ export const interfaceSchema = z
       .optional(),
     accessVlan: vlan,
     nativeVlan: vlan,
+    // "switchport mode access|trunk" typed explicitly (IOS shows it; the factory mode is not shown).
+    explicitMode: z.boolean().optional(),
     allowedVlans: z.array(vlan).max(4094),
+    // IOS default: a trunk carries every VLAN while no explicit allowed list is configured.
+    allVlansAllowed: z.boolean().optional(),
     ip: ipv4Schema.optional(),
     prefix: z.number().int().min(0).max(32).optional(),
     ipv6: ipv6InterfaceSchema.optional(),
+    // "ipv6 traffic-filter NAME in|out": named IPv6 ACLs applied to the interface.
+    ipv6FilterIn: z.string().max(64).optional(),
+    ipv6FilterOut: z.string().max(64).optional(),
     dhcp6: dhcp6ClientStateSchema.optional(),
     dhcp6Relay: dhcp6RelayStateSchema.optional(),
     ipv4Mode: z.enum(['static', 'dhcp']).optional(),
@@ -659,14 +776,31 @@ export const interfaceSchema = z
         violation: z.enum(['shutdown', 'restrict', 'protect']).default('shutdown'),
         sticky: z.boolean().default(false),
         macs: z.array(mac).max(1024).default([]),
+        // Learned with "mac-address sticky": kept in running-config, never aged.
+        stickyMacs: z.array(mac).max(1024).default([]),
         learned: z.array(mac).max(1024).default([]),
         violations: z.number().int().nonnegative().default(0),
+        // "switchport port-security aging time N [type inactivity]" for dynamic secure MACs.
+        aging: z
+          .object({
+            minutes: z.number().int().min(1).max(1440),
+            type: z.enum(['absolute', 'inactivity']),
+          })
+          .strict()
+          .optional(),
+        // When each dynamic secure MAC was learned (absolute aging) or last seen (inactivity).
+        ages: z
+          .array(z.object({ mac, at: z.number().finite().nonnegative() }).strict())
+          .max(1024)
+          .optional(),
+        lastSource: z.string().max(32).optional(),
       })
       .strict()
       .optional(),
     ospfAuthentication: z
       .object({
-        enabled: z.boolean(),
+        // true: "ip ospf authentication message-digest"; false: "... null"; unset: the area setting.
+        enabled: z.boolean().optional(),
         keyId: z.number().int().min(1).max(255).optional(),
         key: z.string().min(1).max(16).optional(),
       })
@@ -684,12 +818,45 @@ export const interfaceSchema = z
       .strict()
       .optional(),
     bpduGuard: z.boolean().optional(),
+    // "fair-queue": weighted fair queueing on the output queue (links only queue under QoS shaping).
+    fairQueue: z.boolean().optional(),
     cdpEnabled: z.boolean().optional(),
     hsrpVersion: z.union([z.literal(1), z.literal(2)]).optional(),
     lldpTransmit: z.boolean().optional(),
     lldpReceive: z.boolean().optional(),
     errDisabled: z
-      .object({ reason: z.enum(['bpduguard', 'psecure-violation', 'udld']), at: finite.nonnegative() })
+      .object({
+        reason: z.enum(['bpduguard', 'psecure-violation', 'udld', 'storm-control', 'dhcp-rate-limit']),
+        at: finite.nonnegative(),
+      })
+      .strict()
+      .optional(),
+    // "switchport nonegotiate" (no DTP frames) and "switchport trunk encapsulation dot1q".
+    nonegotiate: z.boolean().optional(),
+    trunkEncapsulation: z.enum(['dot1q', 'negotiate']).optional(),
+    // "storm-control broadcast|multicast|unicast level N" (% of bandwidth) and its action.
+    stormControl: z
+      .object({
+        broadcast: z.number().min(0).max(100).optional(),
+        multicast: z.number().min(0).max(100).optional(),
+        unicast: z.number().min(0).max(100).optional(),
+        action: z.enum(['shutdown', 'trap']).optional(),
+        // Bytes counted in the current one-second interval, per traffic class; "filtered" lists the
+        // classes already over their level in this interval (logged once, like IOS).
+        window: z
+          .object({
+            at: finite.nonnegative(),
+            broadcast: z.number().int().nonnegative(),
+            multicast: z.number().int().nonnegative(),
+            unicast: z.number().int().nonnegative(),
+            filtered: z
+              .array(z.enum(['broadcast', 'multicast', 'unicast']))
+              .max(3)
+              .optional(),
+          })
+          .strict()
+          .optional(),
+      })
       .strict()
       .optional(),
     stpCost: z.number().int().min(1).max(200000000).optional(),
@@ -697,6 +864,20 @@ export const interfaceSchema = z
     aclIn: z.string().max(32).optional(),
     aclOut: z.string().max(32).optional(),
     natRole: z.enum(['inside', 'outside']).optional(),
+    // "no ip proxy-arp": IOS answers proxy ARP on routed interfaces unless disabled.
+    proxyArp: z.literal(false).optional(),
+    // IOS "zone-member security ZONE".
+    zoneMember: z
+      .string()
+      .regex(/^[a-zA-Z][\w-]{0,31}$/)
+      .optional(),
+    // Unicast RPF: "ip verify unicast source reachable-via rx|any [allow-default]".
+    urpf: z
+      .object({ mode: z.enum(['rx', 'any']), allowDefault: z.boolean().optional() })
+      .strict()
+      .optional(),
+    // Packets dropped by the uRPF check ("verification drops").
+    urpfDrops: z.number().int().nonnegative().optional(),
     rx: z.number().int().nonnegative(),
     tx: z.number().int().nonnegative(),
     errors: z.number().int().nonnegative(),
@@ -791,6 +972,7 @@ const udpPacketSchema = z
       z.object({ protocol: z.literal('RIP'), message: ripMessageSchema }).strict(),
       z.object({ protocol: z.literal('SNMP'), message: snmpMessageSchema }).strict(),
       z.object({ protocol: z.literal('SYSLOG'), message: syslogMessageSchema }).strict(),
+      z.object({ protocol: z.literal('IKE'), message: ikeMessageSchema }).strict(),
     ]),
     bytes: z.number().int().min(28).max(65535),
   })
@@ -802,6 +984,9 @@ export const packetSchema = z
     tcpPacketSchema,
     ospfPacketSchema,
     vrrpPacketSchema,
+    grePacketSchema,
+    espPacketSchema,
+    eigrpPacketSchema,
   ])
   .superRefine((packet, ctx) => {
     if (packet.protocol === 'TCP' && packet.family === 6)
@@ -916,6 +1101,16 @@ export const startupConfigurationSchema = z
         bgp: bgpConfigSchema.optional(),
         nat: natSchema.omit({ bindings: true, sipBindings: true, hairpins: true }).optional(),
         accessLists: z.array(aclSchema).max(32).optional(),
+        // IOS private configuration: kept in NVRAM but never shown in running-config.
+        privateConfig: z
+          .object({
+            rsaModulus: z.number().int().min(360).max(4096).optional(),
+            snmpUsers: z.array(iosSnmpUserSchema).max(16).optional(),
+            // VTP lives in vlan.dat, not in startup-config.
+            vtp: iosVtpSchema.optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),
@@ -941,8 +1136,15 @@ export const deviceSchema = z
     bootManaged: z.boolean().optional(),
     booted: z.boolean().optional(),
     bootStartedAt: finite.nonnegative().optional(),
+    // "reload" in progress: the device is off until the boot timer fires at "at".
+    reloading: z.object({ token: id, at: finite.nonnegative() }).strict().optional(),
+    // startup-config lines rejected during the last boot (IOS prints them on the console).
+    bootLog: z.array(z.string().max(400)).max(64).optional(),
     loopGuardDefault: z.boolean().optional(),
+    // "port-channel load-balance"; unset is the Catalyst default (src-dst-ip).
+    portChannelLoadBalance: loadBalanceSchema.optional(),
     iosSystem: iosSystemSchema.optional(),
+    crypto: cryptoConfigSchema.optional(),
     monitoring: monitoringSchema.optional(),
     dot1xSystemAuthControl: z.boolean().optional(),
     routingPolicy: routingPolicySchema.optional(),
@@ -998,6 +1200,7 @@ export const deviceSchema = z
     udp6Services: z.array(udp6ServiceSchema).max(32).optional(),
     udp6Records: z.array(udp6RecordSchema).max(256).optional(),
     routes6: z.array(route6Schema).max(256).optional(),
+    ipv6AccessLists: z.array(acl6ListSchema).max(64).optional(),
     neighbors6: z.array(neighbor6Schema).max(2048).optional(),
     pending6: z.array(pending6Schema).max(256).optional(),
     resolutions6: z.array(resolution6Schema).max(256).optional(),
@@ -1052,9 +1255,13 @@ export const deviceSchema = z
     tcpConnections: z.array(tcpConnectionSchema).max(128).optional(),
     tcpSettings: tcpSettingsSchema.optional(),
     firewall: firewallSchema.optional(),
+    // Native IOS zone-based firewall (zones, inspect class-maps/policy-maps, zone-pairs).
+    zbf: zbfSchema.optional(),
     stateSync: stateSyncSchema.optional(),
     ospf: ospfStateSchema.optional(),
     rip: ripStateSchema.optional(),
+    eigrp: eigrpStateSchema.optional(),
+    ospf3: ospf3StateSchema.optional(),
     vrrp: vrrpStateSchema.optional(),
     bgp: bgpStateSchema.optional(),
     snmpAgent: snmpAgentSchema.optional(),
@@ -1091,6 +1298,11 @@ export const deviceSchema = z
       .max(256)
       .optional(),
     logs: z.array(z.string().max(300)).max(100),
+    // IOS logging buffer: "<clock> <message>" lines, trimmed to the "logging buffered" size.
+    syslogBuffer: z.array(z.string().max(320)).max(2000).optional(),
+    consoleLog: consoleLogSchema.optional(),
+    // "debug ..." flags: runtime state, cleared by a reload and never part of the configuration.
+    debug: z.array(debugKindSchema).max(16).optional(),
     dropped: z.number().int().nonnegative(),
   })
   .strict();
@@ -1259,6 +1471,9 @@ export const eventSchema = z
       'RIP_REQUEST',
       'RIP_UPDATE',
       'RIP_RECEIVED',
+      'EIGRP_SENT',
+      'EIGRP_RECEIVED',
+      'EIGRP_NEIGHBOR_CHANGED',
       'ROUTE_ADDED',
       'ROUTE_REMOVED',
       'SNMP_QUERY',
@@ -1341,6 +1556,13 @@ export const actionSchema = z.discriminatedUnion('kind', [
   tcpTimerSchema,
   firewallTimerSchema,
   z.object({ kind: z.literal('state-sync-tick'), device: id, token: id }).strict(),
+  z.object({ kind: z.literal('device-boot'), device: id, token: id }).strict(),
+  // "errdisable recovery": re-enable a port err-disabled at "since" once the interval elapses.
+  z
+    .object({ kind: z.literal('errdisable-recovery'), device: id, port: id, since: finite.nonnegative() })
+    .strict(),
+  // IOS tunnel interface: GRE keepalives, IKE retransmission and SA lifetime.
+  z.object({ kind: z.literal('ios-tunnel-tick'), device: id, port: id, token: id }).strict(),
   z.object({ kind: z.literal('dhcp-ha-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('quorum-tick'), device: id, token: id }).strict(),
   z.object({ kind: z.literal('database-client-tick'), device: id, token: id }).strict(),
@@ -1371,6 +1593,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
     .strict(),
   ospfTimerSchema,
   ripTimerSchema,
+  eigrpTimerSchema,
+  ospf3TimerSchema,
   vrrpTimerSchema,
   bgpTimerSchema,
   snmpTimerSchema,
@@ -1585,6 +1809,10 @@ export const DHCP = {
   retryMs: 4000,
   offerMs: 30000,
   attempts: 4,
+  // After a failed discovery, hosts keep trying in the background (Windows: every 5 minutes).
+  backgroundRetryMs: 300000,
+  // IP phones do not self-assign an address and restart discovery every minute.
+  phoneRetryMs: 60000,
 } as const;
 export const LIMITS = {
   queue: 100000,
@@ -1595,6 +1823,8 @@ export const LIMITS = {
   devices: 2000,
   macAge: 300000,
   arpAge: 60000,
+  // IOS "arp timeout" default: 4 hours.
+  iosArpAge: 14400000,
   arpTimeout: 3000,
   probeTimeout: 30000,
   l2Hops: 32,

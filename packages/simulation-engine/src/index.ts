@@ -4,6 +4,7 @@ export * from './core/engine';
 export * from './core/validation';
 export { materializeMark, type StateMark } from './core/state-mark';
 export * from './cli/terminal';
+export { RELOAD_BOOT_MS } from './cli/startup';
 export * from './cli/bulk-config';
 export { contextualDiff, formatConfigDiff } from './cli/config-diff';
 export { formatDnsQuery } from './cli/dns';

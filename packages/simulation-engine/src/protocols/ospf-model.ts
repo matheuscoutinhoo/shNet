@@ -193,6 +193,9 @@ export const ospfConfigSchema = z
     routerId: ipv4Schema,
     processId: z.number().int().min(1).max(65535).optional(),
     autoRouterId: z.boolean().optional(),
+    // A router ID configured while the process already runs: IOS applies it only after
+    // "clear ip ospf process" or a reload.
+    pendingRouterId: ipv4Schema.optional(),
     maximumPaths: z.number().int().min(1).max(32).default(4),
     referenceBandwidth: z.number().int().min(1).max(4294967).default(100),
     passiveDefault: z.boolean().default(false),
@@ -220,7 +223,15 @@ export const ospfConfigSchema = z
     areas: z
       .array(
         z
-          .object({ id: area, type: z.enum(['normal', 'stub', 'nssa']), defaultCost: cost.default(1) })
+          .object({
+            id: area,
+            type: z.enum(['normal', 'stub', 'nssa']),
+            defaultCost: cost.default(1),
+            // "area N stub no-summary" (totally stubby) / "area N nssa no-summary".
+            noSummary: z.boolean().optional(),
+            // "area N authentication message-digest": interfaces of the area default to MD5.
+            authentication: z.literal('message-digest').optional(),
+          })
           .strict()
       )
       .max(48)
@@ -240,6 +251,38 @@ export const ospfConfigSchema = z
       )
       .max(64)
       .default([]),
+    // "redistribute SOURCE": external LSAs for the routes of another source (always classless).
+    redistribute: z
+      .array(
+        z
+          .object({
+            source: z.enum(['connected', 'static', 'bgp', 'rip', 'eigrp']),
+            process: z.number().int().min(1).max(4294967295).optional(),
+            metric: z.number().int().min(1).max(16777214).optional(),
+            metricType: z.enum(['E1', 'E2']).optional(),
+            tag: z.number().int().min(0).max(4294967295).optional(),
+            routeMap: z
+              .string()
+              .regex(/^[\w-]{1,32}$/)
+              .optional(),
+          })
+          .strict()
+      )
+      .max(8)
+      .optional(),
+    // IOS logs FULL/DOWN adjacency changes by default; "detail" logs every state, false none.
+    logAdjacencyChanges: z.union([z.literal(false), z.literal('detail')]).optional(),
+    // "timers throttle spf START HOLD MAX" (milliseconds).
+    spfThrottle: z
+      .object({
+        startMs: z.number().int().min(1).max(600000),
+        holdMs: z.number().int().min(1).max(600000),
+        maxMs: z.number().int().min(1).max(600000),
+      })
+      .strict()
+      .optional(),
+    // "bfd all-interfaces": OSPF registers with BFD on every OSPF interface with BFD timers.
+    bfdAllInterfaces: z.boolean().optional(),
   })
   .strict();
 export type OspfConfig = z.infer<typeof ospfConfigSchema>;
@@ -274,7 +317,7 @@ export const dynamicRouteSchema = z
     nextHop: ipv4Schema,
     port: idSchema,
     metric: z.number().int().min(0).max(16777215),
-    protocol: z.enum(['OSPF', 'RIP']),
+    protocol: z.enum(['OSPF', 'RIP', 'EIGRP']),
     distance: z.number().int().min(1).max(255),
     area: area.optional(),
     pathType: z.enum(['intra', 'inter', 'E1', 'E2', 'N1', 'N2']).optional(),

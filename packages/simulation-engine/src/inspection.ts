@@ -1,5 +1,6 @@
 import type { Snapshot } from './model';
 import type { SimulationEngine } from './core/engine';
+import { trunkAllows } from './protocols/trunk';
 
 export function traceNetworkPath(engine: SimulationEngine, source: string, destination: string) {
   const target = engine.device(destination).interfaces.find((port) => port.ip && port.adminUp)?.ip;
@@ -53,7 +54,7 @@ export function deviceParticipatesInVlan(snapshot: Snapshot, id: string, vlan: n
     return (
       neighbor?.type === 'switch' &&
       (port?.mode === 'trunk'
-        ? port.nativeVlan === vlan && port.allowedVlans.includes(vlan)
+        ? port.nativeVlan === vlan && trunkAllows(port, vlan)
         : port?.accessVlan === vlan)
     );
   });

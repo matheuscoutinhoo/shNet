@@ -1,4 +1,5 @@
 import type { Device, NetworkInterface, Snapshot } from './model';
+import { trunkVlans } from './protocols/trunk';
 
 // Configuration graph: potential Ethernet domains, independent of current STP/carrier.
 // Routing never merges domains. VLAN numbers and VRF names alone are not global identities.
@@ -39,7 +40,7 @@ export function networkDomains(s: Snapshot) {
       return tags.map((tag) => ({ tag, node: passive(d, physical.id, tag) }));
     const p = physical.channel ? (d.interfaces.find((x) => x.id === physical.channel) ?? physical) : physical;
     if (p.mode === 'trunk')
-      return p.allowedVlans.map((v) => ({ tag: v === p.nativeVlan ? 0 : v, node: bridge(d, v) }));
+      return trunkVlans(d, p).map((v) => ({ tag: v === p.nativeVlan ? 0 : v, node: bridge(d, v) }));
     const entries = [{ tag: 0, node: domain(d, p) }];
     if (p.mode === 'routed')
       for (const sub of d.interfaces.filter((x) => x.logical?.parent === p.id))

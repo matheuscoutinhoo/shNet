@@ -3,6 +3,7 @@ import type { Device, IcmpPacket, IcmpQuote, NetworkInterface, Packet } from '..
 import { isUnicast } from './dhcp-config';
 import { resolveRoute, subnet } from './ipv4';
 import { encodeEthernet } from '../wire/ethernet-codec';
+import { debugIcmpError } from './ip-debug';
 
 export function isIcmpError(
   packet: Packet
@@ -10,7 +11,15 @@ export function isIcmpError(
   return packet.protocol === 'ICMP' && (packet.kind === 'time-exceeded' || packet.kind === 'unreachable');
 }
 export function quotePacket(packet: Packet): IcmpQuote | undefined {
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP' || isIcmpError(packet)) return;
+  if (
+    packet.protocol === 'OSPF' ||
+    packet.protocol === 'EIGRP' ||
+    packet.protocol === 'VRRP' ||
+    packet.protocol === 'GRE' ||
+    packet.protocol === 'ESP' ||
+    isIcmpError(packet)
+  )
+    return;
   let wireHeader: string | undefined;
   try {
     const bytes = encodeEthernet({
@@ -46,6 +55,7 @@ export function sendIcmpError(
 ) {
   const quote = quotePacket(packet);
   if (!quote) return;
+  if (device.debug) debugIcmpError(engine, device, kind, code, packet);
   sendIcmpQuoteError(
     engine,
     device,

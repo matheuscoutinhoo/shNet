@@ -128,21 +128,24 @@ export function registerDiscoveryCommands(r: CommandRegistry) {
 export function discoveryRunningConfig(d: Device): string[] {
   const s = d.discovery;
   if (!s) return [];
+  // IOS defaults (CDP on, LLDP off, timers 60/180 and 30/120) are not configuration.
   return [
-    s.cdp ? 'cdp run' : 'no cdp run',
-    s.lldp ? 'lldp run' : 'no lldp run',
-    `cdp timer ${s.cdpTimer}`,
-    `cdp holdtime ${s.cdpHoldtime}`,
-    `lldp timer ${s.lldpTimer}`,
-    `lldp holdtime ${s.lldpHoldtime}`,
+    ...(s.cdp ? [] : ['no cdp run']),
+    ...(s.lldp ? ['lldp run'] : []),
+    ...(s.cdpTimer !== 60 ? [`cdp timer ${s.cdpTimer}`] : []),
+    ...(s.cdpHoldtime !== 180 ? [`cdp holdtime ${s.cdpHoldtime}`] : []),
+    ...(s.lldpTimer !== 30 ? [`lldp timer ${s.lldpTimer}`] : []),
+    ...(s.lldpHoldtime !== 120 ? [`lldp holdtime ${s.lldpHoldtime}`] : []),
     ...d.interfaces.flatMap((p) =>
       p.cdpEnabled === undefined && p.lldpTransmit === undefined && p.lldpReceive === undefined
         ? []
         : [
             'interface ' + p.name,
-            ...(p.cdpEnabled === undefined ? [] : [p.cdpEnabled ? 'cdp enable' : 'no cdp enable']),
-            ...(p.lldpTransmit === undefined ? [] : [p.lldpTransmit ? 'lldp transmit' : 'no lldp transmit']),
-            ...(p.lldpReceive === undefined ? [] : [p.lldpReceive ? 'lldp receive' : 'no lldp receive']),
+            ...(p.cdpEnabled === undefined ? [] : [p.cdpEnabled ? ' cdp enable' : ' no cdp enable']),
+            ...(p.lldpTransmit === undefined
+              ? []
+              : [p.lldpTransmit ? ' lldp transmit' : ' no lldp transmit']),
+            ...(p.lldpReceive === undefined ? [] : [p.lldpReceive ? ' lldp receive' : ' no lldp receive']),
             'exit',
           ]
     ),

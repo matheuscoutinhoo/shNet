@@ -1,17 +1,148 @@
-import type { Device } from '../model';
+import type { Device, NetworkInterface } from '../model';
+import { LOAD_BALANCE_METHODS, pagpMode } from '../protocols/lacp-model';
+import type { ChannelMode } from '../protocols/lacp';
+import { linksAt } from '../core/topology-index';
+import { linkOperational } from '../links/physical';
+import { dottedMac, shortInterfaceName } from '../protocols/interface-name';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
+
+const DEFAULT_LOAD_BALANCE = 'src-dst-ip';
+// "show etherchannel load-balance": addresses hashed for non-IP, IPv4 and IPv6 frames.
+const LOAD_BALANCE_FIELDS: Record<string, [string, string]> = {
+  'src-mac': ['Source MAC address', 'Source MAC address'],
+  'dst-mac': ['Destination MAC address', 'Destination MAC address'],
+  'src-dst-mac': ['Source XOR Destination MAC address', 'Source XOR Destination MAC address'],
+  'src-ip': ['Source MAC address', 'Source IP address'],
+  'dst-ip': ['Destination MAC address', 'Destination IP address'],
+  'src-dst-ip': ['Source XOR Destination MAC address', 'Source XOR Destination IP address'],
+  'src-port': ['Source MAC address', 'Source TCP/UDP (layer-4) port number'],
+  'dst-port': ['Destination MAC address', 'Destination TCP/UDP (layer-4) port number'],
+  'src-dst-port': [
+    'Source XOR Destination MAC address',
+    'Source XOR Destination TCP/UDP (layer-4) port number',
+  ],
+  'src-dst-mixed-ip-port': [
+    'Source XOR Destination MAC address',
+    'Source XOR Destination IP address and TCP/UDP (layer-4) port number',
+  ],
+};
+const SUMMARY_FLAGS = [
+  'Flags:  D - down        P - bundled in port-channel',
+  '        I - stand-alone s - suspended',
+  '        H - Hot-standby (LACP only)',
+  '        R - Layer3      S - Layer2',
+  '        U - in use      f - failed to allocate aggregator',
+  '',
+  '        M - not in use, minimum links not met',
+  '        u - unsuitable for bundling',
+  '        w - waiting to be aggregated',
+  '        d - default port',
+  '',
+  '        A - formed by Auto LAG',
+  '',
+];
+function showSummary(d: Device, now: number, carrier: (port: string) => boolean) {
+  const groups = d.interfaces.filter((p) => p.aggregate);
+  const row = (p: NetworkInterface) => {
+    const agg = p.aggregate!,
+      selected = agg.selected,
+      up = agg.members.filter((id) => carrier(id));
+    const state = selected.length ? 'U' : p.adminUp && up.length && up.length < agg.minLinks ? 'M' : 'D';
+    const members = agg.members.map((id) => {
+      const member = d.interfaces.find((m) => m.id === id)!;
+      const flag = selected.includes(id)
+        ? 'P'
+        : !carrier(id) || !p.adminUp
+          ? 'D'
+          : agg.mode !== 'on' && !agg.received.some((r) => r.port === id && r.expiresAt > now)
+            ? 'I'
+            : 's';
+      return (shortInterfaceName(member.name) + '(' + flag + ')').padEnd(12);
+    });
+    return (
+      String(agg.number).padEnd(7) +
+      (shortInterfaceName(p.name) + '(' + (p.mode === 'routed' ? 'R' : 'S') + state + ')').padEnd(16) +
+      (agg.mode === 'on' ? '-' : pagpMode(agg.mode) ? 'PAgP' : 'LACP').padEnd(12) +
+      members.join('')
+    ).trimEnd();
+  };
+  return [
+    ...SUMMARY_FLAGS,
+    '',
+    'Number of channel-groups in use: ' + groups.length,
+    'Number of aggregators:           ' + groups.length,
+    '',
+    'Group  Port-channel  Protocol    Ports',
+    '------+-------------+-----------+-----------------------------------------------',
+    ...groups.map(row),
+  ].join('\n');
+}
+function showNeighbors(d: Device, now: number) {
+  const groups = d.interfaces.filter(
+    (p) => p.aggregate && p.aggregate.mode !== 'on' && !pagpMode(p.aggregate.mode)
+  );
+  return [
+    'Flags:  S - Device is requesting Slow LACPDUs',
+    '        F - Device is requesting Fast LACPDUs',
+    '        A - Device is in Active mode       P - Device is in Passive mode',
+    ...groups.flatMap((p) => {
+      const agg = p.aggregate!;
+      return [
+        '',
+        `Channel group ${agg.number} neighbors`,
+        '',
+        "Partner's information:",
+        '',
+        '                  LACP port                        Admin  Oper   Port    Port',
+        'Port      Flags   Priority  Dev ID          Age    key    Key    Number  State',
+        ...agg.received
+          .filter((r) => r.expiresAt > now)
+          .map((r) => {
+            const actor = r.pdu.actor,
+              member = d.interfaces.find((m) => m.id === r.port)!;
+            return (
+              shortInterfaceName(member.name).padEnd(10) +
+              ('S' + (r.pdu.active ? 'A' : 'P')).padEnd(8) +
+              String(actor.portPriority ?? 32768).padEnd(10) +
+              dottedMac(actor.system).padEnd(16) +
+              (Math.floor((now - r.at) / 1000) + 's').padEnd(7) +
+              '0x0'.padEnd(7) +
+              ('0x' + actor.key.toString(16).toUpperCase()).padEnd(7) +
+              ('0x' + (actor.portNumber ?? 0).toString(16).toUpperCase()).padEnd(8) +
+              '0x' +
+              (actor.state ?? 0).toString(16).toUpperCase()
+            );
+          }),
+      ];
+    }),
+  ].join('\n');
+}
 export function registerLacpCommands(r: CommandRegistry) {
   r.register({
-    pattern: /^channel-group (\d+) mode (active|passive)$/i,
+    pattern: /^channel-group (\d+) mode (active|passive|on|desirable|auto)(?: non-silent)?$/i,
+    syntax: [
+      'channel-group <number> mode active',
+      'channel-group <number> mode passive',
+      'channel-group <number> mode on',
+      'channel-group <number> mode desirable [non-silent]',
+      'channel-group <number> mode auto [non-silent]',
+    ],
     modes: ['interface'],
     run: (m, e, d, c) => {
       const member = currentPort(d, c),
         number = Number(m[1]),
+        mode = m[2].toLowerCase() as ChannelMode,
         old = d.interfaces.find((p) => p.aggregate?.number === number);
+      // LACP, PAgP and static members cannot share a channel-group.
+      const family = (x: ChannelMode) => (x === 'on' ? 'on' : pagpMode(x) ? 'pagp' : 'lacp');
+      if (old?.aggregate && family(old.aggregate.mode) !== family(mode))
+        throw new Error(
+          `Command rejected (${shortInterfaceName(old.name)}, ${shortInterfaceName(member.name)}): Invalid etherchnl mode`
+        );
       e.configureLacp(
         d.id,
         number,
-        m[2].toLowerCase() as 'active' | 'passive',
+        mode,
         [...new Set([...(old?.aggregate?.members ?? []), member.id])],
         old?.aggregate?.minLinks ?? 1
       );
@@ -49,39 +180,112 @@ export function registerLacpCommands(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^show (?:etherchannel summary|lacp neighbors)$/i,
+    pattern: /^(no )?port-channel load-balance(?: (\S+))?$/i,
+    syntax: LOAD_BALANCE_METHODS.map((method) => 'port-channel load-balance ' + method),
+    modes: ['config'],
+    run: (m, _e, d) => {
+      if (d.type !== 'switch') throw new Error("Invalid input detected at '^' marker.");
+      const method = m[2]?.toLowerCase();
+      if (m[1]) delete d.portChannelLoadBalance;
+      else if (!method) throw new Error('% Incomplete command.');
+      else if (!(LOAD_BALANCE_METHODS as readonly string[]).includes(method))
+        throw new Error("Invalid input detected at '^' marker.");
+      else if (method === DEFAULT_LOAD_BALANCE) delete d.portChannelLoadBalance;
+      else d.portChannelLoadBalance = method as (typeof LOAD_BALANCE_METHODS)[number];
+    },
+  });
+  r.register({
+    pattern: /^show etherchannel summary$/i,
+    syntax: 'show etherchannel summary',
     modes: ALL_MODES,
     run: (_m, e, d) => {
       e.refreshSpanningTree();
-      return (
-        d.interfaces
-          .filter((p) => p.aggregate)
-          .map(
-            (p) =>
-              `${p.name} ${p.aggregate!.mode} min-links=${p.aggregate!.minLinks}\n` +
-              p
-                .aggregate!.members.map(
-                  (id) =>
-                    `${d.interfaces.find((m) => m.id === id)!.name} ${p.aggregate!.selected.includes(id) ? 'collecting/distributing' : 'suspended'} partner=${p.aggregate!.received.find((r) => r.port === id)?.pdu.actor.system ?? '-'}`
-                )
-                .join('\n')
-          )
-          .join('\n') || 'Nenhum EtherChannel'
+      return showSummary(d, e.state.clock, (id) =>
+        linksAt(e.state, d.id, id).some((l) => linkOperational(e.state, l))
       );
     },
   });
+  r.register({
+    pattern: /^show etherchannel load-balance$/i,
+    syntax: 'show etherchannel load-balance',
+    modes: ALL_MODES,
+    run: (_m, _e, d) => {
+      const method = d.portChannelLoadBalance ?? DEFAULT_LOAD_BALANCE,
+        [mac, ip] = LOAD_BALANCE_FIELDS[method];
+      return [
+        'EtherChannel Load-Balancing Configuration:',
+        '        ' + method,
+        '',
+        'EtherChannel Load-Balancing Addresses Used Per-Protocol:',
+        'Non-IP: ' + mac,
+        '  IPv4: ' + ip,
+        '  IPv6: ' + ip,
+      ].join('\n');
+    },
+  });
+  r.register({
+    pattern: /^show lacp neighbors?$/i,
+    syntax: 'show lacp neighbor',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showNeighbors(d, e.state.clock),
+  });
+  r.register({
+    pattern: /^show pagp neighbors?$/i,
+    syntax: 'show pagp neighbor',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showPagpNeighbors(e.state.devices, d, e.state.clock),
+  });
+}
+/** IOS "show pagp neighbor": the partner learned on each member of the PAgP channel groups. */
+function showPagpNeighbors(devices: Device[], d: Device, now: number) {
+  const groups = d.interfaces.filter((p) => p.aggregate && pagpMode(p.aggregate.mode));
+  return [
+    'Flags:  S - Device is sending Slow hello.  C - Device is in Consistent state.',
+    '        A - Device is in Auto mode.        P - Device learns on physical port.',
+    ...groups.flatMap((p) => {
+      const agg = p.aggregate!;
+      return [
+        '',
+        `Channel group ${agg.number} neighbors`,
+        '          Partner              Partner          Partner         Partner Group',
+        'Port      Name                 Device ID        Port       Age  Flags   Cap.',
+        ...agg.received
+          .filter((r) => r.expiresAt > now)
+          .map((r) => {
+            const actor = r.pdu.actor,
+              member = d.interfaces.find((m) => m.id === r.port)!,
+              partner = devices.find((v) => v.interfaces[0]?.mac === actor.system),
+              port = partner?.interfaces.find((x) => x.id === actor.port);
+            return (
+              shortInterfaceName(member.name).padEnd(10) +
+              (partner?.hostname ?? '').slice(0, 20).padEnd(21) +
+              dottedMac(actor.system).padEnd(17) +
+              (port ? shortInterfaceName(port.name) : actor.port).padEnd(9) +
+              (Math.floor((now - r.at) / 1000) + 's').padStart(5) +
+              ' ' +
+              ('S' + ((actor.state ?? 0) & 8 ? 'C' : '') + (r.pdu.active ? '' : 'A')).padEnd(8) +
+              (0x10000 + actor.key).toString(16).toUpperCase()
+            );
+          }),
+      ];
+    }),
+  ].join('\n');
 }
 export function lacpRunningConfig(d: Device) {
-  return d.interfaces
-    .filter((p) => p.aggregate)
-    .flatMap((p) => [
-      ...p.aggregate!.members.flatMap((id) => [
-        'interface ' + d.interfaces.find((m) => m.id === id)!.name,
-        ` channel-group ${p.aggregate!.number} mode ${p.aggregate!.mode}`,
-        'exit',
+  return [
+    ...(d.portChannelLoadBalance ? ['port-channel load-balance ' + d.portChannelLoadBalance] : []),
+    ...d.interfaces
+      .filter((p) => p.aggregate)
+      .flatMap((p) => [
+        ...p.aggregate!.members.flatMap((id) => [
+          'interface ' + d.interfaces.find((m) => m.id === id)!.name,
+          ` channel-group ${p.aggregate!.number} mode ${p.aggregate!.mode}`,
+          'exit',
+        ]),
+        // IOS shows min-links only when it differs from the default (1).
+        ...(p.aggregate!.minLinks > 1
+          ? ['interface ' + p.name, ' lacp min-links ' + p.aggregate!.minLinks, 'exit']
+          : []),
       ]),
-      'interface ' + p.name,
-      ' lacp min-links ' + p.aggregate!.minLinks,
-      'exit',
-    ]);
+  ];
 }

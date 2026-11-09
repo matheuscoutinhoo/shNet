@@ -29,6 +29,8 @@ export function permitFirewall6(
       },
       p
     );
+  // OSPFv3 is link-local (hop limit 1) and never crosses a firewall.
+  if (p.protocol === 'OSPFv3') return false;
   const error = ['unreachable', 'time-exceeded', 'packet-too-big'].includes(p.kind);
   if (!error && p.kind !== 'echo-request' && p.kind !== 'echo-reply') return false;
   const quote = p.quote;

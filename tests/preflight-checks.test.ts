@@ -64,12 +64,15 @@ describe('preflight configuration checks', () => {
   });
 
   it('detects OSPF parameter mismatches on a segment and MTU mismatches on routed links', () => {
+    // The router ID is configured before any interface has an address, so it applies at once.
     const base = (n: number, extra: string[]) => [
+      'router ospf 1',
+      `router-id 1.1.1.${n}`,
+      'exit',
       'interface Gi0/1',
       `ip address 10.0.0.${n} 255.255.255.0`,
       ...extra,
       'router ospf 1',
-      `router-id 1.1.1.${n}`,
       'network 10.0.0.0 0.0.0.255 area 0',
     ];
     const cases: [string[], string][] = [

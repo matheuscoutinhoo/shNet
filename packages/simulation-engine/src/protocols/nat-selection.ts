@@ -21,5 +21,22 @@ export function natPools(d: Device) {
           ]
         : [];
     }),
+    // IOS pools translate toward any "ip nat outside" interface; the upstream routes them back.
+    ...(d.nat?.poolRules ?? []).flatMap((rule) => {
+      const pool = d.nat!.iosPools?.find((entry) => entry.name === rule.pool);
+      return pool
+        ? [
+            {
+              name: pool.name,
+              source: { network: '0.0.0.0', prefix: 0 },
+              outside: '*',
+              start: pool.start,
+              end: pool.end,
+              overload: rule.overload,
+              sourceAcl: rule.acl as string | undefined,
+            },
+          ]
+        : [];
+    }),
   ];
 }

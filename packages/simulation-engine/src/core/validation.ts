@@ -24,6 +24,7 @@ import { validateVxlan } from '../protocols/vxlan';
 import { validateQos } from '../protocols/qos';
 import { validateMpls } from '../protocols/mpls';
 import { validateTunnels } from '../protocols/tunnel-validation';
+import { validateIosTunnels } from '../protocols/ios-tunnel';
 import { validateWireless } from '../protocols/wireless';
 import { validateIpv6 } from '../protocols/ipv6-validation';
 import { validateDhcp6 } from '../protocols/dhcp6';
@@ -57,6 +58,8 @@ import { validateBfd } from '../protocols/bfd';
 import { validateRoutingPolicy } from '../protocols/routing-policy';
 import { validateMqc } from '../protocols/mqc';
 import { validateRip } from '../protocols/rip-validation';
+import { validateEigrp } from '../protocols/eigrp';
+import { validateOspf3 } from '../protocols/ospf3';
 import { validateManagement } from '../protocols/management-validation';
 import { validateArp } from '../protocols/arp';
 import { validateStateSync } from '../protocols/state-sync';
@@ -106,6 +109,7 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   validateWireless(s);
   validateEnterprise(s);
   validateTunnels(s);
+  validateIosTunnels(s);
   validateQos(s);
   validateMpls(s);
   validateVxlan(s);
@@ -140,6 +144,8 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   validateUdld(s);
   validateBfd(s);
   validateRip(s);
+  validateEigrp(s);
+  validateOspf3(s);
   validateManagement(s);
   validateArp(s);
   validateVrrp(s);
@@ -147,6 +153,26 @@ function validateParsed(s: Snapshot, trustedLogs: boolean): Snapshot {
   for (const device of s.devices) if (checkDevice(device.id)) validateAcls(device);
   validateNatSnapshot(s);
   validateSpanningTree(s);
+  // A reload in progress keeps the device off with exactly one boot timer for its token.
+  const boots = s.queue.filter((q) => q.action.kind === 'device-boot');
+  for (const d of s.devices) {
+    if (!checkDevice(d.id) || !d.reloading) continue;
+    const timers = boots.filter((q) => 'device' in q.action && q.action.device === d.id);
+    if (
+      d.power ||
+      timers.length !== 1 ||
+      timers[0].at !== d.reloading.at ||
+      (timers[0].action as { token: string }).token !== d.reloading.token
+    )
+      throw new Error('Recarga inconsistente com o temporizador de inicialização.');
+  }
+  for (const q of boots) {
+    const action = q.action as { device: string; token: string };
+    if (!checkDevice(action.device)) continue;
+    const d = s.devices.find((entry) => entry.id === action.device);
+    if (!d?.reloading || d.reloading.token !== action.token)
+      throw new Error('Temporizador de inicialização sem recarga correspondente.');
+  }
   const unique = (values: string[], label: string) => {
     if (new Set(values).size !== values.length) throw new Error(label + ' duplicado');
   };

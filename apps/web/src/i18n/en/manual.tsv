@@ -109,3 +109,92 @@ bee1z17d	{0}/{1}: access port in VLAN {2}, which does not exist on the switch.
 cbg7mum2	{0} / {1} configured over {2}.
 qkx1rli0	{0} / VLAN {1} / A/B access
 gm0ohrwg	{0} · Delete closes the tab
+wbnh1gf0	Booted from startup-config; {0} line(s) rejected.
+8devdqnw	Booted from startup-config; sessions and counters reset.
+n2a3acfw	Reload requested from the console; the device restarts in {0} s.
+prhk2bo3	Reload inconsistent with the boot timer.
+vf97i7xb	Boot timer without a matching reload.
+t6lkurft	neighbor <ip|peer-group> ebgp-multihop [ttl]
+p6nn27p5	no neighbor <ip|peer-group> ebgp-multihop
+k02q96wv	neighbor {0} ebgp-multihop {1}
+p0ivef5b	eBGP neighbor interface went down (fast-external-fallover)
+gukkmzf7	SSH Disabled - version 1.99 %Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).
+ilzaacya	show storm-control multicast
+t7zpou4d	mail
+zlqtulxg	crypto key generate rsa modulus <bits>
+2vnpkbkf	crypto key generate rsa general-keys modulus <bits>
+789s5fbx	Please define a hostname other than {0}.
+ejkqdsb9	Please define a domain-name first.
+ua3w7duu	The modulus must be 360-4096 bits.
+qio7vpuq	Buffer size is 4096-2147483647 bytes.
+94v143gz	% A maximum of 8 logging hosts is supported.
+fdeddiah	SNMPv3 hosts need auth, noauth or priv.
+7ta523gs	Security levels apply to SNMPv3.
+3qyd54lw	At most 16 notification hosts.
+cppp3ysi	snmp-server enable traps
+d16syq4s	snmp-server enable traps snmp linkdown linkup coldstart
+ljuf0d51	SNMPv3 passwords need at least 8 characters.
+mukegxkb	At most 16 SNMPv3 users.
+y7di8f4v	storm-control multicast level <percent>
+klfksdii	snmp-server enable traps {0}
+dylfq7f9	multicast
+kh7gdgj6	dot1x pae authenticator
+kpadx52c	authenticator
+41j13p6r	802.1X access control removed from the port.
+diccg6r0	Waiting for link
+k6j244it	Address conflict on every DHCP offer.
+vfxqd8cz	APIPA address {0}/16 in use.
+fb5dx6cn	Retrying in {0} s.
+jcwwmne7	Firewall {0} on {1}: no zone rule permits {2} → {3}.
+gy8ovewh	Invalid IOS tunnel interface.
+5swbd5tm	Inconsistent IOS tunnel timer.
+wy5r4038	Static route to Null0 (/{0}) discards the packet for {1}.
+kcxjttuc	{0}: route {1}/{2} via {3} does not resolve in the VRF routing table.
+6jqdyukf	Check the address, mask, VRF and the protocol that should advertise the next hop. Recursive routes need a connected, static or dynamic route to the next hop.
+58ijy40c	{0}: {1} → Down; interface configuration changed.
+3ud6lw7o	OSPF updated without resetting unchanged adjacencies.
+8v28nfn5	AS Hops {0}
+zzbpumgu	Clear logging buffer [confirm]
+dmzdady6	stored for {0} virtual seconds.
+lfjh8sgg	{0}: {1} → Down; OSPF process restarted.
+rvt1sumh	Dynamic NAT translations removed.
+w0wxk9ci	Invalid NAT address.
+tnl2o3ux	Zone firewall configured with IOS commands (zone security, zone-pair security and zone-member security). Change it from the CLI.
+mnhckuzy	The lowest matching sequence decides. inspect tracks and allows the return traffic; permit allows without a session; deny blocks new connections, but the return traffic of an inspected session still passes. Without a rule, traffic between zones, or between a zone and an interface without a zone, is dropped. Within the same zone and between interfaces without a zone, it is allowed. Related ICMP errors go through the same ACLs and deny rules. The router itself uses the ACLs.
+axj4audw	% At most 32 classes per policy-map.
+qqy8u5of	Firewall {0}{1}{2}: zone-pair {3} → {4} drops it; {5} → {6}.
+ah01wm2o	to the router on
+argvwch1	originated by the router on
+oqajazuo	all or 1,10,20-30
+pdv6a5m6	EtherChannel mode
+pz2n7z0e	% Failed to make the bridge root for vlan {0}
+5a1r7oyu	DHCP snooping: {0} pps limit exceeded on {1}.
+r29dfwez	HSRP {0}: authentication mismatch from {1}.
+wkmbm2pj	0 {0}no no Base
+l1gqsx53	frag. needed and DF set
+asmeqhca	Nbr {0}: Prepare dbase exchange
+y0pdmmxo	Xmit Queue PeerQ Mean Pacing Time Multicast Pending
+vkyq92mj	Topology : 0 (base)
+i7yrmszl	holding time expired
+0oh7sae9	OSPFv3 packet exchanged between routers on the same link
+fgu54bzf	Hello · DR {0} · BDR {1} · {2} neighbor(s)
+l8nnp08j	ADV Router Age Seq# Fragment ID Link count Bits
+064lwt45	LACP negotiates members with control frames. Active initiates; passive responds. At least one side must be active. Cisco PAgP uses desirable (initiates) and auto (responds) with the same rule and does not negotiate with LACP. Mode on bundles without negotiating and requires on at both ends. The port-channel load-balance hash (src-dst-ip by default on switches) picks a member; a failure redistributes the flows among the remaining ones.
+8mks2s65	No PDU received
+eaudp8jp	Proxy ARP: {0} is reachable through another interface; the router answers with its own MAC.
+p5uiftjv	Import IOS configuration
+4a3mxw6l	Paste a real
+9wjpeg2z	. The device restarts with it, as with
+6vvw2b58	followed by
+m230mkxl	; the current configuration is replaced.
+bq6jhjc3	IOS configuration to import
+a0o81ad7	Import and restart
+nu1jan0c	Compatibility report
+rzc1csj7	lines applied,
+fut38lrt	ignored and
+krase2nl	rejected.
+06x7dz8l	Only IOS routers and switches import a configuration.
+mqy31ava	Paste an IOS configuration (show running-config).
+09st2m9w	IOS configuration imported: {0} of {1} lines applied.
+m6g6zush	Power on the device before importing a configuration.
+hm26076h	The imported configuration accepts up to 4096 lines.

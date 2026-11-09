@@ -46,6 +46,8 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     };
   if (d.routingPolicy) copy.routingPolicy = structuredClone(d.routingPolicy);
   if (d.mqc) copy.mqc = structuredClone(d.mqc);
+  // Zone membership travels with the interfaces; the zone policy is remapped with the firewall.
+  if (d.zbf) copy.zbf = structuredClone(d.zbf);
   if (d.system)
     copy.system = {
       ...structuredClone(d.system),
@@ -154,6 +156,8 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     if (p.portSecurity) {
       p.portSecurity.learned = [];
       p.portSecurity.violations = 0;
+      delete p.portSecurity.ages;
+      delete p.portSecurity.lastSource;
     }
     delete p.ipv6;
     delete p.dhcp6;
@@ -224,7 +228,7 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
       };
       e.schedule(100, { kind: 'bond-tick', device: copy.id, port: p.id, token: p.bond.token });
     }
-    if (p.ipv4Mode === 'dhcp') e.requestDhcp(copy.id, p.id);
+    if (p.ipv4Mode === 'dhcp') e.enableDhcpClient(copy.id, p.id);
   });
   copy.vlans = structuredClone(d.vlans);
   copy.routes = structuredClone(d.routes).map((route) => ({
@@ -273,6 +277,11 @@ export function duplicateDevice(e: SimulationEngine, d: Device) {
     copy.accessLists = structuredClone(d.accessLists).map((acl) => ({
       ...acl,
       implicitDrops: 0,
+      rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
+    }));
+  if (d.ipv6AccessLists)
+    copy.ipv6AccessLists = structuredClone(d.ipv6AccessLists).map((acl) => ({
+      ...acl,
       rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
     }));
   if (d.dnsServer) copy.dnsServer = structuredClone(d.dnsServer);

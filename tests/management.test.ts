@@ -314,7 +314,8 @@ describe('SNMP e syslog sobre a rede simulada', () => {
       'service syslog',
     ])
       expect(terminal.execute(command)).toBe('OK');
-    expect(terminal.execute('show running-config')).toContain('service snmp');
+    // IOS: the community alone starts the agent with read-only access.
+    expect(terminal.execute('show running-config')).toContain('snmp-server community lab_read RO');
     expect(
       engine.state.events
         .filter((event) => event.type === 'CONFIG_CHANGED')

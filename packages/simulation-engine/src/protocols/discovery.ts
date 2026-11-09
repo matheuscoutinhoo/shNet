@@ -3,7 +3,8 @@ import type { Action, Device, Frame, NetworkInterface, Snapshot } from '../model
 import { discoveryConfigSchema, type DiscoveryMessage } from './discovery-model';
 import { interfaceOperational } from './layer3';
 import { invalidateProtocolIndex, protocolDevices } from '../core/protocol-index';
-import { phoneVoiceVlans, refreshPhoneVoiceNetwork } from './voice-vlan';
+import { learnsVoiceVlan, phoneVoiceVlans, refreshPhoneVoiceNetwork } from './voice-vlan';
+import { ipPhone } from './ip-phone';
 
 const destination = { CDP: '01:00:0c:cc:cc:cc', LLDP: '01:80:c2:00:00:0e' };
 const physical = (p: NetworkInterface) =>
@@ -52,7 +53,7 @@ function advertise(
       deviceId: d.hostname,
       portId: p.name,
       platform: 'shLab ' + (d.profile ?? d.type),
-      capabilities: d.phone?.enabled
+      capabilities: ipPhone(d)
         ? ['Host', 'Phone']
         : d.type === 'router'
           ? ['Router']
@@ -66,9 +67,7 @@ function advertise(
       ...(protocol === 'CDP' && d.type === 'switch' && p.mode === 'access' && p.voiceVlan
         ? { voiceVlan: p.voiceVlan }
         : {}),
-      ...(protocol === 'CDP' && d.phone?.enabled && d.phone.autoVoiceVlan !== false
-        ? { voiceVlanQuery: true }
-        : {}),
+      ...(protocol === 'CDP' && learnsVoiceVlan(d) ? { voiceVlanQuery: true } : {}),
     };
     e.sendFrame(d.id, p.id, {
       src: p.mac,
@@ -125,7 +124,10 @@ function refresh(e: SimulationEngine, d: Device) {
   e.schedule(next - e.state.clock, { kind: 'discovery-tick', device: d.id, token: s.token });
 }
 export function configureDiscovery(e: SimulationEngine, d: Device, input: unknown) {
-  if ((!['router', 'switch'].includes(d.type) && !d.phone) || ['ap', 'mesh', 'wlc'].includes(d.profile ?? ''))
+  if (
+    (!['router', 'switch'].includes(d.type) && !ipPhone(d)) ||
+    ['ap', 'mesh', 'wlc'].includes(d.profile ?? '')
+  )
     throw new Error('CDP/LLDP requires an IOS routing/switching device.');
   const config = discoveryConfigSchema.parse(input),
     old = d.discovery;
@@ -202,7 +204,7 @@ export function validateDiscovery(s: Snapshot) {
   for (const d of s.devices) {
     const state = d.discovery;
     if (!state) continue;
-    if (!['router', 'switch'].includes(d.type) && !d.phone)
+    if (!['router', 'switch'].includes(d.type) && !ipPhone(d))
       throw new Error('Discovery state requires a network device or IP phone.');
     const keys = new Set<string>();
     for (const n of state.neighbors) {

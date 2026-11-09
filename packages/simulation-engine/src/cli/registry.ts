@@ -2,6 +2,8 @@ import type { SimulationEngine } from '../core/engine';
 import type { Device, NetworkInterface } from '../model';
 import { commandSupported, terminalIdentity } from './device-commands';
 import { expandCommand, nextKeywords, type Syntax } from './syntax';
+import { continueBanner } from './banner';
+import type { VtyConnection } from './vty';
 export type Mode =
   | 'user'
   | 'privileged'
@@ -12,6 +14,7 @@ export type Mode =
   | 'router'
   | 'address-family'
   | 'acl'
+  | 'ipv6-acl'
   | 'line'
   | 'vrf'
   | 'mst'
@@ -23,7 +26,22 @@ export type Mode =
   | 'policy-class'
   | 'key-chain'
   | 'key-chain-key'
-  | 'bfd-template';
+  | 'bfd-template'
+  | 'aaa-server'
+  | 'aaa-group'
+  | 'isakmp-policy'
+  | 'transform-set'
+  | 'ipsec-profile'
+  | 'ikev2-proposal'
+  | 'ikev2-policy'
+  | 'ikev2-keyring'
+  | 'ikev2-keyring-peer'
+  | 'ikev2-profile'
+  | 'zbf-zone'
+  | 'zbf-class-map'
+  | 'zbf-policy-map'
+  | 'zbf-policy-class'
+  | 'zbf-zone-pair';
 export const CONFIG_MODES: Mode[] = [
   'config',
   'interface',
@@ -32,6 +50,7 @@ export const CONFIG_MODES: Mode[] = [
   'router',
   'address-family',
   'acl',
+  'ipv6-acl',
   'line',
   'vrf',
   'mst',
@@ -44,31 +63,63 @@ export const CONFIG_MODES: Mode[] = [
   'key-chain',
   'key-chain-key',
   'bfd-template',
+  'aaa-server',
+  'aaa-group',
+  'isakmp-policy',
+  'transform-set',
+  'ipsec-profile',
+  'ikev2-proposal',
+  'ikev2-policy',
+  'ikev2-keyring',
+  'ikev2-keyring-peer',
+  'ikev2-profile',
+  'zbf-zone',
+  'zbf-class-map',
+  'zbf-policy-map',
+  'zbf-policy-class',
+  'zbf-zone-pair',
 ];
 export const ALL_MODES: Mode[] = ['user', 'privileged', ...CONFIG_MODES];
 export const EXEC_MODES: Mode[] = ['user', 'privileged'];
 /** IOS global configuration commands: typed in a sub-mode, they run in and return to (config). */
 export const GLOBAL_ONLY =
-  /^(?:no )?(?:hostname|ip route|ipv6 route|ip name-server|ip domain|ip default-gateway|ip routing|ipv6 unicast-routing|ip multicast-routing|ip cef|ip ssh|ip http|ip dhcp (?:excluded-address|snooping(?: vlan|$))|ip nat (?:inside|outside) source|ip nat pool|ip sla schedule|access-list|enable (?:secret|password|algorithm-type)|username|banner|service |logging |snmp-server|ntp |clock |cdp run|lldp run|vtp |track |spanning-tree (?:mode|vlan|mst \d|loopguard default|portfast (?:default|bpduguard)|extend))/i;
+  /^(?:no )?(?:hostname|ip route|ipv6 route|ip name-server|ip domain|ip default-gateway|ip routing|ipv6 unicast-routing|ip multicast-routing|ip cef|ip ssh|ip scp|ip http|ip dhcp (?:excluded-address|snooping(?: vlan| information|$))|ip source binding|ip nat (?:inside|outside) source|ip nat pool|ip sla schedule|access-list|enable (?:secret|password|algorithm-type)|username|banner|service |logging (?!synchronous)|snmp-server|ntp |clock |cdp run|lldp run|vtp |track |aaa (?:new-model|authentication|authorization|accounting|group|session-id)|tacacs|radius|crypto (?:key|isakmp|ipsec|ikev2)|errdisable|login (?:block-for|on-|quiet|delay)|udld (?:enable|aggressive)|monitor session|port-channel load-balance|spanning-tree (?:mode|vlan|mst \d|loopguard default|portfast (?:default|bpduguard)|extend))/i;
 export interface Context {
   mode: Mode;
   port?: string;
   vlan?: number;
   pool?: string;
   ports?: string[];
-  router?: 'ospf' | 'bgp' | 'rip';
+  router?: 'ospf' | 'bgp' | 'rip' | 'eigrp' | 'ospfv3';
   process?: number;
   acl?: string;
   aclType?: 'standard' | 'extended';
   line?: 'console' | 'vty';
+  // "line con 0" / "line vty 0 4": the lines the sub-commands apply to.
+  lineRange?: { kind: 'con' | 'aux' | 'vty'; first: number; last: number };
+  // tacacs server / radius server / aaa group server sub-mode.
+  aaaKind?: 'tacacs' | 'radius';
+  // Multi-line "banner motd ^C" being typed: following lines are text until the delimiter.
+  banner?: { kind: 'motd' | 'login' | 'exec'; delimiter: string; text: string[] };
+  // "crypto ikev2 keyring" sub-mode: the "peer NAME" being configured.
+  peer?: string;
   vrf?: string;
   sla?: number;
   name?: string;
   sequence?: number;
   className?: string;
   auth?: { kind: 'enable'; attempts: number };
-  // Pending IOS reload dialog: "Save? [yes/no]" (save) then "Proceed with reload? [confirm]" (reload).
-  confirm?: { kind: 'save' | 'reload' };
+  // Pending IOS dialog: reload ("Save? [yes/no]" then "Proceed with reload? [confirm]") or a
+  // clear command waiting for [confirm] / "yes".
+  confirm?: {
+    kind:
+      'save' | 'reload' | 'clear-counters' | 'clear-logging' | 'clear-ospf' | 'delete-name' | 'delete-file';
+    port?: string;
+  };
+  // Set by "telnet"/"ssh" once the TCP connection is open; the terminal then runs the login.
+  vty?: VtyConnection;
+  // A session reached over Telnet/SSH: the server end of its TCP connection ("show users").
+  vtySession?: string;
 }
 export interface Command {
   pattern: RegExp;
@@ -191,7 +242,7 @@ export class CommandRegistry {
         return output;
       }
       if (GLOBAL_ONLY.test(input)) {
-        replaceContext(c, { mode: 'config' });
+        replaceContext(c, { mode: 'config', ...(work.banner ? { banner: work.banner } : {}) });
         return output;
       }
       for (const id of rest) command.run(match, e, d, { ...c, port: id, ports: undefined });
@@ -201,10 +252,12 @@ export class CommandRegistry {
     const output = command.run(match, e, d, c) ?? 'OK';
     // IOS executes a global command typed in a sub-mode in global configuration mode.
     if (mode !== 'config' && c.mode === mode && CONFIG_MODES.includes(mode) && GLOBAL_ONLY.test(input))
-      replaceContext(c, { mode: 'config' });
+      replaceContext(c, { mode: 'config', ...(c.banner ? { banner: c.banner } : {}) });
     return output;
   }
   execute(input: string, e: SimulationEngine, d: Device, c: Context): string {
+    // Lines typed inside a multi-line banner are text, not commands.
+    if (c.banner) return continueBanner(d, c, input);
     if (/^do\s+/i.test(input)) {
       if (terminalIdentity(d).host || !CONFIG_MODES.includes(c.mode))
         throw new Error('do is available in configuration modes only.');
@@ -237,7 +290,9 @@ export class CommandRegistry {
 export function parentContext(c: Context): Context | undefined {
   if (!CONFIG_MODES.includes(c.mode) || c.mode === 'config') return undefined;
   if (c.mode === 'policy-class') return { mode: 'policy-map', name: c.name };
+  if (c.mode === 'zbf-policy-class') return { mode: 'zbf-policy-map', name: c.name };
   if (c.mode === 'key-chain-key') return { mode: 'key-chain', name: c.name };
+  if (c.mode === 'ikev2-keyring-peer') return { mode: 'ikev2-keyring', name: c.name };
   if (c.mode === 'address-family')
     return c.vrf ? { mode: 'vrf', vrf: c.vrf } : { mode: 'router', router: c.router, process: c.process };
   return { mode: 'config' };

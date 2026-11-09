@@ -16,6 +16,7 @@ import {
 export { validateFirewall } from './firewall-validation';
 import { validateFirewallConfig } from './firewall-validation';
 import { syncFirewall } from './state-sync';
+import { logZbfDrop } from './zbf-policy';
 
 // Snapshots saved before protocol selection retain their TCP-only policy.
 export function firewallProtocols(config: Device['firewall']): ('TCP' | 'UDP' | 'ICMP')[] {
@@ -82,6 +83,29 @@ export function expireFirewall(engine: SimulationEngine, device: Device, id: str
   removeSession(engine, device, session, false);
   engine.emit('FIREWALL_EXPIRED', device.id, 'Sessão ' + id + ' expirada no relógio virtual.');
 }
+/**
+ * GRE and ESP between tunnel endpoints are not inspected statefully: without zones they pass, with
+ * zones each direction needs a zone-pair rule (intra-zone traffic passes).
+ */
+function permitTunnelTransport(
+  engine: SimulationEngine,
+  device: Device,
+  input: NetworkInterface,
+  output: NetworkInterface,
+  packet: Extract<Packet, { protocol: 'GRE' | 'ESP' }>
+) {
+  if (!device.firewall?.zonePolicy) return true;
+  const from = firewallZone(device, input.id),
+    to = firewallZone(device, output.id),
+    rule = firewallRule(device, input.id, output.id, packet.protocol, undefined, packet);
+  if (!from && !to) return true;
+  if (from && to && (rule ? rule.action !== 'deny' : from === to)) return true;
+  const message = `Firewall ${packet.protocol} em ${input.name}: sem regra de zona que permita ${packet.src} → ${packet.dst}.`;
+  device.firewall.dropped++;
+  engine.emit('FIREWALL_DENY', device.id, message, { port: input.id, packet });
+  engine.drop(device, message, input.id);
+  return false;
+}
 export function permitFirewall(
   engine: SimulationEngine,
   device: Device,
@@ -91,7 +115,15 @@ export function permitFirewall(
   original6?: Packet6
 ) {
   const config = device.firewall;
-  if (!config?.enabled || packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return true;
+  if (
+    !config?.enabled ||
+    packet.protocol === 'OSPF' ||
+    packet.protocol === 'EIGRP' ||
+    packet.protocol === 'VRRP'
+  )
+    return true;
+  if (packet.protocol === 'GRE' || packet.protocol === 'ESP')
+    return permitTunnelTransport(engine, device, input, output, packet);
   const zoned = !!config.zonePolicy;
   const isError = (p: FirewallPacket): p is IcmpPacket & { kind: 'unreachable' | 'time-exceeded' } =>
     isIcmpError(p as Packet);
@@ -137,12 +169,31 @@ export function permitFirewall(
         input.id,
         output.id,
         packet.protocol,
-        packet.protocol === 'ICMP' ? undefined : packet.destinationPort
+        packet.protocol === 'ICMP' ? undefined : packet.destinationPort,
+        packet as Packet
       )
     : undefined;
+  // IOS: traffic between two interfaces outside every zone is not subject to the zone firewall.
+  if (zoned && !from && !to) return inspect();
   if (zoned && (!from || !to)) return deny('interface sem zona; descarte padrão');
-  if (rule?.action === 'deny') return deny('regra ' + rule.sequence + ' ' + from + ' → ' + to);
-  if (rule?.action === 'permit' || (zoned && from === to && !rule) || (!zoned && trustedIn && trustedOut)) {
+  // The session table is checked before the zone-pair policy: return traffic of an inspected
+  // session passes even when a class of the reverse zone-pair would drop or pass it.
+  const established =
+    zoned &&
+    !isError(packet) &&
+    config.sessions.some(
+      (entry) =>
+        entry.expiresAt > engine.state.clock &&
+        sessionDirection(device, entry, input.id, output.id, packet) !== undefined
+    );
+  if (rule?.action === 'deny' && !established) {
+    if (rule.log && !original6) logZbfDrop(engine, device, rule, packet as Packet);
+    return deny('regra ' + rule.sequence + ' ' + from + ' → ' + to);
+  }
+  if (
+    !established &&
+    (rule?.action === 'permit' || (zoned && from === to && !rule) || (!zoned && trustedIn && trustedOut))
+  ) {
     engine.emit(
       'FIREWALL_PERMIT',
       device.id,
@@ -170,11 +221,13 @@ export function permitFirewall(
   }
   if (!zoned && !trustedIn && !trustedOut) return deny('trânsito entre interfaces não confiáveis');
   const existing = config.sessions.find(
-    (entry) => sessionDirection(entry, input.id, output.id, packet) !== undefined
+    (entry) => sessionDirection(device, entry, input.id, output.id, packet) !== undefined
   );
   // Validate a copy: rejected ACK/flags must never change the tracked state.
   let session = existing && structuredClone(existing);
-  let outbound = existing ? sessionDirection(existing, input.id, output.id, packet)! : zoned || trustedIn;
+  let outbound = existing
+    ? sessionDirection(device, existing, input.id, output.id, packet)!
+    : zoned || trustedIn;
   if (session && session.expiresAt <= engine.state.clock) {
     removeSession(engine, device, session);
     session = undefined;

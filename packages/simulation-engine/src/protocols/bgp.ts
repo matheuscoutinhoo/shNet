@@ -5,13 +5,15 @@ import type { Device, Snapshot } from '../model';
 import { tcpBytes, tcpFinished, type TcpConnection, TCP } from './tcp-model';
 import { openTcp, closeTcp, writeTcp } from './tcp';
 import { isUnicast } from './dhcp-config';
-import { ipNumber } from './ipv4';
+import { ipNumber, sameSubnet } from './ipv4';
 import {
   BGP,
   bgpConfigSchema,
   bgpMessageSchema,
+  bgpNeighborActive,
   bgpPrefixKey,
   type BgpMessage,
+  type BgpNeighbor,
   type BgpPeer,
   type BgpTimer,
 } from './bgp-model';
@@ -30,7 +32,15 @@ export function bgpConfig(device: Device) {
         routerId: state.routerId,
         ...(state.autoRouterId !== undefined ? { autoRouterId: state.autoRouterId } : {}),
         holdMs: state.holdMs,
+        ...(state.fastExternalFallover !== undefined
+          ? { fastExternalFallover: state.fastExternalFallover }
+          : {}),
+        ...(state.logNeighborChanges !== undefined ? { logNeighborChanges: state.logNeighborChanges } : {}),
+        ...(state.defaultIpv4Unicast !== undefined ? { defaultIpv4Unicast: state.defaultIpv4Unicast } : {}),
+        ...(state.addressFamily ? { addressFamily: true } : {}),
         networks: structuredClone(state.networks),
+        ...(state.redistribute?.length ? { redistribute: structuredClone(state.redistribute) } : {}),
+        ...(state.aggregates?.length ? { aggregates: structuredClone(state.aggregates) } : {}),
         neighbors: structuredClone(state.neighbors),
         peerGroups: structuredClone(state.peerGroups),
       }
@@ -174,6 +184,7 @@ function resetPeer(engine: SimulationEngine, device: Device, peer: BgpPeer, reas
   }
   device.bgp!.rib = device.bgp!.rib.filter((route) => route.peer !== peer.ip);
   peer.advertised = [];
+  delete peer.maximumPrefixWarned;
   delete peer.evpnAdvertised;
   delete peer.evpnImetAdvertised;
   withdrawEvpnPeer(engine, device, peer.ip);
@@ -189,12 +200,43 @@ function resetPeer(engine: SimulationEngine, device: Device, peer: BgpPeer, reas
   engine.emit('BGP_SESSION_CLOSED', device.id, `${peer.ip}: ${reason}.`);
   synchronize(engine, device);
 }
+// Changing these drops the session (IOS resets the neighbor); policy and descriptive settings
+// (route-maps, prefix-lists, next-hop-self, description...) apply to the established session.
+const SESSION_FIELDS = [
+  'remoteAs',
+  'updateSource',
+  'password',
+  'ebgpMultihop',
+  'disableConnectedCheck',
+  'passive',
+  'bfd',
+  'bfdStrict',
+] as const;
 export function configureBgp(engine: SimulationEngine, device: Device, input: unknown) {
   invalidateProtocolIndex(engine.state);
   const config = bgpConfigSchema.parse(input);
   validateBgpConfig(device, config);
-  if (device.bgp)
-    for (const peer of device.bgp.peers) resetPeer(engine, device, peer, 'Configuração alterada', 6);
+  const old = device.bgp;
+  const restart =
+    !old || old.asn !== config.asn || old.routerId !== config.routerId || old.enabled !== config.enabled;
+  const kept = new Set(
+    config.neighbors
+      .filter((neighbor) => {
+        const before = old?.neighbors.find((entry) => entry.ip === neighbor.ip);
+        return (
+          !restart &&
+          !!before &&
+          SESSION_FIELDS.every(
+            (field) => JSON.stringify(before[field]) === JSON.stringify(neighbor[field])
+          ) &&
+          bgpNeighborActive(old!, before) === bgpNeighborActive(config, neighbor)
+        );
+      })
+      .map((neighbor) => neighbor.ip)
+  );
+  if (old)
+    for (const peer of old.peers)
+      if (!kept.has(peer.ip)) resetPeer(engine, device, peer, 'Configuração alterada', 6);
   engine.state.queue = engine.state.queue.filter(
     ({ action }) => action.kind !== 'bgp-tick' || action.device !== device.id
   );
@@ -204,17 +246,20 @@ export function configureBgp(engine: SimulationEngine, device: Device, input: un
     ...config,
     token,
     tickAt,
-    rib: [],
-    routes: [],
-    peers: config.neighbors.map((neighbor) => ({
-      ip: neighbor.ip,
-      state: 'Idle',
-      changedAt: engine.state.clock,
-      retryAt: engine.state.clock,
-      sent: 0,
-      received: 0,
-      advertised: [],
-    })),
+    rib: old?.rib.filter((path) => kept.has(path.peer)) ?? [],
+    routes: restart ? [] : (old?.routes ?? []),
+    peers: config.neighbors.map(
+      (neighbor) =>
+        (kept.has(neighbor.ip) ? old!.peers.find((peer) => peer.ip === neighbor.ip) : undefined) ?? {
+          ip: neighbor.ip,
+          state: 'Idle',
+          changedAt: engine.state.clock,
+          retryAt: engine.state.clock,
+          sent: 0,
+          received: 0,
+          advertised: [],
+        }
+    ),
   };
   if (config.enabled) engine.schedule(0.001, { kind: 'bgp-tick', device: device.id, token });
   engine.emit(
@@ -223,13 +268,32 @@ export function configureBgp(engine: SimulationEngine, device: Device, input: un
     `BGP AS ${config.asn} ${config.enabled ? 'ativado' : 'desativado'}.`
   );
 }
-export function canListenBgp(device: Device, ip: string) {
+export function canListenBgp(device: Device, ip: string, snapshot: Snapshot) {
+  const neighbor = device.bgp?.neighbors.find((n) => n.ip === ip);
   return (
     device.bgp?.enabled &&
-    device.bgp.neighbors.some((neighbor) => neighbor.ip === ip) &&
+    !!neighbor &&
     !device.bgp.peers.find((p) => p.ip === ip)?.maximumPrefixExceeded &&
-    (!device.bgp.neighbors.find((n) => n.ip === ip)?.bfd ||
-      bfdPeerAvailable(device, ip, device.bgp.neighbors.find((n) => n.ip === ip)?.bfdStrict))
+    (!singleHopEbgp(device.bgp, neighbor) || !!connectedPort(snapshot, device, ip)) &&
+    (!neighbor.bfd || bfdPeerAvailable(device, ip, neighbor.bfdStrict))
+  );
+}
+/** eBGP without ebgp-multihop or disable-connected-check: IOS requires a directly connected peer. */
+export function singleHopEbgp(state: NonNullable<Device['bgp']>, neighbor: BgpNeighbor) {
+  return (
+    neighbor.remoteAs !== state.asn && (neighbor.ebgpMultihop ?? 1) <= 1 && !neighbor.disableConnectedCheck
+  );
+}
+/** The operational interface whose subnet contains the peer address, if any. */
+export function connectedPort(snapshot: Snapshot, device: Device, ip: string) {
+  return device.interfaces.find(
+    (p) =>
+      !p.vrf &&
+      p.ip &&
+      p.ip !== ip &&
+      p.prefix !== undefined &&
+      sameSubnet(p.ip, ip, p.prefix) &&
+      interfaceOperational(snapshot, device, p)
   );
 }
 export function bgpBfdDown(engine: SimulationEngine, device: Device, port: string, ip: string) {
@@ -244,9 +308,8 @@ function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer,
     device,
     device.bgp!.neighbors.find((neighbor) => neighbor.ip === peer.ip)!
   );
-  const withdrawn = peer.advertised
-    .filter((route) => !desired.some((entry) => bgpPrefixKey(entry) === bgpPrefixKey(route)))
-    .slice(0, 32);
+  const wanted = new Set(desired.map((entry) => bgpPrefixKey(entry)));
+  const withdrawn = peer.advertised.filter((route) => !wanted.has(bgpPrefixKey(route))).slice(0, 32);
   if (
     withdrawn.length &&
     send(engine, device, connection, {
@@ -256,9 +319,8 @@ function advertisements(engine: SimulationEngine, device: Device, peer: BgpPeer,
     })
   )
     peer.advertised = peer.advertised.filter((route) => !withdrawn.includes(route));
-  const announcements = desired
-    .filter((route) => !peer.advertised.some((entry) => JSON.stringify(entry) === JSON.stringify(route)))
-    .slice(0, 16);
+  const announced = new Set(peer.advertised.map((route) => JSON.stringify(route)));
+  const announcements = desired.filter((route) => !announced.has(JSON.stringify(route))).slice(0, 16);
   for (const path of announcements) {
     if (!send(engine, device, connection, { type: 'UPDATE', announcements: [path], withdrawn: [] })) break;
     peer.advertised = [
@@ -280,13 +342,26 @@ export function refreshBgp(engine: SimulationEngine) {
     if (!device.bgp?.enabled) continue;
     for (const peer of device.bgp.peers) {
       const connection = device.tcpConnections?.find((entry) => entry.id === peer.connection);
-      const route = bgpNextHop(device, peer.ip, engine.state);
-      const usable = route && interfaceOperational(engine.state, device, route.port);
+      const neighbor = device.bgp.neighbors.find((n) => n.ip === peer.ip);
+      const direct = !!neighbor && singleHopEbgp(device.bgp, neighbor);
+      const route = direct ? undefined : bgpNextHop(device, peer.ip, engine.state);
+      const usable = direct
+        ? !!connectedPort(engine.state, device, peer.ip)
+        : !!route && interfaceOperational(engine.state, device, route.port);
+      // Without fast-external-fallover a directly connected eBGP session waits for its hold timer.
+      const lost = connection && !usable && (!direct || device.bgp.fastExternalFallover !== false);
       if (
-        (!device.power || (connection && !connectionOpen(connection)) || (connection && !usable)) &&
+        (!device.power || (connection && !connectionOpen(connection)) || lost) &&
         (peer.state !== 'Idle' || connections(device, peer.ip).length)
       )
-        resetPeer(engine, device, peer, 'Energia, interface ou TCP indisponível');
+        resetPeer(
+          engine,
+          device,
+          peer,
+          lost && direct
+            ? 'Interface do vizinho eBGP caiu (fast-external-fallover)'
+            : 'Energia, interface ou TCP indisponível'
+        );
     }
     synchronize(engine, device);
   }
@@ -337,6 +412,10 @@ export function handleBgpTick(engine: SimulationEngine, action: BgpTimer) {
         peer.keepaliveAt = engine.state.clock + peer.holdMs! / 3;
     } else if (!active.length && !config.passive && peer.retryAt <= engine.state.clock) {
       peer.retryAt = engine.state.clock + BGP.retryMs;
+      if (singleHopEbgp(state, config) && !connectedPort(engine.state, device, peer.ip)) {
+        peerState(engine, device, peer, 'Active');
+        continue;
+      }
       try {
         const source = config.updateSource
           ? device.interfaces.find((p) => p.id === config.updateSource)
@@ -471,9 +550,11 @@ function receiveMessage(
     state.rib = state.rib.filter(
       (path) => path.peer !== peer.ip || bgpPrefixKey(path) !== bgpPrefixKey(prefix)
     );
-  for (const path of message.announcements) {
+  // IPv4 unicast was not negotiated with a deactivated neighbor.
+  const announcements = bgpNeighborActive(state, config) ? message.announcements : [];
+  for (const path of announcements) {
     if (
-      path.asPath.includes(state.asn) ||
+      path.asPath.filter((asn) => asn === state.asn).length > (config.allowasIn ?? 0) ||
       path.originatorId === state.routerId ||
       path.clusterList?.includes(state.routerId) ||
       !bgpPermits(config.importFilter, path)
@@ -495,7 +576,25 @@ function receiveMessage(
       peer: peer.ip,
       learnedAt: engine.state.clock,
     });
-    if (config.maximumPrefix && state.rib.filter((p) => p.peer === peer.ip).length > config.maximumPrefix) {
+    const limit = config.maximumPrefix;
+    if (!limit) continue;
+    const count = state.rib.filter((p) => p.peer === peer.ip).length,
+      threshold = Math.ceil((limit * (config.maximumPrefixThreshold ?? 75)) / 100);
+    if (count >= threshold && count <= limit && !peer.maximumPrefixWarned) {
+      peer.maximumPrefixWarned = true;
+      engine.emit(
+        'BGP_ROUTE_REJECTED',
+        device.id,
+        `%BGP-4-MAXPFX: No. of prefix received from ${peer.ip} (afi 0) reaches ${count}, max ${limit}`
+      );
+    }
+    if (count > limit) {
+      engine.emit(
+        'BGP_ROUTE_REJECTED',
+        device.id,
+        `%BGP-3-MAXPFXEXCEED: No. of prefix received from ${peer.ip} (afi 0): prefix count ${count} exceeds limit ${limit}`
+      );
+      if (config.maximumPrefixWarningOnly) continue;
       fail('Maximum-prefix limit exceeded', 6);
       peer.maximumPrefixExceeded = true;
       return;

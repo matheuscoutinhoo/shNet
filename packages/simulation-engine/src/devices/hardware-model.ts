@@ -57,6 +57,7 @@ export const consoleSessionsSchema = z
               'router',
               'address-family',
               'acl',
+              'ipv6-acl',
               'line',
               'vrf',
               'mst',
@@ -69,19 +70,67 @@ export const consoleSessionsSchema = z
               'key-chain',
               'key-chain-key',
               'bfd-template',
+              'aaa-server',
+              'aaa-group',
+              'isakmp-policy',
+              'transform-set',
+              'ipsec-profile',
+              'ikev2-proposal',
+              'ikev2-policy',
+              'ikev2-keyring',
+              'ikev2-keyring-peer',
+              'ikev2-profile',
+              'zbf-zone',
+              'zbf-class-map',
+              'zbf-policy-map',
+              'zbf-policy-class',
+              'zbf-zone-pair',
             ]),
             port: idSchema.optional(),
             vlan: z.number().int().min(1).max(4094).optional(),
             pool: z.string().max(50).optional(),
             ports: z.array(idSchema).max(48).optional(),
-            router: z.enum(['ospf', 'bgp', 'rip']).optional(),
+            router: z.enum(['ospf', 'bgp', 'rip', 'eigrp', 'ospfv3']).optional(),
             process: z.number().int().min(1).max(65535).optional(),
             acl: z.string().max(32).optional(),
             aclType: z.enum(['standard', 'extended']).optional(),
             line: z.enum(['console', 'vty']).optional(),
+            lineRange: z
+              .object({
+                kind: z.enum(['con', 'aux', 'vty']),
+                first: z.number().int().min(0).max(1023),
+                last: z.number().int().min(0).max(1023),
+              })
+              .strict()
+              .optional(),
+            aaaKind: z.enum(['tacacs', 'radius']).optional(),
+            peer: z.string().max(64).optional(),
+            banner: z
+              .object({
+                kind: z.enum(['motd', 'login', 'exec']),
+                delimiter: z.string().min(1).max(2),
+                text: z.array(z.string().max(512)).max(40),
+              })
+              .strict()
+              .optional(),
+            confirm: z
+              .object({
+                kind: z.enum([
+                  'save',
+                  'reload',
+                  'clear-counters',
+                  'clear-logging',
+                  'clear-ospf',
+                  'delete-name',
+                  'delete-file',
+                ]),
+                port: z.string().max(80).optional(),
+              })
+              .strict()
+              .optional(),
             vrf: z.string().max(32).optional(),
             sla: z.number().int().positive().optional(),
-            name: z.string().max(32).optional(),
+            name: z.string().max(64).optional(),
             sequence: z.number().int().min(1).max(65535).optional(),
             className: z.string().max(32).optional(),
             auth: z

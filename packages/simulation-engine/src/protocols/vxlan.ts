@@ -13,6 +13,7 @@ import { vxlanConfigSchema } from './vxlan-model';
 import { resolveUnderlay } from './underlay';
 import { sendWithArp } from './arp';
 import { interfaceOperational } from './layer3';
+import { defaultVlanName } from './interface-name';
 import { switchFrame } from './ethernet';
 import { evpnMac, validateEvpn } from './evpn';
 import { isUnicast } from './dhcp-config';
@@ -109,7 +110,7 @@ export function configureVxlan(e: SimulationEngine, d: Device, input: unknown) {
   }
   if (!d.vlans.some((v) => v.id === c.vlan)) {
     if (d.vlans.length >= 256) throw new Error('Limite de VLANs.');
-    d.vlans.push({ id: c.vlan, name: 'VLAN' + c.vlan });
+    d.vlans.push({ id: c.vlan, name: defaultVlanName(c.vlan) });
   }
   p.mtu = c.mtu;
   p.accessVlan = c.vlan;

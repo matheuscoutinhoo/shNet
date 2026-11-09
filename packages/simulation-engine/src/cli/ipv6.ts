@@ -3,6 +3,9 @@ import { ipv6Config } from '../protocols/ipv6-control';
 import { linkLocal6, network6, normalize6 } from '../protocols/ipv6-address';
 import { ALL_MODES, CONFIG_MODES, currentPort, type CommandRegistry } from './registry';
 import { interfaceName } from './operational';
+import { findInterface } from '../protocols/interface-name';
+import { showIpv6Interface, showIpv6InterfaceBrief, showIpv6Neighbors, showIpv6Route } from './ipv6-show';
+import { acl6InterfaceLines } from './acl6';
 function cidr(value: string) {
   const [ip, mask] = value.split('/'),
     prefix = Number(mask);
@@ -21,7 +24,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c),
-        down = m[3] && d.interfaces.find((p) => p.name.toLowerCase() === m[3].toLowerCase());
+        down = m[3] && findInterface(d, m[3]);
       if (m[3] && !down) throw new Error('Interface de delegação inexistente.');
       e.configureDhcp6Client(d.id, p.id, {
         enabled: !m[1],
@@ -36,7 +39,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     pattern: /^dhcp6 release (\S+)$/i,
     modes: ALL_MODES,
     run: (m, e, d) => {
-      const p = d.interfaces.find((p) => p.name.toLowerCase() === m[1].toLowerCase());
+      const p = findInterface(d, m[1]);
       if (!p) throw new Error('Interface DHCPv6 inexistente.');
       e.releaseDhcp6(d.id, p.id);
     },
@@ -153,7 +156,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
   });
   r.register({
     pattern:
-      /^ipv6 traffic-filter (in|out) (permit|deny) (any|echo-request|echo-reply|ndp|error) (\S+) (\S+)$/i,
+      /^ipv6 traffic-filter (in|out) (permit|deny) (any|echo-request|echo-reply|ndp|error|ospf) (\S+) (\S+)$/i,
     modes: ['interface'],
     run: (m, e, d, c) => {
       const p = currentPort(d, c),
@@ -202,8 +205,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
             '% Next hop ' + nextHop + ' is not on a connected IPv6 subnet; specify the exit interface.'
           );
       } else {
-        const name = interfaceName(m[4]).toLowerCase();
-        port = d.interfaces.find((p) => p.name.toLowerCase() === name);
+        port = findInterface(d, interfaceName(m[4]));
         if (!port) throw new Error('Interface não encontrada.');
         nextHop = '::';
       }
@@ -226,7 +228,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     modes: CONFIG_MODES,
     run: (m, e, d) => {
       const a = cidr(m[3]),
-        p = d.interfaces.find((p) => p.name.toLowerCase() === m[4].toLowerCase());
+        p = findInterface(d, m[4]);
       if (!p) throw new Error('Interface não encontrada.');
       e.configureRoute6(
         d.id,
@@ -246,7 +248,7 @@ export function registerIpv6Commands(r: CommandRegistry) {
     pattern: /^ping ipv6 (\S+)(?: interface (\S+))?(?: vrf (\S+))?(?: hop-limit (\d+))?(?: size (\d+))?$/i,
     modes: ALL_MODES,
     run: (m, e, d) => {
-      const p = m[2] ? d.interfaces.find((p) => p.name.toLowerCase() === m[2].toLowerCase()) : undefined;
+      const p = m[2] ? findInterface(d, m[2]) : undefined;
       if (m[2] && !p) throw new Error('Interface não encontrada.');
       return 'Probe IPv6 ' + e.ping6(d.id, m[1], Number(m[4] ?? 64), m[3], p?.id, Number(m[5] ?? 104));
     },
@@ -258,64 +260,37 @@ export function registerIpv6Commands(r: CommandRegistry) {
       Array.from({ length: 8 }, (_, i) => `${i + 1}: ${e.ping6(d.id, m[1], i + 1, m[2])}`).join('\n'),
   });
   r.register({
-    pattern: /^show ipv6 (interface|neighbors|route|probes)$/i,
+    pattern: /^show ipv6 route(?: vrf (\S+))?(?: (connected|local|static|ospf))?$/i,
+    syntax: ['show ipv6 route [vrf NAME] [connected|local|static|ospf]'],
     modes: ALL_MODES,
-    run: (m, e, d) => {
-      switch (m[1].toLowerCase()) {
-        case 'interface':
-          return (
-            d.interfaces
-              .filter((p) => p.ipv6)
-              .map(
-                (p) =>
-                  p.name +
-                  ' VRF=' +
-                  (p.vrf ?? 'default') +
-                  '\n' +
-                  p.ipv6!.addresses.map((a) => `${a.ip}/${a.prefix} ${a.origin} ${a.state}`).join('\n') +
-                  '\n' +
-                  p.ipv6!.routers.map((r) => `RA default via ${r.ip}`).join('\n')
-              )
-              .join('\n') || 'IPv6 não configurado'
-          );
-        case 'neighbors':
-          return (
-            [
-              ...(d.neighbors6?.map(
-                (n) => `${n.ip} ${n.mac} ${n.port} ${n.state ?? 'REACHABLE'} expires=${n.expiresAt}`
-              ) ?? []),
-              ...(d.resolutions6?.map((r) => `${r.ip} ${r.port} INCOMPLETE ${r.attempts}/3`) ?? []),
-            ].join('\n') || 'Sem vizinhos NDP'
-          );
-        case 'route':
-          return (
-            [
-              ...d.interfaces
-                .filter((p) => p.ipv6)
-                .flatMap((p) =>
-                  p
-                    .ipv6!.addresses.filter((a) => a.onLink && ['preferred', 'deprecated'].includes(a.state))
-                    .map(
-                      (a) => `C ${network6(a.ip, a.prefix)}/${a.prefix} ${p.name} VRF=${p.vrf ?? 'default'}`
-                    )
-                ),
-              ...(d.routes6 ?? []).map(
-                (r) => `S ${r.network}/${r.prefix} via ${r.nextHop} ${r.port} VRF=${r.vrf ?? 'default'}`
-              ),
-              ...d.interfaces.flatMap(
-                (p) => p.ipv6?.routers.map((r) => `RA ::/0 via ${r.ip} ${p.name}`) ?? []
-              ),
-            ].join('\n') || 'Sem rotas IPv6'
-          );
-        default:
-          return (
-            e.state.probes6
-              ?.filter((p) => p.device === d.id)
-              .map((p) => `${p.id} ${p.target} ${p.status} ${p.rtt ?? '-'} ms${p.mtu ? ' MTU=' + p.mtu : ''}`)
-              .join('\n') || 'Sem probes IPv6'
-          );
-      }
-    },
+    run: (m, e, d) => showIpv6Route(e, d, m[2]?.toLowerCase(), m[1]),
+  });
+  r.register({
+    pattern: /^show ipv6 interface brief$/i,
+    syntax: 'show ipv6 interface brief',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showIpv6InterfaceBrief(e, d),
+  });
+  r.register({
+    pattern: /^show ipv6 interface(?: (.+))?$/i,
+    syntax: 'show ipv6 interface [interface]',
+    modes: ALL_MODES,
+    run: (m, e, d) => showIpv6Interface(e, d, m[1]?.trim()),
+  });
+  r.register({
+    pattern: /^show ipv6 neighbors$/i,
+    syntax: 'show ipv6 neighbors',
+    modes: ALL_MODES,
+    run: (_m, e, d) => showIpv6Neighbors(e, d),
+  });
+  r.register({
+    pattern: /^show ipv6 probes$/i,
+    modes: ALL_MODES,
+    run: (_m, e, d) =>
+      e.state.probes6
+        ?.filter((p) => p.device === d.id)
+        .map((p) => `${p.id} ${p.target} ${p.status} ${p.rtt ?? '-'} ms${p.mtu ? ' MTU=' + p.mtu : ''}`)
+        .join('\n') || 'Sem probes IPv6',
   });
 }
 export function ipv6RunningConfig(d: Device) {
@@ -333,26 +308,27 @@ export function ipv6RunningConfig(d: Device) {
     ...(d.udp6Services?.map((s) => `${s.enabled ? '' : 'no '}service udp6 echo ${s.port}`) ?? []),
     ...(d.ipv6Routing ? ['ipv6 unicast-routing'] : []),
     ...d.interfaces
-      .filter((p) => p.ipv6)
+      .filter((p) => p.ipv6 || p.ipv6FilterIn || p.ipv6FilterOut)
       .flatMap((p) => [
         'interface ' + p.name,
-        ' ipv6 enable',
+        ...(p.ipv6 ? [' ipv6 enable'] : []),
         ...(p.dhcp6
           ? [
               ` ${p.dhcp6.enabled ? '' : 'no '}ipv6 dhcp client ${p.dhcp6.requestAddress ? (p.dhcp6.requestPrefix ? 'both' : 'address') : 'prefix'}${p.dhcp6.delegatePort ? ' delegate ' + d.interfaces.find((v) => v.id === p.dhcp6!.delegatePort)!.name : ''}${p.dhcp6.rapidCommit ? ' rapid-commit' : ''}`,
             ]
           : []),
-        ...(p.ipv6!.auto ? [' ipv6 address autoconfig'] : []),
-        ...p
-          .ipv6!.addresses.filter((a) => a.origin === 'static')
-          .map((a) => ` ipv6 address ${a.ip}/${a.prefix}`),
-        ...(p.ipv6!.ra?.prefixes.map(
+        ...(p.ipv6?.auto ? [' ipv6 address autoconfig'] : []),
+        ...(p.ipv6?.addresses
+          .filter((a) => a.origin === 'static')
+          .map((a) => ` ipv6 address ${a.ip}/${a.prefix}`) ?? []),
+        ...(p.ipv6?.ra?.prefixes.map(
           (a) =>
             ` ipv6 nd prefix ${a.network}/${a.prefix} valid ${a.validMs / 1000} preferred ${a.preferredMs / 1000}`
         ) ?? []),
+        ...acl6InterfaceLines(p),
         ...(['aclIn', 'aclOut'] as const).flatMap(
           (key) =>
-            p.ipv6![key]?.map(
+            p.ipv6?.[key]?.map(
               (r) =>
                 ` ipv6 traffic-filter ${key === 'aclIn' ? 'in' : 'out'} ${r.action} ${r.kind} ${r.source}/${r.sourcePrefix} ${r.destination}/${r.destinationPrefix}`
             ) ?? []

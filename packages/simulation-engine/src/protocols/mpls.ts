@@ -85,10 +85,10 @@ export function receiveMpls(e: SimulationEngine, d: Device, p: NetworkInterface,
     e.drop(d, 'MPLS não habilitado na entrada.', p.id, frame);
     return;
   }
-  let packet: Exclude<Packet, { protocol: 'OSPF' | 'VRRP' }>;
+  let packet: Exclude<Packet, { protocol: 'OSPF' | 'VRRP' | 'EIGRP' }>;
   try {
     const parsed = packetSchema.parse(JSON.parse(m.packet));
-    if (parsed.protocol === 'OSPF' || parsed.protocol === 'VRRP')
+    if (parsed.protocol === 'OSPF' || parsed.protocol === 'VRRP' || parsed.protocol === 'EIGRP')
       throw Error('MPLS: controle link-local não é transportado.');
     packet = parsed;
     if (m.bytes !== packet.bytes + 4 * m.labels.length) throw Error('MPLS: tamanho interno inválido.');

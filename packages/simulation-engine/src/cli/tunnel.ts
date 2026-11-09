@@ -3,6 +3,7 @@ import { sdwanConfig } from '../protocols/sdwan';
 import { tunnelConfig, tunnelMetrics } from '../protocols/tunnel';
 import { sdwanPolicySchema } from '../protocols/tunnel-model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { parseConfigJson, printSecret, printSecretsJson, readSecret } from './secrets';
 export function registerTunnelCommands(r: CommandRegistry) {
   r.register({
     pattern: /^no tunnel (\d+)$/i,
@@ -17,7 +18,7 @@ export function registerTunnelCommands(r: CommandRegistry) {
     pattern: /^tunnel configure (\{.+\})$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) => {
-      e.configureTunnel(d.id, JSON.parse(m[1]));
+      e.configureTunnel(d.id, parseConfigJson(m[1]));
     },
   });
   r.register({
@@ -30,7 +31,7 @@ export function registerTunnelCommands(r: CommandRegistry) {
     },
   });
   r.register({
-    pattern: /^sdwan site (\S+)(?: controller (\S+) underlay (\S+) key (\S+))?$/i,
+    pattern: /^sdwan site (\S+)(?: controller (\S+) underlay (\S+) key (?:([07]) )?(\S+))?$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) =>
       e.configureSdwan(d.id, {
@@ -39,14 +40,14 @@ export function registerTunnelCommands(r: CommandRegistry) {
         site: m[1],
         controller: m[2],
         underlay: m[3],
-        key: m[4],
+        key: m[5] === undefined ? undefined : readSecret(m[4], m[5]),
       }),
   });
   r.register({
     pattern: /^sdwan policy (\{.+\})$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) => {
-      const p = sdwanPolicySchema.parse(JSON.parse(m[1])),
+      const p = sdwanPolicySchema.parse(parseConfigJson(m[1])),
         c = sdwanConfig(d);
       e.configureSdwan(d.id, { ...c, policies: [...c.policies.filter((old) => old.name !== p.name), p] });
     },
@@ -67,7 +68,7 @@ export function registerTunnelCommands(r: CommandRegistry) {
   r.register({
     pattern: /^sdwan controller (\{.+\})$/i,
     modes: CONFIG_MODES,
-    run: (m, e, d) => e.configureSdwanController(d.id, JSON.parse(m[1])),
+    run: (m, e, d) => e.configureSdwanController(d.id, parseConfigJson(m[1])),
   });
   r.register({
     pattern: /^show (tunnels|sdwan)$/i,
@@ -99,16 +100,18 @@ export function tunnelRunningConfig(d: Device) {
   return [
     ...d.interfaces
       .filter((p) => p.tunnel)
-      .map((p) => 'tunnel configure ' + JSON.stringify({ ...tunnelConfig(p), key: '[configured]' })),
+      .map((p) => 'tunnel configure ' + printSecretsJson(d, tunnelConfig(p))),
     ...(d.sdwan
       ? [
-          'sdwan site ' + d.sdwan.site,
+          'sdwan site ' +
+            d.sdwan.site +
+            (d.sdwan.controller && d.sdwan.underlay && d.sdwan.key
+              ? ` controller ${d.sdwan.controller} underlay ${d.sdwan.underlay} key ${printSecret(d, d.sdwan.key)}`
+              : ''),
           ...d.sdwan.policies.map((p) => 'sdwan policy ' + JSON.stringify(p)),
           ...(!d.sdwan.enabled ? ['no service sdwan'] : []),
         ]
       : []),
-    ...(d.sdwanController
-      ? ['sdwan controller ' + JSON.stringify({ ...d.sdwanController, key: '[configured]' })]
-      : []),
+    ...(d.sdwanController ? ['sdwan controller ' + printSecretsJson(d, d.sdwanController)] : []),
   ];
 }

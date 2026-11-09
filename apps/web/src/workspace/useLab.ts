@@ -13,6 +13,8 @@ import { SnapshotHistory } from './snapshot-history';
 import { projectDrafts, storeProjectDraft, removeProjectDraft, type ProjectDraft } from './project-drafts';
 import simulationWorkerUrl from './simulation.worker.ts?execution-worker';
 let tabSession = '';
+// Workspace refresh interval while the simulation plays (deltas still apply as they arrive).
+const RENDER_MS = 200;
 export function useLab(project: Project, onExpired: () => void, userId = project.user_id ?? '') {
   const [engine] = useState(() => new SimulationEngine(project.topology));
   const [tick, setTick] = useState(0),
@@ -109,11 +111,19 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     };
   }, [owner, project.id, project.name, project.topology]);
   const workerGeneration = useRef(0);
+  // The running simulation advanced the lab since it was last marked for saving.
+  const simulationAdvanced = useRef(false);
   const refresh = useCallback(() => {
     editVersion.current++;
     setTick((t) => t + 1);
     setSaveStatus('Alterações pendentes');
   }, []);
+  /** Simulation progress is saved when playback stops (or the page is hidden), not on every frame. */
+  const settleSimulation = useCallback(() => {
+    if (!simulationAdvanced.current) return;
+    simulationAdvanced.current = false;
+    refresh();
+  }, [refresh]);
   const change = useCallback(
     <T>(
       action: (e: SimulationEngine) => T,
@@ -276,6 +286,11 @@ export function useLab(project: Project, onExpired: () => void, userId = project
       if (editVersion.current !== savedVersion.current && !conflict.current) void save().catch(() => {});
     }, 5000);
     const flush = () => {
+      // Hidden or closing: keep the simulation's progress like any other unsaved change.
+      if (simulationAdvanced.current) {
+        simulationAdvanced.current = false;
+        editVersion.current++;
+      }
       void persistDraft();
     };
     const hidden = () => {
@@ -319,6 +334,21 @@ export function useLab(project: Project, onExpired: () => void, userId = project
       initialClock = engine.state.clock,
       processed = 0,
       lastResponse = performance.now();
+    // Deltas apply as they arrive; the workspace re-renders at most every RENDER_MS during playback.
+    let renderedAt = 0,
+      renderTimer: ReturnType<typeof setTimeout> | undefined;
+    const render = () => {
+      renderTimer = undefined;
+      renderedAt = performance.now();
+      const elapsed = renderedAt - startedAt;
+      setPlaybackMetrics({
+        lagMs:
+          playbackMode === 'realtime' ? Math.max(0, initialClock + elapsed * speed - engine.state.clock) : 0,
+        eventsPerSecond: elapsed > 0 ? (processed * 1000) / elapsed : 0,
+        ready: true,
+      });
+      setTick((t) => t + 1);
+    };
     const requestStep = () => {
       if ((!ready || busy) && performance.now() - lastResponse > 30000) {
         setError(
@@ -354,15 +384,11 @@ export function useLab(project: Project, onExpired: () => void, userId = project
         applySimulationDelta(engine.state, message.delta);
         processed += message.delta.processed;
         const elapsed = performance.now() - startedAt;
-        setPlaybackMetrics({
-          lagMs:
-            playbackMode === 'realtime'
-              ? Math.max(0, initialClock + elapsed * speed - engine.state.clock)
-              : 0,
-          eventsPerSecond: elapsed > 0 ? (processed * 1000) / elapsed : 0,
-          ready: true,
-        });
-        refresh();
+        // Progress is marked for saving when playback stops (see settleSimulation), not per frame.
+        simulationAdvanced.current = true;
+        const wait = renderedAt + RENDER_MS - performance.now();
+        if (wait <= 0) render();
+        else renderTimer ??= setTimeout(render, wait);
         if (playbackMode === 'realtime' && initialClock + elapsed * speed - engine.state.clock > 100)
           requestStep();
       } else if (message.kind === 'error') {
@@ -381,9 +407,13 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     return () => {
       workerGeneration.current++;
       clearInterval(timer);
+      if (renderTimer !== undefined) clearTimeout(renderTimer);
       worker.terminate();
+      // Show the final state of the run.
+      setTick((t) => t + 1);
+      settleSimulation();
     };
-  }, [playing, speed, playbackMode, engine, refresh, simulationRevision]);
+  }, [playing, speed, playbackMode, engine, settleSimulation, simulationRevision]);
   useEffect(() => {
     let closed = false,
       socket: WebSocket | undefined,
@@ -492,6 +522,14 @@ export function useLab(project: Project, onExpired: () => void, userId = project
     restore,
     history,
     save,
+    /** An explicit Save also persists progress made by a still-running simulation. */
+    saveNow: () => {
+      if (simulationAdvanced.current) {
+        simulationAdvanced.current = false;
+        editVersion.current++;
+      }
+      return save();
+    },
     setName: (value: string) => {
       setNameState(value);
       nameRef.current = value;

@@ -12,10 +12,13 @@ import {
   type UdpPacket,
 } from '../model';
 import type { SimulationEngine } from '../core/engine';
+import { protocolDevices, invalidateProtocolIndex } from '../core/protocol-index';
 import { isUnicast } from './dhcp-config';
 import { sameSubnet, subnet } from './ipv4';
 import { sendDhcp } from './dhcp-wire';
 import { retainArpResolutions } from './arp';
+import { interfaceOperational } from './layer3';
+import { ipPhone } from './ip-phone';
 
 type ClientTimer = Extract<Action, { kind: 'dhcp-client-timer' }>;
 
@@ -122,19 +125,83 @@ function transmit(engine: SimulationEngine, device: Device, port: NetworkInterfa
   );
 }
 
-export function startDhcp(engine: SimulationEngine, device: Device, port: NetworkInterface, restarts = 0) {
+export function startDhcp(
+  engine: SimulationEngine,
+  device: Device,
+  port: NetworkInterface,
+  restarts = 0,
+  background = false
+) {
   if (device.type === 'switch' || port.mode !== 'routed')
     throw new Error('DHCP requer uma interface routed de endpoint.');
   if (device.dhcpServer?.pools.some((pool) => pool.port === port.id))
     throw new Error('A interface de um pool DHCP deve manter IPv4 estático.');
   if (port.dhcpRelay?.length) throw new Error('A interface DHCP relay deve manter IPv4 estático.');
+  // A background retry keeps the self-assigned address until a server answers.
+  const autoconfig = background && port.ip === port.dhcp?.autoconfig ? port.dhcp?.autoconfig : undefined;
   cancelTimers(engine, device, port);
-  clearAddress(engine, device, port);
+  if (!autoconfig) clearAddress(engine, device, port);
+  if (port.ipv4Mode !== 'dhcp') invalidateProtocolIndex(engine.state);
   port.ipv4Mode = 'dhcp';
-  port.dhcp = { status: 'selecting', transactionId: engine.id('dhcp'), attempts: 0, restarts };
+  port.dhcp = {
+    status: 'selecting',
+    transactionId: engine.id('dhcp'),
+    attempts: 0,
+    restarts,
+    ...(autoconfig ? { autoconfig } : {}),
+  };
   if (restarts)
     schedule(engine, device, port, 'retry', engine.state.clock + DHCP.retryMs, port.dhcp.transactionId);
   else transmit(engine, device, port);
+}
+/**
+ * "Obtain an address automatically": the interface waits in INIT until the device is powered and
+ * the link is up, then discovers, the way an operating system reacts to media connect.
+ */
+export function enableDhcpClient(engine: SimulationEngine, device: Device, port: NetworkInterface) {
+  if (port.ipv4Mode !== 'dhcp') invalidateProtocolIndex(engine.state);
+  cancelTimers(engine, device, port);
+  clearAddress(engine, device, port);
+  port.ipv4Mode = 'dhcp';
+  port.dhcp = { status: 'init', transactionId: engine.id('dhcp'), attempts: 0 };
+}
+export function refreshDhcpClients(engine: SimulationEngine) {
+  for (const device of protocolDevices(engine.state, 'dhcp-client'))
+    for (const port of device.interfaces) {
+      const client = port.dhcp;
+      if (!client || port.ipv4Mode !== 'dhcp') continue;
+      const up = device.power && interfaceOperational(engine.state, device, port);
+      if (client.status === 'init') {
+        if (up) startDhcp(engine, device, port);
+      } else if (!up && ['selecting', 'requesting', 'failed'].includes(client.status)) {
+        // Media disconnected before an address was obtained: discovery starts over on reconnect.
+        cancelTimers(engine, device, port);
+        clearAddress(engine, device, port);
+        port.dhcp = { status: 'init', transactionId: engine.id('dhcp'), attempts: 0 };
+      }
+    }
+}
+// Windows-style automatic private addressing: 169.254.1.0-169.254.254.255, derived from the MAC.
+// IP phones never self-assign an address; they keep rediscovering until a server answers.
+const autoconfigures = (device: Device) => device.type === 'pc' && !ipPhone(device);
+function apipaAddress(port: NetworkInterface) {
+  const bytes = port.mac.split(':').map((part) => parseInt(part, 16));
+  return '169.254.' + ((bytes[4] % 254) + 1) + '.' + bytes[5];
+}
+/** No server answered: keep retrying in the background; a PC meanwhile uses an APIPA address. */
+function discoveryFailed(engine: SimulationEngine, device: Device, port: NetworkInterface, reason: string) {
+  const client = port.dhcp!;
+  client.status = 'failed';
+  delete client.offer;
+  if (autoconfigures(device) && !port.ip) {
+    client.autoconfig = apipaAddress(port);
+    Object.assign(port, { ip: client.autoconfig, prefix: 16 });
+  }
+  const retryMs = ipPhone(device) ? DHCP.phoneRetryMs : DHCP.backgroundRetryMs;
+  schedule(engine, device, port, 'retry', engine.state.clock + retryMs, client.transactionId);
+  const apipa = client.autoconfig ? ` Endereço APIPA ${client.autoconfig}/16 em uso.` : '',
+    retry = ` Nova tentativa em ${retryMs / 1000} s.`;
+  engine.emit('DHCP_FAILED', device.id, reason + apipa + retry, { port: port.id });
 }
 
 export function renewDhcp(engine: SimulationEngine, device: Device, port: NetworkInterface) {
@@ -244,11 +311,11 @@ export function receiveDhcpClient(
         attempts: client.attempts,
         restarts,
       };
-      engine.emit(
-        'DHCP_FAILED',
-        device.id,
-        'DHCP NAK repetido: limite de reinícios atingido. Revise a configuração do servidor.',
-        { port: port.id }
+      discoveryFailed(
+        engine,
+        device,
+        port,
+        'DHCP NAK repetido: limite de reinícios atingido. Revise a configuração do servidor.'
       );
     } else {
       engine.emit(
@@ -291,6 +358,8 @@ export function receiveDhcpClient(
     expiresAt: acquiredAt + message.leaseMs,
   };
   if (port.dhcpConflictDetection && !client.lease) {
+    // The self-assigned address is given up before probing the offered one.
+    if (port.ip) clearAddress(engine, device, port);
     port.dhcp = {
       status: 'probing',
       transactionId: client.transactionId,
@@ -355,22 +424,20 @@ export function handleDhcpClientTimer(engine: SimulationEngine, action: ClientTi
     return;
   }
   if (action.timer === 'retry') {
-    if (
-      action.token !== client.transactionId ||
-      !['selecting', 'requesting', 'renewing', 'rebinding'].includes(client.status)
-    )
+    if (action.token !== client.transactionId) return;
+    if (client.status === 'failed') {
+      startDhcp(engine, device, port, 0, true);
       return;
-    if (client.attempts < DHCP.attempts) transmit(engine, device, port);
-    else if (!client.lease) {
-      client.status = 'failed';
-      delete client.offer;
-      engine.emit(
-        'DHCP_FAILED',
-        device.id,
-        'Sem resposta DHCP após quatro tentativas. Verifique serviço, pool, VLAN e conectividade.',
-        { port: port.id }
-      );
     }
+    if (!['selecting', 'requesting', 'renewing', 'rebinding'].includes(client.status)) return;
+    if (client.attempts < DHCP.attempts) transmit(engine, device, port);
+    else if (!client.lease)
+      discoveryFailed(
+        engine,
+        device,
+        port,
+        'Sem resposta DHCP após quatro tentativas. Verifique serviço, pool, VLAN e conectividade.'
+      );
     return;
   }
   if (action.token !== client.lease?.id) return;
@@ -452,8 +519,9 @@ export function observeDhcpArp(e: SimulationEngine, d: Device, p: NetworkInterfa
     'Conflito detectado por ARP; DECLINE para ' + lease.server + '.'
   );
   const restarts = (c.restarts ?? 0) + 1;
-  if (restarts >= DHCP.attempts)
+  if (restarts >= DHCP.attempts) {
     p.dhcp = { status: 'failed', transactionId: c.transactionId, attempts: 0, restarts };
-  else startDhcp(e, d, p, restarts);
+    discoveryFailed(e, d, p, 'Conflito de endereço em todas as ofertas DHCP.');
+  } else startDhcp(e, d, p, restarts);
   return true;
 }

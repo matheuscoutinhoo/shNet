@@ -7,6 +7,7 @@ import {
   validateSnapshot,
   TerminalSession,
 } from '../packages/simulation-engine/src';
+import { parseConfigJson, type7Encode } from '../packages/simulation-engine/src/cli/secrets';
 function lab() {
   const e = new SimulationEngine(makeTemplate('sdwan')),
     a = e.state.devices.find((d) => d.hostname === 'WAN-A')!,
@@ -97,7 +98,12 @@ describe('SD-WAN usa caminhos e políticas transportados pela rede', () => {
     expect(cli.execute('tunnel configure ' + JSON.stringify({ ...c, underlay: 'tun2' }))).toMatch(/^%/);
     expect(e.snapshot()).toEqual(prior);
     expect(cli.execute('do show tunnels')).toContain('Tunnel1');
-    expect(cli.execute('do show running-config')).toContain('[configured]');
-    expect(cli.execute('do show running-config')).not.toContain(c.key);
+    // IOS prints keys in clear text unless "service password-encryption" turns them into type 7.
+    expect(cli.execute('do show running-config')).toContain(c.key);
+    expect(cli.execute('service password-encryption')).toBe('');
+    const shown = cli.execute('do show running-config');
+    expect(shown).not.toContain(c.key);
+    expect(shown).toContain('"key":"7 ' + type7Encode(c.key) + '"');
+    expect(parseConfigJson(/tunnel configure (\{.+\})/.exec(shown)![1])).toMatchObject({ key: c.key });
   });
 });

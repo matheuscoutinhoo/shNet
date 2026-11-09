@@ -1,4 +1,5 @@
 import { ConfigChangesPanel } from './ConfigChangesPanel';
+import { ConfigImportPanel } from './ConfigImportPanel';
 import {
   deviceCapabilities,
   inspectorTabIds,
@@ -354,6 +355,7 @@ export function Inspector({
               <Terminal lab={lab} deviceId={device.id} />
             </Suspense>
             <ConfigChangesPanel lab={lab} device={device} />
+            <ConfigImportPanel lab={lab} device={device} />
           </>
         )}
         {activeTab === 'tables' && (
@@ -520,6 +522,19 @@ function Table({ title, headers, rows }: { title: string; headers: string[]; row
     </section>
   );
 }
+/** Allowed VLANs typed like IOS: "all", or a list with ranges (1,10,20-30). */
+function allowedVlanInput(value: string) {
+  const text = value.trim().toLowerCase();
+  if (!text || text === 'all') return [];
+  return [
+    ...new Set(
+      text.split(',').flatMap((part) => {
+        const [a, b] = part.split('-').map((n) => Number(n.trim()));
+        return b === undefined ? [a] : Array.from({ length: Math.max(0, b - a + 1) }, (_, i) => a + i);
+      })
+    ),
+  ];
+}
 function PortEditor({
   lab,
   device,
@@ -564,7 +579,8 @@ function PortEditor({
               mode: f.get('mode'),
               accessVlan: Number(f.get('accessVlan')),
               nativeVlan: Number(f.get('nativeVlan')),
-              allowedVlans: String(f.get('allowedVlans')).split(',').filter(Boolean).map(Number),
+              allowedVlans: allowedVlanInput(String(f.get('allowedVlans'))),
+              allVlansAllowed: String(f.get('allowedVlans')).trim().toLowerCase() === 'all',
               stpEdge: f.get('stpEdge') === 'on',
               stpCost: String(f.get('stpCost') ?? '').trim() ? Number(f.get('stpCost')) : undefined,
             }
@@ -730,7 +746,13 @@ function PortEditor({
               </label>
               <label>
                 VLANs permitidas
-                <input name="allowedVlans" defaultValue={port.allowedVlans.join(',')} placeholder="1,10,20" />
+                <input
+                  name="allowedVlans"
+                  defaultValue={
+                    port.allVlansAllowed && !port.allowedVlans.length ? 'all' : port.allowedVlans.join(',')
+                  }
+                  placeholder="all ou 1,10,20-30"
+                />
               </label>
             </div>
             <p className="muted">Crie as VLANs no terminal antes de encaminhar tráfego.</p>

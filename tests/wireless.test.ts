@@ -78,11 +78,12 @@ describe('Rádio, autenticação e associação wireless', () => {
     expect(e.state.events.some((v) => v.type === 'WIFI_AUTH_FAILED')).toBe(true);
     validateSnapshot(e.snapshot());
   });
-  it('SSID e canal distintos impedem associação; movimento reduz sinal e desassocia', () => {
+  it('o cliente varre todos os canais; SSID distinto impede associação; movimento reduz sinal e desassocia', () => {
     const { e, pc, ap } = topology();
     e.configureWireless(pc.id, { ...cfg('client'), channel: 6 });
     e.advanceTo(5000);
-    expect(pc.wireless?.phase).toBe('scanning');
+    // Like a real station, the client scans every channel and tunes to the AP (on channel 1).
+    expect(pc.wireless?.phase).toBe('associated');
     e.configureWireless(pc.id, { ...cfg('client'), ssid: 'Outra' });
     e.advanceTo(10000);
     expect(pc.wireless?.phase).toBe('scanning');
@@ -175,7 +176,13 @@ describe('Rádio, autenticação e associação wireless', () => {
     ])
       expect(t.execute(cmd)).not.toMatch(/^%/);
     expect(t.execute('show wireless radio')).toContain('canal=36');
-    expect(t.execute('show running-config')).toContain('key [configured]');
+    // Clear text by default (as IOS); type 7 once service password-encryption is enabled.
+    expect(t.execute('show running-config')).toContain('key Wireless-123 channel 36');
+    t.execute('conf t');
+    t.execute('service password-encryption');
+    t.execute('end');
+    expect(t.execute('show running-config')).toMatch(/key 7 \d{2}[0-9A-F]+ channel 36/);
+    expect(t.execute('show running-config')).not.toContain('Wireless-123');
     expect(d.logs.join(' ')).not.toContain('Wireless-123');
     expect(e.state.events.map((v) => v.reason).join(' ')).not.toContain('Wireless-123');
     t.execute('conf t');

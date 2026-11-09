@@ -1,6 +1,6 @@
 import { SimulationEngine } from '../core/engine';
 import { interfaceSchema, startupConfigurationSchema, type Device, type NetworkInterface } from '../model';
-import type { CommandRegistry } from './registry';
+import type { CommandRegistry, Context } from './registry';
 import { validateSnapshot } from '../core/validation';
 import { ospfConfigSchema } from '../protocols/ospf-model';
 import { ripConfigSchema } from '../protocols/rip-model';
@@ -9,143 +9,23 @@ import { configureDiscovery } from '../protocols/discovery';
 import { archiveRunning } from './ios-operations';
 import { applyDefaultSpanningTree } from '../protocols/stp';
 import { hardwareSpeed, negotiateLink } from '../links/physical';
+import { iosLogLine } from './ios-time';
+import { configBody } from './running-config';
 
-// Initial boot contract: core IOS switching/routing. Refuse an unrepresentable
-// feature before saving/reloading rather than silently losing its configuration.
-const deviceFields = new Set([
-  'id',
-  'type',
-  'profile',
-  'hostname',
-  'position',
-  'physicalPosition',
-  'power',
-  'interfaces',
-  'vlans',
-  'routes',
-  'routes6',
-  'vrfs',
-  'ipRouting',
-  'ipv6Routing',
-  'macTable',
-  'arpTable',
-  'pending',
-  'arpResolutions',
-  'logs',
-  'dropped',
-  'startupConfig',
-  'system',
-  'ospf',
-  'rip',
-  'bgp',
-  'accessLists',
-  'nat',
-  'spanningTree',
-  'multiSpanningTree',
-  'neighbors6',
-  'pending6',
-  'resolutions6',
-  'gateway',
-]);
-const portFields = new Set([
-  'id',
-  'name',
-  'mac',
-  'media',
-  'transceiver',
-  'adminUp',
-  'speed',
-  'duplex',
-  'mtu',
-  'mode',
-  'logical',
-  'loopback',
-  'installedNic',
-  'serial',
-  'console',
-  'vrf',
-  'accessVlan',
-  'nativeVlan',
-  'allowedVlans',
-  'ip',
-  'prefix',
-  'ipv4Mode',
-  'description',
-  'aclIn',
-  'aclOut',
-  'natRole',
-  'rx',
-  'tx',
-  'errors',
-  'stpEdge',
-  'stpCost',
-  'spanningTree',
-  'spanningInstances',
-  'mstBoundary',
-]);
-deviceFields.add('bootManaged');
-deviceFields.add('booted');
-deviceFields.add('bootStartedAt');
-deviceFields.add('operatingSystem');
-portFields.add('bpduGuard');
-portFields.add('errDisabled');
-deviceFields.add('discovery');
-deviceFields.add('hsrp');
-portFields.add('hsrpVersion');
-portFields.add('dhcpRelay');
-for (const key of ['voiceVlan', 'portSecurity', 'stpGuard', 'ospfAuthentication']) portFields.add(key);
-deviceFields.add('dhcpSnooping');
-deviceFields.add('loopGuardDefault');
-for (const field of ['iosSystem', 'ntp', 'networkClock', 'syslogClient', 'snmpAgent'])
-  deviceFields.add(field);
-deviceFields.add('monitoring');
-deviceFields.add('routingPolicy');
-deviceFields.add('mqc');
-portFields.add('qos');
-deviceFields.add('dot1xSystemAuthControl');
-portFields.add('authenticationControl');
-portFields.add('udld');
-portFields.add('bfd');
-deviceFields.add('enableSecret');
-for (const key of ['cdpEnabled', 'lldpTransmit', 'lldpReceive']) portFields.add(key);
-// EtherChannel and DHCP server configuration replay from running-config lines.
-for (const key of ['channel', 'aggregate', 'ospfSettings', 'speedAuto', 'maxSpeed']) portFields.add(key);
-deviceFields.add('dhcpServer');
-for (const key of [
-  'tcpConnections',
-  'arpResolutions',
-  'reassemblies',
-  'fragmentPending',
-  'dnsQueries',
-  'dnsCache',
-  'snmpQueries',
-  'remoteQueries',
-  'aaaQueries',
-  'networkAuth',
-  'udp6Records',
-  'consoleSessions',
-])
-  deviceFields.add(key);
+/** Simulated time an IOS router or switch takes to boot after "reload". */
+export const RELOAD_BOOT_MS = 60_000;
 const pick = (value: object, keys: string[]) =>
   Object.fromEntries(Object.entries(value).filter(([key]) => keys.includes(key)));
-function assertBootSupported(d: Device) {
-  if (d.routes.some((route) => route.metric !== 1))
-    throw new Error('Startup replay does not yet support custom static-route metrics.');
-  if (!['router', 'switch'].includes(d.type) || ['ap', 'mesh', 'wlc'].includes(d.profile ?? ''))
-    throw new Error('Startup lifecycle currently requires a core IOS routing/switching profile.');
-  const unsupported = Object.keys(d).filter(
-    (key) => d[key as keyof Device] !== undefined && !deviceFields.has(key)
-  );
-  for (const p of d.interfaces)
-    for (const key of Object.keys(p))
-      if (p[key as keyof NetworkInterface] !== undefined && !portFields.has(key))
-        unsupported.push(p.name + '.' + key);
-  if (unsupported.length)
-    throw new Error(
-      'Startup lifecycle does not yet support: ' +
-        unsupported.join(', ') +
-        '. Laboratory save/export still preserves the complete state.'
-    );
+const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
+/** IOS routers and switches keep a startup-config in NVRAM; appliances and radios do not. */
+export function startupCapable(d: Device) {
+  return ['router', 'switch'].includes(d.type) && !['ap', 'mesh', 'wlc'].includes(d.profile ?? '');
+}
+function assertStartupCapable(d: Device) {
+  if (!startupCapable(d)) throw new Error('This device has no startup-config (NVRAM).');
+}
+export function runningConfigText(e: SimulationEngine, d: Device, registry: CommandRegistry) {
+  return configBody(String(registry.execute('show running-config', e, d, { mode: 'privileged' }) ?? ''));
 }
 function emptyPort(input: Device['interfaces'][number], live?: NetworkInterface) {
   return interfaceSchema.parse({
@@ -167,24 +47,43 @@ function emptyPort(input: Device['interfaces'][number], live?: NetworkInterface)
     mode: input.logical || input.loopback ? 'routed' : 'access',
     accessVlan: 1,
     nativeVlan: 1,
-    allowedVlans: [1],
+    allowedVlans: [],
+    allVlansAllowed: true,
     description: '',
     rx: 0,
     tx: 0,
     errors: 0,
+    // Ports come up during the boot, which IOS logs (%LINK-3-UPDOWN ... up).
+    ...(input.logical || input.loopback ? {} : { lineProtocol: false }),
   });
 }
-function restore(draft: SimulationEngine, id: string, registry: CommandRegistry) {
-  const old = draft.device(id),
+/**
+ * Boots a device from NVRAM in place, as IOS does: hardware, identity and resource counters
+ * survive; the configuration is rebuilt only from startup-config and every runtime table,
+ * session and timer starts empty. Lines the parser rejects are reported like boot console
+ * errors instead of aborting the boot.
+ */
+function rebuild(e: SimulationEngine, id: string, registry: CommandRegistry): string[] {
+  const old = e.device(id),
     saved = old.startupConfig;
-  // Port-channels are recreated by their members' channel-group commands.
-  const aggregate = (p: { id: string; name: string }) =>
-    /^Port-channel\d+$/.test(p.name) || !!old.interfaces.find((port) => port.id === p.id)?.aggregate;
+  // Port-channels come back with their members' channel-group commands, tunnels and VXLAN
+  // interfaces with the global commands that define them.
+  const recreated = (p: { id: string; name: string }) => {
+    const live = old.interfaces.find((port) => port.id === p.id);
+    return (
+      /^Port-channel\d+$/.test(p.name) ||
+      (/^tun\d+$/.test(p.id) && /^Tunnel\d+$/.test(p.name)) ||
+      // IOS "interface TunnelN" is re-created by its own interface command.
+      /^tunnel-if-\d+$/.test(p.id) ||
+      (/^vx\d+$/.test(p.id) && /^Vxlan\d+$/.test(p.name)) ||
+      !!(live?.aggregate || live?.tunnel || live?.iosTunnel || live?.vxlan)
+    );
+  };
   const hardware = (saved?.interfaces ?? old.interfaces.filter((p) => !p.logical && !p.loopback)).filter(
-    (p) => !aggregate(p)
+    (p) => !recreated(p)
   );
   const physical = old.interfaces.filter(
-    (p) => !p.logical && !p.loopback && !aggregate(p) && !hardware.some((port) => port.id === p.id)
+    (p) => !p.logical && !p.loopback && !recreated(p) && !hardware.some((port) => port.id === p.id)
   );
   const interfaces = [...hardware, ...physical].map((p) =>
     emptyPort(
@@ -193,6 +92,11 @@ function restore(draft: SimulationEngine, id: string, registry: CommandRegistry)
     )
   );
   for (const p of interfaces) if (old.type === 'router' && !p.logical) p.mode = 'routed';
+  // vlan.dat lives on flash: the VLAN database and VTP state survive reloads and "write erase".
+  const vlanDat =
+    old.type === 'switch' && !old.iosSystem?.vlanDatDeleted
+      ? { vlans: structuredClone(old.vlans), vtp: old.iosSystem?.vtp }
+      : undefined;
   const blank: Device = {
     id: old.id,
     type: old.type,
@@ -200,13 +104,13 @@ function restore(draft: SimulationEngine, id: string, registry: CommandRegistry)
     hostname: old.type === 'router' ? 'Router' : 'Switch',
     bootManaged: true,
     booted: true,
-    bootStartedAt: draft.state.clock,
+    bootStartedAt: e.state.clock,
     operatingSystem: old.operatingSystem,
     position: old.position,
     physicalPosition: old.physicalPosition,
     power: old.power,
     interfaces,
-    vlans: [{ id: 1, name: 'default' }],
+    vlans: vlanDat?.vlans ?? [{ id: 1, name: 'default' }],
     routes: [],
     macTable: [],
     arpTable: [],
@@ -214,6 +118,10 @@ function restore(draft: SimulationEngine, id: string, registry: CommandRegistry)
     logs: [],
     dropped: 0,
     ...(saved ? { startupConfig: structuredClone(saved) } : {}),
+    // Physical installation (rack, power source, PoE hardware) is not configuration.
+    ...(old.infrastructure ? { infrastructure: structuredClone(old.infrastructure) } : {}),
+    ...(old.poeSupply ? { poeSupply: structuredClone(old.poeSupply) } : {}),
+    ...(old.poeDevice ? { poeDevice: structuredClone(old.poeDevice) } : {}),
     ...(old.system
       ? {
           system: {
@@ -221,58 +129,160 @@ function restore(draft: SimulationEngine, id: string, registry: CommandRegistry)
             work: 0,
             processed: 0,
             cpuPercent: 0,
-            nextReadyAt: draft.state.clock,
-            windowAt: draft.state.clock,
-            lastAt: draft.state.clock,
+            nextReadyAt: e.state.clock,
+            windowAt: e.state.clock,
+            lastAt: e.state.clock,
           },
         }
       : {}),
   };
-  draft.state.devices = draft.state.devices.map((d) => (d.id === id ? blank : d));
-  draft.state.queue = draft.state.queue.filter((q) => !('device' in q.action && q.action.device === id));
-  // Rebuild indexes after replacing the device, before commands resolve IDs.
-  draft.state = structuredClone(draft.state);
-  const d = draft.device(id),
-    context = { mode: 'config' as const };
-  if (old.operatingSystem) configureDiscovery(draft, d, {});
-  applyDefaultSpanningTree(draft, d);
-  for (const command of saved?.commands ?? []) {
-    if (!command.trim() || command.trim().startsWith('!')) continue;
-    if (/^(?:(?:do\s+)*(?:copy|write|reload|erase|startup))(?:\s|$)/i.test(command.trim()))
-      throw new Error('Invalid command in startup configuration.');
-    try {
-      registry.execute(command.trim(), draft, d, context);
-    } catch (error) {
-      throw new Error(
-        'startup-config line "' +
-          command.trim().slice(0, 80) +
-          '" was rejected: ' +
-          (error instanceof Error ? error.message : String(error)),
-        { cause: error }
-      );
+  const queueBefore = new Set(e.state.queue);
+  e.state.devices = e.state.devices.map((d) => (d.id === id ? blank : d));
+  e.state.queue = e.state.queue.filter((q) => !('device' in q.action && q.action.device === id));
+  e.invalidateIndexes();
+  // CDP runs by default on IOS; only non-default discovery settings are in the configuration.
+  if (old.operatingSystem || old.discovery) configureDiscovery(e, e.device(id), {});
+  applyDefaultSpanningTree(e, e.device(id));
+  const initial = { device: structuredClone(e.device(id)), queue: [...e.state.queue] };
+  const touched = new Set([id]);
+  for (const link of e.state.links)
+    if (link.a.device === id || link.b.device === id) {
+      touched.add(link.a.device);
+      touched.add(link.b.device);
     }
+  const reset = () => {
+    e.state.devices = e.state.devices.map((d) => (d.id === id ? structuredClone(initial.device) : d));
+    e.state.queue = [...initial.queue];
+    e.invalidateIndexes();
+  };
+  const finish = () => {
+    // Interfaces created during replay (e.g. Port-channels) return to their saved position.
+    const order = new Map((saved?.interfaces ?? old.interfaces).map((p, index) => [p.id, index]));
+    e.device(id).interfaces.sort((a, b) => (order.get(a.id) ?? order.size) - (order.get(b.id) ?? order.size));
+    for (const link of e.state.links)
+      if (link.a.device === id || link.b.device === id) negotiateLink(e.state, link);
+    e.invalidateIndexes();
+    e.refreshSpanningTree();
+    e.refreshBgp();
+    validateSnapshot(e.state, {
+      changed: { devices: touched, queue: e.state.queue.filter((q) => !queueBefore.has(q)) },
+    });
+  };
+  // Lines are normally only rolled back when the parser rejects them. If the result is still
+  // inconsistent, the boot is replayed checking every line, so only the offending ones are lost.
+  let rejected = e.deferRefresh(() => replay(e, id, registry, saved, false, vlanDat?.vtp));
+  try {
+    finish();
+    return rejected;
+  } catch {
+    reset();
   }
-  const protocols = saved?.protocols;
-  if (protocols?.accessLists) for (const acl of protocols.accessLists) draft.configureAcl(id, acl);
-  if (protocols?.nat) draft.configureNat(id, protocols.nat);
-  if (protocols?.ospf) draft.configureOspf(id, protocols.ospf);
-  if (protocols?.rip) draft.configureRip(id, protocols.rip);
-  if (protocols?.bgp) draft.configureBgp(id, protocols.bgp);
-  // Interfaces created during replay (e.g. Port-channels) return to their saved position.
-  const order = new Map((saved?.interfaces ?? old.interfaces).map((p, index) => [p.id, index]));
-  draft
-    .device(id)
-    .interfaces.sort((a, b) => (order.get(a.id) ?? order.size) - (order.get(b.id) ?? order.size));
-  for (const link of draft.state.links)
-    if (link.a.device === id || link.b.device === id) negotiateLink(draft.state, link);
-  draft.refreshSpanningTree();
-  draft.refreshBgp();
-  validateSnapshot(draft.state);
+  rejected = replay(e, id, registry, saved, true, vlanDat?.vtp);
+  try {
+    finish();
+    return rejected;
+  } catch (error) {
+    reset();
+    finish();
+    return [
+      ...rejected,
+      `% startup-config could not be applied (${errorText(error)}); booted with defaults.`,
+    ];
+  }
 }
-export function saveStartup(e: SimulationEngine, d: Device, registry: CommandRegistry) {
-  assertBootSupported(d);
-  const commands = registry.execute('show running-config', e, d, { mode: 'privileged' }).split('\n');
-  const interfaces = d.interfaces.map((p) => ({
+function replay(
+  e: SimulationEngine,
+  id: string,
+  registry: CommandRegistry,
+  saved: Device['startupConfig'],
+  strict: boolean,
+  vtp?: NonNullable<Device['iosSystem']>['vtp']
+) {
+  const context: Context = { mode: 'config' };
+  const rejected: string[] = [];
+  // A rejected line must not leave a half-applied change behind.
+  const transaction = (label: string, change: () => void) => {
+    const device = structuredClone(e.device(id)),
+      queue = [...e.state.queue];
+    try {
+      change();
+      if (strict) {
+        e.refreshSpanningTree();
+        e.refreshBgp();
+        const before = new Set(queue);
+        validateSnapshot(e.state, {
+          changed: { devices: new Set([id]), queue: e.state.queue.filter((q) => !before.has(q)) },
+        });
+      }
+    } catch (error) {
+      e.state.devices = e.state.devices.map((d) => (d.id === id ? device : d));
+      e.state.queue = queue;
+      e.invalidateIndexes();
+      rejected.push(`${label}\n% ${errorText(error)}`);
+    }
+  };
+  (saved?.commands ?? []).forEach((raw, index) => {
+    const command = raw.trim(),
+      label = `line ${index + 1}: ${command.slice(0, 120)}`;
+    // An open multi-line banner takes its text verbatim, blank and "!" lines included.
+    if (context.banner) {
+      transaction(label, () => registry.execute(raw, e, e.device(id), context));
+      return;
+    }
+    if (!command || command.startsWith('!')) return;
+    if (/^(?:version \S+|end|Building configuration\.\.\.|Current configuration : \d+ bytes)$/i.test(command))
+      return;
+    if (/^(?:(?:do\s+)*(?:copy|write|reload|erase|startup))(?:\s|$)/i.test(command)) {
+      rejected.push(`${label}\n% Exec command ignored in startup-config.`);
+      return;
+    }
+    // A command at the left margin follows the previous block's sub-commands: it is global again
+    // (saved files from older versions close blocks with "exit" themselves).
+    if (!/^\s/.test(raw) && context.mode !== 'config' && !/^exit$/i.test(command)) {
+      for (const key of Object.keys(context)) Reflect.deleteProperty(context, key);
+      context.mode = 'config';
+    }
+    transaction(label, () => registry.execute(command, e, e.device(id), context));
+  });
+  const protocols = saved?.protocols;
+  for (const acl of protocols?.accessLists ?? [])
+    transaction('ip access-list ' + acl.name, () => e.configureAcl(id, acl));
+  if (protocols?.nat) transaction('ip nat', () => e.configureNat(id, protocols.nat));
+  if (protocols?.ospf) transaction('router ospf', () => e.configureOspf(id, protocols.ospf));
+  if (protocols?.rip) transaction('router rip', () => e.configureRip(id, protocols.rip));
+  if (protocols?.bgp) transaction('router bgp', () => e.configureBgp(id, protocols.bgp));
+  // Private configuration (RSA keys, SNMPv3 users) and vlan.dat (VTP) are not in the text.
+  const hidden = protocols?.privateConfig;
+  if (hidden) {
+    const s = (e.device(id).iosSystem ??= {});
+    if (hidden.rsaModulus) s.rsaModulus = hidden.rsaModulus;
+    if (hidden.snmpUsers?.length) (s.snmp ??= {}).users = structuredClone(hidden.snmpUsers);
+  }
+  const database = vtp ?? hidden?.vtp;
+  if (database && !e.device(id).iosSystem?.vtp)
+    (e.device(id).iosSystem ??= {}).vtp = structuredClone(database);
+  return rejected;
+}
+/** The OSPF process as it starts after a reload: a configured router ID is in effect. */
+function savedOspf(state: NonNullable<Device['ospf']>) {
+  const config = ospfConfigSchema.parse(pick(state, Object.keys(ospfConfigSchema.shape)));
+  if (config.pendingRouterId) config.routerId = config.pendingRouterId;
+  delete config.pendingRouterId;
+  return config;
+}
+/** NVRAM data IOS keeps outside the config text: RSA keys, SNMPv3 users and vlan.dat (VTP). */
+function privateConfig(d: Device) {
+  const s = d.iosSystem,
+    hidden = {
+      ...(s?.rsaModulus ? { rsaModulus: s.rsaModulus } : {}),
+      ...(s?.snmp?.users?.length ? { snmpUsers: structuredClone(s.snmp.users) } : {}),
+      ...(s?.vtp ? { vtp: structuredClone(s.vtp) } : {}),
+    };
+  return Object.keys(hidden).length ? hidden : undefined;
+}
+/** The hardware NVRAM records with the configuration; boot re-creates the interfaces from it. */
+function nvramInterfaces(d: Device) {
+  return d.interfaces.map((p) => ({
     id: p.id,
     name: p.name,
     mac: p.mac,
@@ -284,51 +294,122 @@ export function saveStartup(e: SimulationEngine, d: Device, registry: CommandReg
     serial: p.serial,
     console: p.console,
   }));
+}
+/** "write memory": NVRAM receives the running-config text, exactly what show running-config prints. */
+export function saveStartup(e: SimulationEngine, d: Device, registry: CommandRegistry) {
+  assertStartupCapable(d);
+  const commands = runningConfigText(e, d, registry).split('\n');
+  const interfaces = nvramInterfaces(d);
   const protocols = {
-    ospf: d.ospf ? ospfConfigSchema.parse(pick(d.ospf, Object.keys(ospfConfigSchema.shape))) : undefined,
+    ospf: d.ospf ? savedOspf(d.ospf) : undefined,
     rip: d.rip ? ripConfigSchema.parse(pick(d.rip, Object.keys(ripConfigSchema.shape))) : undefined,
     bgp: bgpConfig(d),
     nat: d.nat
-      ? pick(d.nat, ['enabled', 'hairpin', 'algSip', 'statics', 'pools', 'interfaceRules'])
+      ? pick(d.nat, [
+          'enabled',
+          'hairpin',
+          'algSip',
+          'statics',
+          'portStatics',
+          'pools',
+          'iosPools',
+          'poolRules',
+          'interfaceRules',
+        ])
       : undefined,
     accessLists: d.accessLists?.map((acl) => ({
       ...acl,
       implicitDrops: 0,
-      rules: acl.rules.map((rule) => ({ ...rule, hits: 0 })),
+      // Counters and the ACL log rate-limit state are runtime data, not configuration.
+      rules: acl.rules.map((rule) => {
+        const saved = { ...rule, hits: 0 };
+        delete saved.loggedAt;
+        delete saved.logPending;
+        return saved;
+      }),
     })),
+    privateConfig: privateConfig(d),
   };
-  const saved = startupConfigurationSchema.parse({ version: 1, interfaces, commands, protocols });
-  const draft = new SimulationEngine(e.snapshot());
-  draft.device(d.id).startupConfig = saved;
-  restore(draft, d.id, registry);
-  const restored = registry.execute('show running-config', draft, draft.device(d.id), { mode: 'privileged' });
-  if (restored !== commands.join('\n'))
-    throw new Error('Configuration cannot yet be reproduced by startup replay. Save refused.');
-  d.startupConfig = saved;
+  d.startupConfig = startupConfigurationSchema.parse({ version: 1, interfaces, commands, protocols });
   d.bootManaged = true;
   if (d.iosSystem?.archive?.writeMemory) archiveRunning(e, d, registry);
   return 'Building configuration...\n[OK]';
 }
+/**
+ * Boot from NVRAM (power-on or the end of a reload). Returns the startup-config lines the
+ * parser rejected, which IOS prints on the console while booting.
+ */
 export function reloadStartup(e: SimulationEngine, d: Device, registry: CommandRegistry) {
-  if (!['router', 'switch'].includes(d.type) || ['ap', 'mesh', 'wlc'].includes(d.profile ?? ''))
-    throw new Error('Reload currently requires a core routing/switching profile.');
-  const draft = new SimulationEngine(e.snapshot());
-  restore(draft, d.id, registry);
-  draft.emit(
+  assertStartupCapable(d);
+  const rejected = rebuild(e, d.id, registry);
+  e.emit(
     'CONFIG_CHANGED',
     d.id,
-    'Device reloaded from startup configuration; runtime sessions and counters reset.'
+    rejected.length
+      ? 'Inicializado a partir da startup-config; ' + rejected.length + ' linha(s) rejeitada(s).'
+      : 'Inicializado a partir da startup-config; sessões e contadores reiniciados.'
   );
-  e.state = draft.state;
-  return 'Reload complete.';
+  e.device(d.id).bootLog = rejected.slice(0, 64);
+  return rejected;
+}
+/**
+ * "copy tftp: startup-config" followed by a reload, without the boot delay: the text becomes the
+ * startup-config and the device boots from it. Returns the lines the parser rejected.
+ */
+export function bootFromText(e: SimulationEngine, d: Device, registry: CommandRegistry, text: string) {
+  assertStartupCapable(d);
+  if (!d.power) throw new Error('Ligue o equipamento antes de importar uma configuração.');
+  const commands = text.replace(/\r\n?/g, '\n').split('\n');
+  if (commands.length > 4096) throw new Error('A configuração importada aceita até 4096 linhas.');
+  const hidden = privateConfig(d);
+  d.startupConfig = startupConfigurationSchema.parse({
+    version: 1,
+    interfaces: nvramInterfaces(d),
+    commands,
+    ...(hidden ? { protocols: { privateConfig: hidden } } : {}),
+  });
+  d.bootManaged = true;
+  return reloadStartup(e, d, registry);
+}
+/**
+ * "reload": the device goes down immediately (its links drop and neighbors react), boots for
+ * RELOAD_BOOT_MS of simulated time and comes back with its startup-config.
+ */
+export function beginReload(e: SimulationEngine, d: Device) {
+  assertStartupCapable(d);
+  e.setDevicePower(d.id, false);
+  const token = e.id('reload'),
+    at = e.state.clock + RELOAD_BOOT_MS;
+  e.device(d.id).reloading = { token, at };
+  e.scheduleAt(at, { kind: 'device-boot', device: d.id, token });
+  e.emit(
+    'LINK_DOWN',
+    d.id,
+    'Recarga solicitada pelo console; o equipamento reinicia em ' + RELOAD_BOOT_MS / 1000 + ' s.'
+  );
+  return (
+    iosLogLine(e.state.clock, 'SYS-5-RELOAD', 'Reload requested by console. Reload Reason: Reload Command.') +
+    '\nBooting from startup-config: the device returns in ' +
+    RELOAD_BOOT_MS / 1000 +
+    ' s of simulated time.'
+  );
+}
+export function completeReload(e: SimulationEngine, device: string, token: string) {
+  const d = e.state.devices.find((entry) => entry.id === device);
+  if (!d || d.reloading?.token !== token) return;
+  delete d.reloading;
+  e.setDevicePower(device, true);
 }
 /** True when booting from startup-config would lose part of the current running-config. */
 export function reloadLosesChanges(e: SimulationEngine, d: Device, registry: CommandRegistry) {
-  if (!['router', 'switch'].includes(d.type) || ['ap', 'mesh', 'wlc'].includes(d.profile ?? ''))
-    throw new Error('Reload currently requires a core routing/switching profile.');
-  const draft = new SimulationEngine(e.snapshot());
-  restore(draft, d.id, registry);
-  const show = (engine: SimulationEngine) =>
-    registry.execute('show running-config', engine, engine.device(d.id), { mode: 'privileged' });
-  return show(draft) !== show(e);
+  assertStartupCapable(d);
+  const running = runningConfigText(e, d, registry);
+  if (d.startupConfig) return running !== d.startupConfig.commands.join('\n');
+  // Without NVRAM contents the device would boot blank: compare with a blank boot of a copy.
+  const scratch = new SimulationEngine();
+  scratch.state.clock = e.state.clock;
+  scratch.state.sequence = e.state.sequence;
+  scratch.state.devices = [structuredClone(d)];
+  rebuild(scratch, d.id, registry);
+  return running !== runningConfigText(scratch, scratch.device(d.id), registry);
 }

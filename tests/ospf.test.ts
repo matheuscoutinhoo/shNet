@@ -72,7 +72,7 @@ describe('OSPF pela rede simulada', () => {
     engine.advanceTo(1000);
     expect(router.ospf!.neighbors.some((entry) => entry.port === 'p0')).toBe(false);
     expect(cli.execute('do show ip route')).toContain('[110/31] via 10.0.13.3');
-    expect(cli.execute('do show ip ospf database')).toContain('router');
+    expect(cli.execute('do show ip ospf database')).toContain('Router Link States (Area 0)');
     expect(cli.execute('do show running-config')).toContain('router-id 1.1.1.1');
     const client = engine.state.devices.find((device) => device.type === 'pc')!;
     engine.httpGet(client.id, '192.168.20.10');

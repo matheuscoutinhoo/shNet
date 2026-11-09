@@ -1,4 +1,5 @@
 import { permitDhcpSnooping } from './dhcp-snooping';
+import { trunkAllows } from './trunk';
 import { noteCacheExpiry } from '../core/cache-expiry';
 import { evpnPort, observeEvpnFrame } from './evpn';
 import { BROADCAST, LIMITS, type Device, type Frame, type NetworkInterface } from '../model';
@@ -7,6 +8,8 @@ import { receiveSvi, interfaceOperational } from './layer3';
 import { spanningPortState } from './stp-scope';
 import { replyEvpnArp } from './evpn-arp';
 import { permitPortSecurity } from './port-security';
+import { permitStormControl } from './storm-control';
+import { mirrorFrame, spanDestination } from './span';
 export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterface, frame: Frame) {
   const vlan =
     input.mode === 'trunk'
@@ -14,6 +17,13 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
       : input.voiceVlan !== undefined && frame.vlan === input.voiceVlan
         ? input.voiceVlan
         : input.accessVlan;
+  if (d.iosSystem?.monitorSessions) {
+    if (spanDestination(d, input)) {
+      e.drop(d, 'SPAN destination port: received traffic is not switched.', input.id, frame);
+      return;
+    }
+    mirrorFrame(e, d, input, frame, vlan, 'rx');
+  }
   const tree = spanningPortState(d, input, vlan);
   if (tree?.state === 'discarding') {
     e.drop(d, 'STP: porta de entrada em discarding; frame de dados bloqueado.', input.id, frame);
@@ -21,12 +31,13 @@ export function switchFrame(e: SimulationEngine, d: Device, input: NetworkInterf
   }
   if (
     (input.mode === 'access' && frame.vlan !== undefined && frame.vlan !== input.voiceVlan) ||
-    (input.mode === 'trunk' && !input.allowedVlans.includes(vlan)) ||
+    (input.mode === 'trunk' && !trunkAllows(input, vlan)) ||
     !d.vlans.some((v) => v.id === vlan)
   ) {
     e.drop(d, 'Frame rejeitado: VLAN não permitida na porta de entrada.', input.id, frame);
     return;
   }
+  if (!permitStormControl(e, d, input, frame)) return;
   if (!permitDhcpSnooping(e, d, input, frame, vlan)) return;
   if (!permitPortSecurity(e, d, input, frame)) return;
   d.macTable = d.macTable.filter(
@@ -59,6 +70,7 @@ export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vla
       known = undefined;
     }
   }
+  const monitored = !!d.iosSystem?.monitorSessions;
   const candidates = d.interfaces.filter(
     (p) =>
       (p.id !== input || (p.media === 'wifi' && !p.meshPeer)) &&
@@ -67,7 +79,8 @@ export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vla
       p.mode !== 'routed' &&
       p.adminUp &&
       (!spanningPortState(d, p, vlan) || spanningPortState(d, p, vlan)?.state === 'forwarding') &&
-      (p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan || p.voiceVlan === vlan)
+      (p.mode === 'trunk' ? trunkAllows(p, vlan) : p.accessVlan === vlan || p.voiceVlan === vlan) &&
+      !(monitored && spanDestination(d, p))
   );
   const ports = known ? candidates.filter((p) => p.id === known.port) : candidates;
   if (!known)
@@ -84,5 +97,6 @@ export function switchTransmit(e: SimulationEngine, d: Device, frame: Frame, vla
     const tagged = (port.mode === 'trunk' && port.nativeVlan !== vlan) || port.voiceVlan === vlan;
     const wire = { ...frame, vlan: tagged ? vlan : undefined, pcp: tagged ? frame.pcp : undefined };
     e.sendFrame(d.id, port.id, wire);
+    if (monitored) mirrorFrame(e, d, port, wire, vlan, 'tx');
   }
 }

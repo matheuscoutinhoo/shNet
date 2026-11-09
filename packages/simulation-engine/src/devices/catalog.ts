@@ -57,7 +57,9 @@ export function createDevice(
     mode: type === 'switch' ? 'access' : 'routed',
     accessVlan: 1,
     nativeVlan: 1,
-    allowedVlans: [1],
+    // IOS default "switchport trunk allowed vlan all".
+    allowedVlans: [],
+    allVlansAllowed: true,
     description: '',
     rx: 0,
     tx: 0,

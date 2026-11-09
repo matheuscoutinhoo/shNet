@@ -317,7 +317,7 @@ export function enterpriseDatacenterTemplate() {
       networks: [],
       neighbors: leaves
         .filter((d) => d !== leaf)
-        .map((d) => ({ ip: d.interfaces[1].ip!, remoteAs: 65100 + leaves.indexOf(d) })),
+        .map((d) => ({ ip: d.interfaces[1].ip!, remoteAs: 65100 + leaves.indexOf(d), ebgpMultihop: 2 })),
     });
   }
   const dcgw = dev('edge', 'DC-GW', 1920, 700);
@@ -411,6 +411,8 @@ export function enterpriseDatacenterTemplate() {
           ip: d.interfaces.find((p) => p.loopback)!.ip!,
           remoteAs: 65100 + leaves.indexOf(d),
           updateSource: lo.id,
+          // Loopback-to-loopback eBGP crosses a spine, as "neighbor X ebgp-multihop 2" on IOS.
+          ebgpMultihop: 2,
         })),
     });
   }

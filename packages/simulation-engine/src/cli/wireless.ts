@@ -3,6 +3,7 @@ import { wirelessConfig } from '../protocols/wireless';
 import { wirelessMetrics } from '../protocols/wireless-radio';
 import { radioObstructions } from '../protocols/wireless-model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { printSecret, readSecret } from './secrets';
 function configuredRadio(device: Device) {
   if (!device.wireless) throw new Error('Configure o SSID do rádio antes de alterar suas condições.');
   return wirelessConfig(device);
@@ -10,7 +11,7 @@ function configuredRadio(device: Device) {
 export function registerWirelessCommands(r: CommandRegistry) {
   r.register({
     pattern:
-      /^wireless (ap|client) ssid (\S+) security (open|wpa2-psk|wpa3-sae|wpa2-enterprise)(?: key (\S+))? channel (\d+)(?: band (2\.4|5))?$/i,
+      /^wireless (ap|client) ssid (\S+) security (open|wpa2-psk|wpa3-sae|wpa2-enterprise)(?: key (?:([07]) )?(\S+))? channel (\d+)(?: band (2\.4|5))?$/i,
     modes: CONFIG_MODES,
     run: (m, e, d) =>
       e.configureWireless(d.id, {
@@ -18,9 +19,9 @@ export function registerWirelessCommands(r: CommandRegistry) {
         role: m[1].toLowerCase(),
         ssid: m[2],
         security: m[3].toLowerCase(),
-        key: m[4],
-        channel: Number(m[5]),
-        band: m[6] ?? '2.4',
+        key: m[5] === undefined ? undefined : readSecret(m[4], m[5]),
+        channel: Number(m[6]),
+        band: m[7] ?? '2.4',
         enabled: true,
       }),
   });
@@ -75,7 +76,7 @@ export function wirelessRunningConfig(d: Device) {
   if (!w) return [];
   const obstruction = radioObstructions.find((entry) => entry.attenuation === w.attenuation);
   return [
-    `wireless ${w.role} ssid ${w.ssid} security ${w.security}${w.key ? ' key [configured]' : ''} channel ${w.channel} band ${w.band}`,
+    `wireless ${w.role} ssid ${w.ssid} security ${w.security}${w.key ? ' key ' + printSecret(d, w.key) : ''} channel ${w.channel} band ${w.band}`,
     `wireless tx-power ${w.txPower}`,
     ...(obstruction ? [`wireless obstruction ${obstruction.id}`] : ['! Obstrução preservada do cenário']),
     ...(!w.enabled ? ['no service wireless'] : []),

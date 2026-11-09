@@ -62,6 +62,8 @@ export const systemStateSchema = systemConfigSchema
     lastAt: timeSchema,
     cpuPercent: z.number().finite().min(0).max(100),
     memoryKiB: z.number().int().nonnegative(),
+    // When memoryKiB was last sampled (at most once per simulated second).
+    memoryAt: timeSchema.optional(),
     temperatureC: z.number().finite().min(-20).max(200),
     throttled: z.boolean(),
   })

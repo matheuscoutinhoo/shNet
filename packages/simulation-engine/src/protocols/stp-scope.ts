@@ -3,6 +3,7 @@ import type { SimulationEngine } from '../core/engine';
 import { md5 } from '@noble/hashes/legacy.js';
 import { hmac } from '@noble/hashes/hmac.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
+import { trunkAllows } from './trunk';
 
 type StpAction = Extract<
   Action,
@@ -83,7 +84,7 @@ export function stpVlanInstance(d: Device, vlan: number) {
   return c?.mode === 'pvst' ? vlan : (c?.mappings.find((m) => m.vlan === vlan)?.instance ?? 0);
 }
 export function portCarriesVlan(p: NetworkInterface, vlan: number) {
-  return p.mode === 'trunk' ? p.allowedVlans.includes(vlan) : p.accessVlan === vlan || p.voiceVlan === vlan;
+  return p.mode === 'trunk' ? trunkAllows(p, vlan) : p.accessVlan === vlan || p.voiceVlan === vlan;
 }
 export function instancePort(d: Device, p: NetworkInterface) {
   const instance = stpScope(d);
@@ -97,6 +98,12 @@ export function spanningPortState(d: Device, p: NetworkInterface, vlan?: number)
   const instance = vlan === undefined || p.mstBoundary ? 0 : stpVlanInstance(d, vlan);
   return instance ? p.spanningInstances?.find((i) => i.id === instance)?.state : p.spanningTree;
 }
+/** PortFast (edge): the port's own setting, else "spanning-tree portfast default" on access ports. */
+export const edgePort = (d: Device, p: NetworkInterface) =>
+  p.stpEdge ?? (!!d.iosSystem?.portfastDefault && p.mode === 'access' && !p.logical);
+/** BPDU Guard: the port's own setting, else "spanning-tree portfast bpduguard default" on edge ports. */
+export const bpduGuardEnabled = (d: Device, p: NetworkInterface) =>
+  p.bpduGuard ?? (!!d.iosSystem?.bpduguardDefault && edgePort(d, p));
 export const frameVlan = (p: NetworkInterface, vlan?: number) =>
   p.mode === 'trunk'
     ? (vlan ?? p.nativeVlan)

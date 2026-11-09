@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { SimulationEngine, TerminalSession, validateSnapshot } from '../packages/simulation-engine/src';
+import {
+  SimulationEngine,
+  TerminalSession,
+  validateSnapshot,
+  RELOAD_BOOT_MS,
+} from '../packages/simulation-engine/src';
 import { hashIosSecret, verifyIosSecret } from '../packages/simulation-engine/src/cli/local-security';
 
 describe('IOS local enable secrets', () => {
@@ -59,6 +64,7 @@ describe('IOS local enable secrets', () => {
       '',
     ])
       expect(cli.execute(command), command).not.toMatch(/^%/);
+    e.advanceTo(e.state.clock + RELOAD_BOOT_MS);
     const restored = new SimulationEngine(e.snapshot()),
       rcli = new TerminalSession(restored, d.id);
     rcli.execute('enable');

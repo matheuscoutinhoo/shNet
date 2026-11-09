@@ -5,6 +5,7 @@ import {
   linkOperational,
   preflight,
   validateSnapshot,
+  RELOAD_BOOT_MS,
   type Device,
 } from '../packages/simulation-engine/src';
 
@@ -416,8 +417,8 @@ describe('Cisco factory defaults', () => {
   it('loopbacks have no phantom description, MTU, speed or duplex lines', () => {
     const { t } = factory('router');
     run(t, ['interface Loopback0', 'ip address 10.255.0.1 255.255.255.255', 'end']);
-    const block = t.execute('show running-config').split('interface Loopback0\n')[1].split('\nexit')[0];
-    expect(block).toBe(' no shutdown\n ip address 10.255.0.1 255.255.255.255');
+    const block = t.execute('show running-config').split('interface Loopback0\n')[1].split('\n!')[0];
+    expect(block).toBe(' ip address 10.255.0.1 255.255.255.255');
   });
 });
 
@@ -448,8 +449,8 @@ describe('IOS output fidelity and preflight signal', () => {
     expect(environment).toContain('Temperature: 42 C');
     expect(environment).toContain('CPU: 12%');
     run(t, ['ip sla 1', 'icmp-echo 192.0.2.1', 'exit']);
-    e.device(d.id).monitoring!.operations[0].rtt = 0.137;
-    expect(t.execute('do show ip sla statistics')).toContain('RTT 1 ms');
+    Object.assign(e.device(d.id).monitoring!.operations[0], { rtt: 0.137, status: 'up' });
+    expect(t.execute('do show ip sla statistics')).toContain('Latest RTT: 1 milliseconds');
   });
 
   it('preflight accepts split DHCP scopes and aggregates L3-switch capability notes', () => {
@@ -484,9 +485,13 @@ describe('IOS output fidelity and preflight signal', () => {
 });
 
 describe('startup-config persistence and the IOS reload dialog', () => {
+  const RELOADED = /%SYS-5-RELOAD: Reload requested by console/;
   const reload = (t: TerminalSession, ...answers: string[]) => {
     expect(t.execute('reload')).toBe('');
-    return answers.map((answer) => t.execute(answer));
+    const output = answers.map((answer) => t.execute(answer));
+    // A confirmed reload takes the device down until it finishes booting from NVRAM.
+    if (output.some((text) => RELOADED.test(text))) t.engine.advanceTo(t.engine.state.clock + RELOAD_BOOT_MS);
+    return output.map((text) => (RELOADED.test(text) ? 'Reload requested.' : text));
   };
 
   it('access switches with NTP and management save and reload their configuration', () => {
@@ -511,7 +516,7 @@ describe('startup-config persistence and the IOS reload dialog', () => {
     expect(t.execute('write memory')).toBe('Building configuration...\n[OK]');
     const running = t.execute('show running-config');
     expect(running).not.toContain('clock configure');
-    expect(reload(t, '')).toEqual(['Reload complete.']);
+    expect(reload(t, '')).toEqual(['Reload requested.']);
     run(t, ['enable']);
     expect(t.execute('show running-config')).toBe(running);
     expect(e.device(d.id).hostname).toBe('ACC-1');
@@ -583,11 +588,11 @@ describe('startup-config persistence and the IOS reload dialog', () => {
     t.cancel();
     expect(t.prompt).toBe('UNSAVED#');
     expect(e.device(d.id).hostname).toBe('UNSAVED');
-    expect(reload(t, 'no', '')).toEqual(['', 'Reload complete.']);
+    expect(reload(t, 'no', '')).toEqual(['', 'Reload requested.']);
     expect(e.device(d.id).hostname).toBe('SAVED');
     expect(t.prompt).toBe('SAVED>');
     run(t, ['enable', 'configure terminal', 'hostname KEEP', 'end']);
-    expect(reload(t, 'yes', 'y')).toEqual(['Building configuration...\n[OK]', 'Reload complete.']);
+    expect(reload(t, 'yes', 'y')).toEqual(['Building configuration...\n[OK]', 'Reload requested.']);
     expect(e.device(d.id).hostname).toBe('KEEP');
     run(t, ['enable']);
     expect(reload(t, 'n')).toEqual(['']);
@@ -634,10 +639,10 @@ describe('IOS DHCP server pools', () => {
       'ip dhcp excluded-address 10.10.10.1 10.10.10.20\nip dhcp excluded-address 10.10.20.1\n'
     );
     expect(config).toContain(
-      'ip dhcp pool USERS\n network 10.10.10.0 255.255.255.0\n default-router 10.10.10.1\n dns-server 10.2.50.53\n domain-name acme.corp\n exit'
+      'ip dhcp pool USERS\n network 10.10.10.0 255.255.255.0\n default-router 10.10.10.1\n dns-server 10.2.50.53\n domain-name acme.corp\n!'
     );
     expect(config).toContain(
-      'ip dhcp pool VOICE\n network 10.10.20.0 255.255.255.0\n default-router 10.10.20.1\n lease 0 8\n exit'
+      'ip dhcp pool VOICE\n network 10.10.20.0 255.255.255.0\n default-router 10.10.20.1\n lease 0 8\n!'
     );
     validateSnapshot(e.snapshot());
   });

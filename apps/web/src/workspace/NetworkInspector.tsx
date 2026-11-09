@@ -78,7 +78,12 @@ export function NetworkInspector({
               .map((port) => port.name)
               .join(', '),
             device.interfaces
-              .filter((port) => port.mode === 'trunk' && port.allowedVlans.includes(vlan.id))
+              .filter(
+                (port) =>
+                  port.mode === 'trunk' &&
+                  (port.allowedVlans.includes(vlan.id) ||
+                    (!!port.allVlansAllowed && !port.allowedVlans.length))
+              )
               .map((port) => port.name)
               .join(', '),
           ],

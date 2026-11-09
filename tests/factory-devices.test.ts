@@ -68,11 +68,19 @@ describe('Equipamentos de fábrica no canvas', () => {
         expect(port.ip, d.profile).toBeUndefined();
         expect(port.ipv6, d.profile).toBeUndefined();
         expect(port.gateway, d.profile).toBeUndefined();
-        expect(port.dhcp, d.profile).toBeUndefined();
+        // Client endpoints obtain an address automatically; discovery waits for power and a link.
+        if (port.ipv4Mode === 'dhcp') expect(port.dhcp, d.profile).toMatchObject({ status: 'init' });
+        else expect(port.dhcp, d.profile).toBeUndefined();
         expect(port.dhcp6, d.profile).toBeUndefined();
         expect(port.rx + port.tx + port.errors, d.profile).toBe(0);
       }
     }
+    expect(
+      devices
+        .filter((d) => d.interfaces.some((p) => p.ipv4Mode === 'dhcp'))
+        .map((d) => d.profile)
+        .sort()
+    ).toEqual(['desktop', 'iot', 'laptop', 'phone', 'printer', 'smartphone']);
     expect(persisted.devices.find((d) => d.profile === 'smartphone')!.interfaces.map((p) => p.media)).toEqual(
       ['wifi']
     );
@@ -164,6 +172,9 @@ describe('Equipamentos de fábrica no canvas', () => {
     expect(() => e.httpGet(pc.id, '192.0.2.20')).toThrow('TCP exige stack IP ligada.');
     for (const device of [pc, server]) e.setDevicePower(device.id, true);
     expect(linkOperational(e.state, cable)).toBe(true);
+    // The desktop starts DHCP on power-up; the user switches it to a static address.
+    expect(pc.interfaces[0].dhcp?.status).toBe('selecting');
+    e.disableDhcp(pc.id, 'p0');
     Object.assign(pc.interfaces[0], { ip: '192.0.2.10', prefix: 24 });
     Object.assign(server.interfaces[0], { ip: '192.0.2.20', prefix: 24 });
     const disabledRequest = e.httpGet(pc.id, '192.0.2.20');

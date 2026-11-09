@@ -1,7 +1,8 @@
 import { ripRoutes } from './rip';
+import { eigrpRoutes } from './eigrp';
 import type { Device, NetworkInterface, Snapshot } from '../model';
 import { sameSubnet, resolveRoute } from './ipv4';
-import { interfaceOperational } from './layer3';
+import { interfaceOperational, routingEnabled } from './layer3';
 
 // Bind the transport to one WAN interface. Overlay routes cannot resolve their own carrier.
 export function resolveUnderlay(
@@ -21,6 +22,7 @@ export function resolveUnderlay(
     ...device.routes.filter((r) => !r.vrf),
     ...(device.ospf?.routes ?? []),
     ...ripRoutes(device),
+    ...eigrpRoutes(device),
     ...(device.bgp?.routes ?? []),
   ]
     .filter(
@@ -29,4 +31,7 @@ export function resolveUnderlay(
     .sort((a, b) => b.prefix - a.prefix || a.metric - b.metric);
   if (routes[0]) return { port, nextHop: routes[0].nextHop };
   if (port.gateway && sameSubnet(port.ip, port.gateway, port.prefix)) return { port, nextHop: port.gateway };
+  // A switch without "ip routing" sends its own traffic (RADIUS, syslog...) to "ip default-gateway".
+  if (!routingEnabled(device) && device.gateway && sameSubnet(port.ip, device.gateway, port.prefix))
+    return { port, nextHop: device.gateway };
 }

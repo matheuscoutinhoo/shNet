@@ -214,6 +214,7 @@ export const tcpConnectionSchema = z
       'ipp',
       'mqtt',
       'database',
+      'vty',
     ]),
     stream: z
       .object({
@@ -274,6 +275,11 @@ export const tcpConnectionSchema = z
     responseAt: timeSchema.optional(),
     expiresAt: timeSchema.optional(),
     pending: tcpOutstandingSchema.optional(),
+    // Telnet/SSH (VTY) session: the user that logged in, for "show users".
+    vtyUser: z
+      .string()
+      .regex(/^[\w.+@-]{1,64}$/)
+      .optional(),
   })
   .strict()
   .refine(

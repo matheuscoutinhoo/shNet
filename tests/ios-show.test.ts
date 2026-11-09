@@ -62,8 +62,12 @@ describe('IOS show output formats', () => {
     expect(out).toMatch(/^ {6}10\.0\.0\.0\/8 is variably subnetted, 4 subnets, 2 masks$/m);
     expect(out).toMatch(/^C {8}10\.0\.12\.0\/30 is directly connected, GigabitEthernet0\/1$/m);
     expect(out).toMatch(/^L {8}10\.0\.12\.1\/32 is directly connected, GigabitEthernet0\/1$/m);
-    expect(out).toMatch(/^O {8}10\.255\.0\.2\/32 \[110\/\d+\] via 10\.0\.12\.2, GigabitEthernet0\/1$/m);
-    expect(out).toMatch(/^O {5}192\.168\.20\.0\/24 \[110\/\d+\] via 10\.0\.12\.2, GigabitEthernet0\/1$/m);
+    expect(out).toMatch(
+      /^O {8}10\.255\.0\.2\/32 \[110\/\d+\] via 10\.0\.12\.2, \d\d:\d\d:\d\d, GigabitEthernet0\/1$/m
+    );
+    expect(out).toMatch(
+      /^O {5}192\.168\.20\.0\/24 \[110\/\d+\] via 10\.0\.12\.2, \d\d:\d\d:\d\d, GigabitEthernet0\/1$/m
+    );
     expect(out).toMatch(/^ {6}192\.168\.10\.0\/24 is variably subnetted, 2 subnets, 2 masks$/m);
     expect(out).not.toMatch(/^L\s+10\.255\.0\.1\/32/m);
   });

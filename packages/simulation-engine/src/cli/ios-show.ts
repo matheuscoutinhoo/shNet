@@ -2,10 +2,14 @@ import type { SimulationEngine } from '../core/engine';
 import type { AclRule, Device, NetworkInterface } from '../model';
 import { bgpCandidates, bestBgpPaths } from '../protocols/bgp-routing';
 import { bgpPrefixKey } from '../protocols/bgp-model';
+import { connectedPort, singleHopEbgp } from '../protocols/bgp';
 import { bridgeId, portCost } from '../protocols/stp-election';
-import { ipNumber, ipString, mask } from '../protocols/ipv4';
+import { edgePort, spanningPortState } from '../protocols/stp-scope';
+import { allVlansAllowed, trunkAllows, trunkVlans, vlanRangeText } from '../protocols/trunk';
+import { shortInterfaceName } from '../protocols/interface-name';
+import { ipNumber, ipString, mask, sameSubnet } from '../protocols/ipv4';
 import { interfaceOperational } from '../protocols/layer3';
-import { aclAddress } from './acl';
+import { aclEntryText } from './acl';
 import { longInterfaceName } from './operational';
 
 const clock = (ms: number) => {
@@ -31,7 +35,8 @@ export function showOspfNeighbors(e: SimulationEngine, d: Device) {
     const config = state.interfaces.find((entry) => entry.port === n.port);
     if (config?.networkType === 'point-to-point') return '  -';
     const port = state.ports.find((entry) => entry.port === n.port);
-    return n.ip === port?.dr ? 'DR' : n.ip === port?.bdr ? 'BDR' : 'DROTHER';
+    // The election records router IDs.
+    return n.routerId === port?.dr ? 'DR' : n.routerId === port?.bdr ? 'BDR' : 'DROTHER';
   };
   const label: Record<string, string> = {
     Init: 'INIT',
@@ -61,12 +66,33 @@ export function showOspfNeighbors(e: SimulationEngine, d: Device) {
   ].join('\n');
 }
 
-/** show ip bgp */
-export function showBgpTable(d: Device) {
-  const state = d.bgp!;
+const BGP_TABLE_HEADER = [
+  'Status codes: s suppressed, d damped, h history, * valid, > best, i - internal,',
+  '              r RIB-failure, S Stale, m multipath, b backup-path, f RT-Filter,',
+  '              x best-external, a additional-path, c RIB-compressed,',
+  '              t secondary path, L long-lived-stale,',
+  'Origin codes: i - IGP, e - EGP, ? - incomplete',
+  'RPKI validation codes: V valid, I invalid, N Not found',
+  '',
+  '     Network          Next Hop            Metric LocPrf Weight Path',
+];
+type TablePath = {
+  network: string;
+  prefix: number;
+  nextHop: string;
+  med: number;
+  localPref: number;
+  asPath: number[];
+  origin: 'IGP' | 'EGP' | 'INCOMPLETE';
+  peer?: string;
+  external?: boolean;
+};
+function bgpTableRows(d: Device, paths: TablePath[]) {
   const best = new Set(bestBgpPaths(d).map((p) => bgpPrefixKey(p) + '|' + (p.peer ?? 'local')));
+  // More specific paths of a "summary-only" aggregate are suppressed ("s>").
+  const summaries = (d.bgp!.aggregates ?? []).filter((a) => a.summaryOnly);
   const origin = { IGP: 'i', EGP: 'e', INCOMPLETE: '?' } as const;
-  const rows = bgpCandidates(d)
+  return [...paths]
     .sort((a, b) => ipNumber(a.network) - ipNumber(b.network) || a.prefix - b.prefix)
     .map((p, i, list) => {
       const sameAsPrevious = i > 0 && bgpPrefixKey(list[i - 1]) === bgpPrefixKey(p);
@@ -76,9 +102,15 @@ export function showBgpTable(d: Device) {
           ? p.network
           : p.network + '/' + p.prefix;
       const local = !p.peer,
-        internal = !!p.peer && !p.external;
+        internal = !!p.peer && !p.external,
+        suppressed = summaries.some(
+          (a) =>
+            p.prefix > a.prefix &&
+            sameSubnet(p.network, a.network, a.prefix) &&
+            best.has(bgpPrefixKey(a) + '|local')
+        );
       return (
-        ' *' +
+        (suppressed ? ' s' : ' *') +
         (best.has(bgpPrefixKey(p) + '|' + (p.peer ?? 'local')) ? '>' : ' ') +
         (internal ? 'i' : ' ') +
         ' ' +
@@ -93,17 +125,39 @@ export function showBgpTable(d: Device) {
         [...p.asPath, origin[p.origin]].join(' ')
       );
     });
+}
+/** show ip bgp */
+export function showBgpTable(d: Device) {
+  const rows = bgpTableRows(d, bgpCandidates(d));
   return [
-    `BGP table version is ${rows.length + 1}, local router ID is ${state.routerId}`,
-    'Status codes: s suppressed, d damped, h history, * valid, > best, i - internal,',
-    '              r RIB-failure, S Stale, m multipath, b backup-path, f RT-Filter,',
-    '              x best-external, a additional-path, c RIB-compressed,',
-    '              t secondary path, L long-lived-stale,',
-    'Origin codes: i - IGP, e - EGP, ? - incomplete',
-    'RPKI validation codes: V valid, I invalid, N Not found',
-    '',
-    '     Network          Next Hop            Metric LocPrf Weight Path',
+    `BGP table version is ${rows.length + 1}, local router ID is ${d.bgp!.routerId}`,
+    ...BGP_TABLE_HEADER,
     ...rows,
+  ].join('\n');
+}
+/** show ip bgp neighbors IP advertised-routes | received-routes | routes */
+export function showBgpNeighborRoutes(d: Device, ip: string, view: string) {
+  const state = d.bgp!,
+    peer = state.peers.find((entry) => entry.ip === ip),
+    config = state.neighbors.find((entry) => entry.ip === ip);
+  if (!peer || !config) return '% No such neighbor or address family';
+  const external = config.remoteAs !== state.asn;
+  let paths: TablePath[];
+  if (view === 'advertised-routes') {
+    // IOS lists the local table entries sent to the neighbor (a default-originate is not in the table).
+    const sent = new Set(peer.advertised.map(bgpPrefixKey));
+    paths = bestBgpPaths(d).filter((path) => sent.has(bgpPrefixKey(path)));
+  } else if (view === 'received-routes') {
+    if (!config.softReconfigurationInbound) return '% Inbound soft reconfiguration not enabled on ' + ip;
+    paths = state.rib.filter((path) => path.peer === ip).map((path) => ({ ...path, external }));
+  } else paths = bgpCandidates(d).filter((path) => path.peer === ip);
+  const rows = bgpTableRows(d, paths);
+  return [
+    `BGP table version is ${bgpCandidates(d).length + 1}, local router ID is ${state.routerId}`,
+    ...BGP_TABLE_HEADER,
+    ...rows,
+    '',
+    'Total number of prefixes ' + rows.length,
   ].join('\n');
 }
 
@@ -145,13 +199,21 @@ export function showBgpNeighbors(e: SimulationEngine, d: Device) {
     .map((peer) => {
       const config = state.neighbors.find((n) => n.ip === peer.ip)!;
       const since = peer.state === 'Established' ? peer.establishedAt : peer.changedAt;
+      const external = config.remoteAs !== state.asn;
       return [
-        `BGP neighbor is ${peer.ip},  remote AS ${config.remoteAs}, ${config.remoteAs === state.asn ? 'internal' : 'external'} link`,
+        `BGP neighbor is ${peer.ip},  remote AS ${config.remoteAs}, ${external ? 'external' : 'internal'} link`,
+        ...(config.description ? [` Description: ${config.description}`] : []),
         `  BGP version 4, remote router ID ${peer.remoteId ?? '0.0.0.0'}`,
         `  BGP state = ${peer.state}` +
           (since !== undefined
             ? `, ${peer.state === 'Established' ? 'up' : 'down'} for ${clock(e.state.clock - since)}`
             : ''),
+        `  Last read ${peer.receivedAt !== undefined ? clock(e.state.clock - peer.receivedAt) : 'never'}, hold time is ${(peer.holdMs ?? state.holdMs) / 1000}, keepalive interval is ${(peer.holdMs ?? state.holdMs) / 3000} seconds`,
+        ...(external && (config.ebgpMultihop ?? 1) > 1
+          ? [`  External BGP neighbor may be up to ${config.ebgpMultihop} hops away.`]
+          : singleHopEbgp(state, config) && !connectedPort(e.state, d, peer.ip)
+            ? ['  External BGP neighbor not directly connected.']
+            : []),
         `  Message statistics: ${peer.sent} sent, ${peer.received} received`,
         `  Prefixes received ${state.rib.filter((p) => p.peer === peer.ip).length}, advertised ${peer.advertised.length}`,
       ].join('\n');
@@ -212,57 +274,57 @@ function stpBlock(
           String(portCost(port)).padEnd(10) +
           ('128.' + (d.interfaces.indexOf(port) + 1)).padEnd(9) +
           'P2p' +
-          (port.stpEdge ? ' Edge' : '')
+          (edgePort(d, port) ? ' Edge' : '')
       ),
   ].join('\n');
 }
-/** show spanning-tree [vlan N]: one IOS block per VLAN (PVST) or MST instance. */
-export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) {
+/** The spanning trees of a switch: one per VLAN (PVST), per MST instance, or the common tree. */
+export function stpTrees(d: Device) {
   const c = d.multiSpanningTree;
-  if (!d.spanningTree?.enabled) return 'No spanning tree instance exists.';
+  if (!d.spanningTree?.enabled) return [];
   const member = (p: NetworkInterface, vlans: number[]) =>
-    p.mode === 'trunk' ? vlans.some((v) => p.allowedVlans.includes(v)) : vlans.includes(p.accessVlan);
-  if (!c) {
-    const ports = d.interfaces
-      .filter((p) => p.spanningTree)
-      .map((p) => ({ port: p, state: p.spanningTree! }));
-    return stpBlock(
-      e,
-      d,
-      'VLAN0001',
-      d.spanningTree.mode === 'rstp' ? 'rstp' : 'ieee',
-      d.spanningTree,
-      0,
-      ports
-    );
-  }
+    p.mode === 'trunk' ? vlans.some((v) => trunkAllows(p, v)) : vlans.includes(p.accessVlan);
+  if (!c)
+    return [
+      {
+        vlans: [1],
+        title: 'VLAN0001',
+        protocol: d.spanningTree.mode === 'rstp' ? 'rstp' : 'ieee',
+        tree: d.spanningTree,
+        sysId: 0,
+        ports: d.interfaces.filter((p) => p.spanningTree).map((p) => ({ port: p, state: p.spanningTree! })),
+      },
+    ];
   const protocol = c.mode === 'mstp' ? 'mstp' : c.protocol === 'stp' ? 'ieee' : 'rstp';
-  const blocks = c.instances
-    .filter((instance) =>
-      vlan === undefined
-        ? true
-        : c.mode === 'pvst'
-          ? instance.id === vlan
-          : c.mappings.some((m) => m.vlan === vlan && m.instance === instance.id)
-    )
+  return [...c.instances]
     .sort((a, b) => a.id - b.id)
     .map((instance) => {
       const vlans =
         c.mode === 'pvst'
           ? [instance.id]
           : c.mappings.filter((m) => m.instance === instance.id).map((m) => m.vlan);
-      const ports = d.interfaces
-        .filter((p) => member(p, vlans))
-        .flatMap((p) => {
-          const state = p.spanningInstances?.find((i) => i.id === instance.id)?.state;
-          return state ? [{ port: p, state }] : [];
-        });
-      const title =
-        c.mode === 'pvst'
-          ? 'VLAN' + String(instance.id).padStart(4, '0')
-          : 'MST' + String(instance.id).padStart(4, '0');
-      return stpBlock(e, d, title, protocol, instance.tree, c.mode === 'pvst' ? instance.id : 0, ports);
+      return {
+        vlans,
+        title: (c.mode === 'pvst' ? 'VLAN' : 'MST') + String(instance.id).padStart(4, '0'),
+        protocol,
+        tree: instance.tree,
+        sysId: c.mode === 'pvst' ? instance.id : 0,
+        ports: d.interfaces
+          .filter((p) => member(p, vlans))
+          .flatMap((p) => {
+            const state = p.spanningInstances?.find((i) => i.id === instance.id)?.state;
+            return state ? [{ port: p, state }] : [];
+          }),
+      };
     });
+}
+/** show spanning-tree [vlan N]: one IOS block per VLAN (PVST) or MST instance. */
+export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) {
+  if (!d.spanningTree?.enabled) return 'No spanning tree instance exists.';
+  const pvst = d.multiSpanningTree?.mode === 'pvst';
+  const blocks = stpTrees(d)
+    .filter((t) => vlan === undefined || (d.multiSpanningTree ? t.vlans.includes(vlan) : vlan === 1 || !pvst))
+    .map((t) => stpBlock(e, d, t.title, t.protocol, t.tree, t.sysId, t.ports));
   if (!blocks.length)
     throw new Error(
       vlan === undefined
@@ -272,6 +334,39 @@ export function showSpanningTree(e: SimulationEngine, d: Device, vlan?: number) 
   return blocks.join('\n\n');
 }
 
+/** show interfaces trunk: operational trunks, their allowed, active and forwarding VLANs. */
+export function showInterfacesTrunk(e: SimulationEngine, d: Device) {
+  const trunks = d.interfaces.filter(
+    (p) => p.mode === 'trunk' && !p.logical && !p.channel && interfaceOperational(e.state, d, p)
+  );
+  const name = (p: NetworkInterface) => shortInterfaceName(p.name).padEnd(12);
+  const active = (p: NetworkInterface) => trunkVlans(d, p).filter((v) => d.vlans.some((x) => x.id === v));
+  const list = (ids: number[]) => vlanRangeText(ids) || 'none';
+  return [
+    'Port        Mode             Encapsulation  Status        Native vlan',
+    ...trunks.map(
+      (p) => name(p) + 'on'.padEnd(17) + '802.1q'.padEnd(15) + 'trunking'.padEnd(14) + p.nativeVlan
+    ),
+    '',
+    'Port        Vlans allowed on trunk',
+    ...trunks.map((p) => name(p) + (allVlansAllowed(p) ? '1-4094' : list(p.allowedVlans))),
+    '',
+    'Port        Vlans allowed and active in management domain',
+    ...trunks.map((p) => name(p) + list(active(p))),
+    '',
+    'Port        Vlans in spanning tree forwarding state and not pruned',
+    ...trunks.map(
+      (p) =>
+        name(p) +
+        list(
+          active(p).filter((v) => {
+            const stp = spanningPortState(d, p, v);
+            return !stp || stp.state === 'forwarding';
+          })
+        )
+    ),
+  ].join('\n');
+}
 /** show vlan [brief] */
 export function showVlan(d: Device, brief: boolean) {
   const access = (id: number) =>
@@ -336,22 +431,39 @@ export function showVlan(d: Device, brief: boolean) {
 export function showNatTranslations(d: Device) {
   const nat = d.nat;
   const proto = (p: string) => (p === 'ip' ? '---' : p.toLowerCase());
+  // ICMP translations are keyed by the echo identifier, shown as a number like IOS.
+  const id = (protocol: string, token?: string) =>
+    protocol === 'ICMP' ? (token?.match(/(\d+)$/)?.[1] ?? '1') : token;
   const at = (ip: string, token?: string) => (token ? ip + ':' + token : ip);
-  return [
-    'Pro  Inside global         Inside local          Outside local         Outside global',
+  const rows = [
     ...(nat?.bindings ?? []).map((b) => {
-      const outside = b.remote ? at(b.remote, b.remotePort?.toString()) : '---';
+      const outside = b.remote
+        ? at(b.remote, b.protocol === 'ICMP' ? id(b.protocol, b.insideToken) : b.remotePort?.toString())
+        : '---';
       return (
         proto(b.protocol).padEnd(5) +
-        at(b.global, b.globalToken).padEnd(22) +
-        at(b.inside, b.insideToken).padEnd(22) +
+        at(b.global, id(b.protocol, b.globalToken)).padEnd(22) +
+        at(b.inside, id(b.protocol, b.insideToken)).padEnd(22) +
         outside.padEnd(22) +
         outside
       );
     }),
+    ...(nat?.portStatics ?? []).map(
+      (s) =>
+        s.protocol.padEnd(5) +
+        at(s.global, String(s.globalPort)).padEnd(22) +
+        at(s.inside, String(s.insidePort)).padEnd(22) +
+        '---'.padEnd(22) +
+        '---'
+    ),
     ...(nat?.statics ?? []).map(
       (s) => '---  ' + s.global.padEnd(22) + s.inside.padEnd(22) + '---'.padEnd(22) + '---'
     ),
+  ];
+  return [
+    'Pro  Inside global         Inside local          Outside local         Outside global',
+    ...rows,
+    'Total number of translations: ' + rows.length,
   ].join('\n');
 }
 
@@ -373,10 +485,7 @@ export function showAccessLists(d: Device, name?: string) {
         `${kind === 'standard' ? 'Standard' : 'Extended'} IP access list ${acl.name}`,
         ...acl.rules.map(
           (rule) =>
-            `    ${rule.sequence} ${rule.action} ` +
-            (kind === 'standard'
-              ? standard(rule.source, rule.sourceWildcard)
-              : `${rule.protocol} ${aclAddress(rule.source, rule.sourceWildcard)}${rule.sourcePort ? ' eq ' + rule.sourcePort : ''} ${aclAddress(rule.destination, rule.destinationWildcard)}${rule.destinationPort ? ' eq ' + rule.destinationPort : ''}${rule.established ? ' established' : ''}`) +
+            `    ${rule.sequence} ${aclEntryText(rule, kind, standard)}` +
             (rule.hits ? ` (${rule.hits} match${rule.hits === 1 ? '' : 'es'})` : '')
         ),
       ].join('\n');

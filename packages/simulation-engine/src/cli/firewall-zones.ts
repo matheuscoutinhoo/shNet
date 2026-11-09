@@ -1,6 +1,7 @@
 import type { Device } from '../model';
 import { firewallProtocols } from '../protocols/firewall';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
+import { findInterface } from '../protocols/interface-name';
 
 export function firewallZoneConfig(device: Device) {
   const policy = device.firewall?.zonePolicy;
@@ -35,12 +36,19 @@ export function firewallZoneConfig(device: Device) {
   ];
 }
 export function registerFirewallZoneCommands(registry: CommandRegistry) {
-  const base = (device: Device) => ({
-    ...device.firewall,
-    enabled: device.firewall?.enabled ?? false,
-    trustedPorts: device.firewall?.trustedPorts ?? [],
-    protocols: device.firewall ? firewallProtocols(device.firewall) : ['TCP', 'UDP', 'ICMP'],
-  });
+  const base = (device: Device) => {
+    // The IOS zone-based firewall owns the zone policy once configured.
+    if (device.zbf)
+      throw new Error(
+        '% The IOS zone-based firewall (zone security / zone-pair security) is configured; remove it before using the simulator firewall zones.'
+      );
+    return {
+      ...device.firewall,
+      enabled: device.firewall?.enabled ?? false,
+      trustedPorts: device.firewall?.trustedPorts ?? [],
+      protocols: device.firewall ? firewallProtocols(device.firewall) : ['TCP', 'UDP', 'ICMP'],
+    };
+  };
   registry.register({
     pattern: /^firewall mode (trusted|zones)$/i,
     modes: CONFIG_MODES,
@@ -64,7 +72,7 @@ export function registerFirewallZoneCommands(registry: CommandRegistry) {
         policy.zones.push({
           name: match[2],
           ports: (match[3]?.split(/\s+/) ?? []).map((name) => {
-            const port = device.interfaces.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
+            const port = findInterface(device, name);
             if (!port) throw new Error('Interface de zona inexistente.');
             return port.id;
           }),

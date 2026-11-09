@@ -30,6 +30,7 @@ export const ipv6Messages: Record<string, string> = {
   'packet-too-big': 'Aviso de pacote maior que a MTU do caminho',
   tcp: 'Segmento TCP transportado por IPv6',
   udp: 'Datagrama UDP transportado por IPv6',
+  ospf: 'Pacote OSPFv3 trocado entre roteadores do mesmo enlace',
 };
 const stages: Record<string, string> = {
   SENT: 'mensagem enviada',

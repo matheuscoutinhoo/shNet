@@ -16,6 +16,7 @@ import { natIcmpInbound, natIcmpOutbound } from './nat-icmp';
 import { syncNat } from './state-sync';
 import { staticNatOutside, natPools } from './nat-selection';
 import { matchingAclRule } from './acl';
+import { debugLog } from './syslog-buffer';
 
 export function validateNat(device: Device) {
   if (!device.nat) return;
@@ -66,6 +67,49 @@ export function validateNat(device: Device) {
   }
   if (new Set(nat.pools.map((pool) => pool.name)).size !== nat.pools.length)
     throw new Error('Pool NAT duplicado.');
+  for (const pool of nat.iosPools ?? []) {
+    const range = subnet(pool.start, pool.prefix);
+    if (ipNumber(pool.end) < ipNumber(pool.start)) throw new Error('End address less than start address');
+    if (!sameSubnet(pool.end, pool.start, pool.prefix))
+      throw new Error(`Start and end addresses on different subnets (pool ${pool.name})`);
+    if (pool.prefix < 31 && [range.network, range.broadcast].some((a) => a === pool.start || a === pool.end))
+      throw new Error(`Pool ${pool.name} includes a network or broadcast address`);
+    if (ipNumber(pool.end) - ipNumber(pool.start) > 1023)
+      throw new Error('NAT pools are limited to 1024 addresses in this simulator.');
+  }
+  if (new Set((nat.iosPools ?? []).map((pool) => pool.name)).size !== (nat.iosPools?.length ?? 0))
+    throw new Error('Pool NAT duplicado.');
+  for (const rule of nat.poolRules ?? []) {
+    if (!nat.iosPools?.some((pool) => pool.name === rule.pool))
+      throw new Error(`Pool ${rule.pool} not found`);
+    if (nat.poolRules!.some((other) => other.pool === rule.pool && other.overload !== rule.overload))
+      throw new Error(`Pool ${rule.pool} is used both with and without overload.`);
+  }
+  if (new Set((nat.poolRules ?? []).map((rule) => rule.acl)).size !== (nat.poolRules?.length ?? 0))
+    throw new Error('Each access list maps to one NAT pool.');
+  // Static PAT: one global address and port per protocol; one inside mapping unless "extendable".
+  const portStatics = nat.portStatics ?? [];
+  for (const entry of portStatics) {
+    if (!isUnicast(entry.inside) || !isUnicast(entry.global)) throw new Error('Endereço NAT inválido.');
+    const sameGlobal = portStatics.filter(
+      (other) =>
+        other.protocol === entry.protocol &&
+        other.global === entry.global &&
+        other.globalPort === entry.globalPort
+    );
+    const sameInside = portStatics.filter(
+      (other) =>
+        other.protocol === entry.protocol &&
+        other.inside === entry.inside &&
+        other.insidePort === entry.insidePort
+    );
+    if (sameGlobal.length > 1)
+      throw new Error(`similar static entry (${entry.global}:${entry.globalPort}) already exists`);
+    if (sameInside.length > 1 && sameInside.some((other) => !other.extendable))
+      throw new Error(
+        `similar static entry (${entry.inside}:${entry.insidePort}) already exists; use extendable`
+      );
+  }
   for (const pool of nat.pools) {
     validGlobal(pool.outside, pool.start);
     validGlobal(pool.outside, pool.end);
@@ -158,10 +202,11 @@ export function natOwnsAddress(device: Device, port: NetworkInterface, address: 
   if (groups.length && !groups.some((g) => g.state === 'ACTIVE')) return false;
   return (
     device.nat.statics.some((entry) => staticNatOutside(entry.outside, port) && entry.global === address) ||
+    (device.nat.portStatics ?? []).some((entry) => entry.global === address) ||
     device.nat.bindings.some(
       (entry) =>
         entry.global === address &&
-        natPools(device).some((pool) => pool.name === entry.pool && pool.outside === port.id)
+        natPools(device).some((pool) => pool.name === entry.pool && staticNatOutside(pool.outside, port))
     )
   );
 }
@@ -173,7 +218,7 @@ export function natOutbound(
   output: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  return (
+  const result =
     sipMediaOutbound(engine, device, input, output, packet) ??
     sipOutbound(
       engine,
@@ -182,8 +227,15 @@ export function natOutbound(
       output,
       packet,
       translateOutbound(engine, device, input, output, packet)
-    )
-  );
+    );
+  if (device.debug && result && result.src !== packet.src)
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip nat',
+      `NAT: s=${packet.src}->${result.src}, d=${packet.dst} [0]`
+    );
+  return result;
 }
 function translateOutbound(
   engine: SimulationEngine,
@@ -192,7 +244,7 @@ function translateOutbound(
   output: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return packet;
+  if (packet.protocol === 'OSPF' || packet.protocol === 'EIGRP' || packet.protocol === 'VRRP') return packet;
   const hp = hairpinOutbound(engine, device, input, output, packet);
   if (hp) return hp;
   const nat = device.nat;
@@ -211,15 +263,47 @@ function translateOutbound(
     );
     return { ...packet, src: fixed.global };
   }
+  // A server answering from a forwarded port leaves with its static PAT address and port.
+  const forwarded =
+    packet.protocol === 'TCP' || packet.protocol === 'UDP'
+      ? (nat.portStatics ?? []).find(
+          (entry) =>
+            entry.protocol === packet.protocol.toLowerCase() &&
+            entry.inside === packet.src &&
+            entry.insidePort === packet.sourcePort
+        )
+      : undefined;
+  if (forwarded && (packet.protocol === 'TCP' || packet.protocol === 'UDP')) {
+    engine.emit(
+      'NAT_TRANSLATED',
+      device.id,
+      `Static PAT source ${packet.src}:${packet.sourcePort} -> ${forwarded.global}:${forwarded.globalPort}.`,
+      { port: output.id }
+    );
+    return { ...packet, src: forwarded.global, sourcePort: forwarded.globalPort };
+  }
   const pool = natPools(device).find(
     (entry) =>
-      entry.outside === output.id &&
+      staticNatOutside(entry.outside, output) &&
       sameSubnet(entry.source.network, packet.src, entry.source.prefix) &&
       (!entry.sourceAcl || matchingAclRule(device, entry.sourceAcl, packet)?.action === 'permit')
   );
   if (!pool) return packet;
-  const token = packet.protocol !== 'ICMP' ? String(packet.sourcePort) : packet.probeId;
-  const remotePort = packet.protocol !== 'ICMP' ? packet.destinationPort : 0;
+  if ((packet.protocol === 'GRE' || packet.protocol === 'ESP') && pool.overload) {
+    engine.drop(
+      device,
+      `PAT cannot translate ${packet.protocol}: it has no ports (use static NAT or NAT-T).`,
+      output.id
+    );
+    return;
+  }
+  const ported = packet.protocol === 'TCP' || packet.protocol === 'UDP';
+  const token = ported
+    ? String(packet.sourcePort)
+    : packet.protocol === 'ICMP'
+      ? packet.probeId
+      : packet.protocol;
+  const remotePort = ported ? packet.destinationPort : 0;
   let binding = nat.bindings.find(
     (entry) =>
       entry.pool === pool.name &&
@@ -267,7 +351,7 @@ function translateOutbound(
       pool: pool.name,
       inside: packet.src,
       global,
-      protocol: pool.overload ? packet.protocol : 'ip',
+      protocol: pool.overload ? (packet.protocol as 'ICMP' | 'UDP' | 'TCP') : 'ip',
       expiresAt: 0,
       ...(pool.overload
         ? {
@@ -297,9 +381,11 @@ function translateOutbound(
     { port: output.id }
   );
   if (!pool.overload) return { ...packet, src: binding.global };
-  return packet.protocol !== 'ICMP'
+  return packet.protocol === 'TCP' || packet.protocol === 'UDP'
     ? { ...packet, src: binding.global, sourcePort: Number(binding.globalToken) }
-    : { ...packet, src: binding.global, probeId: binding.globalToken! };
+    : packet.protocol === 'ICMP'
+      ? { ...packet, src: binding.global, probeId: binding.globalToken! }
+      : packet;
 }
 
 export function natInbound(
@@ -308,7 +394,15 @@ export function natInbound(
   port: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  return sipInbound(engine, device, port, packet) ?? translateInbound(engine, device, port, packet);
+  const result = sipInbound(engine, device, port, packet) ?? translateInbound(engine, device, port, packet);
+  if (device.debug && result && result.dst !== packet.dst)
+    debugLog(
+      device,
+      engine.state.clock,
+      'ip nat',
+      `NAT*: s=${packet.src}, d=${packet.dst}->${result.dst} [0]`
+    );
+  return result;
 }
 function translateInbound(
   engine: SimulationEngine,
@@ -316,7 +410,7 @@ function translateInbound(
   port: NetworkInterface,
   packet: Packet
 ): Packet | undefined {
-  if (packet.protocol === 'OSPF' || packet.protocol === 'VRRP') return packet;
+  if (packet.protocol === 'OSPF' || packet.protocol === 'EIGRP' || packet.protocol === 'VRRP') return packet;
   if (port.natRole === 'inside') return hairpinInbound(engine, device, port, packet);
   const nat = device.nat;
   if (!nat?.enabled || port.natRole !== 'outside') return packet;
@@ -333,17 +427,41 @@ function translateInbound(
     );
     return { ...packet, dst: fixed.inside };
   }
-  const token = packet.protocol !== 'ICMP' ? String(packet.destinationPort) : packet.probeId;
+  // Port forwarding: only the mapped protocol and port reach the inside server.
+  const forwarded =
+    packet.protocol === 'TCP' || packet.protocol === 'UDP'
+      ? (nat.portStatics ?? []).find(
+          (entry) =>
+            entry.protocol === packet.protocol.toLowerCase() &&
+            entry.global === packet.dst &&
+            entry.globalPort === packet.destinationPort
+        )
+      : undefined;
+  if (forwarded && (packet.protocol === 'TCP' || packet.protocol === 'UDP')) {
+    engine.emit(
+      'NAT_TRANSLATED',
+      device.id,
+      `Static PAT destination ${packet.dst}:${packet.destinationPort} -> ${forwarded.inside}:${forwarded.insidePort}.`,
+      { port: port.id }
+    );
+    return { ...packet, dst: forwarded.inside, destinationPort: forwarded.insidePort };
+  }
+  const ported = packet.protocol === 'TCP' || packet.protocol === 'UDP';
+  const token = ported
+    ? String(packet.destinationPort)
+    : packet.protocol === 'ICMP'
+      ? packet.probeId
+      : packet.protocol;
   const binding = nat.bindings.find(
     (entry) =>
       entry.global === packet.dst &&
       entry.expiresAt > engine.state.clock &&
-      natPools(device).some((pool) => pool.name === entry.pool && pool.outside === port.id) &&
+      natPools(device).some((pool) => pool.name === entry.pool && staticNatOutside(pool.outside, port)) &&
       (entry.protocol === 'ip' ||
         (entry.protocol === packet.protocol &&
           entry.globalToken === token &&
           entry.remote === packet.src &&
-          (packet.protocol === 'ICMP' || entry.remotePort === packet.sourcePort)))
+          (packet.protocol === 'ICMP' || (ported && entry.remotePort === packet.sourcePort))))
   );
   if (!binding) return packet;
   touch(engine, device, binding);
@@ -362,9 +480,11 @@ function translateInbound(
     { port: port.id }
   );
   if (binding.protocol === 'ip') return { ...packet, dst: binding.inside };
-  return packet.protocol !== 'ICMP'
+  return packet.protocol === 'TCP' || packet.protocol === 'UDP'
     ? { ...packet, dst: binding.inside, destinationPort: Number(binding.insideToken) }
-    : { ...packet, dst: binding.inside, probeId: binding.insideToken! };
+    : packet.protocol === 'ICMP'
+      ? { ...packet, dst: binding.inside, probeId: binding.insideToken! }
+      : packet;
 }
 
 export function validateNatSnapshot(snapshot: Snapshot) {

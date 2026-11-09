@@ -55,8 +55,11 @@ export const collectorStateSchema = collectorConfigSchema
 export const telemetryTimerSchema = z
   .object({ kind: z.literal('telemetry-tick'), device: idSchema, token: idSchema })
   .strict();
+const ntpKeyId = z.number().int().min(1).max(65535);
+// Symmetric-key authentication (RFC 5905 MAC): key ID plus a digest over the message.
+const ntpMac = { keyId: ntpKeyId.optional(), mac: z.string().max(64).optional() };
 export const ntpMessageSchema = z.discriminatedUnion('mode', [
-  z.object({ mode: z.literal('client'), id: idSchema, originate: timestamp }).strict(),
+  z.object({ mode: z.literal('client'), id: idSchema, originate: timestamp, ...ntpMac }).strict(),
   z
     .object({
       mode: z.literal('server'),
@@ -65,6 +68,7 @@ export const ntpMessageSchema = z.discriminatedUnion('mode', [
       receive: timestamp,
       transmit: timestamp,
       stratum: z.number().int().min(1).max(15),
+      ...ntpMac,
     })
     .strict(),
 ]);
@@ -100,6 +104,9 @@ export const ntpStateSchema = ntpConfigSchema
       .optional(),
     synchronized: z.boolean(),
     lastSync: timeSchema.optional(),
+    // Current poll round: every configured server is tried at most once per poll interval.
+    roundAt: timeSchema.optional(),
+    roundTried: z.number().int().min(0).max(8).optional(),
     stratum: z.number().int().min(1).max(16),
     samples: z
       .array(

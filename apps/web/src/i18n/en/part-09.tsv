@@ -120,22 +120,16 @@ fq46t5rz	DHCPv6 not configured.
 spwj7rmj	enabled.
 tyrc2j8b	disabled.
 emzsueuq	Interface not found.
-e2divaau	IPv6 not configured
-qzzptpxz	No NDP neighbors
-zgahoa1b	No IPv6 routes
 flbp7k7t	No IPv6 probes
 s8vhonls	Interface is not in a group.
 cg8auszp	Select a Port-channel.
 9vns6ogh	Group does not exist.
-1q4lptx3	No EtherChannels
 uvidgcxy	L3 routing {0}
 0nv871bu	enabled.
 bn0i1rju	disabled.
 8vt83m96	dot1q requires a subinterface and a valid VLAN.
 mzsjnxl9	Use a physical switch port.
 pntdsqzy	VRF does not exist.
-a4aaycl1	Network is not aligned with the prefix.
-h9ojfp75	Route limit reached.
 agfyselm	No VRFs
 434xz61s	HTTP queued [{0}].
 vyga4y2b	SNMP [{0}] queued. Advance the simulation.
@@ -144,8 +138,6 @@ zgj88gko	Configure logging host first.
 fq36j678	1000Base{0}X SFP
 ambyvb3w	No routes
 yern3vrl	Configure ip ospf area on this interface.
-5k9oqf85	OSPF not configured.
-0odvunf3	OSPF {0}, router ID {1} {2} Full adjacencies, {3} LSAs, {4} routes, {5} SPF runs.
 cse5i8ti	inactive
 1c48ncmv	Configure an ip nat outside interface on the global subnet.
 2h0s589a	ACL does not exist.
@@ -181,7 +173,6 @@ pcliu7ei	Configure the VRRP group before accepting services on the VIP.
 ldez8ybd	Configure vrrp VRID ip VIP on this interface.
 ctipnzra	Use no vrrp VRID to remove the group.
 d738pgyn	Enter the new value without no.
-tco2kaur	VRRP not configured.
 dpr2875n	VNI does not exist.
 uxwvi4x5	Configure the radio SSID before changing its conditions.
 662ahtug	Wireless not configured

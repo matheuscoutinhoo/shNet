@@ -20,6 +20,23 @@ export function enqueueAt(state: Snapshot, at: number, action: Action) {
   }
   state.queue.splice(lo, 0, item);
 }
+/** Removes the queued action at `at` matching `match`; false when there is none at that time. */
+export function removeQueued(state: Snapshot, at: number, match: (action: Action) => boolean) {
+  const queue = state.queue;
+  let lo = 0,
+    hi = queue.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (queue[mid].at < at) lo = mid + 1;
+    else hi = mid;
+  }
+  for (let i = lo; i < queue.length && queue[i].at === at; i++)
+    if (match(queue[i].action)) {
+      queue.splice(i, 1);
+      return true;
+    }
+  return false;
+}
 export function random(state: Snapshot) {
   let x = state.seed;
   x ^= x << 13;

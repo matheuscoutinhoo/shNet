@@ -2,6 +2,7 @@ import { firewallProtocols } from '../protocols/firewall';
 import type { Device, TcpConnection } from '../model';
 import { ALL_MODES, CONFIG_MODES, type CommandRegistry } from './registry';
 import { firewallZoneConfig, registerFirewallZoneCommands } from './firewall-zones';
+import { findInterface } from '../protocols/interface-name';
 
 // Never allow simulated payloads to become control sequences in xterm.
 export const terminalText = (text: string) =>
@@ -37,9 +38,7 @@ export function registerTcpCommands(registry: CommandRegistry) {
     pattern: /^tcp connect ([\da-f:.]+) (\d+)(?: interface (\S+))?$/i,
     modes: ALL_MODES,
     run: (match, engine, device) => {
-      const scope = match[3]
-        ? device.interfaces.find((p) => p.name.toLowerCase() === match[3].toLowerCase())
-        : undefined;
+      const scope = match[3] ? findInterface(device, match[3]) : undefined;
       if (match[3] && !scope) throw new Error('Interface TCP inexistente.');
       return `TCP [${engine.openTcp(
         device.id,
@@ -98,7 +97,7 @@ export function registerTcpCommands(registry: CommandRegistry) {
     modes: CONFIG_MODES,
     run: (match, engine, device) => {
       const trustedPorts = match[1].split(/\s+/).map((name) => {
-        const port = device.interfaces.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
+        const port = findInterface(device, name);
         if (!port) throw new Error('Interface de firewall inexistente.');
         return port.id;
       });
@@ -172,7 +171,8 @@ export function tcpRunningConfig(device: Device) {
     ...(device.tcpServices?.map(
       (service) => `${service.enabled ? '' : 'no '}service ${service.kind} ${service.port}`
     ) ?? []),
-    ...(device.firewall
+    // The IOS zone-based firewall prints its own configuration (zone security, zone-pair...).
+    ...(device.firewall && !device.zbf
       ? [
           ...(device.firewall.trustedPorts.length
             ? [

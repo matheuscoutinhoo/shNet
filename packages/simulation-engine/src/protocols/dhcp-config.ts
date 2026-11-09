@@ -181,6 +181,7 @@ export function iosPoolDeclaration(pool: DhcpPool | DhcpPendingPool): DhcpPendin
     ...(pool.excluded?.length ? { excluded: [...pool.excluded] } : {}),
     ...(pool.reservations?.length ? { reservations: structuredClone(pool.reservations) } : {}),
     ...(pool.domainName ? { domainName: pool.domainName } : {}),
+    ...(pool.options?.length ? { options: structuredClone(pool.options) } : {}),
   };
 }
 /** Default IOS-style range: every host of the network, capped at the simulator pool size. */
@@ -390,7 +391,13 @@ function validateClient(port: NetworkInterface) {
   if (client.status === 'requesting' && !client.offer)
     throw new Error('DHCP Request sem oferta selecionada.');
   if (!client.lease) {
-    if (port.ip || port.gateway || port.dns?.length)
+    // Without a lease only a self-assigned APIPA address may be present.
+    const apipa =
+      !!client.autoconfig &&
+      port.ip === client.autoconfig &&
+      port.prefix === 16 &&
+      sameSubnet(client.autoconfig, '169.254.0.0', 16);
+    if ((port.ip && !apipa) || port.gateway || port.dns?.length)
       throw new Error('Cliente DHCP sem lease não pode manter configuração IPv4.');
     if (!client.pendingLease) return;
   }

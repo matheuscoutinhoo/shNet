@@ -30,21 +30,66 @@ export const bgpNeighborSchema = z
     exportPrefixList: z.string().max(32).optional(),
     importRouteMap: z.string().max(32).optional(),
     exportRouteMap: z.string().max(32).optional(),
-    maximumPrefix: z.number().int().min(1).max(512).optional(),
+    maximumPrefix: z.number().int().min(1).max(2147483647).optional(),
     password: z.string().min(1).max(80).optional(),
     bfd: z.boolean().optional(),
     bfdStrict: z.boolean().optional(),
     peerGroup: z.string().max(32).optional(),
     peerGroupOverrides: z.array(z.string().max(32)).max(32).optional(),
+    // eBGP peers must share a connected subnet unless multihop (TTL > 1) or the check is disabled.
+    ebgpMultihop: z.number().int().min(1).max(255).optional(),
+    disableConnectedCheck: z.boolean().optional(),
+    description: z
+      .string()
+      .regex(/^[\x20-\x7e]{1,80}$/)
+      .optional(),
+    // IPv4 unicast activation; undefined follows "bgp default ipv4-unicast" (on by default).
+    activate: z.boolean().optional(),
+    sendCommunity: z.enum(['standard', 'extended', 'both']).optional(),
+    softReconfigurationInbound: z.boolean().optional(),
+    defaultOriginate: z
+      .union([z.literal(true), z.object({ routeMap: z.string().regex(/^[\w-]{1,32}$/) }).strict()])
+      .optional(),
+    maximumPrefixThreshold: z.number().int().min(1).max(100).optional(),
+    maximumPrefixWarningOnly: z.boolean().optional(),
+    // Accept paths that already contain the local AS up to N times (hub-and-spoke MPLS designs).
+    allowasIn: z.number().int().min(1).max(10).optional(),
   })
   .strict();
+const redistributionSchema = z
+  .object({
+    source: z.enum(['connected', 'static', 'ospf', 'rip', 'eigrp']),
+    process: z.number().int().min(1).max(65535).optional(),
+    metric: z.number().int().min(0).max(4294967295).optional(),
+    routeMap: z
+      .string()
+      .regex(/^[\w-]{1,32}$/)
+      .optional(),
+  })
+  .strict();
+export type BgpRedistribution = z.infer<typeof redistributionSchema>;
+const aggregateSchema = prefix
+  .extend({ summaryOnly: z.boolean().optional(), asSet: z.boolean().optional() })
+  .strict();
+export type BgpAggregate = z.infer<typeof aggregateSchema>;
 const configShape = {
   enabled: z.boolean(),
   asn,
   routerId: ipv4Schema,
   autoRouterId: z.boolean().optional(),
-  holdMs: z.number().int().min(3000).max(180000).multipleOf(1000).default(90000),
+  // IOS default: keepalive 60 s, hold time 180 s ("timers bgp 60 180").
+  holdMs: z.number().int().min(3000).max(180000).multipleOf(1000).default(180000),
+  // IOS default (undefined): a directly connected eBGP session drops as soon as its link goes down.
+  fastExternalFallover: z.boolean().optional(),
+  // "no bgp log-neighbor-changes" (false) stops %BGP-5-ADJCHANGE messages.
+  logNeighborChanges: z.boolean().optional(),
+  // "no bgp default ipv4-unicast" (false): neighbors need "neighbor X activate".
+  defaultIpv4Unicast: z.boolean().optional(),
+  // Configured in "address-family ipv4": show running-config prints the address-family block.
+  addressFamily: z.boolean().optional(),
   networks: z.array(prefix).max(128),
+  redistribute: z.array(redistributionSchema).max(8).optional(),
+  aggregates: z.array(aggregateSchema).max(32).optional(),
   neighbors: z.array(bgpNeighborSchema).max(32),
   peerGroups: z
     .array(
@@ -121,6 +166,8 @@ export const bgpPeerSchema = z
     received: z.number().int().nonnegative(),
     advertised: z.array(bgpPathSchema).max(BGP.maxRoutes),
     maximumPrefixExceeded: z.boolean().optional(),
+    // The %BGP-4-MAXPFX threshold warning was already logged for this session.
+    maximumPrefixWarned: z.boolean().optional(),
     evpnAdvertised: z.array(evpnMacSchema).max(512).optional(),
     evpnImetAdvertised: z.array(evpnImetSchema).max(48).optional(),
   })
@@ -160,3 +207,6 @@ export type BgpMessage = z.infer<typeof bgpMessageSchema>;
 export type BgpState = z.infer<typeof bgpStateSchema>;
 export type BgpTimer = z.infer<typeof bgpTimerSchema>;
 export const bgpPrefixKey = (path: { network: string; prefix: number }) => `${path.network}/${path.prefix}`;
+/** IPv4 unicast is exchanged with a neighbor unless it was deactivated (or never activated). */
+export const bgpNeighborActive = (state: Pick<BgpConfig, 'defaultIpv4Unicast'>, neighbor: BgpNeighbor) =>
+  neighbor.activate ?? state.defaultIpv4Unicast !== false;
