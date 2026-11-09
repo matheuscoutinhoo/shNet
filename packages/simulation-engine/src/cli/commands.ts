@@ -70,6 +70,7 @@ import { registerDebugCommands } from './debug';
 import { eigrpRunningConfig, registerEigrpCommands } from './eigrp';
 import { ospf3RunningConfig, registerOspf3Commands } from './ospf3';
 import { registerVtyCommands } from './vty';
+import { registerIpInterfaceCommands, urpfRunningConfig } from './ip-interface';
 import { showVersion } from './ios-version';
 const all = ALL_MODES;
 const config = CONFIG_MODES;
@@ -108,6 +109,7 @@ export function makeRegistry() {
   registerEigrpCommands(r);
   registerOspf3Commands(r);
   registerVtyCommands(r);
+  registerIpInterfaceCommands(r);
   registerConfigDiff(r);
   registerMonitoring(r);
   registerRoutingPolicy(r);
@@ -656,6 +658,7 @@ export function makeRegistry() {
                   : []),
             ...(i.aclIn ? [' ip access-group ' + i.aclIn + ' in'] : []),
             ...(i.aclOut ? [' ip access-group ' + i.aclOut + ' out'] : []),
+            ...urpfRunningConfig(i),
             ...(i.natRole ? [' ip nat ' + i.natRole] : []),
             ...(i.zoneMember ? [' zone-member security ' + i.zoneMember] : []),
             ...(i.ospfAuthentication?.key

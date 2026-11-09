@@ -255,6 +255,12 @@ A autenticação usa `login` (senha da linha; sem senha o Telnet mostra `Passwor
 
 Limites: os métodos `group tacacs+|radius` das listas AAA são tratados como servidor indisponível (passa ao próximo método); as teclas digitadas não trafegam como dados TCP/SSH (a conexão TCP é real, a sessão é entregue ao CLI remoto); `exec-timeout`, `ip ssh time-out` e a suspensão de sessões (Ctrl-Shift-6 x, `resume`) não são modelados.
 
+## uRPF e show ip interface
+
+`ip verify unicast source reachable-via rx [allow-default]` (modo estrito; `ip verify unicast reverse-path` é a forma antiga) aceita um pacote só quando a rota de volta à origem sai pela interface de chegada, considerando caminhos de mesmo custo; `reachable-via any` (modo loose) exige apenas que exista rota. A rota padrão só conta com `allow-default` e uma rota para Null0 nunca conta; DHCP (0.0.0.0 → 255.255.255.255) é isento. Cada descarte gera um evento explicando a origem e incrementa o contador `verification drops`.
+
+`show ip interface [INTERFACE]` segue o formato do IOS: endereço e máscara, MTU, helper addresses, grupos multicast dos protocolos ativos (OSPF, EIGRP, VRRP, HSRP), VRF, ACLs de entrada/saída, NAT inside/outside e, com uRPF, `Input features: Verify Unicast Reverse-Path` e os contadores. Proxy ARP não é modelado e aparece como desabilitado.
+
 ## TCP, echo e HTTP
 
 TCP usa IPv4 protocolo 6 e IPv6 Next Header 6 e passa por ARP/Ethernet, roteamento, VLAN/STP, perda, MTU, ACL e NAT. O modelo executa SYN → SYN/ACK → ACK, entrega ordenada sem duplicação, ACK cumulativo, FIN com half-close, fechamento simultâneo, RST e TIME-WAIT. Porta fechada responde RST; uma conexão bloqueada esgota as tentativas. Eventos mostram estados, descartes e retransmissões; o packet inspector mostra flags, sequência, ACK, janela e dados.
@@ -337,7 +343,8 @@ Switches do catálogo seguem o padrão do Catalyst IOS XE: no primeiro boot e ap
 - **HSRP:** `standby N preempt delay minimum S [reload S] [sync S]` adia a preempção após a interface subir (ou após o boot, com reload); `standby N authentication md5 key-string CHAVE` ou `authentication text|<string>` (padrão "cisco") vão no pacote como no IOS (TLV MD5/texto) e divergências geram `%HSRP-4-BADAUTH` e dois Active; `standby N name NOME`. `show standby [brief]` e o running-config omitem os padrões do IOS. HSRP IPv6 (`standby N ipv6`) não é modelado.
 - **DHCP snooping:** `ip dhcp snooping limit rate N` coloca a porta em err-disable (`dhcp-rate-limit`, com `%DHCP_SNOOPING-4-DHCP_SNOOPING_ERRDISABLE_WARNING` e `%PM-4-ERR_DISABLE`) quando chegam mais de N pacotes DHCP por segundo; `errdisable recovery cause dhcp-rate-limit` a recupera. `ip source binding` é aceito antes da VLAN ou do snooping, como no IOS. `[no] ip dhcp snooping information option` é registrado, mas a inserção da opção 82 não é modelada (equivale a `no ... information option`). `show ip dhcp snooping [binding]` usa o formato IOS.
 - **Port security:** `switchport port-security aging time N` e `aging type absolute|inactivity` removem endereços dinâmicos; `mac-address sticky` converte os aprendidos em `mac-address sticky MAC` no running-config, que sobrevivem ao reload. Violações geram `%PORT_SECURITY-2-PSECURE_VIOLATION` (e `%PM-4-ERR_DISABLE` no modo shutdown). `show port-security [interface X | address]` e `clear port-security all|dynamic|sticky|configured` seguem o IOS. Endereços dinâmicos não são apagados quando o enlace cai.
-- **fair-queue:** aceito em interfaces físicas de roteador e exclusivo com `service-policy output`. Sem política de QoS, os enlaces não formam fila, então WFQ e FIFO se comportam igual.
+- **fair-queue:** aceito em interfaces físicas de roteador e exclusivo com `service-policy output`, e também dentro de uma classe de `policy-map` (CBWFQ, recusado em classe `priority`). Sem política de QoS, os enlaces não formam fila, então WFQ e FIFO se comportam igual; dentro da classe a fila é FIFO.
+- **switchport host:** a macro do IOS coloca a porta em access, liga PortFast e a retira do EtherChannel, com as três mensagens do IOS. `ip dhcp snooping trust` e `ip arp inspection trust` são aceitos nas interfaces-membro de um EtherChannel; o Port-channel é confiável quando ele ou seus membros são.
 
 ## UDP e DHCPv4
 

@@ -16,6 +16,7 @@ import { interfaceUp, interfaceOperational, routingEnabled } from './layer3';
 import { receiveTunnelPacket } from './ios-tunnel';
 import { permitSelfZone } from './zbf-policy';
 import { debugEchoReply, debugReceived } from './ip-debug';
+import { permitUrpf } from './urpf';
 export function ipNumber(ip: string): number {
   const cached = parsedAddresses.get(ip);
   if (cached !== undefined) return cached;
@@ -303,6 +304,7 @@ export function receiveIp(
   fromWire = true
 ) {
   if (fromWire && !permitPacket(e, d, port, 'in', packet)) return;
+  if (fromWire && port.urpf && !permitUrpf(e, d, port, packet)) return;
   // Routing and redundancy protocols terminate on the router: the IOS self zone applies to them.
   if (
     fromWire &&

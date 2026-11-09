@@ -865,6 +865,13 @@ export const interfaceSchema = z
       .string()
       .regex(/^[a-zA-Z][\w-]{0,31}$/)
       .optional(),
+    // Unicast RPF: "ip verify unicast source reachable-via rx|any [allow-default]".
+    urpf: z
+      .object({ mode: z.enum(['rx', 'any']), allowDefault: z.boolean().optional() })
+      .strict()
+      .optional(),
+    // Packets dropped by the uRPF check ("verification drops").
+    urpfDrops: z.number().int().nonnegative().optional(),
     rx: z.number().int().nonnegative(),
     tx: z.number().int().nonnegative(),
     errors: z.number().int().nonnegative(),
